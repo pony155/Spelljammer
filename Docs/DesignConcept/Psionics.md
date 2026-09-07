@@ -4,15 +4,15 @@
 
 | Technique | Stable ID | Tier | Intended effect |
 | --- | --- | ---: | --- |
-| Psychic Blast | `psi.telepathy.psychic-blast` | 2 | Deal direct psychic damage to one target's mind; resistible by Willpower. |
+| Psionic Blast | `psi.telepathy.psionic-blast` | 2 | Deal direct psionic damage to one target's mind; resistible by Willpower. |
 | Mind Imprint | `psi.telepathy.mind-imprint` | 2 | Plant a suggestion in a target's mind that they feel compelled to follow; resisted by Willpower, and the compulsion fades if contradicted by harm or strong emotion. |
 | Mind Reading | `psi.telepathy.mind-reading` | 2 | Peer into a target's immediate intentions to reveal their planned action and attack for the next turn; resisted by Willpower. |
-| Mental Shaping | `psi.telepathy.mental-shaping` | 2 | Shape a target's mental state—inflict panic, confusion, or rage on enemies, or grant courage, clarity, or focus to allies; resisted by Willpower when used offensively. |
-| Mental Restoration | `psi.telepathy.mental-restoration` | 2 | Calm and stabilize a target's mind, removing scare, confusion, and mental breakdown conditions. |
-| Mind Control | `psi.telepathy.mind-control` | 3 | Seize control of a target's actions for a limited duration; resisted and broken by significant harm or counter-psionics. |
-| Mass Mind Control | `psi.telepathy.mass-mind-control` | 4 | Seize control of multiple targets' actions simultaneously; number of targets and range determined by caster's Willpower; resisted and broken by significant harm or counter-psionics. |
-| Psychic Storm | `psi.telepathy.psychic-storm` | 3 | Unleash a psychic storm in an area, dealing direct psychic damage to all minds within range; resistible by Willpower. |
-| Psychic Scan | `psi.telepathy.psychic-scan` | 2 | Sweep a wide area to detect and locate all conscious minds within range, revealing their general position and relative mental strength. |
+| Mind Shaping | `psi.telepathy.mind-shaping` | 2 | Shape a target's mental state—inflict panic, confusion, or rage on enemies, or grant courage, clarity, or focus to allies; resisted by Willpower when used offensively. |
+| Mind Restoration | `psi.telepathy.mind-restoration` | 2 | Calm and stabilize a target's mind, removing scare, confusion, and mental breakdown conditions. |
+| Mind Domination | `psi.telepathy.mind-domination` | 3 | Seize control of a target's actions for a limited duration; resisted and broken by significant harm or counter-psionics. |
+| Mass Mind Domination | `psi.telepathy.mass-mind-domination` | 4 | Seize control of multiple targets' actions simultaneously; number of targets and range determined by caster's Willpower; resisted and broken by significant harm or counter-psionics. |
+| Psionic Storm | `psi.telepathy.psionic-storm` | 3 | Unleash a psionic storm in an area, dealing direct psionic damage to all minds within range; resistible by Willpower. |
+| Psionic Scan | `psi.telepathy.psionic-scan` | 2 | Sweep a wide area to detect and locate all conscious minds within range, revealing their general position and relative mental strength. |
 
 Telepathy never rewrites memory, forces permanent belief, or grants
 unrestricted mind reading. A resisted attempt still creates Psionics Strain,
