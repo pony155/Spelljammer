@@ -232,18 +232,6 @@ public readonly record struct FeatId : IComparable<FeatId>
     public static bool TryParse(string? value, out FeatId id) => TypedContentId.TryParse(value, "feat.", out id);
 }
 
-/// <summary>A strongly-typed identifier for a Feat granted by a Race or Heritage.</summary>
-public readonly record struct RacialFeatId : IComparable<RacialFeatId>
-{
-    public RacialFeatId(ContentId value) => Value = TypedContentId.RequirePrefix(value, "feat.");
-    public RacialFeatId(string value) : this(new ContentId(value)) { }
-    public ContentId Value { get; }
-    public bool IsValid => Value.IsValid;
-    public int CompareTo(RacialFeatId other) => Value.CompareTo(other.Value);
-    public override string ToString() => Value.ToString();
-    public static bool TryParse(string? value, out RacialFeatId id) => TypedContentId.TryParse(value, "feat.", out id);
-}
-
 /// <summary>A strongly-typed identifier for a player character race.</summary>
 public readonly record struct RaceId : IComparable<RaceId>
 {

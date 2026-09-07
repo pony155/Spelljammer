@@ -217,17 +217,17 @@ public static class CharacterCreator
         }
 
         GrantCollector grants = new(catalog, request.RaceId);
-        foreach (RacialFeatId racialFeatId in race.GrantedRacialFeatIds)
+        foreach (FeatId featId in race.GrantedFeatIds)
         {
-            if (!grants.AddRacialFeat(racialFeatId, race.RaceId.Value, GrantSourceKind.Race, out ContentId? missing))
+            if (!grants.AddFeat(featId, race.RaceId.Value, GrantSourceKind.Race, out ContentId? missing))
             {
                 return Failure(grants.CapacityExceeded ? CharacterCreationFailure.CapacityExceeded : CharacterCreationFailure.MissingGrant, missing);
             }
         }
 
-        foreach (RacialFeatId racialFeatId in heritage.GrantedRacialFeatIds)
+        foreach (FeatId featId in heritage.GrantedFeatIds)
         {
-            if (!grants.AddRacialFeat(racialFeatId, heritage.HeritageId.Value, GrantSourceKind.Heritage, out ContentId? missing))
+            if (!grants.AddFeat(featId, heritage.HeritageId.Value, GrantSourceKind.Heritage, out ContentId? missing))
             {
                 return Failure(grants.CapacityExceeded ? CharacterCreationFailure.CapacityExceeded : CharacterCreationFailure.MissingGrant, missing);
             }
@@ -238,7 +238,7 @@ public static class CharacterCreator
             abilities.MoveToImmutable(),
             skills.MoveToImmutable(),
             ImmutableHashSet<FeatId>.Empty,
-            grants.RacialFeats,
+            grants.Feats,
             grants.Techniques,
             grants.Sources);
         ImmutableDictionary<ResourceId, int> resources = template.ResourceIds
@@ -342,21 +342,21 @@ public static class CharacterCreator
 
     private sealed class GrantCollector(ICharacterContentCatalog catalog, RaceId raceId)
     {
-        private readonly HashSet<RacialFeatId> racialFeats = [];
+        private readonly HashSet<FeatId> feats = [];
         private readonly HashSet<TechniqueId> techniques = [];
         private readonly List<CapabilityGrant> sources = [];
 
-        public ImmutableHashSet<RacialFeatId> RacialFeats => racialFeats.ToImmutableHashSet();
+        public ImmutableHashSet<FeatId> Feats => feats.ToImmutableHashSet();
         public ImmutableHashSet<TechniqueId> Techniques => techniques.ToImmutableHashSet();
         public ImmutableArray<CapabilityGrant> Sources => [.. sources];
         public bool CapacityExceeded { get; private set; }
 
-        public bool AddRacialFeat(RacialFeatId racialFeatId, ContentId sourceId, GrantSourceKind sourceKind, out ContentId? missing)
+        public bool AddFeat(FeatId featId, ContentId sourceId, GrantSourceKind sourceKind, out ContentId? missing)
         {
-            return AddRacialFeat(racialFeatId, sourceId, sourceKind, 0, out missing);
+            return AddFeat(featId, sourceId, sourceKind, 0, out missing);
         }
 
-        private bool AddRacialFeat(RacialFeatId racialFeatId, ContentId sourceId, GrantSourceKind sourceKind, int depth, out ContentId? missing)
+        private bool AddFeat(FeatId featId, ContentId sourceId, GrantSourceKind sourceKind, int depth, out ContentId? missing)
         {
             missing = null;
             if (depth >= 64)
@@ -365,52 +365,52 @@ public static class CharacterCreator
                 return false;
             }
 
-            if (racialFeats.Contains(racialFeatId))
+            if (feats.Contains(featId))
             {
                 return true;
             }
 
-            if (!catalog.TryGetRacialFeat(racialFeatId, out RacialFeatDefinition? racialFeat) || !racialFeat!.CompatibleRaceIds.Contains(raceId))
+            if (!catalog.TryGetFeat(featId, out FeatDefinition? feat) || !feat!.CompatibleRaceIds.Contains(raceId))
             {
-                missing = racialFeatId.Value;
+                missing = featId.Value;
                 return false;
             }
 
-            if (racialFeats.Count >= CharacterCapabilities.MaximumSetEntries)
+            if (feats.Count >= CharacterCapabilities.MaximumSetEntries)
             {
                 CapacityExceeded = true;
                 return false;
             }
 
-            racialFeats.Add(racialFeatId);
-            sources.Add(new CapabilityGrant(racialFeatId.Value, sourceId, sourceKind));
-            foreach (AccessId accessId in racialFeat.GrantedAccessIds)
+            feats.Add(featId);
+            sources.Add(new CapabilityGrant(featId.Value, sourceId, sourceKind));
+            foreach (AccessId accessId in feat.GrantedAccessIds)
             {
-                sources.Add(new CapabilityGrant(accessId.Value, racialFeatId.Value, GrantSourceKind.RacialFeat));
+                sources.Add(new CapabilityGrant(accessId.Value, featId.Value, GrantSourceKind.Feat));
             }
 
-            foreach (TechniqueId techniqueId in racialFeat.GrantedTechniqueIds)
+            foreach (TechniqueId techniqueId in feat.GrantedTechniqueIds)
             {
-                if (!TryGetTechnique(techniqueId, out ImmutableArray<RacialFeatId> nestedRacialFeats))
+                if (!TryGetTechnique(techniqueId, out ImmutableArray<FeatId> nestedFeats))
                 {
                     missing = techniqueId.Value;
                     return false;
                 }
 
                 techniques.Add(techniqueId);
-                sources.Add(new CapabilityGrant(techniqueId.Value, racialFeatId.Value, GrantSourceKind.RacialFeat));
-                foreach (RacialFeatId nested in nestedRacialFeats)
+                sources.Add(new CapabilityGrant(techniqueId.Value, featId.Value, GrantSourceKind.Feat));
+                foreach (FeatId nested in nestedFeats)
                 {
-                    if (!AddRacialFeat(nested, techniqueId.Value, GrantSourceKind.Technique, depth + 1, out missing))
+                    if (!AddFeat(nested, techniqueId.Value, GrantSourceKind.Technique, depth + 1, out missing))
                     {
                         return false;
                     }
                 }
             }
 
-            foreach (RacialFeatId nested in racialFeat.GrantedRacialFeatIds)
+            foreach (FeatId nested in feat.GrantedFeatIds)
             {
-                if (!AddRacialFeat(nested, racialFeatId.Value, GrantSourceKind.RacialFeat, depth + 1, out missing))
+                if (!AddFeat(nested, featId.Value, GrantSourceKind.Feat, depth + 1, out missing))
                 {
                     return false;
                 }
@@ -420,29 +420,29 @@ public static class CharacterCreator
             return !CapacityExceeded;
         }
 
-        private bool TryGetTechnique(TechniqueId id, out ImmutableArray<RacialFeatId> grantedRacialFeats)
+        private bool TryGetTechnique(TechniqueId id, out ImmutableArray<FeatId> grantedFeats)
         {
             if (id.Value.ToString().StartsWith("spell.", StringComparison.Ordinal) &&
                 catalog.TryGetSpell(new SpellId(id.Value), out _))
             {
-                grantedRacialFeats = [];
+                grantedFeats = [];
                 return true;
             }
 
             if (id.Value.ToString().StartsWith("psionics.", StringComparison.Ordinal) &&
                 catalog.TryGetPsychicTechnique(new PsychicTechniqueId(id.Value), out _))
             {
-                grantedRacialFeats = [];
+                grantedFeats = [];
                 return true;
             }
 
             if (catalog.TryGetTechnique(id, out TechniqueDefinition? technique))
             {
-                grantedRacialFeats = technique!.GrantedRacialFeatIds;
+                grantedFeats = technique!.GrantedFeatIds;
                 return true;
             }
 
-            grantedRacialFeats = [];
+            grantedFeats = [];
             return false;
         }
     }

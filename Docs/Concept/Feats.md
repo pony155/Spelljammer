@@ -25,7 +25,7 @@ Feats:
 | Heritage Feat | Compatible Heritage | Dawnweave | `feat.heritage.elf.dawnweave` |
 
 The source code uses `FeatDefinition` for trained Feats and
-`RacialFeatDefinition` for Race and Heritage Feats because their validation and
+`FeatDefinition` for Race and Heritage Feats because their validation and
 acquisition contracts differ. Both use the player-facing Feat terminology and
 the `feat.*` ID namespace.
 
@@ -70,8 +70,8 @@ graphs exceeding the configured depth or entry limits.
 ## Data and persistence
 
 Learned Feat definitions live under `Definitions/Feats` and use `FeatId`.
-Race and Heritage Feat definitions live under `Definitions/RacialFeats` and use
-`RacialFeatId`. Example IDs are:
+Race and Heritage Feat definitions live under `Definitions/Feats` and use
+`FeatId`. Example IDs are:
 
 ```text
 feat.access.magic
@@ -80,7 +80,7 @@ feat.race.elf.aether-sense
 feat.heritage.elf.dawnweave
 ```
 
-Race and Heritage definitions reference `grantedRacialFeatIds`. Training
+Race and Heritage definitions reference `grantedFeatIds`. Training
 projects reference `grantedFeatIds`. Persistent character state stores learned
 Feat IDs and Racial Feat IDs separately so acquisition rules and provenance can
 be reconstructed and validated.

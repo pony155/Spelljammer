@@ -22,14 +22,14 @@ internal static class DefinitionParser
             [DefinitionKind.Character] = new(
                 ["raceId", "heritageId", "backgroundId", "scenarioIds", "positionId", "languageIds", "scriptIds", "equipmentIds", "focusSkillIds", "resourceIds"], []),
             [DefinitionKind.Feat] = new(["trainingProjectId", "grantedAccessIds"], []),
-            [DefinitionKind.Heritage] = new(["raceId", "grantedRacialFeatIds"], []),
-            [DefinitionKind.RacialFeat] = new(["compatibleRaceIds", "grantedAccessIds", "grantedTechniqueIds"], ["grantedRacialFeatIds", "effectIds"]),
-            [DefinitionKind.Race] = new(["grantedRacialFeatIds"], ["requiredSupportIds"]),
+            [DefinitionKind.Heritage] = new(["raceId", "grantedFeatIds"], []),
+            [DefinitionKind.Feat] = new(["compatibleRaceIds", "grantedAccessIds", "grantedTechniqueIds"], ["grantedFeatIds", "effectIds"]),
+            [DefinitionKind.Race] = new(["grantedFeatIds"], ["requiredSupportIds"]),
             [DefinitionKind.Spell] = new(
                 ["requiredAccessId", "skillId", "focusResourceId", "focusCost", "rangeId", "castTimeTicks", "cooldownTicks", "targetTags", "effectIds"], []),
             [DefinitionKind.PsychicTechnique] = new(
                 ["requiredAccessId", "skillId", "resistanceSkillId", "strainResourceId", "strainCost", "sustainCostPerTick", "contactModeId", "rangeId", "informationScopeId", "disciplineIds", "targetTags", "effectIds"], []),
-            [DefinitionKind.Technique] = new(["requiredAccessIds", "grantedRacialFeatIds"], []),
+            [DefinitionKind.Technique] = new(["requiredAccessIds", "grantedFeatIds"], []),
             [DefinitionKind.TrainingProject] = new(
                 ["requiredSkillIds", "workUnits", "progressCap", "facilityId", "resourceId", "resourceCost", "safetyId", "grantedFeatIds", "grantedTechniqueIds"], []),
             [DefinitionKind.Equipment] = new(
@@ -58,7 +58,7 @@ internal static class DefinitionParser
             ["Characters"] = DefinitionKind.Character,
             ["Feats"] = DefinitionKind.Feat,
             ["Heritages"] = DefinitionKind.Heritage,
-            ["RacialFeats"] = DefinitionKind.RacialFeat,
+            ["Feats"] = DefinitionKind.Feat,
             ["Races"] = DefinitionKind.Race,
             ["Spells"] = DefinitionKind.Spell,
             ["PsychicTechniques"] = DefinitionKind.PsychicTechnique,

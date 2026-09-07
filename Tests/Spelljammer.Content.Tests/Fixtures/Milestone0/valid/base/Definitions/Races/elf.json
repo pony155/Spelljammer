@@ -4,5 +4,5 @@
   "id": "race.elf",
   "nameKey": "race.elf.name",
   "descriptionKey": "race.elf.description",
-  "grantedRacialFeatIds": ["feat.race.elf.aether-sense"]
+  "grantedFeatIds": ["feat.race.elf.aether-sense"]
 }

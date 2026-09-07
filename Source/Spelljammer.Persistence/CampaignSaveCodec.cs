@@ -490,7 +490,7 @@ public static class CampaignSaveCodec
                 Abilities = [.. snapshot.Abilities.Select(value => new AbilityValueDto { Id = value.Id.ToString(), Value = value.Value })],
                 Skills = [.. snapshot.Skills.Select(value => new SkillValueDto { Id = value.Id.ToString(), Value = value.Value })],
                 FeatIds = [.. snapshot.Feats.Select(value => value.ToString())],
-                RacialFeatIds = [.. snapshot.RacialFeats.Select(value => value.ToString())],
+                FeatIds = [.. snapshot.Feats.Select(value => value.ToString())],
                 TechniqueIds = [.. snapshot.Techniques.Select(value => value.ToString())],
                 GrantSources = [.. snapshot.GrantSources.Select(value => new GrantDto
                 {
@@ -724,7 +724,7 @@ public static class CampaignSaveCodec
             abilities,
             skills,
             [.. ParseIds(value.Capabilities.FeatIds, CharacterCapabilities.MaximumSetEntries).Select(id => new FeatId(id))],
-            [.. ParseIds(value.Capabilities.RacialFeatIds, CharacterCapabilities.MaximumSetEntries).Select(id => new RacialFeatId(id))],
+            [.. ParseIds(value.Capabilities.FeatIds, CharacterCapabilities.MaximumSetEntries).Select(id => new FeatId(id))],
             [.. value.Capabilities.GrantSources.Where(grant => grant.CapabilityId.StartsWith("access.", StringComparison.Ordinal))
                 .Select(grant => new AccessId(grant.CapabilityId)).Distinct().Order()],
             [.. ParseIds(value.Capabilities.TechniqueIds, CharacterCapabilities.MaximumSetEntries).Select(id => new TechniqueId(id))],

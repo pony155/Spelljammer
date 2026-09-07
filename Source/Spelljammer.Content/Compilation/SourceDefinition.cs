@@ -12,7 +12,7 @@ internal enum DefinitionKind : byte
     Character,
     Feat,
     Heritage,
-    RacialFeat,
+    Feat,
     Race,
     Spell,
     PsychicTechnique,

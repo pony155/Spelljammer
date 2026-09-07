@@ -122,7 +122,7 @@ public sealed record ActionDefinition(
     ImmutableArray<ActionCost> Costs,
     int Difficulty,
     int Modifier,
-    ImmutableArray<RacialFeatId> GrantedRacialFeatIds);
+    ImmutableArray<FeatId> GrantedFeatIds);
 
 /// <summary>
 /// Describes a potential target for an action with validation status.
@@ -204,7 +204,7 @@ public sealed record ActionResolutionEvent(
     int Difficulty,
     bool Succeeded,
     string FailureReason,
-    ImmutableArray<RacialFeatId> GrantedRacialFeatIds);
+    ImmutableArray<FeatId> GrantedFeatIds);
 
 public sealed record ActionExecutionResult(
     CharacterState State,
@@ -244,20 +244,20 @@ public static class CharacterActionSystem
         }
 
         if (definition.FormulaId != StandardCheckFormula ||
-            definition.Costs.Length > 32 || definition.GrantedRacialFeatIds.Length > CharacterCapabilities.MaximumSetEntries ||
+            definition.Costs.Length > 32 || definition.GrantedFeatIds.Length > CharacterCapabilities.MaximumSetEntries ||
             request.ContextIds.Count > CharacterCapabilities.MaximumSetEntries ||
             definition.Costs.Select(value => value.ResourceId).Distinct().Count() != definition.Costs.Length ||
-            definition.GrantedRacialFeatIds.Distinct().Count() != definition.GrantedRacialFeatIds.Length ||
+            definition.GrantedFeatIds.Distinct().Count() != definition.GrantedFeatIds.Length ||
             definition.Difficulty is < 0 or > 10_000 || definition.Modifier is < -10_000 or > 10_000)
         {
             return Rejected(ActionRejectionCodes.ActionUnknown, request.ActionId.Value);
         }
 
-        foreach (RacialFeatId racialFeatId in definition.GrantedRacialFeatIds)
+        foreach (FeatId featId in definition.GrantedFeatIds)
         {
-            if (!catalog.TryGetRacialFeat(racialFeatId, out RacialFeatDefinition? racialFeat) || !racialFeat!.CompatibleRaceIds.Contains(actor.RaceId))
+            if (!catalog.TryGetFeat(featId, out FeatDefinition? feat) || !feat!.CompatibleRaceIds.Contains(actor.RaceId))
             {
-                return Rejected(ActionRejectionCodes.ActionUnknown, racialFeatId.Value);
+                return Rejected(ActionRejectionCodes.ActionUnknown, featId.Value);
             }
         }
 
@@ -345,10 +345,10 @@ public static class CharacterActionSystem
         }
 
         CharacterCapabilities capabilities = reservation.OriginalState.Capabilities;
-        foreach (RacialFeatId racialFeatId in succeeded ? reservation.Definition.GrantedRacialFeatIds : [])
+        foreach (FeatId featId in succeeded ? reservation.Definition.GrantedFeatIds : [])
         {
-            catalog.TryGetRacialFeat(racialFeatId, out RacialFeatDefinition? racialFeat);
-            capabilities = capabilities.WithRacialFeatGrant(racialFeat!, reservation.Definition.Id.Value);
+            catalog.TryGetFeat(featId, out FeatDefinition? feat);
+            capabilities = capabilities.WithFeatGrant(feat!, reservation.Definition.Id.Value);
         }
 
         CharacterState committed = reservation.OriginalState with
@@ -371,7 +371,7 @@ public static class CharacterActionSystem
             reservation.Definition.Difficulty,
             succeeded,
             succeeded ? ActionRejectionCodes.None : "resolution.check-failed",
-            succeeded ? reservation.Definition.GrantedRacialFeatIds : []);
+            succeeded ? reservation.Definition.GrantedFeatIds : []);
         return new ActionExecutionResult(committed, true, succeeded, ActionRejectionCodes.None, resolution);
     }
 

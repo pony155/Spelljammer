@@ -21,7 +21,7 @@ public static class CampaignSaveVersions
     public const ushort Envelope = 1;
 
     /// <summary>
-    /// Version of the save schema (overall data structure). Version 2 adopts racial-feat state and identifiers.
+    /// Version of the save schema (overall data structure). Version 2 adopts feat state and identifiers.
     /// </summary>
     public const ushort SaveSchema = 2;
 

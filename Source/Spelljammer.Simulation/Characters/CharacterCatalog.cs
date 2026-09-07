@@ -27,7 +27,7 @@ public interface ICharacterContentCatalog
     bool TryGetCharacter(CharacterId id, out CharacterDefinition? definition);
     bool TryGetFeat(FeatId id, out FeatDefinition? definition);
     bool TryGetHeritage(HeritageId id, out HeritageDefinition? definition);
-    bool TryGetRacialFeat(RacialFeatId id, out RacialFeatDefinition? definition);
+    bool TryGetFeat(FeatId id, out FeatDefinition? definition);
     bool TryGetRace(RaceId id, out RaceDefinition? definition);
     bool TryGetSpell(SpellId id, out SpellDefinition? definition);
     bool TryGetPsychicTechnique(PsychicTechniqueId id, out PsychicTechniqueDefinition? definition);
@@ -54,7 +54,7 @@ public enum GrantSourceKind : byte
 {
     Race,
     Heritage,
-    RacialFeat,
+    Feat,
     Feat,
     Technique,
     TrainingProject,
@@ -73,7 +73,7 @@ public sealed record CharacterCapabilitySnapshot(
     ImmutableArray<AbilityValueSnapshot> Abilities,
     ImmutableArray<SkillValueSnapshot> Skills,
     ImmutableArray<FeatId> Feats,
-    ImmutableArray<RacialFeatId> RacialFeats,
+    ImmutableArray<FeatId> Feats,
     ImmutableArray<AccessId> Access,
     ImmutableArray<TechniqueId> Techniques,
     ImmutableArray<CapabilityGrant> GrantSources);

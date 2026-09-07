@@ -260,10 +260,10 @@
       "writeText": [
         {
           "path": "Definitions/Races/human.json",
-          "text": "{\"schemaVersion\":1,\"revision\":1,\"id\":\"race.human\",\"nameKey\":\"race.human.name\",\"descriptionKey\":\"race.human.description\",\"grantedRacialFeatIds\":[]}"
+          "text": "{\"schemaVersion\":1,\"revision\":1,\"id\":\"race.human\",\"nameKey\":\"race.human.name\",\"descriptionKey\":\"race.human.description\",\"grantedFeatIds\":[]}"
         },
         {
-          "path": "Definitions/RacialFeats/elf-aether-sense.json",
+          "path": "Definitions/Feats/elf-aether-sense.json",
           "text": "{\"schemaVersion\":1,\"revision\":1,\"id\":\"feat.race.elf.aether-sense\",\"nameKey\":\"feat.race.elf.aether-sense.name\",\"descriptionKey\":\"feat.race.elf.aether-sense.description\",\"compatibleRaceIds\":[\"race.human\"],\"grantedAccessIds\":[\"access.magic\"],\"grantedTechniqueIds\":[]}"
         }
       ],

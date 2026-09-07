@@ -1,1 +1,1 @@
-{"schemaVersion":1,"revision":1,"id":"heritage.somnari.chorusborn","nameKey":"heritage.somnari.chorusborn.name","descriptionKey":"heritage.somnari.chorusborn.description","raceId":"race.somnari","grantedRacialFeatIds":["feat.heritage.somnari.chorusborn"]}
+{"schemaVersion":1,"revision":1,"id":"heritage.somnari.chorusborn","nameKey":"heritage.somnari.chorusborn.name","descriptionKey":"heritage.somnari.chorusborn.description","raceId":"race.somnari","grantedFeatIds":["feat.heritage.somnari.chorusborn"]}

@@ -175,7 +175,7 @@ public static class CampaignValidator
             foreach (ContentId id in capabilities.Abilities.Select(value => value.Id.Value)
                          .Concat(capabilities.Skills.Select(value => value.Id.Value))
                          .Concat(capabilities.Feats.Select(value => value.Value))
-                         .Concat(capabilities.RacialFeats.Select(value => value.Value))
+                         .Concat(capabilities.Feats.Select(value => value.Value))
                          .Concat(capabilities.Techniques.Select(value => value.Value))
                          .Concat(character.TrainingProgress.Keys.Select(value => value.Value))
                          .Concat(character.EquipmentIds))

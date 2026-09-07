@@ -95,9 +95,9 @@ public static class RaceCapabilities
             return false;
         }
 
-        foreach (RacialFeatId racialFeatId in character.Capabilities.RacialFeats)
+        foreach (FeatId featId in character.Capabilities.Feats)
         {
-            if (catalog.TryGetRacialFeat(racialFeatId, out RacialFeatDefinition? racialFeat) && racialFeat!.EffectIds.Contains(effectId))
+            if (catalog.TryGetFeat(featId, out FeatDefinition? feat) && feat!.EffectIds.Contains(effectId))
             {
                 return true;
             }

@@ -1,1 +1,1 @@
-{"schemaVersion":1,"revision":1,"id":"heritage.elf.dawnweave","nameKey":"heritage.elf.dawnweave.name","descriptionKey":"heritage.elf.dawnweave.description","raceId":"race.elf","grantedRacialFeatIds":["feat.heritage.elf.dawnweave"]}
+{"schemaVersion":1,"revision":1,"id":"heritage.elf.dawnweave","nameKey":"heritage.elf.dawnweave.name","descriptionKey":"heritage.elf.dawnweave.description","raceId":"race.elf","grantedFeatIds":["feat.heritage.elf.dawnweave"]}

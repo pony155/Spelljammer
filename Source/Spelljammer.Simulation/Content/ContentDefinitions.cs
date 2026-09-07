@@ -60,7 +60,7 @@ public sealed record AccessDefinition(
     : ContentDefinition(AccessId.Value, SchemaVersion, Revision, NameKey, DescriptionKey);
 
 /// <summary>
-/// Defines a feat that characters can learn through training projects.
+/// Defines a character Feat and its optional acquisition constraints and grants.
 /// </summary>
 public sealed record FeatDefinition(
     FeatId FeatId,
@@ -68,25 +68,13 @@ public sealed record FeatDefinition(
     int Revision,
     string NameKey,
     string DescriptionKey,
-    TrainingProjectId TrainingProjectId,
-    ImmutableArray<AccessId> GrantedAccessIds)
-    : ContentDefinition(FeatId.Value, SchemaVersion, Revision, NameKey, DescriptionKey);
-
-/// <summary>
-/// Defines a Feat granted by a Race or Heritage that can provide access, techniques, and effects.
-/// </summary>
-public sealed record RacialFeatDefinition(
-    RacialFeatId RacialFeatId,
-    int SchemaVersion,
-    int Revision,
-    string NameKey,
-    string DescriptionKey,
+    TrainingProjectId? TrainingProjectId,
     ImmutableArray<RaceId> CompatibleRaceIds,
     ImmutableArray<AccessId> GrantedAccessIds,
     ImmutableArray<TechniqueId> GrantedTechniqueIds,
-    ImmutableArray<RacialFeatId> GrantedRacialFeatIds,
+    ImmutableArray<FeatId> GrantedFeatIds,
     ImmutableArray<ContentId> EffectIds)
-    : ContentDefinition(RacialFeatId.Value, SchemaVersion, Revision, NameKey, DescriptionKey);
+    : ContentDefinition(FeatId.Value, SchemaVersion, Revision, NameKey, DescriptionKey);
 
 /// <summary>
 /// Defines a playable character race with inherent Feats and compatibility requirements.
@@ -97,7 +85,7 @@ public sealed record RaceDefinition(
     int Revision,
     string NameKey,
     string DescriptionKey,
-    ImmutableArray<RacialFeatId> GrantedRacialFeatIds,
+    ImmutableArray<FeatId> GrantedFeatIds,
     ImmutableArray<ContentId> RequiredSupportIds)
     : ContentDefinition(RaceId.Value, SchemaVersion, Revision, NameKey, DescriptionKey);
 
@@ -131,7 +119,7 @@ public sealed record HeritageDefinition(
     string NameKey,
     string DescriptionKey,
     RaceId RaceId,
-    ImmutableArray<RacialFeatId> GrantedRacialFeatIds)
+    ImmutableArray<FeatId> GrantedFeatIds)
     : ContentDefinition(HeritageId.Value, SchemaVersion, Revision, NameKey, DescriptionKey);
 
 /// <summary>
@@ -158,7 +146,7 @@ public sealed record TechniqueDefinition(
     string NameKey,
     string DescriptionKey,
     ImmutableArray<AccessId> RequiredAccessIds,
-    ImmutableArray<RacialFeatId> GrantedRacialFeatIds)
+    ImmutableArray<FeatId> GrantedFeatIds)
     : ContentDefinition(TechniqueId.Value, SchemaVersion, Revision, NameKey, DescriptionKey);
 
 /// <summary>

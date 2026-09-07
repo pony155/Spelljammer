@@ -298,9 +298,9 @@ internal static class ContentContracts
         Equal("CONTENT_SEMANTIC_INVALID", wrongHeritage.Diagnostics[0].Code, "Incompatible Heritage used the wrong diagnostic.");
 
         Dictionary<string, byte[]> cycle = Clone(baseFiles);
-        string path = "Definitions/RacialFeats/race-human.json";
+        string path = "Definitions/Feats/race-human.json";
         string text = Encoding.UTF8.GetString(cycle[path]);
-        cycle[path] = Encoding.UTF8.GetBytes(text.Replace("}\n", ",\"grantedRacialFeatIds\":[\"feat.race.human.versatility\"]}\n", StringComparison.Ordinal));
+        cycle[path] = Encoding.UTF8.GetBytes(text.Replace("}\n", ",\"grantedFeatIds\":[\"feat.race.human.versatility\"]}\n", StringComparison.Ordinal));
         ContentCompilationResult cyclic = new GameContentCompiler().Compile([new MemoryPackSource(cycle, [])], GameVersion);
         False(cyclic.Succeeded, "A capability grant cycle was published.");
         Equal("CONTENT_SEMANTIC_INVALID", cyclic.Diagnostics[0].Code, "Grant cycles used the wrong diagnostic.");
@@ -411,13 +411,13 @@ internal static class ContentContracts
         CharacterState elf = roster.Characters.Single(value => value.RaceId == new RaceId("race.elf"));
         AccessId magic = new("access.magic");
         True(elf.Capabilities.Access.Contains(magic), "Aether Sense did not grant innate magic access.");
-        True(elf.Capabilities.GrantSources.Any(value => value.CapabilityId == magic.Value && value.SourceKind == GrantSourceKind.RacialFeat),
+        True(elf.Capabilities.GrantSources.Any(value => value.CapabilityId == magic.Value && value.SourceKind == GrantSourceKind.Feat),
             "Innate magic access lost its provenance.");
 
         CharacterState trained = CompleteTraining(elf, new TrainingProjectId("training.magic.spellcasting"), snapshot);
         Equal(2, trained.Capabilities.GrantSources.Count(value => value.CapabilityId == magic.Value),
             "Innate and trained access sources did not coexist.");
-        CharacterCapabilities withoutInnate = trained.Capabilities.WithoutGrantSource(new RacialFeatId("feat.race.elf.aether-sense").Value);
+        CharacterCapabilities withoutInnate = trained.Capabilities.WithoutGrantSource(new FeatId("feat.race.elf.aether-sense").Value);
         True(withoutInnate.Access.Contains(magic), "Removing the innate source removed a surviving trained source.");
         CharacterCapabilities withoutEither = withoutInnate.WithoutGrantSource(new TrainingProjectId("training.magic.spellcasting").Value);
         False(withoutEither.Access.Contains(magic), "Effective access did not recompute after all sources were removed.");

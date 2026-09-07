@@ -124,7 +124,7 @@ internal sealed class CapabilityDto
     public AbilityValueDto[] Abilities { get; set; } = [];
     public SkillValueDto[] Skills { get; set; } = [];
     public string[] FeatIds { get; set; } = [];
-    public string[] RacialFeatIds { get; set; } = [];
+    public string[] FeatIds { get; set; } = [];
     public string[] TechniqueIds { get; set; } = [];
     public GrantDto[] GrantSources { get; set; } = [];
 }

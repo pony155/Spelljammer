@@ -413,7 +413,7 @@ ranks or unnamed abilities. Learned Feats come from training and are defined in
 [`Skills.md`](Skills.md); they are not Racial Feats and are not inherited.
 See [`Feats.md`](Feats.md) for the wider Feat terminology and identity rules.
 The technical content namespace is `feat.*`, and Race and Heritage definitions
-grant their Feats through `grantedRacialFeatIds`.
+grant their Feats through `grantedFeatIds`.
 
 Every character begins with two Racial Feats:
 
@@ -487,7 +487,7 @@ race rather than copying the race definition:
   "raceId": "race.dwarf",
   "nameKey": "character.heritage.dwarf.cometdelver.name",
   "descriptionKey": "character.heritage.dwarf.cometdelver.description",
-  "grantedRacialFeatIds": [
+  "grantedFeatIds": [
     "feat.heritage.dwarf.cometdelver"
   ]
 }
