@@ -218,4 +218,6 @@ revisions, dense indices, and registry counts.
 Keep game rules and content in Spelljammer and reusable engine behavior in
 SpriteForge. Authoritative state must remain independent of WPF, renderer
 handles, localized strings, frame rate, and wall-clock timing. Describe roadmap
-work as planned until source and verification exist.
+work as planned until source and verification exist. Pull requests run a GitHub
+Actions workflow that performs a Windows `dotnet build` solution check and a
+non-blocking `codespell` pass.
