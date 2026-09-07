@@ -194,11 +194,11 @@ public static class CampaignMigrationService
             {
                 Fingerprint = newContent.Fingerprint,
                 Abilities = [.. newContent.Abilities.Select(definition => old.Abilities
-                    .FirstOrDefault(value => value.Id == definition.AttributeId) ??
-                    new AttributeValueSnapshot(definition.AttributeId, (short)definition.DefaultValue))],
+                    .FirstOrDefault(value => value.Id == definition.AbilityId) ??
+                    new AbilityValueSnapshot(definition.AbilityId, (short)definition.DefaultValue))],
                 Skills = [.. newContent.Skills.Select(definition => old.Skills
                     .FirstOrDefault(value => value.Id == definition.SkillId) ??
-                    new SkillValueSnapshot(definition.SkillId, (byte)definition.Minimum, 0))],
+                    new SkillValueSnapshot(definition.SkillId, (byte)definition.Minimum))],
             };
             CharacterCapabilities capabilities = CharacterCapabilities.Restore(rebound, newContent);
             return character with { ContentFingerprint = newContent.Fingerprint, Capabilities = capabilities };

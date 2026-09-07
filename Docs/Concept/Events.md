@@ -27,7 +27,7 @@ boundaries are defined in [`GameSettings.md`](GameSettings.md).
   and campaign state.
 - Give the player meaningful choices such as investigate, assist, evade,
   negotiate, repair, exploit, conceal, or continue the voyage.
-- Allow Abilities, Skills, Racial Perks, Feats, equipment, ship modules, supplies,
+- Allow Abilities, Skills, Racial Feats, Feats, equipment, ship modules, supplies,
   and learned information to create additional approaches rather than one
   mandatory answer.
 - Persist injuries, damage, cargo, discoveries, obligations, witnesses,
@@ -72,7 +72,7 @@ An event definition can require or modify weight from:
 - installed modules, armor coverage, current Energy Shield Value and raised
   state, damage, faults, heat, signature, fuel, air, provisions, medicine,
   spare parts, cargo, and free capacity;
-- crew count, positions, Skills, access Feats, Racial Perks, injuries,
+- crew count, positions, Skills, access Feats, Racial Feats, injuries,
   fatigue, needs, and current duties;
 - known factions, agreements, warrants, standing, witnesses, rumors, charts,
   scripts, Ancient Lore, and discovered sites;
@@ -127,7 +127,7 @@ Each choice declares:
 - facts required for the choice to be visible and facts required for it to be
   enabled;
 - required ship capability, module, item, position authority, Skill, Feat,
-  Racial Perk, known language, script, spell, or psionics technique;
+  Racial Feat, known language, script, spell, or psionics technique;
 - immediate costs, reservations, duration, exposure, and cancellation rules;
 - contextual Ability and Skill approaches rather than a character class;
 - deterministic outcome bands and the information the player may preview;
@@ -142,7 +142,7 @@ did not discover. Success is not guaranteed merely because an option is
 visible.
 
 Consequences can change fuel, aether, provisions, time, cargo, module faults,
-ship damage, injuries, practice, knowledge, maps, standing, agreements, Debt,
+ship damage, injuries, knowledge, maps, standing, agreements, Debt,
 Alarm, witnesses, sites, Starways, encounter placement, or later event weights.
 Effects publish normal simulation events so other systems can react without
 the travel-event scheduler directly mutating their private state.
@@ -205,7 +205,7 @@ Events with catastrophic outcomes require at least one of:
 Random events may create losses and difficult tradeoffs, but they cannot erase
 a campaign through an unavoidable choice-free result in the standard setting.
 Rewards account for cost, risk, recurrence, and route difficulty, and repeatable
-events cannot produce unbounded profit or Skill practice.
+events cannot produce unbounded profit or undocumented Skill advancement.
 
 ## Authored data
 
@@ -271,7 +271,7 @@ Content validation rejects:
 
 - duplicate or invalid Event and choice IDs;
 - missing localization, condition, check, effect, encounter, faction, route,
-  item, module, Skill, Feat, Racial Perk, spell, or psionics references;
+  item, module, Skill, Feat, Racial Feat, spell, or psionics references;
 - negative or excessive weights, costs, delays, cooldowns, or occurrence counts;
 - events with no reachable resolution or no safe response when one is required;
 - choice costs without atomic reservation and rollback rules;
@@ -279,7 +279,7 @@ Content validation rejects:
 - catastrophic standard-setting outcomes without an authored warning,
   mitigation, accepted risk, or safe alternative;
 - hidden-condition text that leaks information not yet observed; and
-- repeatable rewards or practice that can exceed their declared budgets.
+- repeatable rewards or Skill advancement that can exceed their declared budgets.
 
 If a candidate event set fails validation, the previous working content
 snapshot remains active. If no event is eligible during travel, the no-event

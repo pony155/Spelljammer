@@ -85,7 +85,7 @@ decision that cannot be expressed by those systems.
 | Enchantment | `skill.enchantment` | Persistent magical bindings, resonators, runes, and enchanted equipment |
 
 Magic and Psionics are learned skills. Race or Heritage may grant access to
-one of them through a Perk, but access does not grant ranks, techniques, free
+one of them through a Feat, but access does not grant ranks, techniques, free
 resources, or immunity to consequences.
 
 ### Ship operation and expedition work
@@ -150,19 +150,19 @@ additional combinations when the action provides a clear explanation.
 
 ## Training and advancement
 
-Skills are learned through training projects, instruction, practice, recovered
-knowledge, faction teaching, or authored consequences. A training project must
+Skills are learned through training projects, instruction, recovered knowledge,
+faction teaching, or authored consequences. A training project must
 declare:
 
 - the skill ID and target rank;
 - required time, facilities, materials, or instructor tags;
 - possible risks or interruptions;
 - the event or command that grants the result; and
-- any prerequisite Feat or access Perk.
+- any prerequisite Feat or access Feat.
 
 Training is committed transactionally. An interrupted project keeps its
 documented partial state or fails according to its definition; it never grants
-an undocumented rank. Racial and Heritage Perks are granted separately and do
+an undocumented rank. Racial and Heritage Feats are granted separately and do
 not count as skill ranks.
 
 ## First playable scope

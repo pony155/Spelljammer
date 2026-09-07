@@ -58,7 +58,7 @@ internal static class CanonicalSemanticWriter
 
         switch (definition)
         {
-            case AttributeDefinition value:
+            case AbilityDefinition value:
                 properties["defaultValue"] = output => output.Append(value.DefaultValue);
                 properties["maximum"] = output => output.Append(value.Maximum);
                 properties["minimum"] = output => output.Append(value.Minimum);
@@ -74,7 +74,7 @@ internal static class CanonicalSemanticWriter
                 properties["tags"] = output => WriteStrings(output, value.Tags);
                 break;
             case BackgroundDefinition value:
-                properties["attributeBonusIds"] = output => WriteIds(output, value.AttributeBonusIds.Select(id => id.Value));
+                properties["abilityBonusIds"] = output => WriteIds(output, value.AbilityBonusIds.Select(id => id.Value));
                 properties["compatibleRaceIds"] = output => WriteIds(output, value.CompatibleRaceIds.Select(id => id.Value));
                 properties["focusSkillIds"] = output => WriteIds(output, value.FocusSkillIds.Select(id => id.Value));
                 break;
@@ -94,7 +94,7 @@ internal static class CanonicalSemanticWriter
                 properties["grantedAccessIds"] = output => WriteIds(output, value.GrantedAccessIds.Select(id => id.Value));
                 properties["trainingProjectId"] = output => WriteString(output, value.TrainingProjectId.ToString());
                 break;
-            case PerkDefinition value:
+            case RacialFeatDefinition value:
                 properties["compatibleRaceIds"] = output => WriteIds(output, value.CompatibleRaceIds.Select(id => id.Value));
                 properties["grantedAccessIds"] = output => WriteIds(output, value.GrantedAccessIds.Select(id => id.Value));
                 properties["grantedTechniqueIds"] = output => WriteIds(output, value.GrantedTechniqueIds.Select(id => id.Value));
@@ -103,14 +103,14 @@ internal static class CanonicalSemanticWriter
                     properties["effectIds"] = output => WriteIds(output, value.EffectIds);
                 }
 
-                if (!value.GrantedPerkIds.IsEmpty)
+                if (!value.GrantedRacialFeatIds.IsEmpty)
                 {
-                    properties["grantedPerkIds"] = output => WriteIds(output, value.GrantedPerkIds.Select(id => id.Value));
+                    properties["grantedRacialFeatIds"] = output => WriteIds(output, value.GrantedRacialFeatIds.Select(id => id.Value));
                 }
 
                 break;
             case RaceDefinition value:
-                properties["grantedPerkIds"] = output => WriteIds(output, value.GrantedPerkIds.Select(id => id.Value));
+                properties["grantedRacialFeatIds"] = output => WriteIds(output, value.GrantedRacialFeatIds.Select(id => id.Value));
                 if (!value.RequiredSupportIds.IsEmpty)
                 {
                     properties["requiredSupportIds"] = output => WriteIds(output, value.RequiredSupportIds);
@@ -118,11 +118,11 @@ internal static class CanonicalSemanticWriter
 
                 break;
             case HeritageDefinition value:
-                properties["grantedPerkIds"] = output => WriteIds(output, value.GrantedPerkIds.Select(id => id.Value));
+                properties["grantedRacialFeatIds"] = output => WriteIds(output, value.GrantedRacialFeatIds.Select(id => id.Value));
                 properties["raceId"] = output => WriteString(output, value.RaceId.ToString());
                 break;
             case TechniqueDefinition value:
-                properties["grantedPerkIds"] = output => WriteIds(output, value.GrantedPerkIds.Select(id => id.Value));
+                properties["grantedRacialFeatIds"] = output => WriteIds(output, value.GrantedRacialFeatIds.Select(id => id.Value));
                 properties["requiredAccessIds"] = output => WriteIds(output, value.RequiredAccessIds.Select(id => id.Value));
                 break;
             case SpellDefinition value:
@@ -260,14 +260,14 @@ internal static class CanonicalSemanticWriter
     private static int CanonicalKindOrder(ContentDefinition definition) => definition switch
     {
         AccessDefinition => 0,
-        AttributeDefinition => 1,
+        AbilityDefinition => 1,
         BackgroundDefinition => 2,
         CharacterDefinition => 3,
         FeatDefinition => 4,
         HeritageDefinition => 5,
         RaceDefinition => 6,
         SkillDefinition => 7,
-        PerkDefinition => 8,
+        RacialFeatDefinition => 8,
         PsychicTechniqueDefinition => 9,
         SpellDefinition => 10,
         TechniqueDefinition => 11,

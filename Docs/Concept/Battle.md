@@ -20,7 +20,7 @@ retreat remain valid before and during combat.
 - Let ship layout, ruin structure, cover, atmosphere, gravity, visibility,
   hazards, and objectives matter as much as raw damage.
 - Make crew abilities, skills, equipment, positions, learned techniques,
-  access Feats, and Racial Perks produce understandable tactical options.
+  access Feats, and Racial Feats produce understandable tactical options.
 - Connect ship-to-ship fire, module damage, boarding, internal defense, and
   disengagement without discarding consequences between scales.
 - Support Arcane, Industrial, and hybrid equipment without making one path the
@@ -420,7 +420,7 @@ because they left the local battle graph.
 
 Projectile recoil, hull penetration, suit puncture, and loose equipment use
 explicit tags. Magic and Psionics still require their access Feats or innate
-Racial Perks and do not ignore vacuum, range, line of effect, or Psionics Strain.
+Racial Feats and do not ignore vacuum, range, line of effect, or Psionics Strain.
 
 ## Settlement and surface conflicts
 

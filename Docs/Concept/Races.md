@@ -51,7 +51,7 @@ A persistent character is composed from independent, stable layers:
 | Background | academy graduate, dockhand, caravan guard | Starting skill package and history, never a class |
 | Abilities | Strength, Agility, Perception, Toughness, Willpower, Intelligence | Broad capability shared by many actions |
 | Skills | piloting, engineering, merchant, negotiation, language and literacy | Learned competence that improves independently |
-| Racial Perks | Versatility, Aether Sense, Braced Stance | Racial feats granted by Race and Heritage |
+| Racial Feats | Versatility, Aether Sense, Braced Stance | Racial feats granted by Race and Heritage |
 
 No translated name or description becomes gameplay identity. Definitions use
 canonical lowercase ASCII IDs; localized keys provide player-facing names.
@@ -85,11 +85,11 @@ first arrived, humanity was between a medieval and renaissance age and had not
 yet achieved spaceflight. The First Concord gave human communities access to
 elven Aether navigation and dwarven engineering methods; human crews then made
 those methods their own and became widespread through social and technical
-adaptation. Their Racial Perk is **Versatility**: one starting aptitude may be
+adaptation. Their Racial Feat is **Versatility**: one starting aptitude may be
 reassigned during recruitment. Their bodies have no extreme environmental
 adaptation and depend on ordinary atmosphere, food, sleep, and medical support.
 
-| Heritage | Stable ID | Heritage Perk | Cost |
+| Heritage | Stable ID | Heritage Feat | Cost |
 | --- | --- | --- | --- |
 | Hearthworld | `heritage.human.hearthworld` | Faster recovery in comfortable gravity and atmosphere | Suffers acclimation penalties sooner in extreme environments |
 | Voidborn | `heritage.human.voidborn` | Lower food use and better low-gravity movement | Reduced tolerance for high gravity and heavy recoil |
@@ -100,7 +100,7 @@ adaptation and depend on ordinary atmosphere, food, sleep, and medical support.
 Elves originate from a homeworld distinct from human and dwarven worlds. Their
 long-lived nervous systems sense patterns in light and the void's aetheric
 currents. Elven records preserve the earliest documented successful Arcane
-spaceflight. Their Racial Perk, **Aether Sense**, can reveal
+spaceflight. Their Racial Feat, **Aether Sense**, can reveal
 weak anomalies or unstable routes before ordinary instruments, but intense
 interference causes sensory strain. Aether Sense grants innate `access.magic`,
 allowing an Elf to learn and cast spells without the Spellcasting Training
@@ -126,7 +126,7 @@ Many elven voyages prioritize observation, star-charting, art, and the
 protection of exceptional natural sites. An individual elf can still become a
 miner, trader, or industrial engineer; this is a cultural passion, not a rule.
 
-| Heritage | Stable ID | Heritage Perk | Cost |
+| Heritage | Stable ID | Heritage Feat | Cost |
 | --- | --- | --- | --- |
 | Dawnweave | `heritage.elf.dawnweave` | Gains focus in strong natural or stellar light | Darkness increases fatigue unless quarters provide tuned lighting |
 | Gloamroot | `heritage.elf.gloamroot` | Excellent low-light sight and reduced sensory signature | Bright or rapidly changing light causes strain |
@@ -135,7 +135,7 @@ miner, trader, or industrial engineer; this is a cultural passion, not a rule.
 ### Half-elves
 
 Half-elves are a first-class race in the initial content model, representing
-characters with both human and elven parentage. Their Racial Perk, **Blended
+characters with both human and elven parentage. Their Racial Feat, **Blended
 Physiology**, lets a character select one minor human adaptation and one minor
 elven sense, each at reduced strength. It does not determine heritage or
 guarantee social acceptance.
@@ -148,7 +148,7 @@ negotiators, navigators, and arbitrators. Their history makes them a natural
 part of the Concord's promise and its unresolved tensions, without assigning
 any individual a social role.
 
-| Heritage | Stable ID | Heritage Perk | Cost |
+| Heritage | Stable ID | Heritage Feat | Cost |
 | --- | --- | --- | --- |
 | Concord | `heritage.half-elf.concord` | Switches between normal sleep and trance when quarters permit | Neither rest mode is as efficient as its specialist form |
 | Starling | `heritage.half-elf.starling` | Adapts quickly to changing gravity and duty schedules | Needs more recovery after repeated schedule changes |
@@ -161,7 +161,7 @@ for half-elves must remain valid through an explicit migration.
 
 Dwarves originate from a homeworld distinct from human and elven worlds. They
 are compact, dense-bodied people adapted to confined habitats and demanding
-physical environments. Their Racial Perk, **Braced Stance**, reduces
+physical environments. Their Racial Feat, **Braced Stance**, reduces
 forced movement and work interruption. Their mass raises acceleration costs,
 and cramped does not mean weightless: ship layout and rescue equipment must
 support them.
@@ -183,7 +183,7 @@ metals, volatiles, reactor material, and industrial gases. Mining claims,
 extraction rights, and safe transport routes are major dwarven economic and
 political interests, not an obligation imposed on every dwarf.
 
-| Heritage | Stable ID | Heritage Perk | Cost |
+| Heritage | Stable ID | Heritage Feat | Cost |
 | --- | --- | --- | --- |
 | Deepforge | `heritage.dwarf.deepforge` | Exceptional high-gravity and heat tolerance | Low gravity reduces precision until acclimated |
 | Cometdelver | `heritage.dwarf.cometdelver` | Detects structural weakness and valuable mineral seams | Requires more calories during heavy work |
@@ -197,10 +197,10 @@ as central virtues. Alongside goblin societies, they uncovered ancient wrecks
 on their shared ancestral homeworld: ships made by an unknown civilization that
 travelled the void before the earliest elven record. Their spacefaring cultures
 grew through generations of salvage and reverse engineering, not through the
-First Concord. Their Racial Perk, **Second Wind**, allows a controlled burst of
+First Concord. Their Racial Feat, **Second Wind**, allows a controlled burst of
 work or combat stamina followed by a visible recovery debt.
 
-| Heritage | Stable ID | Heritage Perk | Cost |
+| Heritage | Stable ID | Heritage Feat | Cost |
 | --- | --- | --- | --- |
 | Redwake | `heritage.orc.redwake` | Sustains strenuous labor and emergency damage control | Higher food and oxygen consumption while exerting |
 | Stormborn | `heritage.orc.stormborn` | Better resistance to electrical and aether-storm injury | Medical recovery uses more conductive supplies |
@@ -212,7 +212,7 @@ Gnomes are small-bodied people with extremely sensitive touch and fine spatial
 judgment. Several dwarf and gnome research communities developed the first
 repeatable instruments and scientific methods for measuring and coupling to
 Aether; this is a shared historical achievement, not an innate trait. Their
-Racial Perk, **Closework**, reduces penalties when manipulating
+Racial Feat, **Closework**, reduces penalties when manipulating
 compact mechanisms or working in confined stations. Their reach and unaided
 carrying capacity are limited, and shared equipment must be adjustable rather
 than assuming one body scale. Gnomes are not inherently inventive or
@@ -227,7 +227,7 @@ couplers, and repeatable shipyard practice. Gnome influence therefore travels
 through observatories, repair stations, calibration guilds, and technical
 standards more often than territorial states.
 
-| Heritage | Stable ID | Heritage Perk | Cost |
+| Heritage | Stable ID | Heritage Feat | Cost |
 | --- | --- | --- | --- |
 | Coilwhisper | `heritage.gnome.coilwhisper` | Feels subtle vibration, current, and mechanical imbalance through contact | Heavy vibration and electrical surges cause sensory strain |
 | Sporegarden | `heritage.gnome.sporegarden` | Symbiotic microbiome improves food variety and resistance to organic toxins | Sterile quarters and broad-spectrum medicine can disrupt recovery |
@@ -239,7 +239,7 @@ Goblins are compact, quick-moving people adapted to crowded habitats and
 improvised routes. Alongside orc societies, their salvagers and makers
 recovered precursor ships on their shared ancestral homeworld and
 reverse-engineered enough of their Aether couplers to begin independent
-spaceflight. Their Racial Perk, **Tight Passage**, reduces movement and work
+spaceflight. Their Racial Feat, **Tight Passage**, reduces movement and work
 penalties in ducts, wreckage, and congested decks. Their lighter frames are
 easier to throw off balance, and standard armor, furniture, and controls may
 require refitting. Goblins are not inherently dishonest, reckless, or crude;
@@ -253,7 +253,7 @@ are committed partners in the conquest fleets, while others profit from their
 logistics or leave for neutral recovery ports. Their shared claim to precursor
 knowledge is a lasting source of leverage and friction within the alliance.
 
-| Heritage | Stable ID | Heritage Perk | Cost |
+| Heritage | Stable ID | Heritage Feat | Cost |
 | --- | --- | --- | --- |
 | Cindervein | `heritage.goblin.cindervein` | Tolerates smoke, heat, and poor industrial air better | Cold exposure and sudden cooling cause fatigue sooner |
 | Nightglass | `heritage.goblin.nightglass` | Tracks motion and detail in very low light | Glare and rapid flashes impair vision without protection |
@@ -262,7 +262,7 @@ knowledge is a lasting source of leverage and friction within the alliance.
 ### Somnari
 
 Somnari are a psionics race whose nervous systems resonate with nearby thought.
-Their Racial Perk, **Mindwake**, lets them sense active psionics effects and
+Their Racial Feat, **Mindwake**, lets them sense active psionics effects and
 initiate a consensual short-range mindlink without a spell or device. Mindwake
 grants innate `access.psionics`, not mastery: the Psionics skill governs
 control, clarity, range, and learned techniques. Psionics storms, crowded minds,
@@ -285,7 +285,7 @@ otherwise unreachable signals. Modern Somnari communities are prominent in
 rescue work, memory archives, trauma care, and anomaly research, while other
 states remain wary of what psionics contact might reveal.
 
-| Heritage | Stable ID | Heritage Perk | Cost |
+| Heritage | Stable ID | Heritage Feat | Cost |
 | --- | --- | --- | --- |
 | Chorusborn | `heritage.somnari.chorusborn` | Maintains a consensual mindlink among several nearby participants | Crowds and overlapping psionics signals accumulate strain faster |
 | Veilward | `heritage.somnari.veilward` | Shields themself or an assisted ally against psionics intrusion | Dropping the shield to receive beneficial contact takes focus and time |
@@ -305,10 +305,10 @@ Veyr culture is deliberately gothic: sable architecture, high spires, memorial
 gardens, formal mourning, candlelit rites, and elaborate records of ancestry
 and obligation. This is a tradition, not evidence that they are undead or that
 they feed on blood. Veyr breathe, eat, sleep, and receive medical care normally.
-Their Racial Perk, **Dusk Sight**, gives clear low-light vision but makes sudden
+Their Racial Feat, **Dusk Sight**, gives clear low-light vision but makes sudden
 bright flashes and prolonged glare more taxing.
 
-| Heritage | Stable ID | Heritage Perk | Cost |
+| Heritage | Stable ID | Heritage Feat | Cost |
 | --- | --- | --- | --- |
 | Crimson Court | `heritage.veyr.crimson-court` | Reads formal etiquette, obligation, and status in structured social settings | Informal or rapidly changing groups are harder to interpret |
 | Umbral Cloister | `heritage.veyr.umbral-cloister` | Moves and works effectively in low light | Bright flashes and glare cause strain sooner |
@@ -331,7 +331,7 @@ than property, a disposable tool, or a copy for another's use. Eidolons are now
 scattered across the galaxy, and disputes over anchor custody, continuity of
 identity, and reconstruction rights remain central to their history.
 
-Their Racial Perk, **Soul Anchor**, removes the need to breathe, eat ordinary
+Their Racial Feat, **Soul Anchor**, removes the need to breathe, eat ordinary
 food, or sleep and provides resistance to vacuum and common disease. Activity
 and recovery instead consume resonance held by the anchor, and serious bodily
 disruption requires a safe anchor, suitable material, and time to rebuild a
@@ -347,7 +347,7 @@ Eidolons may learn either access Feat through the same training available to
 other characters. They are not inherently ancient, emotionless, truthful, or
 knowledgeable; memories and personality belong to the individual.
 
-| Heritage | Stable ID | Heritage Perk | Cost |
+| Heritage | Stable ID | Heritage Feat | Cost |
 | --- | --- | --- | --- |
 | Reliquary-Bound | `heritage.eidolon.reliquary-bound` | Reconstitutes more efficiently beside a portable, prepared reliquary | Concentrating anchor and reserve in one object makes its capture or damage especially dangerous |
 | Huskbound | `heritage.eidolon.huskbound` | A preserved organic vessel fits ordinary armor, tools, and some medical procedures | Decay control consumes preservative supplies and contaminated environments can damage the vessel |
@@ -357,7 +357,7 @@ knowledgeable; memories and personality belong to the individual.
 
 Tharun are a spacefaring jackal-like race with long directional ears, keen
 chemical senses in atmosphere, and strong spatial memory. Character creation
-stores `race.tharun` and one compatible Heritage. Their Racial Perk,
+stores `race.tharun` and one compatible Heritage. Their Racial Feat,
 **Trail Sense**, reduces uncertainty when following an already observed
 physical, chemical, thermal, acoustic, or signal trail. It improves how
 Sensors, Xenology, Ancient Lore, and relevant field work use available
@@ -394,55 +394,55 @@ Tharun hatred of Veyr people. Many communities regard every Veyr presence as
 a possible return of imperial power, and Veyr-Tharun contact is often marked
 by hostility, exclusion, reprisals, or open conflict.
 
-| Heritage | Stable ID | Heritage Perk | Cost |
+| Heritage | Stable ID | Heritage Feat | Cost |
 | --- | --- | --- | --- |
 | Sunwake | `heritage.tharun.sunwake` | Tolerates heat, dry air, and long periods of measured water rationing | Cold exposure and sudden temperature drops accumulate fatigue faster |
 | Hull-Listener | `heritage.tharun.hull-listener` | Reads faint vibration and movement through direct contact with a hull or deck | Heavy machinery, impacts, and sustained alarm noise cause sensory strain |
 | Startrail | `heritage.tharun.startrail` | Retains bearings and correlates weak route traces after partial sensor loss | Featureless space and contradictory interference require more time and can produce false leads |
 
-## Racial perks
+## Racial feats
 
-A **Racial Perk** is a racial feat: a discrete rule granted by a character's Race or
+A **Racial Feat** is a racial feat: a discrete rule granted by a character's Race or
 compatible Heritage. It represents inherited physiology, supernatural nature,
 or a heritage-specific adaptation. It does not represent personality, beliefs,
 professional training, or general learned competence.
 
-A Racial Perk may explicitly grant an innate supernatural access ID. Innate access
+A Racial Feat may explicitly grant an innate supernatural access ID. Innate access
 substitutes for the corresponding learned access Feat, but never grants skill
 ranks or unnamed abilities. Learned Feats come from training and are defined in
-[`Skills.md`](Skills.md); they are not Racial Perks and are not inherited.
-See [`Perks.md`](Perks.md) for the wider Perk terminology and identity rules.
-The technical content namespace is `perk.*`, and Race and Heritage definitions
-grant their Perks through `grantedPerkIds`.
+[`Skills.md`](Skills.md); they are not Racial Feats and are not inherited.
+See [`Feats.md`](Feats.md) for the wider Feat terminology and identity rules.
+The technical content namespace is `feat.*`, and Race and Heritage definitions
+grant their Feats through `grantedRacialFeatIds`.
 
-Every character begins with two Racial Perks:
+Every character begins with two Racial Feats:
 
-1. one Race Perk granted by their `raceId`; and
-2. one Heritage Perk granted by their `heritageId`.
+1. one Race Feat granted by their `raceId`; and
+2. one Heritage Feat granted by their `heritageId`.
 
-| Race | Race Perk | Stable technical ID | Innate access |
+| Race | Race Feat | Stable technical ID | Innate access |
 | --- | --- | --- | --- |
-| Human | Versatility | `perk.race.human.versatility` | None |
-| Elf | Aether Sense | `perk.race.elf.aether-sense` | `access.magic` |
-| Half-elf | Blended Physiology | `perk.race.half-elf.blended-physiology` | None by default |
-| Dwarf | Braced Stance | `perk.race.dwarf.braced-stance` | None |
-| Orc | Second Wind | `perk.race.orc.second-wind` | None |
-| Gnome | Closework | `perk.race.gnome.closework` | None |
-| Goblin | Tight Passage | `perk.race.goblin.tight-passage` | None |
-| Somnari | Mindwake | `perk.race.somnari.mindwake` | `access.psionics` |
-| Veyr | Dusk Sight | `perk.race.veyr.dusk-sight` | None |
-| Eidolon | Soul Anchor | `perk.race.eidolon.soul-anchor` | None by default |
-| Tharun | Trail Sense | `perk.race.tharun.trail-sense` | None |
+| Human | Versatility | `feat.race.human.versatility` | None |
+| Elf | Aether Sense | `feat.race.elf.aether-sense` | `access.magic` |
+| Half-elf | Blended Physiology | `feat.race.half-elf.blended-physiology` | None by default |
+| Dwarf | Braced Stance | `feat.race.dwarf.braced-stance` | None |
+| Orc | Second Wind | `feat.race.orc.second-wind` | None |
+| Gnome | Closework | `feat.race.gnome.closework` | None |
+| Goblin | Tight Passage | `feat.race.goblin.tight-passage` | None |
+| Somnari | Mindwake | `feat.race.somnari.mindwake` | `access.psionics` |
+| Veyr | Dusk Sight | `feat.race.veyr.dusk-sight` | None |
+| Eidolon | Soul Anchor | `feat.race.eidolon.soul-anchor` | None by default |
+| Tharun | Trail Sense | `feat.race.tharun.trail-sense` | None |
 
-Heritage Perks use IDs such as `perk.heritage.dwarf.cometdelver`. A Racial Perk
+Heritage Feats use IDs such as `feat.heritage.dwarf.cometdelver`. A Racial Feat
 definition owns its explicit effects, costs, requirements, and
-incompatibilities. Race and Heritage definitions grant Racial Perk IDs rather than
+incompatibilities. Race and Heritage definitions grant Racial Feat IDs rather than
 duplicating those rules.
 
-Racial Perks do not have a 0–100 value, improve through use, or unlock because of a
+Racial Feats do not have a 0–100 value, improve through use, or unlock because of a
 class. Learned techniques and professional expertise belong to Skills, while
 trained supernatural access belongs to learned Feats. Content validation
-rejects missing Racial Perk IDs, unknown access IDs, duplicate grants, and Racial Perks
+rejects missing Racial Feat IDs, unknown access IDs, duplicate grants, and Racial Feats
 that are incompatible with the granting Race or Heritage.
 
 ## Classless capabilities
@@ -462,7 +462,7 @@ Given a content revision, scenario, and explicit character seed, generation
 must be deterministic:
 
 1. Select an allowed race and compatible heritage.
-2. Grant and validate the Race Perk and Heritage Perk.
+2. Grant and validate the Race Feat and Heritage Feat.
 3. Generate age stage, body parameters, name seed, pronouns, and appearance.
 4. Allocate abilities, background skills, any documented pre-campaign
    training Feats, and one or more personal aptitudes.
@@ -487,8 +487,8 @@ race rather than copying the race definition:
   "raceId": "race.dwarf",
   "nameKey": "character.heritage.dwarf.cometdelver.name",
   "descriptionKey": "character.heritage.dwarf.cometdelver.description",
-  "grantedPerkIds": [
-    "perk.heritage.dwarf.cometdelver"
+  "grantedRacialFeatIds": [
+    "feat.heritage.dwarf.cometdelver"
   ]
 }
 ```
@@ -496,7 +496,7 @@ race rather than copying the race definition:
 Persistent race state stores race and heritage definition IDs, definition
 revisions, and race-specific rolled parameters. It never stores localized names
 as identity. Definition loading must reject duplicate IDs, missing races,
-incompatible heritages, missing or incompatible Racial Perks, incompatible body
+incompatible heritages, missing or incompatible Racial Feats, incompatible body
 rules, unknown modifiers, and unbounded generation tables before publication.
 
 ## Balance rules
@@ -518,12 +518,12 @@ rules, unknown modifiers, and unbounded generation tables before publication.
 The first crew-enabled vertical slice should use eleven authored characters:
 one human, elf, half-elf, dwarf, orc, gnome, goblin, Somnari, Veyr, Eidolon,
 and Tharun. Each needs a race, heritage, background, abilities, skills, two
-Racial Perks, and compatible quarters. The two Racial Perks are racial feats:
+Racial Feats, and compatible quarters. The two Racial Feats are racial feats:
 one granted by Race and one by Heritage. The Elf must exercise innate
 magical access and the Somnari must exercise innate psionics access. The
 Eidolon's anchor logistics and the Tharun's evidence-bounded tracking must
 each change at least one voyage decision. At least one character without
-either access Racial Perk must demonstrate earning an access Feat through
+either access Racial Feat must demonstrate earning an access Feat through
 documented training. Ship jobs and schedules are a separate future crew-system
 concern, not a component of race or heritage. The slice needs only four shared
 needs—rest, nutrition or equivalent reserve, safety, and belonging.

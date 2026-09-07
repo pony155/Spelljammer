@@ -12,7 +12,7 @@ internal enum DefinitionKind : byte
     Character,
     Feat,
     Heritage,
-    Perk,
+    RacialFeat,
     Race,
     Spell,
     PsychicTechnique,
@@ -40,10 +40,10 @@ internal sealed record SourceDefinition(
     IReadOnlyDictionary<string, int> Integers,
     IReadOnlyDictionary<string, string> Strings,
     IReadOnlyDictionary<string, ImmutableArray<string>> Arrays,
-    AttributeSourceDto? Ability,
+    AbilitySourceDto? Ability,
     SkillSourceDto? Skill);
 
-internal sealed record AttributeSourceDto(
+internal sealed record AbilitySourceDto(
     int Minimum,
     int Maximum,
     int DefaultValue,

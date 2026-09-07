@@ -4,7 +4,7 @@ using Spelljammer.Simulation.Content;
 
 namespace Spelljammer.Content.Compilation;
 
-public sealed record CapabilityDisplayValue(ContentId Id, string Label, int Value, ushort Practice = 0);
+public sealed record CapabilityDisplayValue(ContentId Id, string Label, int Value);
 
 public sealed record CharacterRosterDisplayRow(
     CharacterId Id,
@@ -59,7 +59,7 @@ public static class RosterInspection
                 [.. values.Abilities.Select((value, index) => new CapabilityDisplayValue(
                     value.Id.Value, localize(content.Abilities[index].NameKey), value.Value))],
                 [.. values.Skills.Select((value, index) => new CapabilityDisplayValue(
-                    value.Id.Value, localize(content.Skills[index].NameKey), value.Value, value.Practice))]));
+                    value.Id.Value, localize(content.Skills[index].NameKey), value.Value))]));
         }
 
         return new CharacterRosterDisplay(

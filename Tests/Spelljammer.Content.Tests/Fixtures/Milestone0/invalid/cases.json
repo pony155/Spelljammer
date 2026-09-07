@@ -260,11 +260,11 @@
       "writeText": [
         {
           "path": "Definitions/Races/human.json",
-          "text": "{\"schemaVersion\":1,\"revision\":1,\"id\":\"race.human\",\"nameKey\":\"race.human.name\",\"descriptionKey\":\"race.human.description\",\"grantedPerkIds\":[]}"
+          "text": "{\"schemaVersion\":1,\"revision\":1,\"id\":\"race.human\",\"nameKey\":\"race.human.name\",\"descriptionKey\":\"race.human.description\",\"grantedRacialFeatIds\":[]}"
         },
         {
-          "path": "Definitions/Perks/elf-aether-sense.json",
-          "text": "{\"schemaVersion\":1,\"revision\":1,\"id\":\"perk.race.elf.aether-sense\",\"nameKey\":\"perk.race.elf.aether-sense.name\",\"descriptionKey\":\"perk.race.elf.aether-sense.description\",\"compatibleRaceIds\":[\"race.human\"],\"grantedAccessIds\":[\"access.magic\"],\"grantedTechniqueIds\":[]}"
+          "path": "Definitions/RacialFeats/elf-aether-sense.json",
+          "text": "{\"schemaVersion\":1,\"revision\":1,\"id\":\"feat.race.elf.aether-sense\",\"nameKey\":\"feat.race.elf.aether-sense.name\",\"descriptionKey\":\"feat.race.elf.aether-sense.description\",\"compatibleRaceIds\":[\"race.human\"],\"grantedAccessIds\":[\"access.magic\"],\"grantedTechniqueIds\":[]}"
         }
       ],
       "expectedPrimaryDiagnostic": "CONTENT_SEMANTIC_INVALID"

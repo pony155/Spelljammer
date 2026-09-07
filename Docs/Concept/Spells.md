@@ -28,11 +28,11 @@ requiring a second layer of simulation. See [`History.md`](History.md).
 Characters have no mage class. To cast, a character needs:
 
 1. `access.magic`, from `feat.access.magic` (Spellcasting Training) or a
-   Racial Perk that explicitly grants it;
+   Racial Feat that explicitly grants it;
 2. the spell's stable ID in their known-spell collection; and
 3. enough Focus and a legal target.
 
-The Elf Race Perk **Aether Sense** is the initial innate source of
+The Elf Race Feat **Aether Sense** is the initial innate source of
 `access.magic`. It grants the ability to perceive nearby Aether patterns, but
 no free Magic ranks or known spells. A high Magic skill, spellbook, or item
 never bypasses the access requirement.

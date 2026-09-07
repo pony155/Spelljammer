@@ -14,7 +14,7 @@ economy, crafting, and the broader catalog in this document remain planned.
 - Keep inventory and item values readable; equipment is not an engineering or
   accounting simulation.
 - Let any classless character use compatible equipment when its explicit Skill,
-  Feat, Racial Perk, or physical requirement is met.
+  Feat, Racial Feat, or physical requirement is met.
 - Keep stable IDs and data-authored definitions for saves, balancing, and
   eventual modding.
 
@@ -84,7 +84,7 @@ statistics.
 
 An item never grants unrestricted spellcasting, psionics influence, or immunity
 to all hazards. A casting focus helps an authorized caster; it does not replace
-Spellcasting Training or an innate Racial Perk. A weapon's technology path does
+Spellcasting Training or an innate Racial Feat. A weapon's technology path does
 not make it automatically stronger than the other path.
 
 ## Resonance and industrial craft

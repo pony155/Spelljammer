@@ -14,6 +14,6 @@ public sealed record RegistryInspectionSnapshot(
     ContentFingerprint Fingerprint,
     int PackCount,
     int DefinitionCount,
-    int AttributeCount,
+    int AbilityCount,
     int SkillCount,
     ImmutableArray<RegistryInspectionEntry> Entries);

@@ -23,7 +23,7 @@ internal static class ContentContracts
         ValidFixtureIsCanonicalAndDeterministic();
         EveryFrozenDiagnosticCaseIsRecognized();
         FailedReplacementPreservesPublishedSnapshot();
-        BaseAttributesAndSkillsAreTypedAndIndexed();
+        BaseAbilitysAndSkillsAreTypedAndIndexed();
         Milestone2InvalidCasesAreRecognized();
         AdditiveSkillIsDynamicAndReversible();
         CharacterDefinitionsRejectInvalidGraphs();
@@ -172,7 +172,7 @@ internal static class ContentContracts
         True(ReferenceEquals(published, registry.Current), "Failed replacement changed the registry owner.");
     }
 
-    private static void BaseAttributesAndSkillsAreTypedAndIndexed()
+    private static void BaseAbilitysAndSkillsAreTypedAndIndexed()
     {
         ContentCompilationResult result = CompileDirectory(Path.Combine(Milestone2Root, "base"));
         True(result.Succeeded, Primary(result));
@@ -183,9 +183,9 @@ internal static class ContentContracts
             expectedFingerprints.RootElement.GetProperty("baseSha256").GetString()!,
             snapshot.Fingerprint.ToString(),
             "The base Ability and Skill fingerprint changed.");
-        Equal(6, snapshot.AttributeRegistry.Count, "The base Ability roster is incomplete.");
+        Equal(6, snapshot.AbilityRegistry.Count, "The base Ability roster is incomplete.");
         Equal(29, snapshot.SkillRegistry.Count, "The base Skill roster is incomplete.");
-        string[] expectedAttributes =
+        string[] expectedAbilitys =
         [
             "ability.agility", "ability.intelligence", "ability.perception",
             "ability.strength", "ability.toughness", "ability.willpower",
@@ -199,7 +199,7 @@ internal static class ContentContracts
             "skill.merchant", "skill.negotiation", "skill.piloting", "skill.psionics", "skill.rigging",
             "skill.salvage", "skill.sensors", "skill.stealth", "skill.xenology",
         ];
-        Equal(string.Join('|', expectedAttributes), string.Join('|', snapshot.Abilities.Select(value => value.Id)),
+        Equal(string.Join('|', expectedAbilitys), string.Join('|', snapshot.Abilities.Select(value => value.Id)),
             "Ability iteration is incomplete or nondeterministic.");
         Equal(string.Join('|', expectedSkills), string.Join('|', snapshot.Skills.Select(value => value.Id)),
             "Skill iteration is incomplete or nondeterministic.");
@@ -279,7 +279,7 @@ internal static class ContentContracts
     {
         Dictionary<string, byte[]> baseFiles = ReadFiles(Path.Combine(Milestone2Root, "base"));
         Dictionary<string, byte[]> missingGrant = Clone(baseFiles);
-        ReplaceText(missingGrant, "Definitions/Races/human.json", "perk.race.human.versatility", "perk.race.human.missing");
+        ReplaceText(missingGrant, "Definitions/Races/human.json", "feat.race.human.versatility", "feat.race.human.missing");
         ContentCompilationResult missing = new GameContentCompiler().Compile([new MemoryPackSource(missingGrant, [])], GameVersion);
         False(missing.Succeeded, "A missing racial grant was published.");
         Equal("CONTENT_REFERENCE_UNKNOWN", missing.Diagnostics[0].Code, "Missing grants did not fail during linking.");
@@ -298,9 +298,9 @@ internal static class ContentContracts
         Equal("CONTENT_SEMANTIC_INVALID", wrongHeritage.Diagnostics[0].Code, "Incompatible Heritage used the wrong diagnostic.");
 
         Dictionary<string, byte[]> cycle = Clone(baseFiles);
-        string path = "Definitions/Perks/race-human.json";
+        string path = "Definitions/RacialFeats/race-human.json";
         string text = Encoding.UTF8.GetString(cycle[path]);
-        cycle[path] = Encoding.UTF8.GetBytes(text.Replace("}\n", ",\"grantedPerkIds\":[\"perk.race.human.versatility\"]}\n", StringComparison.Ordinal));
+        cycle[path] = Encoding.UTF8.GetBytes(text.Replace("}\n", ",\"grantedRacialFeatIds\":[\"feat.race.human.versatility\"]}\n", StringComparison.Ordinal));
         ContentCompilationResult cyclic = new GameContentCompiler().Compile([new MemoryPackSource(cycle, [])], GameVersion);
         False(cyclic.Succeeded, "A capability grant cycle was published.");
         Equal("CONTENT_SEMANTIC_INVALID", cyclic.Diagnostics[0].Code, "Grant cycles used the wrong diagnostic.");
@@ -322,7 +322,7 @@ internal static class ContentContracts
             Describe(first.Roster, snapshot),
             Describe(second.Roster!, snapshot),
             "An identical content fingerprint and seed produced a different roster.");
-        Equal(snapshot.Abilities.Length, first.Roster.AttributeColumns.Length, "Roster Ability columns are not registry-driven.");
+        Equal(snapshot.Abilities.Length, first.Roster.AbilityColumns.Length, "Roster Ability columns are not registry-driven.");
         Equal(snapshot.Skills.Length, first.Roster.SkillColumns.Length, "Roster Skill columns are not registry-driven.");
         CharacterRosterDisplay display = RosterInspection.Project(
             first.Roster,
@@ -352,7 +352,6 @@ internal static class ContentContracts
             action.Id,
             new ActionTarget(new ContentId("target.self"), true, true),
             ImmutableHashSet<ContentId>.Empty,
-            new ContentId("practice.soul-anchor.first"),
             17,
             0);
         int before = eidolon.Resources[new ResourceId("resource.resonance")];
@@ -372,7 +371,7 @@ internal static class ContentContracts
         ActionExecutionResult repeated = CharacterActionSystem.Resolve(eligible.Reservation!, snapshot);
         Equal(first.Resolution!.Roll, repeated.Resolution!.Roll, "Owned action randomness was not reproducible.");
         Equal(before - 2, first.State.Resources[new ResourceId("resource.resonance")], "Committed Soul Anchor cost was wrong.");
-        True(first.Resolution.AttributeId.IsValid && first.Resolution.SkillId.IsValid, "Resolution explanation omitted contributors.");
+        True(first.Resolution.AbilityId.IsValid && first.Resolution.SkillId.IsValid, "Resolution explanation omitted contributors.");
     }
 
     private static void TrainingGrantsAccessOnlyAtCompletion()
@@ -412,13 +411,13 @@ internal static class ContentContracts
         CharacterState elf = roster.Characters.Single(value => value.RaceId == new RaceId("race.elf"));
         AccessId magic = new("access.magic");
         True(elf.Capabilities.Access.Contains(magic), "Aether Sense did not grant innate magic access.");
-        True(elf.Capabilities.GrantSources.Any(value => value.CapabilityId == magic.Value && value.SourceKind == GrantSourceKind.Perk),
+        True(elf.Capabilities.GrantSources.Any(value => value.CapabilityId == magic.Value && value.SourceKind == GrantSourceKind.RacialFeat),
             "Innate magic access lost its provenance.");
 
         CharacterState trained = CompleteTraining(elf, new TrainingProjectId("training.magic.spellcasting"), snapshot);
         Equal(2, trained.Capabilities.GrantSources.Count(value => value.CapabilityId == magic.Value),
             "Innate and trained access sources did not coexist.");
-        CharacterCapabilities withoutInnate = trained.Capabilities.WithoutGrantSource(new PerkId("perk.race.elf.aether-sense").Value);
+        CharacterCapabilities withoutInnate = trained.Capabilities.WithoutGrantSource(new RacialFeatId("feat.race.elf.aether-sense").Value);
         True(withoutInnate.Access.Contains(magic), "Removing the innate source removed a surviving trained source.");
         CharacterCapabilities withoutEither = withoutInnate.WithoutGrantSource(new TrainingProjectId("training.magic.spellcasting").Value);
         False(withoutEither.Access.Contains(magic), "Effective access did not recompute after all sources were removed.");
@@ -539,7 +538,6 @@ internal static class ContentContracts
             soulRecovery.Id,
             new ActionTarget(new ContentId("target.self"), true, true),
             ImmutableHashSet.Create(new ContentId("context.recovery.safe-anchor")),
-            new ContentId("practice.soul-anchor.boundary"),
             9,
             0);
         ActionEligibilityResult noAnchor = CharacterActionSystem.CheckEligibility(withoutAnchor, soulRecovery, request, snapshot);

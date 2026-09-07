@@ -36,7 +36,7 @@ public static class ActionRejectionCodes
     public const string SkillRequired = "command.skill-required";
 
     /// <summary>The actor's ability value is too low to perform this action.</summary>
-    public const string AttributeRequired = "command.ability-required";
+    public const string AbilityRequired = "command.ability-required";
 
     /// <summary>The actor does not have the required equipment to perform this action.</summary>
     public const string EquipmentRequired = "command.equipment-required";
@@ -62,8 +62,8 @@ public static class ActionRejectionCodes
 /// <param name="TechniqueId">The technique/spell/power required, if any (for technique-based actions).</param>
 /// <param name="SkillId">The skill that governs success for this action.</param>
 /// <param name="MinimumSkill">The minimum skill level required to attempt this action.</param>
-/// <param name="AttributeId">The ability that provides the base modifier for this action.</param>
-/// <param name="MinimumAttribute">The minimum ability value required to attempt this action.</param>
+/// <param name="AbilityId">The ability that provides the base modifier for this action.</param>
+/// <param name="MinimumAbility">The minimum ability value required to attempt this action.</param>
 /// <param name="EquipmentId">The equipment that must be equipped to perform this action, if any.</param>
 /// <param name="ContextId">A context requirement (e.g., must be in water, must be outdoors), if any.</param>
 public sealed record ActionRequirement(
@@ -71,8 +71,8 @@ public sealed record ActionRequirement(
     TechniqueId? TechniqueId,
     SkillId SkillId,
     byte MinimumSkill,
-    AttributeId AttributeId,
-    short MinimumAttribute,
+    AbilityId AbilityId,
+    short MinimumAbility,
     ContentId? EquipmentId,
     ContentId? ContextId);
 
@@ -113,7 +113,7 @@ public sealed record ActionCost
 /// </summary>
 /// <remarks>
 /// Actions are the building blocks of character abilities and combat moves. Each action includes difficulty,
-/// success modifiers, practice point awards, and potential perk grants for repeated use.
+/// success modifiers and potential Racial Feat grants.
 /// </remarks>
 public sealed record ActionDefinition(
     ActionId Id,
@@ -122,8 +122,7 @@ public sealed record ActionDefinition(
     ImmutableArray<ActionCost> Costs,
     int Difficulty,
     int Modifier,
-    ushort PracticeAward,
-    ImmutableArray<PerkId> GrantedPerkIds);
+    ImmutableArray<RacialFeatId> GrantedRacialFeatIds);
 
 /// <summary>
 /// Describes a potential target for an action with validation status.
@@ -138,13 +137,12 @@ public sealed record ActionTarget(ContentId Id, bool IsPresent, bool IsLegal);
 /// </summary>
 /// <remarks>
 /// Action requests are validated against character capabilities and action definitions to determine eligibility.
-/// They include randomization seeds for outcome determination and practice key tracking.
+/// They include randomization seeds for outcome determination.
 /// </remarks>
 /// <param name="ActorId">The character performing the action.</param>
 /// <param name="ActionId">The action to perform.</param>
 /// <param name="Target">The target of the action, if it requires a target.</param>
 /// <param name="ContextIds">The set of active contexts for this action (e.g., outdoors, in water).</param>
-/// <param name="PracticeKey">A key for tracking practice and determining when perks are granted from repeated actions.</param>
 /// <param name="RandomSeed">The random seed for outcome determination.</param>
 /// <param name="RandomSequence">The sequence number for deterministic randomization.</param>
 public sealed record ActionRequest(
@@ -152,7 +150,6 @@ public sealed record ActionRequest(
     ActionId ActionId,
     ActionTarget? Target,
     ImmutableHashSet<ContentId> ContextIds,
-    ContentId PracticeKey,
     ulong RandomSeed,
     ulong RandomSequence);
 
@@ -167,14 +164,14 @@ public sealed record ActionRequest(
 /// <param name="Definition">The action definition being performed.</param>
 /// <param name="Request">The original action request.</param>
 /// <param name="ReservedResources">Resources that will be consumed if the action executes.</param>
-/// <param name="AttributeValue">The resolved ability value used as base modifier for this action.</param>
+/// <param name="AbilityValue">The resolved ability value used as base modifier for this action.</param>
 /// <param name="SkillValue">The resolved skill value for this action.</param>
 public sealed record ActionReservation(
     CharacterState OriginalState,
     ActionDefinition Definition,
     ActionRequest Request,
     ImmutableDictionary<ResourceId, int> ReservedResources,
-    short AttributeValue,
+    short AbilityValue,
     byte SkillValue);
 
 /// <summary>
@@ -197,8 +194,8 @@ public sealed record ActionResolutionEvent(
     ActionId ActionId,
     ContentId FormulaId,
     ContentId TargetId,
-    AttributeId AttributeId,
-    short AttributeValue,
+    AbilityId AbilityId,
+    short AbilityValue,
     SkillId SkillId,
     byte SkillValue,
     int DefinitionModifier,
@@ -207,15 +204,14 @@ public sealed record ActionResolutionEvent(
     int Difficulty,
     bool Succeeded,
     string FailureReason,
-    ImmutableArray<PerkId> GrantedPerkIds);
+    ImmutableArray<RacialFeatId> GrantedRacialFeatIds);
 
 public sealed record ActionExecutionResult(
     CharacterState State,
     bool Accepted,
     bool Succeeded,
     string RejectionCode,
-    ActionResolutionEvent? Resolution,
-    SkillAdvancementEvent? Advancement);
+    ActionResolutionEvent? Resolution);
 
 public static class CharacterActionSystem
 {
@@ -248,20 +244,20 @@ public static class CharacterActionSystem
         }
 
         if (definition.FormulaId != StandardCheckFormula ||
-            definition.Costs.Length > 32 || definition.GrantedPerkIds.Length > CharacterCapabilities.MaximumSetEntries ||
+            definition.Costs.Length > 32 || definition.GrantedRacialFeatIds.Length > CharacterCapabilities.MaximumSetEntries ||
             request.ContextIds.Count > CharacterCapabilities.MaximumSetEntries ||
             definition.Costs.Select(value => value.ResourceId).Distinct().Count() != definition.Costs.Length ||
-            definition.GrantedPerkIds.Distinct().Count() != definition.GrantedPerkIds.Length ||
+            definition.GrantedRacialFeatIds.Distinct().Count() != definition.GrantedRacialFeatIds.Length ||
             definition.Difficulty is < 0 or > 10_000 || definition.Modifier is < -10_000 or > 10_000)
         {
             return Rejected(ActionRejectionCodes.ActionUnknown, request.ActionId.Value);
         }
 
-        foreach (PerkId perkId in definition.GrantedPerkIds)
+        foreach (RacialFeatId racialFeatId in definition.GrantedRacialFeatIds)
         {
-            if (!catalog.TryGetPerk(perkId, out PerkDefinition? perk) || !perk!.CompatibleRaceIds.Contains(actor.RaceId))
+            if (!catalog.TryGetRacialFeat(racialFeatId, out RacialFeatDefinition? racialFeat) || !racialFeat!.CompatibleRaceIds.Contains(actor.RaceId))
             {
-                return Rejected(ActionRejectionCodes.ActionUnknown, perkId.Value);
+                return Rejected(ActionRejectionCodes.ActionUnknown, racialFeatId.Value);
             }
         }
 
@@ -296,10 +292,10 @@ public static class CharacterActionSystem
             return Rejected(ActionRejectionCodes.SkillRequired, requirement.SkillId.Value);
         }
 
-        if (!actor.Capabilities.TryGetAttribute(requirement.AttributeId, catalog, out short ability, out _) ||
-            ability < requirement.MinimumAttribute)
+        if (!actor.Capabilities.TryGetAbility(requirement.AbilityId, catalog, out short ability, out _) ||
+            ability < requirement.MinimumAbility)
         {
-            return Rejected(ActionRejectionCodes.AttributeRequired, requirement.AttributeId.Value);
+            return Rejected(ActionRejectionCodes.AbilityRequired, requirement.AbilityId.Value);
         }
 
         if (requirement.EquipmentId is ContentId equipmentId && !actor.EquipmentIds.Contains(equipmentId))
@@ -340,7 +336,7 @@ public static class CharacterActionSystem
         }
 
         int roll = DeterministicRoll(reservation.Request.RandomSeed, reservation.Request.RandomSequence);
-        int total = checked(reservation.AttributeValue * 10 + reservation.SkillValue + reservation.Definition.Modifier + roll);
+        int total = checked(reservation.AbilityValue * 10 + reservation.SkillValue + reservation.Definition.Modifier + roll);
         bool succeeded = total >= reservation.Definition.Difficulty;
         ImmutableDictionary<ResourceId, int>.Builder resources = reservation.OriginalState.Resources.ToBuilder();
         foreach ((ResourceId id, int amount) in reservation.ReservedResources)
@@ -349,22 +345,10 @@ public static class CharacterActionSystem
         }
 
         CharacterCapabilities capabilities = reservation.OriginalState.Capabilities;
-        foreach (PerkId perkId in succeeded ? reservation.Definition.GrantedPerkIds : [])
+        foreach (RacialFeatId racialFeatId in succeeded ? reservation.Definition.GrantedRacialFeatIds : [])
         {
-            catalog.TryGetPerk(perkId, out PerkDefinition? perk);
-            capabilities = capabilities.WithPerkGrant(perk!, reservation.Definition.Id.Value);
-        }
-
-        SkillAdvancementEvent? advancement = null;
-        if (reservation.Definition.PracticeAward > 0 &&
-            reservation.Definition.Difficulty >= reservation.SkillValue)
-        {
-            capabilities = capabilities.AwardPractice(
-                catalog,
-                reservation.Definition.Requirement.SkillId,
-                reservation.Definition.PracticeAward,
-                reservation.Request.PracticeKey,
-                out advancement);
+            catalog.TryGetRacialFeat(racialFeatId, out RacialFeatDefinition? racialFeat);
+            capabilities = capabilities.WithRacialFeatGrant(racialFeat!, reservation.Definition.Id.Value);
         }
 
         CharacterState committed = reservation.OriginalState with
@@ -377,8 +361,8 @@ public static class CharacterActionSystem
             reservation.Definition.Id,
             reservation.Definition.FormulaId,
             reservation.Request.Target!.Id,
-            reservation.Definition.Requirement.AttributeId,
-            reservation.AttributeValue,
+            reservation.Definition.Requirement.AbilityId,
+            reservation.AbilityValue,
             reservation.Definition.Requirement.SkillId,
             reservation.SkillValue,
             reservation.Definition.Modifier,
@@ -387,8 +371,8 @@ public static class CharacterActionSystem
             reservation.Definition.Difficulty,
             succeeded,
             succeeded ? ActionRejectionCodes.None : "resolution.check-failed",
-            succeeded ? reservation.Definition.GrantedPerkIds : []);
-        return new ActionExecutionResult(committed, true, succeeded, ActionRejectionCodes.None, resolution, advancement);
+            succeeded ? reservation.Definition.GrantedRacialFeatIds : []);
+        return new ActionExecutionResult(committed, true, succeeded, ActionRejectionCodes.None, resolution);
     }
 
     private static int DeterministicRoll(ulong seed, ulong sequence)
@@ -403,5 +387,5 @@ public static class CharacterActionSystem
     private static ActionEligibilityResult Rejected(string code, ContentId? relatedId = null) => new(null, code, relatedId);
 
     private static ActionExecutionResult RejectedExecution(CharacterState state, string code) =>
-        new(state, false, false, code, null, null);
+        new(state, false, false, code, null);
 }

@@ -150,19 +150,19 @@ public readonly record struct ContentId : IComparable<ContentId>
 /// Ability IDs must have the "ability." prefix. They are used to reference base character abilities
 /// that affect skills, saving throws, and other mechanics.
 /// </remarks>
-public readonly record struct AttributeId : IComparable<AttributeId>
+public readonly record struct AbilityId : IComparable<AbilityId>
 {
     /// <summary>
     /// Initializes an ability ID from a content ID that must begin with "ability.".
     /// </summary>
     /// <param name="value">A content ID with the "ability." prefix.</param>
     /// <exception cref="ArgumentException">Thrown if the content ID does not have the required prefix.</exception>
-    public AttributeId(ContentId value) => Value = TypedContentId.RequirePrefix(value, "ability.");
+    public AbilityId(ContentId value) => Value = TypedContentId.RequirePrefix(value, "ability.");
 
     /// <summary>
     /// Initializes an ability ID from a string (which must be a valid content ID with the "ability." prefix).
     /// </summary>
-    public AttributeId(string value) : this(new ContentId(value)) { }
+    public AbilityId(string value) : this(new ContentId(value)) { }
 
     /// <summary>
     /// Gets the underlying content ID.
@@ -177,7 +177,7 @@ public readonly record struct AttributeId : IComparable<AttributeId>
     /// <summary>
     /// Compares this ability ID with another using ordinal content ID comparison.
     /// </summary>
-    public int CompareTo(AttributeId other) => Value.CompareTo(other.Value);
+    public int CompareTo(AbilityId other) => Value.CompareTo(other.Value);
 
     /// <summary>
     /// Returns the string representation of this ability ID.
@@ -187,7 +187,7 @@ public readonly record struct AttributeId : IComparable<AttributeId>
     /// <summary>
     /// Attempts to parse a string into an ability ID without throwing exceptions.
     /// </summary>
-    public static bool TryParse(string? value, out AttributeId id) => TypedContentId.TryParse(value, "ability.", out id);
+    public static bool TryParse(string? value, out AbilityId id) => TypedContentId.TryParse(value, "ability.", out id);
 }
 
 /// <summary>
@@ -232,16 +232,16 @@ public readonly record struct FeatId : IComparable<FeatId>
     public static bool TryParse(string? value, out FeatId id) => TypedContentId.TryParse(value, "feat.", out id);
 }
 
-/// <summary>A strongly-typed identifier for a perk (racial or class ability).</summary>
-public readonly record struct PerkId : IComparable<PerkId>
+/// <summary>A strongly-typed identifier for a Feat granted by a Race or Heritage.</summary>
+public readonly record struct RacialFeatId : IComparable<RacialFeatId>
 {
-    public PerkId(ContentId value) => Value = TypedContentId.RequirePrefix(value, "perk.");
-    public PerkId(string value) : this(new ContentId(value)) { }
+    public RacialFeatId(ContentId value) => Value = TypedContentId.RequirePrefix(value, "feat.");
+    public RacialFeatId(string value) : this(new ContentId(value)) { }
     public ContentId Value { get; }
     public bool IsValid => Value.IsValid;
-    public int CompareTo(PerkId other) => Value.CompareTo(other.Value);
+    public int CompareTo(RacialFeatId other) => Value.CompareTo(other.Value);
     public override string ToString() => Value.ToString();
-    public static bool TryParse(string? value, out PerkId id) => TypedContentId.TryParse(value, "perk.", out id);
+    public static bool TryParse(string? value, out RacialFeatId id) => TypedContentId.TryParse(value, "feat.", out id);
 }
 
 /// <summary>A strongly-typed identifier for a player character race.</summary>

@@ -20,8 +20,8 @@ public abstract record ContentDefinition(ContentId Id, int SchemaVersion, int Re
 /// <summary>
 /// Defines a character ability (Strength, Dexterity, etc.) with its range and default value.
 /// </summary>
-public sealed record AttributeDefinition(
-    AttributeId AttributeId,
+public sealed record AbilityDefinition(
+    AbilityId AbilityId,
     int SchemaVersion,
     int Revision,
     string NameKey,
@@ -30,7 +30,7 @@ public sealed record AttributeDefinition(
     short Maximum,
     short DefaultValue,
     ImmutableArray<string> Tags)
-    : ContentDefinition(AttributeId.Value, SchemaVersion, Revision, NameKey, DescriptionKey);
+    : ContentDefinition(AbilityId.Value, SchemaVersion, Revision, NameKey, DescriptionKey);
 
 /// <summary>
 /// Defines a character skill with proficiency range and progression rules.
@@ -73,10 +73,10 @@ public sealed record FeatDefinition(
     : ContentDefinition(FeatId.Value, SchemaVersion, Revision, NameKey, DescriptionKey);
 
 /// <summary>
-/// Defines a perk (racial or class ability) that grants access privileges, techniques, and effects.
+/// Defines a Feat granted by a Race or Heritage that can provide access, techniques, and effects.
 /// </summary>
-public sealed record PerkDefinition(
-    PerkId PerkId,
+public sealed record RacialFeatDefinition(
+    RacialFeatId RacialFeatId,
     int SchemaVersion,
     int Revision,
     string NameKey,
@@ -84,12 +84,12 @@ public sealed record PerkDefinition(
     ImmutableArray<RaceId> CompatibleRaceIds,
     ImmutableArray<AccessId> GrantedAccessIds,
     ImmutableArray<TechniqueId> GrantedTechniqueIds,
-    ImmutableArray<PerkId> GrantedPerkIds,
+    ImmutableArray<RacialFeatId> GrantedRacialFeatIds,
     ImmutableArray<ContentId> EffectIds)
-    : ContentDefinition(PerkId.Value, SchemaVersion, Revision, NameKey, DescriptionKey);
+    : ContentDefinition(RacialFeatId.Value, SchemaVersion, Revision, NameKey, DescriptionKey);
 
 /// <summary>
-/// Defines a playable character race with inherent perks and compatibility requirements.
+/// Defines a playable character race with inherent Feats and compatibility requirements.
 /// </summary>
 public sealed record RaceDefinition(
     RaceId RaceId,
@@ -97,7 +97,7 @@ public sealed record RaceDefinition(
     int Revision,
     string NameKey,
     string DescriptionKey,
-    ImmutableArray<PerkId> GrantedPerkIds,
+    ImmutableArray<RacialFeatId> GrantedRacialFeatIds,
     ImmutableArray<ContentId> RequiredSupportIds)
     : ContentDefinition(RaceId.Value, SchemaVersion, Revision, NameKey, DescriptionKey);
 
@@ -122,7 +122,7 @@ public sealed record TrainingProjectDefinition(
     : ContentDefinition(TrainingProjectId.Value, SchemaVersion, Revision, NameKey, DescriptionKey);
 
 /// <summary>
-/// Defines a heritage or ethnic variant of a race with additional perks.
+/// Defines a heritage or ethnic variant of a race with additional Feats.
 /// </summary>
 public sealed record HeritageDefinition(
     HeritageId HeritageId,
@@ -131,7 +131,7 @@ public sealed record HeritageDefinition(
     string NameKey,
     string DescriptionKey,
     RaceId RaceId,
-    ImmutableArray<PerkId> GrantedPerkIds)
+    ImmutableArray<RacialFeatId> GrantedRacialFeatIds)
     : ContentDefinition(HeritageId.Value, SchemaVersion, Revision, NameKey, DescriptionKey);
 
 /// <summary>
@@ -144,7 +144,7 @@ public sealed record BackgroundDefinition(
     string NameKey,
     string DescriptionKey,
     ImmutableArray<RaceId> CompatibleRaceIds,
-    ImmutableArray<AttributeId> AttributeBonusIds,
+    ImmutableArray<AbilityId> AbilityBonusIds,
     ImmutableArray<SkillId> FocusSkillIds)
     : ContentDefinition(BackgroundId.Value, SchemaVersion, Revision, NameKey, DescriptionKey);
 
@@ -158,7 +158,7 @@ public sealed record TechniqueDefinition(
     string NameKey,
     string DescriptionKey,
     ImmutableArray<AccessId> RequiredAccessIds,
-    ImmutableArray<PerkId> GrantedPerkIds)
+    ImmutableArray<RacialFeatId> GrantedRacialFeatIds)
     : ContentDefinition(TechniqueId.Value, SchemaVersion, Revision, NameKey, DescriptionKey);
 
 /// <summary>

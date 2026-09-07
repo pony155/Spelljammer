@@ -20,8 +20,10 @@ public static class CampaignSaveVersions
     /// <summary>Version of the save file envelope (header and container format).</summary>
     public const ushort Envelope = 1;
 
-    /// <summary>Version of the save schema (overall data structure).</summary>
-    public const ushort SaveSchema = 1;
+    /// <summary>
+    /// Version of the save schema (overall data structure). Version 2 adopts racial-feat state and identifiers.
+    /// </summary>
+    public const ushort SaveSchema = 2;
 
     /// <summary>Version of the world generation algorithm used in this save.</summary>
     public const int WorldGenerator = 1;

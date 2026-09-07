@@ -121,16 +121,15 @@ internal sealed class CharacterDto
 
 internal sealed class CapabilityDto
 {
-    public AttributeValueDto[] Abilities { get; set; } = [];
+    public AbilityValueDto[] Abilities { get; set; } = [];
     public SkillValueDto[] Skills { get; set; } = [];
     public string[] FeatIds { get; set; } = [];
-    public string[] PerkIds { get; set; } = [];
+    public string[] RacialFeatIds { get; set; } = [];
     public string[] TechniqueIds { get; set; } = [];
     public GrantDto[] GrantSources { get; set; } = [];
-    public string[] PracticeKeys { get; set; } = [];
 }
 
-internal sealed class AttributeValueDto
+internal sealed class AbilityValueDto
 {
     public string Id { get; set; } = string.Empty;
     public short Value { get; set; }
@@ -140,7 +139,6 @@ internal sealed class SkillValueDto
 {
     public string Id { get; set; } = string.Empty;
     public byte Value { get; set; }
-    public ushort Practice { get; set; }
 }
 
 internal sealed class GrantDto

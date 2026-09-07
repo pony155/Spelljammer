@@ -6,7 +6,7 @@ namespace Spelljammer.Simulation.Characters;
 public interface ICharacterContentCatalog
 {
     ContentFingerprint Fingerprint { get; }
-    ImmutableArray<AttributeDefinition> Abilities { get; }
+    ImmutableArray<AbilityDefinition> Abilities { get; }
     ImmutableArray<SkillDefinition> Skills { get; }
     ImmutableArray<CharacterDefinition> Characters { get; }
     ImmutableArray<SpellDefinition> Spells { get; }
@@ -20,14 +20,14 @@ public interface ICharacterContentCatalog
     ImmutableArray<ShipModuleDefinition> ShipModules { get; }
     ImmutableArray<ShipWeaponConfigurationDefinition> ShipWeaponConfigurations { get; }
 
-    bool TryGetAttribute(AttributeId id, out AttributeDefinition? definition, out int index);
+    bool TryGetAbility(AbilityId id, out AbilityDefinition? definition, out int index);
     bool TryGetSkill(SkillId id, out SkillDefinition? definition, out int index);
     bool TryGetAccess(AccessId id, out AccessDefinition? definition);
     bool TryGetBackground(BackgroundId id, out BackgroundDefinition? definition);
     bool TryGetCharacter(CharacterId id, out CharacterDefinition? definition);
     bool TryGetFeat(FeatId id, out FeatDefinition? definition);
     bool TryGetHeritage(HeritageId id, out HeritageDefinition? definition);
-    bool TryGetPerk(PerkId id, out PerkDefinition? definition);
+    bool TryGetRacialFeat(RacialFeatId id, out RacialFeatDefinition? definition);
     bool TryGetRace(RaceId id, out RaceDefinition? definition);
     bool TryGetSpell(SpellId id, out SpellDefinition? definition);
     bool TryGetPsychicTechnique(PsychicTechniqueId id, out PsychicTechniqueDefinition? definition);
@@ -54,7 +54,7 @@ public enum GrantSourceKind : byte
 {
     Race,
     Heritage,
-    Perk,
+    RacialFeat,
     Feat,
     Technique,
     TrainingProject,
@@ -64,17 +64,16 @@ public enum GrantSourceKind : byte
 
 public sealed record CapabilityGrant(ContentId CapabilityId, ContentId SourceId, GrantSourceKind SourceKind);
 
-public sealed record AttributeValueSnapshot(AttributeId Id, short Value);
+public sealed record AbilityValueSnapshot(AbilityId Id, short Value);
 
-public sealed record SkillValueSnapshot(SkillId Id, byte Value, ushort Practice);
+public sealed record SkillValueSnapshot(SkillId Id, byte Value);
 
 public sealed record CharacterCapabilitySnapshot(
     ContentFingerprint Fingerprint,
-    ImmutableArray<AttributeValueSnapshot> Abilities,
+    ImmutableArray<AbilityValueSnapshot> Abilities,
     ImmutableArray<SkillValueSnapshot> Skills,
     ImmutableArray<FeatId> Feats,
-    ImmutableArray<PerkId> Perks,
+    ImmutableArray<RacialFeatId> RacialFeats,
     ImmutableArray<AccessId> Access,
     ImmutableArray<TechniqueId> Techniques,
-    ImmutableArray<CapabilityGrant> GrantSources,
-    ImmutableArray<ContentId> PracticeKeys);
+    ImmutableArray<CapabilityGrant> GrantSources);

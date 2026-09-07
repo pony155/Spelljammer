@@ -18,18 +18,18 @@ internal static class DefinitionParser
             [DefinitionKind.Ability] = new(["minimum", "maximum", "defaultValue", "tags"], []),
             [DefinitionKind.Skill] = new(["minimum", "maximum", "progressionCurveId", "actionTags"], []),
             [DefinitionKind.Access] = new(["tags"], []),
-            [DefinitionKind.Background] = new(["compatibleRaceIds", "attributeBonusIds", "focusSkillIds"], []),
+            [DefinitionKind.Background] = new(["compatibleRaceIds", "abilityBonusIds", "focusSkillIds"], []),
             [DefinitionKind.Character] = new(
                 ["raceId", "heritageId", "backgroundId", "scenarioIds", "positionId", "languageIds", "scriptIds", "equipmentIds", "focusSkillIds", "resourceIds"], []),
             [DefinitionKind.Feat] = new(["trainingProjectId", "grantedAccessIds"], []),
-            [DefinitionKind.Heritage] = new(["raceId", "grantedPerkIds"], []),
-            [DefinitionKind.Perk] = new(["compatibleRaceIds", "grantedAccessIds", "grantedTechniqueIds"], ["grantedPerkIds", "effectIds"]),
-            [DefinitionKind.Race] = new(["grantedPerkIds"], ["requiredSupportIds"]),
+            [DefinitionKind.Heritage] = new(["raceId", "grantedRacialFeatIds"], []),
+            [DefinitionKind.RacialFeat] = new(["compatibleRaceIds", "grantedAccessIds", "grantedTechniqueIds"], ["grantedRacialFeatIds", "effectIds"]),
+            [DefinitionKind.Race] = new(["grantedRacialFeatIds"], ["requiredSupportIds"]),
             [DefinitionKind.Spell] = new(
                 ["requiredAccessId", "skillId", "focusResourceId", "focusCost", "rangeId", "castTimeTicks", "cooldownTicks", "targetTags", "effectIds"], []),
             [DefinitionKind.PsychicTechnique] = new(
                 ["requiredAccessId", "skillId", "resistanceSkillId", "strainResourceId", "strainCost", "sustainCostPerTick", "contactModeId", "rangeId", "informationScopeId", "disciplineIds", "targetTags", "effectIds"], []),
-            [DefinitionKind.Technique] = new(["requiredAccessIds", "grantedPerkIds"], []),
+            [DefinitionKind.Technique] = new(["requiredAccessIds", "grantedRacialFeatIds"], []),
             [DefinitionKind.TrainingProject] = new(
                 ["requiredSkillIds", "workUnits", "progressCap", "facilityId", "resourceId", "resourceCost", "safetyId", "grantedFeatIds", "grantedTechniqueIds"], []),
             [DefinitionKind.Equipment] = new(
@@ -58,7 +58,7 @@ internal static class DefinitionParser
             ["Characters"] = DefinitionKind.Character,
             ["Feats"] = DefinitionKind.Feat,
             ["Heritages"] = DefinitionKind.Heritage,
-            ["Perks"] = DefinitionKind.Perk,
+            ["RacialFeats"] = DefinitionKind.RacialFeat,
             ["Races"] = DefinitionKind.Race,
             ["Spells"] = DefinitionKind.Spell,
             ["PsychicTechniques"] = DefinitionKind.PsychicTechnique,
@@ -207,8 +207,8 @@ internal static class DefinitionParser
             }
         }
 
-        AttributeSourceDto? ability = kind == DefinitionKind.Ability
-            ? new AttributeSourceDto(
+        AbilitySourceDto? ability = kind == DefinitionKind.Ability
+            ? new AbilitySourceDto(
                 integers["minimum"],
                 integers["maximum"],
                 integers["defaultValue"],

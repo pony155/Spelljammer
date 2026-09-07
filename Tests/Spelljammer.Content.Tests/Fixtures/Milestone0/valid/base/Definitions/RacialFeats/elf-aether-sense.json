@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
   "revision": 1,
-  "id": "perk.race.elf.aether-sense",
-  "nameKey": "perk.race.elf.aether-sense.name",
-  "descriptionKey": "perk.race.elf.aether-sense.description",
+  "id": "feat.race.elf.aether-sense",
+  "nameKey": "feat.race.elf.aether-sense.name",
+  "descriptionKey": "feat.race.elf.aether-sense.description",
   "compatibleRaceIds": ["race.elf"],
   "grantedAccessIds": ["access.magic"],
   "grantedTechniqueIds": []

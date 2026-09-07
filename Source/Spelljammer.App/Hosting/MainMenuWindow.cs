@@ -164,7 +164,7 @@ internal sealed class MainMenuWindow : Window
     private static string GetApplicationVersion()
     {
         string version = typeof(App).Assembly
-            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
+            .GetCustomAbility<AssemblyInformationalVersionAbility>()?
             .InformationalVersion
             ?? throw new InvalidOperationException("The application version metadata is unavailable.");
         int buildMetadata = version.IndexOf('+', StringComparison.Ordinal);

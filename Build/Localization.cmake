@@ -246,8 +246,8 @@ add_custom_target(SpelljammerLocalizationCatalogs
         -p:Platform=AnyCPU
         --no-build
         -- compile
-        ${SPELLJAMMER_ROOT}/Content/Packs/base/Localization/en-US/perks.sfloc.json
-        ${CMAKE_CURRENT_BINARY_DIR}/Localization/en-US/perks.sfloc
+        ${SPELLJAMMER_ROOT}/Content/Packs/base/Localization/en-US/racial-feats.sfloc.json
+        ${CMAKE_CURRENT_BINARY_DIR}/Localization/en-US/racial-feats.sfloc
     COMMAND ${CMAKE_COMMAND} -E env DOTNET_CLI_TELEMETRY_OPTOUT=1
         ${SPELLJAMMER_DOTNET_EXECUTABLE} run
         --project ${SPELLJAMMER_ROOT}/Tools/Spelljammer.Localization.Compiler/Spelljammer.Localization.Compiler.csproj
@@ -348,7 +348,7 @@ add_custom_target(SpelljammerLocalizationCatalogs
         ${CMAKE_CURRENT_BINARY_DIR}/Localization/en-US/psionics-techniques.sfloc
         ${CMAKE_CURRENT_BINARY_DIR}/Localization/en-US/races.sfloc
         ${CMAKE_CURRENT_BINARY_DIR}/Localization/en-US/heritages.sfloc
-        ${CMAKE_CURRENT_BINARY_DIR}/Localization/en-US/perks.sfloc
+        ${CMAKE_CURRENT_BINARY_DIR}/Localization/en-US/racial-feats.sfloc
         ${CMAKE_CURRENT_BINARY_DIR}/Localization/en-US/commands.sfloc
         ${CMAKE_CURRENT_BINARY_DIR}/Localization/en-US/core.sfloc
         ${CMAKE_CURRENT_BINARY_DIR}/Localization/en-US/menu.sfloc

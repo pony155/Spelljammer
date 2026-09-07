@@ -20,7 +20,7 @@ public sealed record ObservedRouteEvidence(ContentId RouteId, ContentId Evidence
 public sealed record TrailInterpretation(ContentId RouteId, ImmutableArray<ContentId> EvidenceIds, byte Confidence);
 
 /// <summary>
-/// Utility class for generating race-specific actions and abilities based on character effects and perks.
+/// Utility class for generating race-specific actions and abilities based on character effects and Racial Feats.
 /// </summary>
 /// <remarks>
 /// This class creates dynamic action definitions for racial special abilities like soul anchor recovery
@@ -54,14 +54,13 @@ public static class RaceCapabilities
                 new TechniqueId("technique.recovery.soul-reconstitution"),
                 new SkillId("skill.enchantment"),
                 0,
-                new AttributeId("ability.willpower"),
+                new AbilityId("ability.willpower"),
                 1,
                 new ContentId("equipment.soul-anchor.portable"),
                 new ContentId("context.recovery.safe-anchor")),
             [new ActionCost(new ResourceId("resource.resonance"), 2)],
             75,
             0,
-            4,
             []);
     }
 
@@ -96,9 +95,9 @@ public static class RaceCapabilities
             return false;
         }
 
-        foreach (PerkId perkId in character.Capabilities.Perks)
+        foreach (RacialFeatId racialFeatId in character.Capabilities.RacialFeats)
         {
-            if (catalog.TryGetPerk(perkId, out PerkDefinition? perk) && perk!.EffectIds.Contains(effectId))
+            if (catalog.TryGetRacialFeat(racialFeatId, out RacialFeatDefinition? racialFeat) && racialFeat!.EffectIds.Contains(effectId))
             {
                 return true;
             }

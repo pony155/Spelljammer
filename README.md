@@ -46,8 +46,8 @@ Implemented foundations include:
   registries for seven Abilities, 29 Skills, the first character slice, one
   Spell, and one psionics technique;
 - deterministic immutable character creation for eleven races, bounded
-  capability/grant storage, action eligibility and resolution, Skill practice,
-  Feat training, mixed-crew support validation, and localization-ready roster
+  capability/grant storage, action eligibility and resolution, Feat training,
+  mixed-crew support validation, and localization-ready roster
   inspection;
 - a headless 20 Hz `VoyageWorld` with tactical pause, bounded ordered commands,
   immutable snapshots and replay logs, continuous ship combat, modular damage,
@@ -103,8 +103,8 @@ crew races, heritages, physiology, and character-generation boundaries are
 defined in [`Docs/DesignConcept/Races.md`](Docs/DesignConcept/Races.md). The
 classless capability model is split into
 [`Docs/DesignConcept/Abilities.md`](Docs/DesignConcept/Abilities.md) and
-[`Docs/DesignConcept/Skills.md`](Docs/DesignConcept/Skills.md); Perk and Racial
-Perk rules are defined in [`Docs/DesignConcept/Perks.md`](Docs/DesignConcept/Perks.md).
+[`Docs/DesignConcept/Skills.md`](Docs/DesignConcept/Skills.md); learned and Racial
+Feat rules are defined in [`Docs/Concept/Feats.md`](Docs/Concept/Feats.md).
 Implemented first-slice and planned personal weapons, armor, tools, and relics are defined in
 [`Docs/DesignConcept/Equipments.md`](Docs/DesignConcept/Equipments.md).
 Planned spellcasting rules,
@@ -138,7 +138,7 @@ defined in
 | `Source/Spelljammer.Localization/` | Game-owned localization runtime and message formatter. |
 | `Tools/Spelljammer.Content.Compiler/` | Offline gameplay-pack validation tool. |
 | `Tools/Spelljammer.Localization.Compiler/` | Source-catalog compiler and validation tools. |
-| `Content/Packs/base/` | Built-in capability, Race, Heritage, Perk, training, and first-roster definitions with localization. |
+| `Content/Packs/base/` | Built-in capability, Race, Heritage, learned and Racial Feat, training, and first-roster definitions with localization. |
 | `Content/Localization/` | Pinned locale-data inputs and third-party notices. |
 | `Tests/Spelljammer.Simulation.Tests/` | Compile-only deterministic simulation contracts. |
 | `Tests/Spelljammer.Localization.Tests/` | Compile-only localization contracts. |

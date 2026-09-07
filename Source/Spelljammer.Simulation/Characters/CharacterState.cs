@@ -7,26 +7,18 @@ namespace Spelljammer.Simulation.Characters;
 /// Represents all computed abilities, skills, and capabilities of a character.
 /// </summary>
 /// <remarks>
-/// This class encapsulates the character's abilities, skills with practice tracking, feats, perks, and techniques.
+/// This class encapsulates the character's abilities, skills, learned Feats, Racial Feats, and techniques.
 /// All data is immutable and validated against content definitions using fingerprints to ensure consistency.
-/// Skills track both mastery level and practice points separately.
 /// </remarks>
 public sealed class CharacterCapabilities
 {
     /// <summary>
-    /// The maximum number of entries allowed in any capability set (feats, perks, techniques, grant sources).
+    /// The maximum number of entries allowed in any capability set (Feats, techniques, or grant sources).
     /// </summary>
     public const int MaximumSetEntries = 256;
 
-    /// <summary>
-    /// The maximum number of practice keys that can be tracked for skill advancement.
-    /// </summary>
-    public const int MaximumPracticeKeys = 512;
-
-    private readonly ImmutableArray<short> attributeValues;
+    private readonly ImmutableArray<short> abilityValues;
     private readonly ImmutableArray<byte> skillValues;
-    private readonly ImmutableArray<ushort> skillPractice;
-    private readonly ImmutableHashSet<ContentId> practiceKeys;
 
     /// <summary>
     /// Initializes a new character capabilities object with the given abilities and traits.
@@ -38,31 +30,27 @@ public sealed class CharacterCapabilities
     /// <exception cref="ArgumentException">Thrown if arrays are empty, mismatched in length, or exceed capacity limits.</exception>
     internal CharacterCapabilities(
         ContentFingerprint fingerprint,
-        ImmutableArray<short> attributeValues,
+        ImmutableArray<short> abilityValues,
         ImmutableArray<byte> skillValues,
-        ImmutableArray<ushort> skillPractice,
         ImmutableHashSet<FeatId> feats,
-        ImmutableHashSet<PerkId> perks,
+        ImmutableHashSet<RacialFeatId> racialFeats,
         ImmutableHashSet<TechniqueId> techniques,
-        ImmutableArray<CapabilityGrant> grantSources,
-        ImmutableHashSet<ContentId>? practiceKeys = null)
+        ImmutableArray<CapabilityGrant> grantSources)
     {
-        if (attributeValues.Length == 0 || skillValues.Length == 0 || skillValues.Length != skillPractice.Length ||
-            feats.Count > MaximumSetEntries || perks.Count > MaximumSetEntries ||
+        if (abilityValues.Length == 0 || skillValues.Length == 0 ||
+            feats.Count > MaximumSetEntries || racialFeats.Count > MaximumSetEntries ||
             techniques.Count > MaximumSetEntries || grantSources.Length > MaximumSetEntries)
         {
             throw new ArgumentException("Character capability storage is incomplete or exceeds its bounded capacity.");
         }
 
         Fingerprint = fingerprint;
-        this.attributeValues = attributeValues;
+        this.abilityValues = abilityValues;
         this.skillValues = skillValues;
-        this.skillPractice = skillPractice;
         Feats = feats;
-        Perks = perks;
+        RacialFeats = racialFeats;
         Techniques = techniques;
         GrantSources = grantSources;
-        this.practiceKeys = practiceKeys ?? ImmutableHashSet<ContentId>.Empty;
     }
 
     /// <summary>
@@ -76,11 +64,11 @@ public sealed class CharacterCapabilities
     public ImmutableHashSet<FeatId> Feats { get; }
 
     /// <summary>
-    /// Gets the immutable set of perks this character possesses (from race, heritage, or achievements).
+    /// Gets the immutable set of Feats granted by this character's Race, Heritage, or authored consequences.
     /// </summary>
-    public ImmutableHashSet<PerkId> Perks { get; }
+    public ImmutableHashSet<RacialFeatId> RacialFeats { get; }
     /// <summary>
-    /// Gets the set of access privileges this character has been granted (computed from perks and feats).
+    /// Gets the set of access privileges this character has been granted from learned and Racial Feats.
     /// </summary>
     public ImmutableHashSet<AccessId> Access => GrantSources
         .Where(value => value.CapabilityId.ToString().StartsWith("access.", StringComparison.Ordinal))
@@ -124,8 +112,8 @@ public sealed class CharacterCapabilities
     /// <param name="value">When successful, contains the ability value; otherwise, zero.</param>
     /// <param name="failure">A code indicating why the lookup failed, if it failed.</param>
     /// <returns>True if the ability was found and retrieved; otherwise, false.</returns>
-    public bool TryGetAttribute(
-        AttributeId id,
+    public bool TryGetAbility(
+        AbilityId id,
         ICharacterContentCatalog catalog,
         out short value,
         out CapabilityLookupFailure failure)
@@ -137,14 +125,14 @@ public sealed class CharacterCapabilities
             return false;
         }
 
-        if (!catalog.TryGetAttribute(id, out _, out int index) || (uint)index >= (uint)attributeValues.Length)
+        if (!catalog.TryGetAbility(id, out _, out int index) || (uint)index >= (uint)abilityValues.Length)
         {
             value = default;
             failure = CapabilityLookupFailure.DefinitionMissing;
             return false;
         }
 
-        value = attributeValues[index];
+        value = abilityValues[index];
         failure = CapabilityLookupFailure.None;
         return true;
     }
@@ -187,22 +175,22 @@ public sealed class CharacterCapabilities
 
     public CharacterCapabilitySnapshot Snapshot(ICharacterContentCatalog catalog)
     {
-        if (catalog.Fingerprint != Fingerprint || catalog.Abilities.Length != attributeValues.Length ||
+        if (catalog.Fingerprint != Fingerprint || catalog.Abilities.Length != abilityValues.Length ||
             catalog.Skills.Length != skillValues.Length)
         {
             throw new InvalidOperationException("The capability state does not belong to this content catalog.");
         }
 
-        ImmutableArray<AttributeValueSnapshot>.Builder abilities = ImmutableArray.CreateBuilder<AttributeValueSnapshot>(attributeValues.Length);
-        for (int index = 0; index < attributeValues.Length; index++)
+        ImmutableArray<AbilityValueSnapshot>.Builder abilities = ImmutableArray.CreateBuilder<AbilityValueSnapshot>(abilityValues.Length);
+        for (int index = 0; index < abilityValues.Length; index++)
         {
-            abilities.Add(new AttributeValueSnapshot(catalog.Abilities[index].AttributeId, attributeValues[index]));
+            abilities.Add(new AbilityValueSnapshot(catalog.Abilities[index].AbilityId, abilityValues[index]));
         }
 
         ImmutableArray<SkillValueSnapshot>.Builder skills = ImmutableArray.CreateBuilder<SkillValueSnapshot>(skillValues.Length);
         for (int index = 0; index < skillValues.Length; index++)
         {
-            skills.Add(new SkillValueSnapshot(catalog.Skills[index].SkillId, skillValues[index], skillPractice[index]));
+            skills.Add(new SkillValueSnapshot(catalog.Skills[index].SkillId, skillValues[index]));
         }
 
         return new CharacterCapabilitySnapshot(
@@ -210,11 +198,10 @@ public sealed class CharacterCapabilities
             abilities.MoveToImmutable(),
             skills.MoveToImmutable(),
             [.. Feats.Order()],
-            [.. Perks.Order()],
+            [.. RacialFeats.Order()],
             [.. Access.Order()],
             [.. Techniques.Order()],
-            [.. GrantSources.OrderBy(value => value.CapabilityId).ThenBy(value => value.SourceId)],
-            [.. practiceKeys.Order()]);
+            [.. GrantSources.OrderBy(value => value.CapabilityId).ThenBy(value => value.SourceId)]);
     }
 
     public static CharacterCapabilities Restore(CharacterCapabilitySnapshot snapshot, ICharacterContentCatalog catalog)
@@ -223,19 +210,17 @@ public sealed class CharacterCapabilities
         ArgumentNullException.ThrowIfNull(catalog);
         if (snapshot.Fingerprint != catalog.Fingerprint || snapshot.Abilities.Length != catalog.Abilities.Length ||
             snapshot.Skills.Length != catalog.Skills.Length || snapshot.Feats.Length > MaximumSetEntries ||
-            snapshot.Perks.Length > MaximumSetEntries || snapshot.Techniques.Length > MaximumSetEntries ||
-            snapshot.GrantSources.Length > MaximumSetEntries || snapshot.PracticeKeys.Length > MaximumPracticeKeys ||
+            snapshot.RacialFeats.Length > MaximumSetEntries || snapshot.Techniques.Length > MaximumSetEntries ||
             snapshot.Abilities.Select(value => value.Id).Distinct().Count() != snapshot.Abilities.Length ||
-            snapshot.Skills.Select(value => value.Id).Distinct().Count() != snapshot.Skills.Length ||
-            snapshot.PracticeKeys.Distinct().Count() != snapshot.PracticeKeys.Length)
+            snapshot.Skills.Select(value => value.Id).Distinct().Count() != snapshot.Skills.Length)
         {
             throw new InvalidOperationException("Character capability snapshot is incompatible or exceeds capacity.");
         }
 
         ImmutableArray<short>.Builder abilities = ImmutableArray.CreateBuilder<short>(catalog.Abilities.Length);
-        foreach (AttributeDefinition definition in catalog.Abilities)
+        foreach (AbilityDefinition definition in catalog.Abilities)
         {
-            AttributeValueSnapshot? value = snapshot.Abilities.SingleOrDefault(candidate => candidate.Id == definition.AttributeId);
+            AbilityValueSnapshot? value = snapshot.Abilities.SingleOrDefault(candidate => candidate.Id == definition.AbilityId);
             if (value is null || value.Value < definition.Minimum || value.Value > definition.Maximum)
             {
                 throw new InvalidOperationException("Character Ability state is invalid.");
@@ -245,7 +230,6 @@ public sealed class CharacterCapabilities
         }
 
         ImmutableArray<byte>.Builder skills = ImmutableArray.CreateBuilder<byte>(catalog.Skills.Length);
-        ImmutableArray<ushort>.Builder practice = ImmutableArray.CreateBuilder<ushort>(catalog.Skills.Length);
         foreach (SkillDefinition definition in catalog.Skills)
         {
             SkillValueSnapshot? value = snapshot.Skills.SingleOrDefault(candidate => candidate.Id == definition.SkillId);
@@ -255,11 +239,10 @@ public sealed class CharacterCapabilities
             }
 
             skills.Add(value.Value);
-            practice.Add(value.Practice);
         }
 
         if (snapshot.Feats.Any(id => !catalog.TryGetFeat(id, out _)) ||
-            snapshot.Perks.Any(id => !catalog.TryGetPerk(id, out _)) ||
+            snapshot.RacialFeats.Any(id => !catalog.TryGetRacialFeat(id, out _)) ||
             snapshot.Techniques.Any(id => !TechniqueExists(id, catalog)) ||
             snapshot.GrantSources.Any(value => !value.CapabilityId.IsValid || !value.SourceId.IsValid))
         {
@@ -270,12 +253,10 @@ public sealed class CharacterCapabilities
             snapshot.Fingerprint,
             abilities.MoveToImmutable(),
             skills.MoveToImmutable(),
-            practice.MoveToImmutable(),
             snapshot.Feats.ToImmutableHashSet(),
-            snapshot.Perks.ToImmutableHashSet(),
+            snapshot.RacialFeats.ToImmutableHashSet(),
             snapshot.Techniques.ToImmutableHashSet(),
-            snapshot.GrantSources,
-            snapshot.PracticeKeys.ToImmutableHashSet());
+            snapshot.GrantSources);
     }
 
     private static bool TechniqueExists(TechniqueId id, ICharacterContentCatalog catalog) =>
@@ -284,42 +265,6 @@ public sealed class CharacterCapabilities
             : id.Value.ToString().StartsWith("psionics.", StringComparison.Ordinal)
                 ? catalog.TryGetPsychicTechnique(new PsychicTechniqueId(id.Value), out _)
                 : catalog.TryGetTechnique(id, out _);
-
-    internal CharacterCapabilities AwardPractice(
-        ICharacterContentCatalog catalog,
-        SkillId skillId,
-        ushort amount,
-        ContentId practiceKey,
-        out SkillAdvancementEvent? advancement)
-    {
-        advancement = null;
-        if (amount == 0 || practiceKeys.Contains(practiceKey) || practiceKeys.Count >= MaximumPracticeKeys ||
-            catalog.Fingerprint != Fingerprint || !catalog.TryGetSkill(skillId, out SkillDefinition? definition, out int index))
-        {
-            return this;
-        }
-
-        int practice = Math.Min(ushort.MaxValue, skillPractice[index] + amount);
-        int value = skillValues[index];
-        int threshold = checked((value + 1) * 10);
-        if (practice >= threshold && value < definition!.Maximum)
-        {
-            practice -= threshold;
-            value++;
-            advancement = new SkillAdvancementEvent(skillId, skillValues[index], (byte)value, amount, practiceKey);
-        }
-
-        return new CharacterCapabilities(
-            Fingerprint,
-            attributeValues,
-            skillValues.SetItem(index, (byte)value),
-            skillPractice.SetItem(index, (ushort)practice),
-            Feats,
-            Perks,
-            Techniques,
-            GrantSources,
-            practiceKeys.Add(practiceKey));
-    }
 
     internal CharacterCapabilities WithTrainingGrants(
         TrainingProjectDefinition project,
@@ -359,27 +304,27 @@ public sealed class CharacterCapabilities
             throw new InvalidOperationException("Training grants exceed the character capability capacity.");
         }
 
-        return new CharacterCapabilities(Fingerprint, attributeValues, skillValues, skillPractice, feats, Perks,
-            techniques, grants.MoveToImmutable(), practiceKeys);
+        return new CharacterCapabilities(Fingerprint, abilityValues, skillValues, feats, RacialFeats,
+            techniques, grants.MoveToImmutable());
     }
 
-    internal CharacterCapabilities WithPerkGrant(PerkDefinition perk, ContentId sourceId)
+    internal CharacterCapabilities WithRacialFeatGrant(RacialFeatDefinition racialFeat, ContentId sourceId)
     {
-        if (Perks.Contains(perk.PerkId))
+        if (RacialFeats.Contains(racialFeat.RacialFeatId))
         {
             return this;
         }
 
         ImmutableArray<CapabilityGrant>.Builder grants = GrantSources.ToBuilder();
-        grants.Add(new CapabilityGrant(perk.PerkId.Value, sourceId, GrantSourceKind.Perk));
-        foreach (AccessId accessId in perk.GrantedAccessIds)
+        grants.Add(new CapabilityGrant(racialFeat.RacialFeatId.Value, sourceId, GrantSourceKind.RacialFeat));
+        foreach (AccessId accessId in racialFeat.GrantedAccessIds)
         {
-            grants.Add(new CapabilityGrant(accessId.Value, perk.PerkId.Value, GrantSourceKind.Perk));
+            grants.Add(new CapabilityGrant(accessId.Value, racialFeat.RacialFeatId.Value, GrantSourceKind.RacialFeat));
         }
 
-        foreach (TechniqueId techniqueId in perk.GrantedTechniqueIds)
+        foreach (TechniqueId techniqueId in racialFeat.GrantedTechniqueIds)
         {
-            grants.Add(new CapabilityGrant(techniqueId.Value, perk.PerkId.Value, GrantSourceKind.Perk));
+            grants.Add(new CapabilityGrant(techniqueId.Value, racialFeat.RacialFeatId.Value, GrantSourceKind.RacialFeat));
         }
 
         if (grants.Count > MaximumSetEntries)
@@ -389,14 +334,12 @@ public sealed class CharacterCapabilities
 
         return new CharacterCapabilities(
             Fingerprint,
-            attributeValues,
+            abilityValues,
             skillValues,
-            skillPractice,
             Feats,
-            Perks.Add(perk.PerkId),
-            Techniques.Union(perk.GrantedTechniqueIds),
-            grants.MoveToImmutable(),
-            practiceKeys);
+            RacialFeats.Add(racialFeat.RacialFeatId),
+            Techniques.Union(racialFeat.GrantedTechniqueIds),
+            grants.MoveToImmutable());
     }
 
     public CharacterCapabilities WithoutGrantSource(ContentId sourceId)
@@ -421,14 +364,12 @@ public sealed class CharacterCapabilities
         ImmutableHashSet<ContentId> retainedCapabilities = remaining.Select(value => value.CapabilityId).ToImmutableHashSet();
         return new CharacterCapabilities(
             Fingerprint,
-            attributeValues,
+            abilityValues,
             skillValues,
-            skillPractice,
             Feats.Where(value => retainedCapabilities.Contains(value.Value)).ToImmutableHashSet(),
-            Perks.Where(value => retainedCapabilities.Contains(value.Value)).ToImmutableHashSet(),
+            RacialFeats.Where(value => retainedCapabilities.Contains(value.Value)).ToImmutableHashSet(),
             Techniques.Where(value => retainedCapabilities.Contains(value.Value)).ToImmutableHashSet(),
-            remaining,
-            practiceKeys);
+            remaining);
     }
 }
 
@@ -448,8 +389,81 @@ public sealed record CharacterState(
     ImmutableDictionary<TrainingProjectId, int> TrainingProgress,
     bool CanAct = true)
 {
+    /// <summary>
+    /// Maximum number of active character effects retained in persistent state.
+    /// Encounter-local effects have their own limit.
+    /// </summary>
+    public const int MaximumActiveEffects = 128;
+
+    /// <summary>
+    /// Maximum number of observable evidence entries retained for a character.
+    /// </summary>
+    public const int MaximumEvidenceEntries = 256;
+
     public ImmutableArray<ActiveCapabilityEffect> ActiveEffects { get; init; } = [];
     public ImmutableArray<ObservableCapabilityEvidence> Evidence { get; init; } = [];
+
+    /// <summary>
+    /// Validates the complete character state against the active content catalog.
+    /// This is intentionally explicit so callers can validate before publishing
+    /// a snapshot or writing a campaign save.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown when the state has a content mismatch, invalid references, negative
+    /// resources or progress, or exceeds a bounded collection.
+    /// </exception>
+    public void ValidateForContent(ICharacterContentCatalog catalog)
+    {
+        ArgumentNullException.ThrowIfNull(catalog);
+        if (ContentFingerprint != catalog.Fingerprint || Capabilities.Fingerprint != ContentFingerprint)
+        {
+            throw new InvalidOperationException("Character state does not belong to the active content catalog.");
+        }
+
+        if (LanguageIds.Length > CharacterCapabilities.MaximumSetEntries ||
+            ScriptIds.Length > CharacterCapabilities.MaximumSetEntries ||
+            EquipmentIds.Count > CharacterCapabilities.MaximumSetEntries ||
+            Resources.Count > CharacterCapabilities.MaximumSetEntries ||
+            TrainingProgress.Count > CharacterCapabilities.MaximumSetEntries ||
+            ActiveEffects.Length > MaximumActiveEffects ||
+            Evidence.Length > MaximumEvidenceEntries)
+        {
+            throw new InvalidOperationException("Character state exceeds a bounded capacity.");
+        }
+
+        if (Resources.Any(value => !value.Key.IsValid || value.Value < 0))
+        {
+            throw new InvalidOperationException("Character resources contain an invalid value.");
+        }
+
+        foreach ((TrainingProjectId projectId, int progress) in TrainingProgress)
+        {
+            if (progress < 0 || !catalog.TryGetTrainingProject(projectId, out TrainingProjectDefinition? project) ||
+                progress > project!.ProgressCap)
+            {
+                throw new InvalidOperationException("Character training progress is invalid.");
+            }
+        }
+
+        foreach (ActiveCapabilityEffect effect in ActiveEffects)
+        {
+            if (!effect.EffectId.IsValid || !effect.SourceId.IsValid ||
+                effect.ActorId != Id || !effect.TargetId.IsValid || !effect.ScopeId.IsValid ||
+                effect.StartTick < 0 || effect.EndTick < effect.StartTick)
+            {
+                throw new InvalidOperationException("Character active effect state is invalid.");
+            }
+        }
+
+        foreach (ObservableCapabilityEvidence evidence in Evidence)
+        {
+            if (!evidence.EvidenceId.IsValid || !evidence.SourceId.IsValid ||
+                evidence.ActorId != Id || !evidence.TargetId.IsValid || evidence.Tick < 0)
+            {
+                throw new InvalidOperationException("Character evidence state is invalid.");
+            }
+        }
+    }
 }
 
 public sealed record ActiveCapabilityEffect(
@@ -468,10 +482,3 @@ public sealed record ObservableCapabilityEvidence(
     CharacterId TargetId,
     long Tick,
     bool Succeeded);
-
-public sealed record SkillAdvancementEvent(
-    SkillId SkillId,
-    byte PreviousValue,
-    byte NewValue,
-    ushort PracticeAward,
-    ContentId PracticeKey);

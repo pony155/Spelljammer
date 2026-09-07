@@ -487,10 +487,10 @@ public static class CampaignSaveCodec
             PositionId = character.PositionId.ToString(),
             Capabilities = new CapabilityDto
             {
-                Abilities = [.. snapshot.Abilities.Select(value => new AttributeValueDto { Id = value.Id.ToString(), Value = value.Value })],
-                Skills = [.. snapshot.Skills.Select(value => new SkillValueDto { Id = value.Id.ToString(), Value = value.Value, Practice = value.Practice })],
+                Abilities = [.. snapshot.Abilities.Select(value => new AbilityValueDto { Id = value.Id.ToString(), Value = value.Value })],
+                Skills = [.. snapshot.Skills.Select(value => new SkillValueDto { Id = value.Id.ToString(), Value = value.Value })],
                 FeatIds = [.. snapshot.Feats.Select(value => value.ToString())],
-                PerkIds = [.. snapshot.Perks.Select(value => value.ToString())],
+                RacialFeatIds = [.. snapshot.RacialFeats.Select(value => value.ToString())],
                 TechniqueIds = [.. snapshot.Techniques.Select(value => value.ToString())],
                 GrantSources = [.. snapshot.GrantSources.Select(value => new GrantDto
                 {
@@ -498,7 +498,6 @@ public static class CampaignSaveCodec
                     SourceId = value.SourceId.ToString(),
                     SourceKind = (int)value.SourceKind,
                 })],
-                PracticeKeys = [.. snapshot.PracticeKeys.Select(value => value.ToString())],
             },
             LanguageIds = [.. character.LanguageIds.Order().Select(value => value.ToString())],
             ScriptIds = [.. character.ScriptIds.Order().Select(value => value.ToString())],
@@ -706,18 +705,18 @@ public static class CampaignSaveCodec
         RequireCount(value.Capabilities.Abilities.Length, CampaignSaveLimits.MaximumCollectionEntries);
         RequireCount(value.Capabilities.Skills.Length, CampaignSaveLimits.MaximumCollectionEntries);
         RequireCount(value.Capabilities.GrantSources.Length, CharacterCapabilities.MaximumSetEntries);
-        ImmutableArray<AttributeValueSnapshot> abilities =
-            [.. value.Capabilities.Abilities.Select(item => new AttributeValueSnapshot(new AttributeId(item.Id), item.Value))];
+        ImmutableArray<AbilityValueSnapshot> abilities =
+            [.. value.Capabilities.Abilities.Select(item => new AbilityValueSnapshot(new AbilityId(item.Id), item.Value))];
         ImmutableArray<SkillValueSnapshot> skills =
-            [.. value.Capabilities.Skills.Select(item => new SkillValueSnapshot(new SkillId(item.Id), item.Value, item.Practice))];
+            [.. value.Capabilities.Skills.Select(item => new SkillValueSnapshot(new SkillId(item.Id), item.Value))];
         if (addCompatibleDefinitions)
         {
             abilities = [.. content.Abilities.Select(definition => abilities
-                .FirstOrDefault(item => item.Id == definition.AttributeId) ??
-                new AttributeValueSnapshot(definition.AttributeId, (short)definition.DefaultValue))];
+                .FirstOrDefault(item => item.Id == definition.AbilityId) ??
+                new AbilityValueSnapshot(definition.AbilityId, (short)definition.DefaultValue))];
             skills = [.. content.Skills.Select(definition => skills
                 .FirstOrDefault(item => item.Id == definition.SkillId) ??
-                new SkillValueSnapshot(definition.SkillId, (byte)definition.Minimum, 0))];
+                new SkillValueSnapshot(definition.SkillId, (byte)definition.Minimum))];
         }
 
         CharacterCapabilitySnapshot snapshot = new(
@@ -725,13 +724,12 @@ public static class CampaignSaveCodec
             abilities,
             skills,
             [.. ParseIds(value.Capabilities.FeatIds, CharacterCapabilities.MaximumSetEntries).Select(id => new FeatId(id))],
-            [.. ParseIds(value.Capabilities.PerkIds, CharacterCapabilities.MaximumSetEntries).Select(id => new PerkId(id))],
+            [.. ParseIds(value.Capabilities.RacialFeatIds, CharacterCapabilities.MaximumSetEntries).Select(id => new RacialFeatId(id))],
             [.. value.Capabilities.GrantSources.Where(grant => grant.CapabilityId.StartsWith("access.", StringComparison.Ordinal))
                 .Select(grant => new AccessId(grant.CapabilityId)).Distinct().Order()],
             [.. ParseIds(value.Capabilities.TechniqueIds, CharacterCapabilities.MaximumSetEntries).Select(id => new TechniqueId(id))],
             [.. value.Capabilities.GrantSources.Select(grant => new CapabilityGrant(
-                new ContentId(grant.CapabilityId), new ContentId(grant.SourceId), ParseEnum<GrantSourceKind>(grant.SourceKind)))],
-            ParseIds(value.Capabilities.PracticeKeys, CharacterCapabilities.MaximumPracticeKeys));
+                new ContentId(grant.CapabilityId), new ContentId(grant.SourceId), ParseEnum<GrantSourceKind>(grant.SourceKind)))]);
         CharacterCapabilities capabilities = CharacterCapabilities.Restore(snapshot, content);
         ImmutableDictionary<ContentId, int> resources = ValueDictionary(value.Resources);
         ImmutableDictionary<ContentId, int> training = ValueDictionary(value.TrainingProgress);
