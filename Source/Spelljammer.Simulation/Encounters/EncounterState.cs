@@ -3,11 +3,30 @@ using Spelljammer.Simulation.Content;
 
 namespace Spelljammer.Simulation.Encounters;
 
+/// <summary>
+/// A fixed-point scalar value with a scale factor for sub-integer precision.
+/// </summary>
+/// <remarks>
+/// Uses fixed-point arithmetic (1000x scale) to avoid floating-point precision issues in game calculations.
+/// Values range from -1 billion to +1 billion before scaling. Supports comparison and basic arithmetic operations.
+/// </remarks>
 public readonly record struct FixedScalar : IComparable<FixedScalar>
 {
+    /// <summary>
+    /// The scale factor for fixed-point representation (1000).
+    /// </summary>
     public const long Scale = 1_000;
+
+    /// <summary>
+    /// The maximum magnitude of a raw fixed-point value (±1 billion * 1000).
+    /// </summary>
     public const long MaximumMagnitude = 1_000_000_000 * Scale;
 
+    /// <summary>
+    /// Initializes a fixed-point scalar from a raw value.
+    /// </summary>
+    /// <param name="raw">The raw fixed-point value (may be in range ±1 billion * 1000).</param>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown if the value exceeds the maximum magnitude.</exception>
     public FixedScalar(long raw)
     {
         if (raw is < -MaximumMagnitude or > MaximumMagnitude)
@@ -18,33 +37,77 @@ public readonly record struct FixedScalar : IComparable<FixedScalar>
         Raw = raw;
     }
 
+    /// <summary>Gets the raw fixed-point value (multiply by 0.001 to get decimal).</summary>
     public long Raw { get; }
+
+    /// <summary>Compares this scalar with another using their raw values.</summary>
     public int CompareTo(FixedScalar other) => Raw.CompareTo(other.Raw);
+
+    /// <summary>Creates a fixed-point scalar from an integer value.</summary>
+    /// <param name="value">The integer value to convert (multiplied by scale internally).</param>
     public static FixedScalar FromInt(int value) => new(checked(value * Scale));
+
+    /// <summary>Adds two fixed-point scalars with overflow checking.</summary>
     public static FixedScalar operator +(FixedScalar left, FixedScalar right) => new(checked(left.Raw + right.Raw));
+
+    /// <summary>Subtracts two fixed-point scalars with overflow checking.</summary>
     public static FixedScalar operator -(FixedScalar left, FixedScalar right) => new(checked(left.Raw - right.Raw));
+
+    /// <summary>Multiplies a fixed-point scalar by an integer multiplier with overflow checking.</summary>
     public static FixedScalar operator *(FixedScalar value, int multiplier) => new(checked(value.Raw * multiplier));
 }
 
+/// <summary>
+/// A 2D vector with fixed-point components for tactical positioning.
+/// </summary>
 public readonly record struct FixedVector2(FixedScalar X, FixedScalar Y)
 {
+    /// <summary>Gets the zero vector (0, 0).</summary>
     public static FixedVector2 Zero => new(new FixedScalar(0), new FixedScalar(0));
+
+    /// <summary>Adds two vectors component-wise.</summary>
     public static FixedVector2 operator +(FixedVector2 left, FixedVector2 right) => new(left.X + right.X, left.Y + right.Y);
+
+    /// <summary>Subtracts two vectors component-wise.</summary>
     public static FixedVector2 operator -(FixedVector2 left, FixedVector2 right) => new(left.X - right.X, left.Y - right.Y);
 }
 
+/// <summary>
+/// The result of attempting to validate and create a tactical board.
+/// </summary>
+/// <remarks>
+/// If validation succeeds, the Board property contains the validated tactical board. If validation fails,
+/// RejectionCode contains a localization key describing the validation error.
+/// </remarks>
+/// <param name="Board">The validated tactical board, or null if validation failed.</param>
+/// <param name="RejectionCode">A localization key describing the validation error (empty string if accepted).</param>
 public sealed record BoardValidationResult(TacticalBoard? Board, string RejectionCode)
 {
+    /// <summary>Gets whether the board was successfully validated and created.</summary>
     public bool Accepted => Board is not null;
 }
 
+/// <summary>
+/// Represents the tactical combat board where an encounter takes place.
+/// </summary>
+/// <remarks>
+/// The tactical board is a hex or square grid populated with cells that have properties like capacity, cover, visibility,
+/// and hazards. Links between cells define movement paths. The board is immutable and fully validated at creation.
+/// </remarks>
+/// <param name="Definition">The definition that describes this board's structure and rules.</param>
+/// <param name="Cells">Dictionary of all cells on the board, indexed by cell ID.</param>
+/// <param name="Links">Array of all links (movement paths) between cells.</param>
+/// <param name="Occupants">Dictionary mapping cells to the actors occupying them.</param>
 public sealed record TacticalBoard(
     PersonalBoardDefinition Definition,
     ImmutableDictionary<CellId, BoardCellDefinition> Cells,
     ImmutableArray<ZoneLinkDefinition> Links,
     ImmutableDictionary<CellId, ImmutableArray<ActorId>> Occupants)
 {
+    /// <summary>The maximum number of cells allowed on a tactical board.</summary>
     public const int MaximumCells = 256;
+
+    /// <summary>The maximum number of links (movement paths) allowed on a tactical board.</summary>
     public const int MaximumLinks = 1_024;
 
     public static BoardValidationResult Create(

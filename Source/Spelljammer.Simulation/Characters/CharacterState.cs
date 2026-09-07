@@ -3,9 +3,24 @@ using Spelljammer.Simulation.Content;
 
 namespace Spelljammer.Simulation.Characters;
 
+/// <summary>
+/// Represents all computed abilities, skills, and capabilities of a character.
+/// </summary>
+/// <remarks>
+/// This class encapsulates the character's attributes, skills with practice tracking, feats, perks, and techniques.
+/// All data is immutable and validated against content definitions using fingerprints to ensure consistency.
+/// Skills track both mastery level and practice points separately.
+/// </remarks>
 public sealed class CharacterCapabilities
 {
+    /// <summary>
+    /// The maximum number of entries allowed in any capability set (feats, perks, techniques, grant sources).
+    /// </summary>
     public const int MaximumSetEntries = 256;
+
+    /// <summary>
+    /// The maximum number of practice keys that can be tracked for skill advancement.
+    /// </summary>
     public const int MaximumPracticeKeys = 512;
 
     private readonly ImmutableArray<short> attributeValues;
@@ -13,6 +28,14 @@ public sealed class CharacterCapabilities
     private readonly ImmutableArray<ushort> skillPractice;
     private readonly ImmutableHashSet<ContentId> practiceKeys;
 
+    /// <summary>
+    /// Initializes a new character capabilities object with the given abilities and traits.
+    /// </summary>
+    /// <remarks>
+    /// This constructor is internal; capabilities are created only by character-building systems.
+    /// All arrays and sets are validated for completeness and capacity limits.
+    /// </remarks>
+    /// <exception cref="ArgumentException">Thrown if arrays are empty, mismatched in length, or exceed capacity limits.</exception>
     internal CharacterCapabilities(
         ContentFingerprint fingerprint,
         ImmutableArray<short> attributeValues,
@@ -42,24 +65,65 @@ public sealed class CharacterCapabilities
         this.practiceKeys = practiceKeys ?? ImmutableHashSet<ContentId>.Empty;
     }
 
+    /// <summary>
+    /// Gets the content fingerprint used to validate that this character matches the current content version.
+    /// </summary>
     public ContentFingerprint Fingerprint { get; }
+
+    /// <summary>
+    /// Gets the immutable set of feats this character has learned.
+    /// </summary>
     public ImmutableHashSet<FeatId> Feats { get; }
+
+    /// <summary>
+    /// Gets the immutable set of perks this character possesses (from race, heritage, or achievements).
+    /// </summary>
     public ImmutableHashSet<PerkId> Perks { get; }
+    /// <summary>
+    /// Gets the set of access privileges this character has been granted (computed from perks and feats).
+    /// </summary>
     public ImmutableHashSet<AccessId> Access => GrantSources
         .Where(value => value.CapabilityId.ToString().StartsWith("access.", StringComparison.Ordinal))
         .Select(value => new AccessId(value.CapabilityId))
         .ToImmutableHashSet();
+
+    /// <summary>
+    /// Gets the immutable set of techniques this character can use (includes spells and psychic powers).
+    /// </summary>
     public ImmutableHashSet<TechniqueId> Techniques { get; }
+
+    /// <summary>
+    /// Gets the subset of techniques that are spells this character knows.
+    /// </summary>
     public ImmutableHashSet<SpellId> KnownSpellIds => Techniques
         .Where(value => value.Value.ToString().StartsWith("spell.", StringComparison.Ordinal))
         .Select(value => new SpellId(value.Value))
         .ToImmutableHashSet();
+
+    /// <summary>
+    /// Gets the subset of techniques that are psychic powers this character knows.
+    /// </summary>
     public ImmutableHashSet<PsychicTechniqueId> KnownPsychicTechniqueIds => Techniques
         .Where(value => value.Value.ToString().StartsWith("psychic.", StringComparison.Ordinal))
         .Select(value => new PsychicTechniqueId(value.Value))
         .ToImmutableHashSet();
+
+    /// <summary>
+    /// Gets the array of sources that granted capabilities to this character (for tracing where abilities came from).
+    /// </summary>
     public ImmutableArray<CapabilityGrant> GrantSources { get; }
 
+    /// <summary>
+    /// Attempts to retrieve an attribute value for this character using the given catalog.
+    /// </summary>
+    /// <remarks>
+    /// The catalog must match this character's fingerprint; if it doesn't, the lookup fails with ContentMismatch.
+    /// </remarks>
+    /// <param name="id">The attribute ID to look up.</param>
+    /// <param name="catalog">The content catalog to validate against.</param>
+    /// <param name="value">When successful, contains the attribute value; otherwise, zero.</param>
+    /// <param name="failure">A code indicating why the lookup failed, if it failed.</param>
+    /// <returns>True if the attribute was found and retrieved; otherwise, false.</returns>
     public bool TryGetAttribute(
         AttributeId id,
         ICharacterContentCatalog catalog,
@@ -85,6 +149,17 @@ public sealed class CharacterCapabilities
         return true;
     }
 
+    /// <summary>
+    /// Attempts to retrieve a skill value for this character using the given catalog.
+    /// </summary>
+    /// <remarks>
+    /// The catalog must match this character's fingerprint. The skill value represents mastery level (0-255).
+    /// </remarks>
+    /// <param name="id">The skill ID to look up.</param>
+    /// <param name="catalog">The content catalog to validate against.</param>
+    /// <param name="value">When successful, contains the skill proficiency level; otherwise, zero.</param>
+    /// <param name="failure">A code indicating why the lookup failed, if it failed.</param>
+    /// <returns>True if the skill was found and retrieved; otherwise, false.</returns>
     public bool TryGetSkill(
         SkillId id,
         ICharacterContentCatalog catalog,
