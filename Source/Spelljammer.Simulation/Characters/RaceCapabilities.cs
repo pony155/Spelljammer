@@ -3,15 +3,40 @@ using Spelljammer.Simulation.Content;
 
 namespace Spelljammer.Simulation.Characters;
 
+/// <summary>
+/// Represents evidence of a route observed by a character with a confidence level.
+/// </summary>
+/// <param name="RouteId">The ID of the route being tracked.</param>
+/// <param name="EvidenceId">The type of evidence observed (footprints, scent, magical traces, etc.).</param>
+/// <param name="Confidence">The confidence level in this evidence (0-255).</param>
 public sealed record ObservedRouteEvidence(ContentId RouteId, ContentId EvidenceId, byte Confidence);
 
+/// <summary>
+/// The interpretation of observed evidence as a coherent trail or route.
+/// </summary>
+/// <param name="RouteId">The ID of the route this trail represents.</param>
+/// <param name="EvidenceIds">The collection of evidence types that support this trail interpretation.</param>
+/// <param name="Confidence">The overall confidence in this trail interpretation (0-255).</param>
 public sealed record TrailInterpretation(ContentId RouteId, ImmutableArray<ContentId> EvidenceIds, byte Confidence);
 
+/// <summary>
+/// Utility class for generating race-specific actions and abilities based on character effects and perks.
+/// </summary>
+/// <remarks>
+/// This class creates dynamic action definitions for racial special abilities like soul anchor recovery
+/// and trail sense tracking. Actions are only generated if the character has the appropriate effects enabled.
+/// </remarks>
 public static class RaceCapabilities
 {
     private static readonly ContentId SoulAnchorEffect = new("effect.recovery.soul-anchor");
     private static readonly ContentId TrailSenseEffect = new("effect.tracking.observed-trail");
 
+    /// <summary>
+    /// Creates a soul anchor recovery action if the character has the soul anchor effect.
+    /// </summary>
+    /// <param name="character">The character to check for the effect.</param>
+    /// <param name="catalog">The content catalog for validation.</param>
+    /// <returns>The soul anchor recovery action if available; null otherwise.</returns>
     public static ActionDefinition? CreateSoulAnchorRecoveryAction(
         CharacterState character,
         ICharacterContentCatalog catalog)

@@ -4,6 +4,20 @@ using Spelljammer.Simulation.Content;
 
 namespace Spelljammer.Simulation.Characters;
 
+/// <summary>
+/// A request to create a new character with specified choices.
+/// </summary>
+/// <remarks>
+/// The request specifies all character creation choices: race, heritage, background, and scenario.
+/// The content fingerprint ensures the request matches the available game content.
+/// </remarks>
+/// <param name="ContentFingerprint">The fingerprint of the content being used for creation.</param>
+/// <param name="ScenarioId">The starting scenario for the new character.</param>
+/// <param name="CharacterId">The character definition to instantiate.</param>
+/// <param name="RaceId">The race of the character.</param>
+/// <param name="HeritageId">The heritage (sub-race variant) of the character.</param>
+/// <param name="BackgroundId">The background (origin story) of the character.</param>
+/// <param name="Seed">Random seed for deterministic character generation.</param>
 public sealed record CharacterCreationRequest(
     ContentFingerprint ContentFingerprint,
     ScenarioId ScenarioId,
@@ -13,29 +27,82 @@ public sealed record CharacterCreationRequest(
     BackgroundId BackgroundId,
     ulong Seed);
 
+/// <summary>
+/// Diagnostic codes indicating why character creation may fail.
+/// </summary>
 public enum CharacterCreationFailure : byte
 {
+    /// <summary>Character was created successfully.</summary>
     None,
+
+    /// <summary>The content fingerprint does not match the catalog.</summary>
     ContentMismatch,
+
+    /// <summary>A required definition (race, heritage, background, etc.) was not found in the catalog.</summary>
     DefinitionMissing,
+
+    /// <summary>A required definition has an unexpected structure or format.</summary>
     DefinitionMismatch,
+
+    /// <summary>The chosen heritage is not compatible with the chosen race.</summary>
     IncompatibleHeritage,
+
+    /// <summary>The chosen background is not compatible with the chosen race.</summary>
     IncompatibleBackground,
+
+    /// <summary>A capability that should be granted (perk, feat, technique) is missing from the catalog.</summary>
     MissingGrant,
+
+    /// <summary>Character capabilities exceeded storage capacity limits.</summary>
     CapacityExceeded,
+
+    /// <summary>A support requirement for the scenario cannot be fulfilled.</summary>
     SupportUnavailable,
+
+    /// <summary>Required starting equipment is not available or cannot be equipped.</summary>
     EquipmentUnavailable,
 }
 
+/// <summary>
+/// The result of a character creation attempt.
+/// </summary>
+/// <remarks>
+/// If creation succeeds, the Character property contains the new character. If it fails, Failure indicates
+/// the reason and RelatedId may identify the offending definition.
+/// </remarks>
+/// <param name="Character">The created character, or null if creation failed.</param>
+/// <param name="Failure">The failure code (None if creation succeeded).</param>
+/// <param name="RelatedId">The ID of a related definition that caused the failure, if applicable.</param>
 public sealed record CharacterCreationResult(CharacterState? Character, CharacterCreationFailure Failure, ContentId? RelatedId)
 {
+    /// <summary>Gets whether the character was successfully created.</summary>
     public bool Succeeded => Character is not null;
 }
 
+/// <summary>
+/// Describes available support resources and equipment for a crew.
+/// </summary>
+/// <remarks>
+/// This profile specifies what support requirements can be fulfilled and what equipment is available
+/// for new characters joining a crew or scenario.
+/// </remarks>
+/// <param name="SupportedRequirementIds">The set of support requirements this crew can fulfill.</param>
+/// <param name="AvailableEquipmentIds">The equipment available for new characters to start with.</param>
 public sealed record CrewSupportProfile(
     ImmutableHashSet<ContentId> SupportedRequirementIds,
     ImmutableHashSet<ContentId> AvailableEquipmentIds);
 
+/// <summary>
+/// A snapshot of a complete roster of characters at a point in time.
+/// </summary>
+/// <remarks>
+/// The roster includes all characters, and cached attribute/skill definition arrays for efficient lookup.
+/// </remarks>
+/// <param name="ContentFingerprint">The content version this roster is based on.</param>
+/// <param name="ScenarioId">The scenario all characters are participating in.</param>
+/// <param name="Characters">The array of all characters in the roster.</param>
+/// <param name="AttributeColumns">Cached attribute definitions for column indexing.</param>
+/// <param name="SkillColumns">Cached skill definitions for column indexing.</param>
 public sealed record RosterSnapshot(
     ContentFingerprint ContentFingerprint,
     ScenarioId ScenarioId,
@@ -43,8 +110,18 @@ public sealed record RosterSnapshot(
     ImmutableArray<AttributeDefinition> AttributeColumns,
     ImmutableArray<SkillDefinition> SkillColumns);
 
+/// <summary>
+/// The result of attempting to create a roster of characters.
+/// </summary>
+/// <remarks>
+/// If roster creation succeeds, contains the roster snapshot. If it fails, indicates the failure reason.
+/// </remarks>
+/// <param name="Roster">The created roster, or null if creation failed.</param>
+/// <param name="Failure">The failure code (None if successful).</param>
+/// <param name="RelatedId">The ID of a related definition that caused the failure, if applicable.</param>
 public sealed record RosterCreationResult(RosterSnapshot? Roster, CharacterCreationFailure Failure, ContentId? RelatedId)
 {
+    /// <summary>Gets whether the roster was successfully created.</summary>
     public bool Succeeded => Roster is not null;
 }
 
