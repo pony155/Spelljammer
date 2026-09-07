@@ -93,7 +93,7 @@ automatically define personality or morality.
 
 ### Capability effects
 
-Capability effects are explicit changes granted by a spell, psionic technique,
+Capability effects are explicit changes granted by a spell, psionic active Feat,
 feat, equipment, module, environment, or event. They may grant access, add a
 ward, expose evidence, alter an action, or apply a condition.
 

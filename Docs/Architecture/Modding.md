@@ -19,7 +19,7 @@ The first mod release supports local declarative packs that add validated:
 
 - scenarios with bounded crew rules, plus Races, Heritages, Feats, and Backgrounds;
 - Skills after every consumer supports a dynamic Skill registry;
-- spells, psionics abilities, combat techniques, recipes, and enchantments;
+- active Feats with spell, psionic, combat, recipe, and enchantment rules;
 - items, weapons, armor, ship frames, and ship modules;
 - travel events, encounters, ruin rooms, galaxy sites, factions, and crises;
   and
@@ -93,7 +93,7 @@ document may resemble:
 {
   "schemaVersion": 1,
   "id": "patch.mod.example.brace-ward-balance",
-  "targetId": "spell.spirit.magic-missile",
+  "targetId": "feat.active.spell.spirit.magic-missile",
   "targetPackId": "spelljammer.base",
   "expectedRevision": 1,
   "operations": []
@@ -151,7 +151,7 @@ cannot infer replacements from display names.
 
 A pack can be removed from a campaign only when no persistent state references
 it and derived generation remains valid. The reference scan covers characters,
-training, techniques, items, cargo, ships, modules, sites, encounters, factions,
+training, Feats, items, cargo, ships, modules, sites, encounters, factions,
 agreements, galaxy generation, active effects, and crisis state.
 
 The UI explains blockers. Destructive cleanup or substitution requires a

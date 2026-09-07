@@ -40,9 +40,6 @@ public sealed class GameContentSnapshot : ICharacterContentCatalog
         ImmutableArray<FeatDefinition> feats,
         ImmutableArray<HeritageDefinition> heritages,
         ImmutableArray<RaceDefinition> races,
-        ImmutableArray<SpellDefinition> spells,
-        ImmutableArray<PsychicTechniqueDefinition> psychicTechniques,
-        ImmutableArray<TechniqueDefinition> techniques,
         ImmutableArray<TrainingProjectDefinition> trainingProjects,
         ImmutableArray<EquipmentDefinition> equipment,
         ImmutableArray<BoardCellDefinition> boardCells,
@@ -66,9 +63,6 @@ public sealed class GameContentSnapshot : ICharacterContentCatalog
         Feats = feats;
         Heritages = heritages;
         Races = races;
-        Spells = spells;
-        PsychicTechniques = psychicTechniques;
-        Techniques = techniques;
         TrainingProjects = trainingProjects;
         Equipment = equipment;
         BoardCells = boardCells;
@@ -90,9 +84,6 @@ public sealed class GameContentSnapshot : ICharacterContentCatalog
         FeatRegistry = new TypedDefinitionRegistry<FeatId, FeatDefinition>(fingerprint, feats, definition => definition.FeatId);
         HeritageRegistry = new TypedDefinitionRegistry<HeritageId, HeritageDefinition>(fingerprint, heritages, definition => definition.HeritageId);
         RaceRegistry = new TypedDefinitionRegistry<RaceId, RaceDefinition>(fingerprint, races, definition => definition.RaceId);
-        SpellRegistry = new TypedDefinitionRegistry<SpellId, SpellDefinition>(fingerprint, spells, definition => definition.SpellId);
-        PsychicTechniqueRegistry = new TypedDefinitionRegistry<PsychicTechniqueId, PsychicTechniqueDefinition>(fingerprint, psychicTechniques, definition => definition.PsychicTechniqueId);
-        TechniqueRegistry = new TypedDefinitionRegistry<TechniqueId, TechniqueDefinition>(fingerprint, techniques, definition => definition.TechniqueId);
         TrainingProjectRegistry = new TypedDefinitionRegistry<TrainingProjectId, TrainingProjectDefinition>(fingerprint, trainingProjects, definition => definition.TrainingProjectId);
         EquipmentRegistry = new TypedDefinitionRegistry<EquipmentId, EquipmentDefinition>(fingerprint, equipment, definition => definition.EquipmentId);
         BoardCellRegistry = new TypedDefinitionRegistry<CellId, BoardCellDefinition>(fingerprint, boardCells, definition => definition.CellId);
@@ -112,9 +103,6 @@ public sealed class GameContentSnapshot : ICharacterContentCatalog
             .Concat(feats)
             .Concat(heritages)
             .Concat(races)
-            .Concat(spells)
-            .Concat(psychicTechniques)
-            .Concat(techniques)
             .Concat(trainingProjects)
             .Concat(equipment)
             .Concat(boardCells)
@@ -139,9 +127,6 @@ public sealed class GameContentSnapshot : ICharacterContentCatalog
     public ImmutableArray<FeatDefinition> Feats { get; }
     public ImmutableArray<HeritageDefinition> Heritages { get; }
     public ImmutableArray<RaceDefinition> Races { get; }
-    public ImmutableArray<SpellDefinition> Spells { get; }
-    public ImmutableArray<PsychicTechniqueDefinition> PsychicTechniques { get; }
-    public ImmutableArray<TechniqueDefinition> Techniques { get; }
     public ImmutableArray<TrainingProjectDefinition> TrainingProjects { get; }
     public ImmutableArray<EquipmentDefinition> Equipment { get; }
     public ImmutableArray<BoardCellDefinition> BoardCells { get; }
@@ -161,9 +146,6 @@ public sealed class GameContentSnapshot : ICharacterContentCatalog
     public TypedDefinitionRegistry<FeatId, FeatDefinition> FeatRegistry { get; }
     public TypedDefinitionRegistry<HeritageId, HeritageDefinition> HeritageRegistry { get; }
     public TypedDefinitionRegistry<RaceId, RaceDefinition> RaceRegistry { get; }
-    public TypedDefinitionRegistry<SpellId, SpellDefinition> SpellRegistry { get; }
-    public TypedDefinitionRegistry<PsychicTechniqueId, PsychicTechniqueDefinition> PsychicTechniqueRegistry { get; }
-    public TypedDefinitionRegistry<TechniqueId, TechniqueDefinition> TechniqueRegistry { get; }
     public TypedDefinitionRegistry<TrainingProjectId, TrainingProjectDefinition> TrainingProjectRegistry { get; }
     public TypedDefinitionRegistry<EquipmentId, EquipmentDefinition> EquipmentRegistry { get; }
     public TypedDefinitionRegistry<CellId, BoardCellDefinition> BoardCellRegistry { get; }
@@ -187,10 +169,6 @@ public sealed class GameContentSnapshot : ICharacterContentCatalog
     public bool TryGetFeat(FeatId id, out FeatDefinition? definition) => FeatRegistry.TryGet(id, out definition);
     public bool TryGetHeritage(HeritageId id, out HeritageDefinition? definition) => HeritageRegistry.TryGet(id, out definition);
     public bool TryGetRace(RaceId id, out RaceDefinition? definition) => RaceRegistry.TryGet(id, out definition);
-    public bool TryGetSpell(SpellId id, out SpellDefinition? definition) => SpellRegistry.TryGet(id, out definition);
-    public bool TryGetPsychicTechnique(PsychicTechniqueId id, out PsychicTechniqueDefinition? definition) =>
-        PsychicTechniqueRegistry.TryGet(id, out definition);
-    public bool TryGetTechnique(TechniqueId id, out TechniqueDefinition? definition) => TechniqueRegistry.TryGet(id, out definition);
     public bool TryGetTrainingProject(TrainingProjectId id, out TrainingProjectDefinition? definition) => TrainingProjectRegistry.TryGet(id, out definition);
     public bool TryGetEquipment(EquipmentId id, out EquipmentDefinition? definition) => EquipmentRegistry.TryGet(id, out definition);
     public bool TryGetBoardCell(CellId id, out BoardCellDefinition? definition) => BoardCellRegistry.TryGet(id, out definition);
@@ -217,9 +195,6 @@ public sealed class GameContentSnapshot : ICharacterContentCatalog
         AddEntries(entries, "Feat", Feats, definition => definition.Id);
         AddEntries(entries, "Heritage", Heritages, definition => definition.Id);
         AddEntries(entries, "Race", Races, definition => definition.Id);
-        AddEntries(entries, "Spell", Spells, definition => definition.Id);
-        AddEntries(entries, "PsychicTechnique", PsychicTechniques, definition => definition.Id);
-        AddEntries(entries, "Technique", Techniques, definition => definition.Id);
         AddEntries(entries, "TrainingProject", TrainingProjects, definition => definition.Id);
         AddEntries(entries, "Equipment", Equipment, definition => definition.Id);
         AddEntries(entries, "BoardCell", BoardCells, definition => definition.Id);

@@ -1,1 +1,1 @@
-{"schemaVersion":1,"revision":1,"id":"feat.race.goblin.tight-passage","nameKey":"feat.race.goblin.tight-passage.name","descriptionKey":"feat.race.goblin.tight-passage.description","compatibleRaceIds":["race.goblin"],"grantedAccessIds":[],"grantedTechniqueIds":[]}
+{"schemaVersion":1,"revision":1,"activation":"passive","id":"feat.race.goblin.tight-passage","nameKey":"feat.race.goblin.tight-passage.name","descriptionKey":"feat.race.goblin.tight-passage.description","compatibleRaceIds":["race.goblin"],"grantedAccessIds":[]}

@@ -491,7 +491,6 @@ public static class CampaignSaveCodec
                 Abilities = [.. snapshot.Abilities.Select(value => new AbilityValueDto { Id = value.Id.ToString(), Value = value.Value })],
                 Skills = [.. snapshot.Skills.Select(value => new SkillValueDto { Id = value.Id.ToString(), Value = value.Value })],
                 FeatIds = [.. snapshot.Feats.Select(value => value.ToString())],
-                TechniqueIds = [.. snapshot.Techniques.Select(value => value.ToString())],
                 GrantSources = [.. snapshot.GrantSources.Select(value => new GrantDto
                 {
                     CapabilityId = value.CapabilityId.ToString(),
@@ -732,7 +731,6 @@ public static class CampaignSaveCodec
             [.. ParseIds(value.Capabilities.FeatIds, CharacterCapabilities.MaximumSetEntries).Select(id => new FeatId(id))],
             [.. value.Capabilities.GrantSources.Where(grant => grant.CapabilityId.StartsWith("access.", StringComparison.Ordinal))
                 .Select(grant => new AccessId(grant.CapabilityId)).Distinct().Order()],
-            [.. ParseIds(value.Capabilities.TechniqueIds, CharacterCapabilities.MaximumSetEntries).Select(id => new TechniqueId(id))],
             [.. value.Capabilities.GrantSources.Select(grant => new CapabilityGrant(
                 new ContentId(grant.CapabilityId), new ContentId(grant.SourceId), ParseEnum<GrantSourceKind>(grant.SourceKind)))]);
         CharacterCapabilities capabilities = CharacterCapabilities.Restore(snapshot, content);

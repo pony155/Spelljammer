@@ -80,12 +80,12 @@ decision that cannot be expressed by those systems.
 | Skill | Stable ID | Scope |
 | --- | --- | --- |
 | Magic | `skill.magic` | Direct spellwork, magical effects, wards, and controlled use of Aether |
-| Psionics | `skill.psionics` | Mindlinks, mental influence, psionic sensing, and resistance techniques |
+| Psionics | `skill.psionics` | Mindlinks, mental influence, psionic sensing, and resistance active Feats |
 | Alchemy | `skill.alchemy` | Reagents, medicines, compounds, toxins, and volatile mixtures |
 | Enchantment | `skill.enchantment` | Persistent magical bindings, resonators, runes, and enchanted equipment |
 
 Magic and Psionics are learned skills. Race or Heritage may grant access to
-one of them through a Feat, but access does not grant ranks, techniques, free
+one of them through a Feat, but access does not grant ranks, active Feats, free
 resources, or immunity to consequences.
 
 ### Ship operation and expedition work
@@ -143,7 +143,7 @@ chooses the ability according to method and circumstances.
 | Treat an injured crew member | Intelligence + Medicine; Willpower + Medicine; Perception + Medicine |
 | Negotiate with a faction | Intelligence + Negotiation; Perception + Negotiation; Willpower + Negotiation |
 | Interpret a relic | Intelligence + Ancient Lore; Perception + Ancient Lore; Willpower + Ancient Lore |
-| Use a supernatural technique | Willpower + Magic or Psionics; Intelligence + Magic or Psionics; Perception + Psionics |
+| Use a supernatural active Feat | Willpower + Magic or Psionics; Intelligence + Magic or Psionics; Perception + Psionics |
 
 The combination table is guidance, not a fixed class matrix. Content may define
 additional combinations when the action provides a clear explanation.

@@ -94,9 +94,14 @@ internal static class CanonicalSemanticWriter
                 properties["maximumRosterSize"] = output => output.Append(value.MaximumRosterSize);
                 break;
             case FeatDefinition value:
+                properties["activation"] = output => WriteString(output, value.Activation == FeatActivation.Active ? "active" : "passive");
                 properties["compatibleRaceIds"] = output => WriteIds(output, value.CompatibleRaceIds.Select(id => id.Value));
                 properties["grantedAccessIds"] = output => WriteIds(output, value.GrantedAccessIds.Select(id => id.Value));
-                properties["grantedTechniqueIds"] = output => WriteIds(output, value.GrantedTechniqueIds.Select(id => id.Value));
+                if (!value.RequiredAccessIds.IsEmpty)
+                {
+                    properties["requiredAccessIds"] = output => WriteIds(output, value.RequiredAccessIds.Select(id => id.Value));
+                }
+
                 if (!value.EffectIds.IsEmpty)
                 {
                     properties["effectIds"] = output => WriteIds(output, value.EffectIds);
@@ -112,6 +117,36 @@ internal static class CanonicalSemanticWriter
                     properties["trainingProjectId"] = output => WriteString(output, trainingProjectId.ToString());
                 }
 
+                if (value.SpellRules is SpellFeatRules spell)
+                {
+                    properties["activeKind"] = output => WriteString(output, "spell");
+                    properties["castTimeTicks"] = output => output.Append(spell.CastTimeTicks);
+                    properties["cooldownTicks"] = output => output.Append(spell.CooldownTicks);
+                    properties["focusCost"] = output => output.Append(spell.FocusCost);
+                    properties["focusResourceId"] = output => WriteString(output, spell.FocusResourceId.ToString());
+                    properties["rangeId"] = output => WriteString(output, spell.RangeId.ToString());
+                    properties["skillId"] = output => WriteString(output, spell.SkillId.ToString());
+                    properties["targetTags"] = output => WriteStrings(output, spell.TargetTags);
+                }
+                else if (value.PsionicRules is PsionicFeatRules psionic)
+                {
+                    properties["activeKind"] = output => WriteString(output, "psionic");
+                    properties["contactModeId"] = output => WriteString(output, psionic.ContactModeId.ToString());
+                    properties["disciplineIds"] = output => WriteIds(output, psionic.DisciplineIds);
+                    properties["informationScopeId"] = output => WriteString(output, psionic.InformationScopeId.ToString());
+                    properties["rangeId"] = output => WriteString(output, psionic.RangeId.ToString());
+                    properties["resistanceSkillId"] = output => WriteString(output, psionic.ResistanceSkillId.ToString());
+                    properties["skillId"] = output => WriteString(output, psionic.SkillId.ToString());
+                    properties["strainCost"] = output => output.Append(psionic.StrainCost);
+                    properties["strainResourceId"] = output => WriteString(output, psionic.StrainResourceId.ToString());
+                    properties["sustainCostPerTick"] = output => output.Append(psionic.SustainCostPerTick);
+                    properties["targetTags"] = output => WriteStrings(output, psionic.TargetTags);
+                }
+                else if (value.Activation == FeatActivation.Active)
+                {
+                    properties["activeKind"] = output => WriteString(output, "general");
+                }
+
                 break;
             case RaceDefinition value:
                 properties["grantedFeatIds"] = output => WriteIds(output, value.GrantedFeatIds.Select(id => id.Value));
@@ -125,39 +160,9 @@ internal static class CanonicalSemanticWriter
                 properties["grantedFeatIds"] = output => WriteIds(output, value.GrantedFeatIds.Select(id => id.Value));
                 properties["raceId"] = output => WriteString(output, value.RaceId.ToString());
                 break;
-            case TechniqueDefinition value:
-                properties["grantedFeatIds"] = output => WriteIds(output, value.GrantedFeatIds.Select(id => id.Value));
-                properties["requiredAccessIds"] = output => WriteIds(output, value.RequiredAccessIds.Select(id => id.Value));
-                break;
-            case SpellDefinition value:
-                properties["castTimeTicks"] = output => output.Append(value.CastTimeTicks);
-                properties["cooldownTicks"] = output => output.Append(value.CooldownTicks);
-                properties["effectIds"] = output => WriteIds(output, value.EffectIds);
-                properties["focusCost"] = output => output.Append(value.FocusCost);
-                properties["focusResourceId"] = output => WriteString(output, value.FocusResourceId.ToString());
-                properties["rangeId"] = output => WriteString(output, value.RangeId.ToString());
-                properties["requiredAccessId"] = output => WriteString(output, value.RequiredAccessId.ToString());
-                properties["skillId"] = output => WriteString(output, value.SkillId.ToString());
-                properties["targetTags"] = output => WriteStrings(output, value.TargetTags);
-                break;
-            case PsychicTechniqueDefinition value:
-                properties["contactModeId"] = output => WriteString(output, value.ContactModeId.ToString());
-                properties["disciplineIds"] = output => WriteIds(output, value.DisciplineIds);
-                properties["effectIds"] = output => WriteIds(output, value.EffectIds);
-                properties["informationScopeId"] = output => WriteString(output, value.InformationScopeId.ToString());
-                properties["rangeId"] = output => WriteString(output, value.RangeId.ToString());
-                properties["requiredAccessId"] = output => WriteString(output, value.RequiredAccessId.ToString());
-                properties["resistanceSkillId"] = output => WriteString(output, value.ResistanceSkillId.ToString());
-                properties["skillId"] = output => WriteString(output, value.SkillId.ToString());
-                properties["strainCost"] = output => output.Append(value.StrainCost);
-                properties["strainResourceId"] = output => WriteString(output, value.StrainResourceId.ToString());
-                properties["sustainCostPerTick"] = output => output.Append(value.SustainCostPerTick);
-                properties["targetTags"] = output => WriteStrings(output, value.TargetTags);
-                break;
             case TrainingProjectDefinition value:
                 properties["facilityId"] = output => WriteString(output, value.FacilityId.ToString());
                 properties["grantedFeatIds"] = output => WriteIds(output, value.GrantedFeatIds.Select(id => id.Value));
-                properties["grantedTechniqueIds"] = output => WriteIds(output, value.GrantedTechniqueIds.Select(id => id.Value));
                 properties["progressCap"] = output => output.Append(value.ProgressCap);
                 properties["requiredSkillIds"] = output => WriteIds(output, value.RequiredSkillIds.Select(id => id.Value));
                 properties["resourceCost"] = output => output.Append(value.ResourceCost);
@@ -272,18 +277,15 @@ internal static class CanonicalSemanticWriter
         HeritageDefinition => 6,
         RaceDefinition => 7,
         SkillDefinition => 8,
-        PsychicTechniqueDefinition => 9,
-        SpellDefinition => 10,
-        TechniqueDefinition => 11,
-        TrainingProjectDefinition => 12,
-        EquipmentDefinition => 13,
-        BoardCellDefinition => 14,
-        ZoneLinkDefinition => 15,
-        PersonalBoardDefinition => 16,
-        EncounterDefinition => 17,
-        ShipFrameDefinition => 18,
-        ShipModuleDefinition => 19,
-        ShipWeaponConfigurationDefinition => 20,
+        TrainingProjectDefinition => 9,
+        EquipmentDefinition => 10,
+        BoardCellDefinition => 11,
+        ZoneLinkDefinition => 12,
+        PersonalBoardDefinition => 13,
+        EncounterDefinition => 14,
+        ShipFrameDefinition => 15,
+        ShipModuleDefinition => 16,
+        ShipWeaponConfigurationDefinition => 17,
         _ => throw new ArgumentOutOfRangeException(nameof(definition)),
     };
 

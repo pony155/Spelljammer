@@ -57,7 +57,7 @@ ability that matches its method and circumstances:
 
 The interface must identify the chosen ability and explain why it applies.
 Alternative approaches should be available when fiction, equipment, and known
-techniques support them.
+active Feats support them.
 
 ## Race, heritage, and abilities
 

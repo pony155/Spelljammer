@@ -292,61 +292,6 @@ public readonly record struct TrainingProjectId : IComparable<TrainingProjectId>
     public static bool TryParse(string? value, out TrainingProjectId id) => TypedContentId.TryParse(value, "training.", out id);
 }
 
-/// <summary>A strongly-typed identifier for any technique (combat ability, spell, or psionics power).</summary>
-/// <remarks>This is a union type that accepts technique., spell., or psionics. prefixes.</remarks>
-public readonly record struct TechniqueId : IComparable<TechniqueId>
-{
-    /// <summary>Initializes a technique ID from a content ID with technique, spell, or psionics prefix.</summary>
-    public TechniqueId(ContentId value) => Value = HasTechniquePrefix(value)
-        ? value
-        : throw new ArgumentException("Technique ID must use the technique, spell, or psionics domain.", nameof(value));
-    public TechniqueId(string value) : this(new ContentId(value)) { }
-    public ContentId Value { get; }
-    public bool IsValid => Value.IsValid;
-    public int CompareTo(TechniqueId other) => Value.CompareTo(other.Value);
-    public override string ToString() => Value.ToString();
-    public static bool TryParse(string? value, out TechniqueId id)
-    {
-        if (ContentId.TryParse(value, out ContentId parsed) && HasTechniquePrefix(parsed))
-        {
-            id = new TechniqueId(parsed);
-            return true;
-        }
-
-        id = default;
-        return false;
-    }
-
-    private static bool HasTechniquePrefix(ContentId value) => value.IsValid &&
-        (value.ToString().StartsWith("technique.", StringComparison.Ordinal) ||
-         value.ToString().StartsWith("spell.", StringComparison.Ordinal) ||
-         value.ToString().StartsWith("psionics.", StringComparison.Ordinal));
-}
-
-/// <summary>A strongly-typed identifier for a magical spell.</summary>
-public readonly record struct SpellId : IComparable<SpellId>
-{
-    public SpellId(ContentId value) => Value = TypedContentId.RequirePrefix(value, "spell.");
-    public SpellId(string value) : this(new ContentId(value)) { }
-    public ContentId Value { get; }
-    public bool IsValid => Value.IsValid;
-    public int CompareTo(SpellId other) => Value.CompareTo(other.Value);
-    public override string ToString() => Value.ToString();
-    public static bool TryParse(string? value, out SpellId id) => TypedContentId.TryParse(value, "spell.", out id);
-}
-
-/// <summary>A strongly-typed identifier for a psionics technique.</summary>
-public readonly record struct PsychicTechniqueId : IComparable<PsychicTechniqueId>
-{
-    public PsychicTechniqueId(ContentId value) => Value = TypedContentId.RequirePrefix(value, "psionics.");
-    public PsychicTechniqueId(string value) : this(new ContentId(value)) { }
-    public ContentId Value { get; }
-    public bool IsValid => Value.IsValid;
-    public int CompareTo(PsychicTechniqueId other) => Value.CompareTo(other.Value);
-    public override string ToString() => Value.ToString();
-    public static bool TryParse(string? value, out PsychicTechniqueId id) => TypedContentId.TryParse(value, "psionics.", out id);
-}
-
 /// <summary>A strongly-typed identifier for an adventure scenario.</summary>
 public readonly record struct ScenarioId : IComparable<ScenarioId>
 {

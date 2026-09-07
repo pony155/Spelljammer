@@ -1,1 +1,1 @@
-{"schemaVersion":1,"revision":1,"id":"feat.heritage.dwarf.cometdelver","nameKey":"feat.heritage.dwarf.cometdelver.name","descriptionKey":"feat.heritage.dwarf.cometdelver.description","compatibleRaceIds":["race.dwarf"],"grantedAccessIds":[],"grantedTechniqueIds":[]}
+{"schemaVersion":1,"revision":1,"activation":"passive","id":"feat.heritage.dwarf.cometdelver","nameKey":"feat.heritage.dwarf.cometdelver.name","descriptionKey":"feat.heritage.dwarf.cometdelver.description","compatibleRaceIds":["race.dwarf"],"grantedAccessIds":[]}

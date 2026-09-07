@@ -463,9 +463,9 @@ internal static class ContentContracts
     private static void SupernaturalDefinitionsAndExecutionAreBounded()
     {
         (GameContentSnapshot snapshot, RosterSnapshot roster) = BaseRoster();
-        Equal(1, snapshot.SpellRegistry.Count, "The first-playable Spell registry is incomplete.");
-        Equal(1, snapshot.PsychicTechniqueRegistry.Count, "The first-playable psionics registry is incomplete.");
-        SpellId spellId = new("spell.spirit.magic-missile");
+        Equal(1, snapshot.Feats.Count(value => value.SpellRules is not null), "The first-playable Spell Feat is incomplete.");
+        Equal(1, snapshot.Feats.Count(value => value.PsionicRules is not null), "The first-playable psionic Feat is incomplete.");
+        FeatId spellId = new("feat.active.spell.spirit.magic-missile");
         CharacterState human = roster.Characters.Single(value => value.RaceId == new RaceId("race.human"));
         CharacterState target = roster.Characters.Single(value => value.RaceId == new RaceId("race.orc"));
         SupernaturalTarget spellTarget = new(target.Id, true, true, true, ImmutableHashSet.Create("character"));
@@ -474,9 +474,9 @@ internal static class ContentContracts
         Equal(ActionRejectionCodes.AccessRequired, noAccess.RejectionCode, "A Spell bypassed access.");
         CharacterState withAccess = CompleteTraining(human, new TrainingProjectId("training.magic.spellcasting"), snapshot);
         SpellActionResult unknown = SpellActionSystem.Declare(withAccess, spellId, spellTarget, 42, 3, 7, snapshot);
-        Equal(ActionRejectionCodes.TechniqueUnknown, unknown.RejectionCode, "A Spell bypassed knowledge.");
+        Equal(ActionRejectionCodes.FeatUnknown, unknown.RejectionCode, "A Spell bypassed active-Feat knowledge.");
         CharacterState caster = CompleteTraining(withAccess, new TrainingProjectId("training.magic.magic-missile"), snapshot);
-        True(caster.Capabilities.KnownSpellIds.Contains(spellId), "Completed study did not add the bounded known Spell ID.");
+        True(caster.Capabilities.Feats.Contains(spellId), "Completed study did not add the bounded active Spell Feat.");
 
         CharacterState mismatched = caster with { ContentFingerprint = new ContentFingerprint(new string('0', 64)) };
         SpellActionResult wrongFingerprint = SpellActionSystem.Declare(mismatched, spellId, spellTarget, 42, 3, 7, snapshot);
@@ -519,11 +519,11 @@ internal static class ContentContracts
     private static void MindlinkRequiresKnowledgeConsentAndStrain()
     {
         (GameContentSnapshot snapshot, RosterSnapshot roster) = BaseRoster();
-        PsychicTechniqueId mindlinkId = new("psionics.contact.mindlink");
+        FeatId mindlinkId = new("feat.active.psionics.contact.mindlink");
         CharacterState somnari = roster.Characters.Single(value => value.RaceId == new RaceId("race.somnari"));
         CharacterState human = roster.Characters.Single(value => value.RaceId == new RaceId("race.human"));
         True(somnari.Capabilities.Access.Contains(new AccessId("access.psionics")), "Mindwake omitted innate psionic access.");
-        True(somnari.Capabilities.KnownPsychicTechniqueIds.Contains(mindlinkId), "Mindwake omitted innate Mindlink knowledge.");
+        True(somnari.Capabilities.Feats.Contains(mindlinkId), "Mindwake omitted its innate active Mindlink Feat.");
         MindlinkResult noAccess = MindlinkSystem.Invite(human, somnari, mindlinkId, true, 10, snapshot);
         Equal(ActionRejectionCodes.AccessRequired, noAccess.RejectionCode, "Mindlink bypassed psionic access.");
 
@@ -550,13 +550,13 @@ internal static class ContentContracts
 
         CharacterState awakened = CompleteTraining(human, new TrainingProjectId("training.psionics.awakening"), snapshot);
         MindlinkResult unknown = MindlinkSystem.Invite(awakened, somnari, mindlinkId, true, 13, snapshot);
-        Equal(ActionRejectionCodes.TechniqueUnknown, unknown.RejectionCode, "Mindlink bypassed technique knowledge.");
+        Equal(ActionRejectionCodes.FeatUnknown, unknown.RejectionCode, "Mindlink bypassed active-Feat knowledge.");
         CharacterState trained = CompleteTraining(awakened, new TrainingProjectId("training.psionics.mindlink"), snapshot);
-        True(trained.Capabilities.KnownPsychicTechniqueIds.Contains(mindlinkId), "Trained Mindlink knowledge was not published.");
+        True(trained.Capabilities.Feats.Contains(mindlinkId), "Trained Mindlink Feat was not published.");
         True(trained.Capabilities.GrantSources.Any(value => value.CapabilityId == mindlinkId.Value && value.SourceKind == GrantSourceKind.TrainingProject),
             "Trained Mindlink knowledge lost its provenance.");
-        True(snapshot.TryGetPsychicTechnique(mindlinkId, out PsychicTechniqueDefinition? definition) &&
-            snapshot.TryGetSkill(definition!.ResistanceSkillId, out _, out _),
+        True(snapshot.TryGetFeat(mindlinkId, out FeatDefinition? definition) && definition!.PsionicRules is not null &&
+            snapshot.TryGetSkill(definition.PsionicRules.ResistanceSkillId, out _, out _),
             "Mindlink's reviewed resistance reference was not linked to the active fingerprint.");
         True(MindlinkSystem.Invite(trained, somnari, mindlinkId, true, 14, snapshot).Accepted,
             "A trained Mindlink user could not declare the same action as an innate user.");

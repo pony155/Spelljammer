@@ -201,26 +201,8 @@ add_custom_target(SpelljammerLocalizationCatalogs
         -p:Platform=AnyCPU
         --no-build
         -- compile
-        ${SPELLJAMMER_ROOT}/Content/Packs/base/Localization/en-US/techniques.sfloc.json
-        ${CMAKE_CURRENT_BINARY_DIR}/Localization/en-US/techniques.sfloc
-    COMMAND ${CMAKE_COMMAND} -E env DOTNET_CLI_TELEMETRY_OPTOUT=1
-        ${SPELLJAMMER_DOTNET_EXECUTABLE} run
-        --project ${SPELLJAMMER_ROOT}/Tools/Spelljammer.Localization.Compiler/Spelljammer.Localization.Compiler.csproj
-        --configuration ${SPELLJAMMER_DOTNET_CONFIGURATION}
-        -p:Platform=AnyCPU
-        --no-build
-        -- compile
-        ${SPELLJAMMER_ROOT}/Content/Packs/base/Localization/en-US/spells.sfloc.json
-        ${CMAKE_CURRENT_BINARY_DIR}/Localization/en-US/spells.sfloc
-    COMMAND ${CMAKE_COMMAND} -E env DOTNET_CLI_TELEMETRY_OPTOUT=1
-        ${SPELLJAMMER_DOTNET_EXECUTABLE} run
-        --project ${SPELLJAMMER_ROOT}/Tools/Spelljammer.Localization.Compiler/Spelljammer.Localization.Compiler.csproj
-        --configuration ${SPELLJAMMER_DOTNET_CONFIGURATION}
-        -p:Platform=AnyCPU
-        --no-build
-        -- compile
-        ${SPELLJAMMER_ROOT}/Content/Packs/base/Localization/en-US/psionics-techniques.sfloc.json
-        ${CMAKE_CURRENT_BINARY_DIR}/Localization/en-US/psionics-techniques.sfloc
+        ${SPELLJAMMER_ROOT}/Content/Packs/base/Localization/en-US/active-feats.sfloc.json
+        ${CMAKE_CURRENT_BINARY_DIR}/Localization/en-US/active-feats.sfloc
     COMMAND ${CMAKE_COMMAND} -E env DOTNET_CLI_TELEMETRY_OPTOUT=1
         ${SPELLJAMMER_DOTNET_EXECUTABLE} run
         --project ${SPELLJAMMER_ROOT}/Tools/Spelljammer.Localization.Compiler/Spelljammer.Localization.Compiler.csproj
@@ -334,9 +316,7 @@ add_custom_target(SpelljammerLocalizationCatalogs
         ${CMAKE_CURRENT_BINARY_DIR}/Localization/en-US/backgrounds.sfloc
         ${CMAKE_CURRENT_BINARY_DIR}/Localization/en-US/feats.sfloc
         ${CMAKE_CURRENT_BINARY_DIR}/Localization/en-US/trainings.sfloc
-        ${CMAKE_CURRENT_BINARY_DIR}/Localization/en-US/techniques.sfloc
-        ${CMAKE_CURRENT_BINARY_DIR}/Localization/en-US/spells.sfloc
-        ${CMAKE_CURRENT_BINARY_DIR}/Localization/en-US/psionics-techniques.sfloc
+        ${CMAKE_CURRENT_BINARY_DIR}/Localization/en-US/active-feats.sfloc
         ${CMAKE_CURRENT_BINARY_DIR}/Localization/en-US/races.sfloc
         ${CMAKE_CURRENT_BINARY_DIR}/Localization/en-US/heritages.sfloc
         ${CMAKE_CURRENT_BINARY_DIR}/Localization/en-US/commands.sfloc

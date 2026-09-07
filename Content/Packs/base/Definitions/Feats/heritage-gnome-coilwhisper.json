@@ -1,1 +1,1 @@
-{"schemaVersion":1,"revision":1,"id":"feat.heritage.gnome.coilwhisper","nameKey":"feat.heritage.gnome.coilwhisper.name","descriptionKey":"feat.heritage.gnome.coilwhisper.description","compatibleRaceIds":["race.gnome"],"grantedAccessIds":[],"grantedTechniqueIds":[]}
+{"schemaVersion":1,"revision":1,"activation":"passive","id":"feat.heritage.gnome.coilwhisper","nameKey":"feat.heritage.gnome.coilwhisper.name","descriptionKey":"feat.heritage.gnome.coilwhisper.description","compatibleRaceIds":["race.gnome"],"grantedAccessIds":[]}

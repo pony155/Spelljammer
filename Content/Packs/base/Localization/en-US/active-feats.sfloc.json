@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "locale": "en-US",
+  "namespace": "active-feat",
+  "fallbacks": [],
+  "textDirection": "ltr",
+  "messages": {
+    "active-feat.recovery.soul-reconstitution.name": {
+      "description": "Soul Reconstitution active Feat display name.",
+      "message": "Soul Reconstitution"
+    },
+    "active-feat.recovery.soul-reconstitution.description": {
+      "description": "Soul Reconstitution active Feat summary.",
+      "message": "Rebuild an Eidolon vessel beside a safe charged Soul Anchor."
+    },
+    "active-feat.navigation.trail-interpretation.name": {
+      "description": "Trail Interpretation active Feat display name.",
+      "message": "Trail Interpretation"
+    },
+    "active-feat.navigation.trail-interpretation.description": {
+      "description": "Trail Interpretation active Feat summary.",
+      "message": "Correlate route traces from evidence already observed."
+    },
+    "active-feat.spell.spirit.magic-missile.name": {
+      "description": "Magic Missile active Feat display name.",
+      "message": "Magic Missile"
+    },
+    "active-feat.spell.spirit.magic-missile.description": {
+      "description": "Magic Missile active Feat summary.",
+      "message": "Launch a reliable bolt of arcane force at one visible distant target."
+    },
+    "active-feat.psionics.contact.mindlink.name": {
+      "description": "Mindlink active Feat display name.",
+      "message": "Mindlink"
+    },
+    "active-feat.psionics.contact.mindlink.description": {
+      "description": "Mindlink active Feat summary.",
+      "message": "Open a consensual near-range channel for deliberate messages."
+    }
+  }
+}

@@ -180,7 +180,7 @@ door connection
 damaged connection
 ```
 
-Possible techniques:
+Possible active Feats:
 
 -   Marching Squares
 -   Neighbor-aware prefab selection

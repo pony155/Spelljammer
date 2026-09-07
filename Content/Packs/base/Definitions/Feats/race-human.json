@@ -1,1 +1,1 @@
-{"schemaVersion":1,"revision":1,"id":"feat.race.human.versatility","nameKey":"feat.race.human.versatility.name","descriptionKey":"feat.race.human.versatility.description","compatibleRaceIds":["race.human"],"grantedAccessIds":[],"grantedTechniqueIds":[]}
+{"schemaVersion":1,"revision":1,"activation":"passive","id":"feat.race.human.versatility","nameKey":"feat.race.human.versatility.name","descriptionKey":"feat.race.human.versatility.description","compatibleRaceIds":["race.human"],"grantedAccessIds":[]}

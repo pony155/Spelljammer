@@ -220,7 +220,7 @@
       "writeText": [
         {
           "path": "Definitions/Feats/spellcasting-training.json",
-          "text": "{\"schemaVersion\":1,\"revision\":1,\"id\":\"feat.access.magic\",\"nameKey\":\"feat.access.magic.name\",\"descriptionKey\":\"feat.access.magic.description\",\"trainingProjectId\":\"training.magic.spellcasting\",\"grantedAccessIds\":[\"access.unknown\"]}"
+          "text": "{\"schemaVersion\":1,\"revision\":1,\"activation\":\"passive\",\"id\":\"feat.access.magic\",\"nameKey\":\"feat.access.magic.name\",\"descriptionKey\":\"feat.access.magic.description\",\"trainingProjectId\":\"training.magic.spellcasting\",\"grantedAccessIds\":[\"access.unknown\"]}"
         }
       ],
       "expectedPrimaryDiagnostic": "CONTENT_REFERENCE_UNKNOWN"
@@ -264,7 +264,7 @@
         },
         {
           "path": "Definitions/Feats/elf-aether-sense.json",
-          "text": "{\"schemaVersion\":1,\"revision\":1,\"id\":\"feat.race.elf.aether-sense\",\"nameKey\":\"feat.race.elf.aether-sense.name\",\"descriptionKey\":\"feat.race.elf.aether-sense.description\",\"compatibleRaceIds\":[\"race.human\"],\"grantedAccessIds\":[\"access.magic\"],\"grantedTechniqueIds\":[]}"
+          "text": "{\"schemaVersion\":1,\"revision\":1,\"activation\":\"passive\",\"id\":\"feat.race.elf.aether-sense\",\"nameKey\":\"feat.race.elf.aether-sense.name\",\"descriptionKey\":\"feat.race.elf.aether-sense.description\",\"compatibleRaceIds\":[\"race.human\"],\"grantedAccessIds\":[\"access.magic\"]}"
         }
       ],
       "expectedPrimaryDiagnostic": "CONTENT_SEMANTIC_INVALID"

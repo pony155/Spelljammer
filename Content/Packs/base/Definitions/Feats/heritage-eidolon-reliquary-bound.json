@@ -1,1 +1,1 @@
-{"schemaVersion":1,"revision":1,"id":"feat.heritage.eidolon.reliquary-bound","nameKey":"feat.heritage.eidolon.reliquary-bound.name","descriptionKey":"feat.heritage.eidolon.reliquary-bound.description","compatibleRaceIds":["race.eidolon"],"grantedAccessIds":[],"grantedTechniqueIds":[]}
+{"schemaVersion":1,"revision":1,"activation":"passive","id":"feat.heritage.eidolon.reliquary-bound","nameKey":"feat.heritage.eidolon.reliquary-bound.name","descriptionKey":"feat.heritage.eidolon.reliquary-bound.description","compatibleRaceIds":["race.eidolon"],"grantedAccessIds":[]}

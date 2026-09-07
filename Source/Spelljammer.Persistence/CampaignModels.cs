@@ -21,9 +21,9 @@ public static class CampaignSaveVersions
     public const ushort Envelope = 1;
 
     /// <summary>
-    /// Version of the save schema (overall data structure). Version 4 identifies the protagonist and active crew.
+    /// Version of the save schema (overall data structure). Version 5 unifies active and passive Feats.
     /// </summary>
-    public const ushort SaveSchema = 4;
+    public const ushort SaveSchema = 5;
 
     /// <summary>Version of the world generation algorithm used in this save.</summary>
     public const int WorldGenerator = 1;

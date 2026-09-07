@@ -1,6 +1,7 @@
 {
   "schemaVersion": 1,
   "revision": 1,
+  "activation": "passive",
   "id": "feat.access.magic",
   "nameKey": "feat.access.magic.name",
   "descriptionKey": "feat.access.magic.description",

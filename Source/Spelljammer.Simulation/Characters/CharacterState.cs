@@ -7,13 +7,13 @@ namespace Spelljammer.Simulation.Characters;
 /// Represents all computed abilities, skills, and capabilities of a character.
 /// </summary>
 /// <remarks>
-/// This class encapsulates the character's abilities, skills, Feats, and techniques.
+/// This class encapsulates the character's abilities, skills, and passive or active Feats.
 /// All data is immutable and validated against content definitions using fingerprints to ensure consistency.
 /// </remarks>
 public sealed class CharacterCapabilities
 {
     /// <summary>
-    /// The maximum number of entries allowed in any capability set (Feats, techniques, or grant sources).
+    /// The maximum number of entries allowed in any capability set (Feats or grant sources).
     /// </summary>
     public const int MaximumSetEntries = 256;
 
@@ -33,12 +33,10 @@ public sealed class CharacterCapabilities
         ImmutableArray<short> abilityValues,
         ImmutableArray<byte> skillValues,
         ImmutableHashSet<FeatId> feats,
-        ImmutableHashSet<TechniqueId> techniques,
         ImmutableArray<CapabilityGrant> grantSources)
     {
         if (abilityValues.Length == 0 || skillValues.Length == 0 ||
-            feats.Count > MaximumSetEntries ||
-            techniques.Count > MaximumSetEntries || grantSources.Length > MaximumSetEntries)
+            feats.Count > MaximumSetEntries || grantSources.Length > MaximumSetEntries)
         {
             throw new ArgumentException("Character capability storage is incomplete or exceeds its bounded capacity.");
         }
@@ -47,7 +45,6 @@ public sealed class CharacterCapabilities
         this.abilityValues = abilityValues;
         this.skillValues = skillValues;
         Feats = feats;
-        Techniques = techniques;
         GrantSources = grantSources;
     }
 
@@ -67,27 +64,6 @@ public sealed class CharacterCapabilities
     public ImmutableHashSet<AccessId> Access => GrantSources
         .Where(value => value.CapabilityId.ToString().StartsWith("access.", StringComparison.Ordinal))
         .Select(value => new AccessId(value.CapabilityId))
-        .ToImmutableHashSet();
-
-    /// <summary>
-    /// Gets the immutable set of techniques this character can use (includes spells and psionics powers).
-    /// </summary>
-    public ImmutableHashSet<TechniqueId> Techniques { get; }
-
-    /// <summary>
-    /// Gets the subset of techniques that are spells this character knows.
-    /// </summary>
-    public ImmutableHashSet<SpellId> KnownSpellIds => Techniques
-        .Where(value => value.Value.ToString().StartsWith("spell.", StringComparison.Ordinal))
-        .Select(value => new SpellId(value.Value))
-        .ToImmutableHashSet();
-
-    /// <summary>
-    /// Gets the subset of techniques that are psionics powers this character knows.
-    /// </summary>
-    public ImmutableHashSet<PsychicTechniqueId> KnownPsychicTechniqueIds => Techniques
-        .Where(value => value.Value.ToString().StartsWith("psionics.", StringComparison.Ordinal))
-        .Select(value => new PsychicTechniqueId(value.Value))
         .ToImmutableHashSet();
 
     /// <summary>
@@ -193,7 +169,6 @@ public sealed class CharacterCapabilities
             skills.MoveToImmutable(),
             [.. Feats.Order()],
             [.. Access.Order()],
-            [.. Techniques.Order()],
             [.. GrantSources.OrderBy(value => value.CapabilityId).ThenBy(value => value.SourceId)]);
     }
 
@@ -203,7 +178,6 @@ public sealed class CharacterCapabilities
         ArgumentNullException.ThrowIfNull(catalog);
         if (snapshot.Fingerprint != catalog.Fingerprint || snapshot.Abilities.Length != catalog.Abilities.Length ||
             snapshot.Skills.Length != catalog.Skills.Length || snapshot.Feats.Length > MaximumSetEntries ||
-            snapshot.Techniques.Length > MaximumSetEntries ||
             snapshot.Abilities.Select(value => value.Id).Distinct().Count() != snapshot.Abilities.Length ||
             snapshot.Skills.Select(value => value.Id).Distinct().Count() != snapshot.Skills.Length)
         {
@@ -235,7 +209,6 @@ public sealed class CharacterCapabilities
         }
 
         if (snapshot.Feats.Any(id => !catalog.TryGetFeat(id, out _)) ||
-            snapshot.Techniques.Any(id => !TechniqueExists(id, catalog)) ||
             snapshot.GrantSources.Any(value => !value.CapabilityId.IsValid || !value.SourceId.IsValid))
         {
             throw new InvalidOperationException("Character capability references are missing.");
@@ -246,23 +219,14 @@ public sealed class CharacterCapabilities
             abilities.MoveToImmutable(),
             skills.MoveToImmutable(),
             snapshot.Feats.ToImmutableHashSet(),
-            snapshot.Techniques.ToImmutableHashSet(),
             snapshot.GrantSources);
     }
-
-    private static bool TechniqueExists(TechniqueId id, ICharacterContentCatalog catalog) =>
-        id.Value.ToString().StartsWith("spell.", StringComparison.Ordinal)
-            ? catalog.TryGetSpell(new SpellId(id.Value), out _)
-            : id.Value.ToString().StartsWith("psionics.", StringComparison.Ordinal)
-                ? catalog.TryGetPsychicTechnique(new PsychicTechniqueId(id.Value), out _)
-                : catalog.TryGetTechnique(id, out _);
 
     internal CharacterCapabilities WithTrainingGrants(
         TrainingProjectDefinition project,
         ImmutableArray<FeatDefinition> definitions)
     {
         ImmutableHashSet<FeatId> feats = Feats;
-        ImmutableHashSet<TechniqueId> techniques = Techniques;
         ImmutableArray<CapabilityGrant>.Builder grants = GrantSources.ToBuilder();
         foreach (FeatDefinition feat in definitions)
         {
@@ -279,24 +243,12 @@ public sealed class CharacterCapabilities
             }
         }
 
-        foreach (TechniqueId techniqueId in project.GrantedTechniqueIds)
-        {
-            if (techniques.Contains(techniqueId))
-            {
-                continue;
-            }
-
-            techniques = techniques.Add(techniqueId);
-            grants.Add(new CapabilityGrant(techniqueId.Value, project.TrainingProjectId.Value, GrantSourceKind.TrainingProject));
-        }
-
         if (grants.Count > MaximumSetEntries)
         {
             throw new InvalidOperationException("Training grants exceed the character capability capacity.");
         }
 
-        return new CharacterCapabilities(Fingerprint, abilityValues, skillValues, feats,
-            techniques, grants.MoveToImmutable());
+        return new CharacterCapabilities(Fingerprint, abilityValues, skillValues, feats, grants.MoveToImmutable());
     }
 
     internal CharacterCapabilities WithFeatGrant(FeatDefinition feat, ContentId sourceId)
@@ -313,11 +265,6 @@ public sealed class CharacterCapabilities
             grants.Add(new CapabilityGrant(accessId.Value, feat.FeatId.Value, GrantSourceKind.Feat));
         }
 
-        foreach (TechniqueId techniqueId in feat.GrantedTechniqueIds)
-        {
-            grants.Add(new CapabilityGrant(techniqueId.Value, feat.FeatId.Value, GrantSourceKind.Feat));
-        }
-
         if (grants.Count > MaximumSetEntries)
         {
             throw new InvalidOperationException("Action grants exceed the character capability capacity.");
@@ -328,7 +275,6 @@ public sealed class CharacterCapabilities
             abilityValues,
             skillValues,
             Feats.Add(feat.FeatId),
-            Techniques.Union(feat.GrantedTechniqueIds),
             grants.MoveToImmutable());
     }
 
@@ -357,7 +303,6 @@ public sealed class CharacterCapabilities
             abilityValues,
             skillValues,
             Feats.Where(value => retainedCapabilities.Contains(value.Value)).ToImmutableHashSet(),
-            Techniques.Where(value => retainedCapabilities.Contains(value.Value)).ToImmutableHashSet(),
             remaining);
     }
 }

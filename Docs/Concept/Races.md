@@ -265,7 +265,7 @@ Somnari are a psionics race whose nervous systems resonate with nearby thought.
 Their Racial Feat, **Mindwake**, lets them sense active psionics effects and
 initiate a consensual short-range mindlink without a spell or device. Mindwake
 grants innate `access.psionics`, not mastery: the Psionics skill governs
-control, clarity, range, and learned techniques. Psionics storms, crowded minds,
+control, clarity, range, and learned active Feats. Psionics storms, crowded minds,
 and repeated use cause strain, and Mindwake never reveals private thoughts
 without an explicit effect and a consent or resistance check.
 
@@ -342,7 +342,7 @@ itself; Eidolon care usually combines Enchantment, Crafting, and purpose-built
 ship facilities.
 
 Soul Anchor is supernatural physiology, not spellcasting or psionics. It does
-not grant `access.magic`, `access.psionics`, a Skill rank, or a technique.
+not grant `access.magic`, `access.psionics`, a Skill rank, or a active Feat.
 Eidolons may learn either access Feat through the same training available to
 other characters. They are not inherently ancient, emotionless, truthful, or
 knowledgeable; memories and personality belong to the individual.
@@ -440,7 +440,7 @@ incompatibilities. Race and Heritage definitions grant Racial Feat IDs rather th
 duplicating those rules.
 
 Racial Feats do not have a 0–100 value, improve through use, or unlock because of a
-class. Learned techniques and professional expertise belong to Skills, while
+class. Learned active Feats and professional expertise belong to Skills, while
 trained supernatural access belongs to learned Feats. Content validation
 rejects missing Racial Feat IDs, unknown access IDs, duplicate grants, and Racial Feats
 that are incompatible with the granting Race or Heritage.

@@ -50,7 +50,7 @@ public enum CharacterCreationFailure : byte
     /// <summary>The chosen background is not compatible with the chosen race.</summary>
     IncompatibleBackground,
 
-    /// <summary>A capability that should be granted (Feat or technique) is missing from the catalog.</summary>
+    /// <summary>A Feat that should be granted is missing from the catalog.</summary>
     MissingGrant,
 
     /// <summary>Character capabilities exceeded storage capacity limits.</summary>
@@ -236,7 +236,6 @@ public static class CharacterCreator
             abilities.MoveToImmutable(),
             skills.MoveToImmutable(),
             grants.Feats,
-            grants.Techniques,
             grants.Sources);
         ImmutableDictionary<ResourceId, int> resources = template.ResourceIds
             .ToImmutableDictionary(id => id, id => id == new ResourceId("resource.psionics-strain") ? 0 : 10);
@@ -340,11 +339,9 @@ public static class CharacterCreator
     private sealed class GrantCollector(ICharacterContentCatalog catalog, RaceId raceId)
     {
         private readonly HashSet<FeatId> feats = [];
-        private readonly HashSet<TechniqueId> techniques = [];
         private readonly List<CapabilityGrant> sources = [];
 
         public ImmutableHashSet<FeatId> Feats => feats.ToImmutableHashSet();
-        public ImmutableHashSet<TechniqueId> Techniques => techniques.ToImmutableHashSet();
         public ImmutableArray<CapabilityGrant> Sources => [.. sources];
         public bool CapacityExceeded { get; private set; }
 
@@ -386,25 +383,6 @@ public static class CharacterCreator
                 sources.Add(new CapabilityGrant(accessId.Value, featId.Value, GrantSourceKind.Feat));
             }
 
-            foreach (TechniqueId techniqueId in feat.GrantedTechniqueIds)
-            {
-                if (!TryGetTechnique(techniqueId, out ImmutableArray<FeatId> nestedFeats))
-                {
-                    missing = techniqueId.Value;
-                    return false;
-                }
-
-                techniques.Add(techniqueId);
-                sources.Add(new CapabilityGrant(techniqueId.Value, featId.Value, GrantSourceKind.Feat));
-                foreach (FeatId nested in nestedFeats)
-                {
-                    if (!AddFeat(nested, techniqueId.Value, GrantSourceKind.Technique, depth + 1, out missing))
-                    {
-                        return false;
-                    }
-                }
-            }
-
             foreach (FeatId nested in feat.GrantedFeatIds)
             {
                 if (!AddFeat(nested, featId.Value, GrantSourceKind.Feat, depth + 1, out missing))
@@ -415,32 +393,6 @@ public static class CharacterCreator
 
             CapacityExceeded = sources.Count > CharacterCapabilities.MaximumSetEntries;
             return !CapacityExceeded;
-        }
-
-        private bool TryGetTechnique(TechniqueId id, out ImmutableArray<FeatId> grantedFeats)
-        {
-            if (id.Value.ToString().StartsWith("spell.", StringComparison.Ordinal) &&
-                catalog.TryGetSpell(new SpellId(id.Value), out _))
-            {
-                grantedFeats = [];
-                return true;
-            }
-
-            if (id.Value.ToString().StartsWith("psionics.", StringComparison.Ordinal) &&
-                catalog.TryGetPsychicTechnique(new PsychicTechniqueId(id.Value), out _))
-            {
-                grantedFeats = [];
-                return true;
-            }
-
-            if (catalog.TryGetTechnique(id, out TechniqueDefinition? technique))
-            {
-                grantedFeats = technique!.GrantedFeatIds;
-                return true;
-            }
-
-            grantedFeats = [];
-            return false;
         }
     }
 }

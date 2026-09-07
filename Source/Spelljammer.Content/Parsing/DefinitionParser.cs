@@ -23,16 +23,15 @@ internal static class DefinitionParser
                 ["raceId", "heritageId", "backgroundId", "scenarioIds", "positionId", "languageIds", "scriptIds", "equipmentIds", "focusSkillIds", "resourceIds"], []),
             [DefinitionKind.Scenario] = new(["maximumRosterSize"], []),
             [DefinitionKind.Feat] = new(
-                ["grantedAccessIds"], ["trainingProjectId", "compatibleRaceIds", "grantedTechniqueIds", "grantedFeatIds", "effectIds"]),
+                ["activation", "grantedAccessIds"],
+                ["activeKind", "trainingProjectId", "compatibleRaceIds", "requiredAccessIds", "grantedFeatIds", "effectIds",
+                 "skillId", "focusResourceId", "focusCost", "rangeId", "castTimeTicks", "cooldownTicks", "targetTags",
+                 "resistanceSkillId", "strainResourceId", "strainCost", "sustainCostPerTick", "contactModeId",
+                 "informationScopeId", "disciplineIds"]),
             [DefinitionKind.Heritage] = new(["raceId", "grantedFeatIds"], []),
             [DefinitionKind.Race] = new(["grantedFeatIds"], ["requiredSupportIds"]),
-            [DefinitionKind.Spell] = new(
-                ["requiredAccessId", "skillId", "focusResourceId", "focusCost", "rangeId", "castTimeTicks", "cooldownTicks", "targetTags", "effectIds"], []),
-            [DefinitionKind.PsychicTechnique] = new(
-                ["requiredAccessId", "skillId", "resistanceSkillId", "strainResourceId", "strainCost", "sustainCostPerTick", "contactModeId", "rangeId", "informationScopeId", "disciplineIds", "targetTags", "effectIds"], []),
-            [DefinitionKind.Technique] = new(["requiredAccessIds", "grantedFeatIds"], []),
             [DefinitionKind.TrainingProject] = new(
-                ["requiredSkillIds", "workUnits", "progressCap", "facilityId", "resourceId", "resourceCost", "safetyId", "grantedFeatIds", "grantedTechniqueIds"], []),
+                ["requiredSkillIds", "workUnits", "progressCap", "facilityId", "resourceId", "resourceCost", "safetyId", "grantedFeatIds"], []),
             [DefinitionKind.Equipment] = new(
                 ["slotId", "initialStateId", "resourceId", "resourceCapacity", "actionIds", "effectIds"], []),
             [DefinitionKind.BoardCell] = new(
@@ -61,9 +60,6 @@ internal static class DefinitionParser
             ["Feats"] = DefinitionKind.Feat,
             ["Heritages"] = DefinitionKind.Heritage,
             ["Races"] = DefinitionKind.Race,
-            ["Spells"] = DefinitionKind.Spell,
-            ["PsychicTechniques"] = DefinitionKind.PsychicTechnique,
-            ["Techniques"] = DefinitionKind.Technique,
             ["TrainingProjects"] = DefinitionKind.TrainingProject,
             ["Equipment"] = DefinitionKind.Equipment,
             ["BoardCells"] = DefinitionKind.BoardCell,
@@ -175,7 +171,10 @@ internal static class DefinitionParser
 
         foreach ((string field, string value) in strings)
         {
-            if (!ContentId.IsCanonical(value))
+            bool valid = field is "activation" or "activeKind"
+                ? SourceValidation.IsIdSegment(value)
+                : ContentId.IsCanonical(value);
+            if (!valid)
             {
                 diagnostics.Add(ContentDiagnosticCodes.IdInvalid, packId, relativePath, idText, "/" + field);
                 return null;

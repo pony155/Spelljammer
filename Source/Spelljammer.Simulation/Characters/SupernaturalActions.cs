@@ -24,7 +24,7 @@ public sealed record SupernaturalTarget(
 
 public sealed record SpellActionState(
     CharacterState OriginalActor,
-    SpellDefinition Definition,
+    FeatDefinition Definition,
     SupernaturalTarget Target,
     SpellActionPhase Phase,
     ulong RandomSeed,
@@ -44,7 +44,7 @@ public static class SpellActionSystem
 {
     public static SpellActionResult Declare(
         CharacterState actor,
-        SpellId spellId,
+        FeatId featId,
         SupernaturalTarget target,
         ulong randomSeed,
         ulong randomSequence,
@@ -64,22 +64,23 @@ public static class SpellActionSystem
             return Rejected(actor, ActionRejectionCodes.ActorCannotAct);
         }
 
-        if (!catalog.TryGetSpell(spellId, out SpellDefinition? definition))
+        if (!catalog.TryGetFeat(featId, out FeatDefinition? definition) ||
+            definition!.Activation != FeatActivation.Active || definition.SpellRules is null)
         {
             return Rejected(actor, ActionRejectionCodes.ActionUnknown);
         }
 
-        if (!actor.Capabilities.Access.Contains(definition!.RequiredAccessId))
+        if (!definition.RequiredAccessIds.All(actor.Capabilities.Access.Contains))
         {
             return Rejected(actor, ActionRejectionCodes.AccessRequired);
         }
 
-        if (!actor.Capabilities.KnownSpellIds.Contains(spellId))
+        if (!actor.Capabilities.Feats.Contains(featId))
         {
-            return Rejected(actor, ActionRejectionCodes.TechniqueUnknown);
+            return Rejected(actor, ActionRejectionCodes.FeatUnknown);
         }
 
-        if (!actor.Capabilities.TryGetSkill(definition.SkillId, catalog, out _, out _))
+        if (!actor.Capabilities.TryGetSkill(definition.SpellRules.SkillId, catalog, out _, out _))
         {
             return Rejected(actor, ActionRejectionCodes.SkillRequired);
         }
@@ -89,7 +90,7 @@ public static class SpellActionSystem
             return Rejected(actor, ActionRejectionCodes.TargetMissing);
         }
 
-        if (!target.IsVisible || !target.IsInRange || !target.Tags.Overlaps(definition.TargetTags))
+        if (!target.IsVisible || !target.IsInRange || !target.Tags.Overlaps(definition.SpellRules.TargetTags))
         {
             return Rejected(actor, ActionRejectionCodes.TargetIllegal);
         }
@@ -118,8 +119,9 @@ public static class SpellActionSystem
             return Rejected(action.OriginalActor, "command.action-phase-invalid", action);
         }
 
-        action.OriginalActor.Resources.TryGetValue(action.Definition.FocusResourceId, out int available);
-        if (available < action.Definition.FocusCost)
+        SpellFeatRules rules = action.Definition.SpellRules!;
+        action.OriginalActor.Resources.TryGetValue(rules.FocusResourceId, out int available);
+        if (available < rules.FocusCost)
         {
             return Rejected(action.OriginalActor, ActionRejectionCodes.ResourceInsufficient, action);
         }
@@ -127,7 +129,7 @@ public static class SpellActionSystem
         return Accepted(action.OriginalActor, action with
         {
             Phase = SpellActionPhase.Reserved,
-            ReservedFocus = action.Definition.FocusCost,
+            ReservedFocus = rules.FocusCost,
         });
     }
 
@@ -136,7 +138,7 @@ public static class SpellActionSystem
 
     public static SpellActionResult Interrupt(SpellActionState action)
     {
-        if (action.Definition.CastTimeTicks == 0)
+        if (action.Definition.SpellRules!.CastTimeTicks == 0)
         {
             return Rejected(action.OriginalActor, "command.action-not-channeled", action);
         }
@@ -157,7 +159,7 @@ public static class SpellActionSystem
         }
 
         if (action.OriginalActor.ContentFingerprint != catalog.Fingerprint ||
-            !action.OriginalActor.Capabilities.TryGetSkill(action.Definition.SkillId, catalog, out byte skill, out _))
+            !action.OriginalActor.Capabilities.TryGetSkill(action.Definition.SpellRules!.SkillId, catalog, out byte skill, out _))
         {
             return Rejected(action.OriginalActor, ActionRejectionCodes.ContentMismatch, action);
         }
@@ -186,7 +188,8 @@ public static class SpellActionSystem
             return Rejected(action.OriginalActor, "command.queue-capacity", action);
         }
 
-        action.OriginalActor.Resources.TryGetValue(action.Definition.FocusResourceId, out int available);
+        SpellFeatRules rules = action.Definition.SpellRules!;
+        action.OriginalActor.Resources.TryGetValue(rules.FocusResourceId, out int available);
         if (available < action.ReservedFocus)
         {
             return Rejected(action.OriginalActor, ActionRejectionCodes.ResourceInsufficient, action);
@@ -195,16 +198,16 @@ public static class SpellActionSystem
         ImmutableArray<ActiveCapabilityEffect> effects = action.Succeeded
             ? [.. action.OriginalActor.ActiveEffects, .. action.Definition.EffectIds.Select(id => new ActiveCapabilityEffect(
                 id,
-                action.Definition.SpellId.Value,
+                action.Definition.FeatId.Value,
                 action.OriginalActor.Id,
                 action.Target.Id,
                 action.Tick,
                 action.Tick + 1,
-                action.Definition.RangeId))]
+                rules.RangeId))]
             : action.OriginalActor.ActiveEffects;
         ObservableCapabilityEvidence evidence = new(
             new ContentId("evidence.spell.cast"),
-            action.Definition.SpellId.Value,
+            action.Definition.FeatId.Value,
             action.OriginalActor.Id,
             action.Target.Id,
             action.Tick,
@@ -212,7 +215,7 @@ public static class SpellActionSystem
         CharacterState committed = action.OriginalActor with
         {
             Resources = action.OriginalActor.Resources.SetItem(
-                action.Definition.FocusResourceId,
+                rules.FocusResourceId,
                 available - action.ReservedFocus),
             ActiveEffects = effects,
             Evidence = [.. action.OriginalActor.Evidence, evidence],
@@ -264,7 +267,7 @@ public enum MindlinkPhase : byte
 
 public sealed record MindlinkState(
     CharacterState OriginalActor,
-    PsychicTechniqueDefinition Definition,
+    FeatDefinition Definition,
     CharacterId TargetId,
     MindlinkPhase Phase,
     long StartTick,
@@ -279,12 +282,12 @@ public sealed record MindlinkResult(
 
 public static class MindlinkSystem
 {
-    public const int MaximumPsychicStrain = 100;
+    public const int MaximumPsionicStrain = 100;
 
     public static MindlinkResult Invite(
         CharacterState actor,
         CharacterState target,
-        PsychicTechniqueId techniqueId,
+        FeatId featId,
         bool isInRange,
         long tick,
         ICharacterContentCatalog catalog)
@@ -304,22 +307,23 @@ public static class MindlinkSystem
             return Rejected(actor, ActionRejectionCodes.TargetIllegal);
         }
 
-        if (!catalog.TryGetPsychicTechnique(techniqueId, out PsychicTechniqueDefinition? definition))
+        if (!catalog.TryGetFeat(featId, out FeatDefinition? definition) ||
+            definition!.Activation != FeatActivation.Active || definition.PsionicRules is null)
         {
             return Rejected(actor, ActionRejectionCodes.ActionUnknown);
         }
 
-        if (!actor.Capabilities.Access.Contains(definition!.RequiredAccessId))
+        if (!definition.RequiredAccessIds.All(actor.Capabilities.Access.Contains))
         {
             return Rejected(actor, ActionRejectionCodes.AccessRequired);
         }
 
-        if (!actor.Capabilities.KnownPsychicTechniqueIds.Contains(techniqueId))
+        if (!actor.Capabilities.Feats.Contains(featId))
         {
-            return Rejected(actor, ActionRejectionCodes.TechniqueUnknown);
+            return Rejected(actor, ActionRejectionCodes.FeatUnknown);
         }
 
-        if (!actor.Capabilities.TryGetSkill(definition.SkillId, catalog, out _, out _))
+        if (!actor.Capabilities.TryGetSkill(definition.PsionicRules.SkillId, catalog, out _, out _))
         {
             return Rejected(actor, ActionRejectionCodes.SkillRequired);
         }
@@ -345,8 +349,9 @@ public static class MindlinkSystem
             return Rejected(link.OriginalActor, "command.consent-required", link);
         }
 
-        link.OriginalActor.Resources.TryGetValue(link.Definition.StrainResourceId, out int strain);
-        if (strain + link.Definition.StrainCost > MaximumPsychicStrain)
+        PsionicFeatRules rules = link.Definition.PsionicRules!;
+        link.OriginalActor.Resources.TryGetValue(rules.StrainResourceId, out int strain);
+        if (strain + rules.StrainCost > MaximumPsionicStrain)
         {
             return Rejected(link.OriginalActor, ActionRejectionCodes.ResourceInsufficient, link);
         }
@@ -354,7 +359,7 @@ public static class MindlinkSystem
         return Accepted(link.OriginalActor, link with
         {
             Phase = MindlinkPhase.Reserved,
-            ReservedStrain = link.Definition.StrainCost,
+            ReservedStrain = rules.StrainCost,
         });
     }
 
@@ -371,8 +376,9 @@ public static class MindlinkSystem
             return Rejected(link.OriginalActor, "command.queue-capacity", link);
         }
 
-        link.OriginalActor.Resources.TryGetValue(link.Definition.StrainResourceId, out int strain);
-        if (strain + link.ReservedStrain > MaximumPsychicStrain)
+        PsionicFeatRules rules = link.Definition.PsionicRules!;
+        link.OriginalActor.Resources.TryGetValue(rules.StrainResourceId, out int strain);
+        if (strain + link.ReservedStrain > MaximumPsionicStrain)
         {
             return Rejected(link.OriginalActor, ActionRejectionCodes.ResourceInsufficient, link);
         }
@@ -380,22 +386,22 @@ public static class MindlinkSystem
         ImmutableArray<ActiveCapabilityEffect> effects =
             [.. link.OriginalActor.ActiveEffects, .. link.Definition.EffectIds.Select(id => new ActiveCapabilityEffect(
                 id,
-                link.Definition.PsychicTechniqueId.Value,
+                link.Definition.FeatId.Value,
                 link.OriginalActor.Id,
                 link.TargetId,
                 link.StartTick,
                 long.MaxValue,
-                link.Definition.InformationScopeId))];
+                rules.InformationScopeId))];
         ObservableCapabilityEvidence evidence = new(
             new ContentId("evidence.psionics.mindlink"),
-            link.Definition.PsychicTechniqueId.Value,
+            link.Definition.FeatId.Value,
             link.OriginalActor.Id,
             link.TargetId,
             link.StartTick,
             true);
         CharacterState committed = link.OriginalActor with
         {
-            Resources = link.OriginalActor.Resources.SetItem(link.Definition.StrainResourceId, strain + link.ReservedStrain),
+            Resources = link.OriginalActor.Resources.SetItem(rules.StrainResourceId, strain + link.ReservedStrain),
             ActiveEffects = effects,
             Evidence = [.. link.OriginalActor.Evidence, evidence],
         };
@@ -409,8 +415,9 @@ public static class MindlinkSystem
             return Rejected(actor, "command.action-phase-invalid", link);
         }
 
-        actor.Resources.TryGetValue(link.Definition.StrainResourceId, out int strain);
-        if (strain + link.Definition.SustainCostPerTick > MaximumPsychicStrain)
+        PsionicFeatRules rules = link.Definition.PsionicRules!;
+        actor.Resources.TryGetValue(rules.StrainResourceId, out int strain);
+        if (strain + rules.SustainCostPerTick > MaximumPsionicStrain)
         {
             return Rejected(actor, ActionRejectionCodes.ResourceInsufficient, link);
         }
@@ -418,8 +425,8 @@ public static class MindlinkSystem
         CharacterState sustained = actor with
         {
             Resources = actor.Resources.SetItem(
-                link.Definition.StrainResourceId,
-                strain + link.Definition.SustainCostPerTick),
+                rules.StrainResourceId,
+                strain + rules.SustainCostPerTick),
         };
         return Accepted(sustained, link with { LastSustainTick = tick });
     }
@@ -442,7 +449,7 @@ public static class MindlinkSystem
         CharacterState ended = actor with
         {
             ActiveEffects =
-            [.. actor.ActiveEffects.Where(value => value.SourceId != link.Definition.PsychicTechniqueId.Value || value.TargetId != link.TargetId)],
+            [.. actor.ActiveEffects.Where(value => value.SourceId != link.Definition.FeatId.Value || value.TargetId != link.TargetId)],
         };
         return Accepted(ended, link with { Phase = phase });
     }

@@ -10,8 +10,6 @@ public interface ICharacterContentCatalog
     ImmutableArray<SkillDefinition> Skills { get; }
     ImmutableArray<CharacterDefinition> Characters { get; }
     ImmutableArray<ScenarioDefinition> Scenarios { get; }
-    ImmutableArray<SpellDefinition> Spells { get; }
-    ImmutableArray<PsychicTechniqueDefinition> PsychicTechniques { get; }
     ImmutableArray<EquipmentDefinition> Equipment { get; }
     ImmutableArray<BoardCellDefinition> BoardCells { get; }
     ImmutableArray<ZoneLinkDefinition> ZoneLinks { get; }
@@ -30,8 +28,6 @@ public interface ICharacterContentCatalog
     bool TryGetFeat(FeatId id, out FeatDefinition? definition);
     bool TryGetHeritage(HeritageId id, out HeritageDefinition? definition);
     bool TryGetRace(RaceId id, out RaceDefinition? definition);
-    bool TryGetSpell(SpellId id, out SpellDefinition? definition);
-    bool TryGetPsychicTechnique(PsychicTechniqueId id, out PsychicTechniqueDefinition? definition);
     bool TryGetEquipment(EquipmentId id, out EquipmentDefinition? definition);
     bool TryGetBoardCell(CellId id, out BoardCellDefinition? definition);
     bool TryGetZoneLink(LinkId id, out ZoneLinkDefinition? definition);
@@ -40,7 +36,6 @@ public interface ICharacterContentCatalog
     bool TryGetShipFrame(ShipFrameId id, out ShipFrameDefinition? definition);
     bool TryGetShipModule(ModuleId id, out ShipModuleDefinition? definition);
     bool TryGetShipWeaponConfiguration(ShipWeaponConfigurationId id, out ShipWeaponConfigurationDefinition? definition);
-    bool TryGetTechnique(TechniqueId id, out TechniqueDefinition? definition);
     bool TryGetTrainingProject(TrainingProjectId id, out TrainingProjectDefinition? definition);
 }
 
@@ -56,10 +51,7 @@ public enum GrantSourceKind : byte
     Race,
     Heritage,
     Feat,
-    Technique,
     TrainingProject,
-    Spell,
-    PsychicTechnique,
 }
 
 public sealed record CapabilityGrant(ContentId CapabilityId, ContentId SourceId, GrantSourceKind SourceKind);
@@ -74,5 +66,4 @@ public sealed record CharacterCapabilitySnapshot(
     ImmutableArray<SkillValueSnapshot> Skills,
     ImmutableArray<FeatId> Feats,
     ImmutableArray<AccessId> Access,
-    ImmutableArray<TechniqueId> Techniques,
     ImmutableArray<CapabilityGrant> GrantSources);

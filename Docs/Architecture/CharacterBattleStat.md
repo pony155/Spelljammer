@@ -177,7 +177,7 @@ Resolve: 76 / 100
 Resolve can be reduced by:
 
 - Mind Blast
-- Psychic Scream
+- Psionic Scream
 - Fear
 - Horrific creatures
 - Ally death
@@ -403,7 +403,7 @@ Preferred design:
 ```text
 Strength ─────────────→ Damage / Penetration / Weapon Requirements
 
-Melee Weapons ────────→ Accuracy / Criticals / Special Techniques
+Melee Weapons ────────→ Accuracy / Criticals / Special Active Feats
         │
         └─────────────→ Small Damage Contribution
 ```
@@ -572,7 +572,7 @@ Effect:
 - Interrupt
 ```
 
-## Psychic Scream
+## Psionic Scream
 
 ```text
 Target: Area
@@ -603,7 +603,7 @@ Effect:
 - Increased Willpower
 ```
 
-## Psychic Lance
+## Psionic Lance
 
 ```text
 Target: Single
@@ -623,7 +623,7 @@ Immune to conventional Mind Control
 
 Hive Mind Creature:
 High Willpower
-Vulnerable to psychic disruption
+Vulnerable to psionic disruption
 
 Aberration:
 High Psionic Resistance

@@ -1,1 +1,1 @@
-{"schemaVersion":1,"revision":1,"id":"feat.heritage.elf.dawnweave","nameKey":"feat.heritage.elf.dawnweave.name","descriptionKey":"feat.heritage.elf.dawnweave.description","compatibleRaceIds":["race.elf"],"grantedAccessIds":[],"grantedTechniqueIds":[]}
+{"schemaVersion":1,"revision":1,"activation":"passive","id":"feat.heritage.elf.dawnweave","nameKey":"feat.heritage.elf.dawnweave.name","descriptionKey":"feat.heritage.elf.dawnweave.description","compatibleRaceIds":["race.elf"],"grantedAccessIds":[]}

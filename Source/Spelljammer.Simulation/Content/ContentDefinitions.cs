@@ -60,20 +60,53 @@ public sealed record AccessDefinition(
     : ContentDefinition(AccessId.Value, SchemaVersion, Revision, NameKey, DescriptionKey);
 
 /// <summary>
-/// Defines a character Feat and its optional acquisition constraints and grants.
+/// Identifies whether a Feat changes rules continuously or must be invoked.
 /// </summary>
+public enum FeatActivation : byte
+{
+    Passive,
+    Active,
+}
+
+/// <summary>Execution rules for an active spell Feat.</summary>
+public sealed record SpellFeatRules(
+    SkillId SkillId,
+    ResourceId FocusResourceId,
+    int FocusCost,
+    ContentId RangeId,
+    int CastTimeTicks,
+    int CooldownTicks,
+    ImmutableArray<string> TargetTags);
+
+/// <summary>Execution rules for an active psionic Feat.</summary>
+public sealed record PsionicFeatRules(
+    SkillId SkillId,
+    SkillId ResistanceSkillId,
+    ResourceId StrainResourceId,
+    int StrainCost,
+    int SustainCostPerTick,
+    ContentId ContactModeId,
+    ContentId RangeId,
+    ContentId InformationScopeId,
+    ImmutableArray<ContentId> DisciplineIds,
+    ImmutableArray<string> TargetTags);
+
+/// <summary>Defines a passive or active character Feat and its acquisition constraints and rules.</summary>
 public sealed record FeatDefinition(
     FeatId FeatId,
     int SchemaVersion,
     int Revision,
     string NameKey,
     string DescriptionKey,
+    FeatActivation Activation,
     TrainingProjectId? TrainingProjectId,
     ImmutableArray<RaceId> CompatibleRaceIds,
+    ImmutableArray<AccessId> RequiredAccessIds,
     ImmutableArray<AccessId> GrantedAccessIds,
-    ImmutableArray<TechniqueId> GrantedTechniqueIds,
     ImmutableArray<FeatId> GrantedFeatIds,
-    ImmutableArray<ContentId> EffectIds)
+    ImmutableArray<ContentId> EffectIds,
+    SpellFeatRules? SpellRules,
+    PsionicFeatRules? PsionicRules)
     : ContentDefinition(FeatId.Value, SchemaVersion, Revision, NameKey, DescriptionKey);
 
 /// <summary>
@@ -90,7 +123,7 @@ public sealed record RaceDefinition(
     : ContentDefinition(RaceId.Value, SchemaVersion, Revision, NameKey, DescriptionKey);
 
 /// <summary>
-/// Defines a training project that characters can undertake to learn feats and techniques.
+/// Defines a training project that characters can undertake to learn Feats.
 /// </summary>
 public sealed record TrainingProjectDefinition(
     TrainingProjectId TrainingProjectId,
@@ -105,8 +138,7 @@ public sealed record TrainingProjectDefinition(
     ResourceId ResourceId,
     int ResourceCost,
     ContentId SafetyId,
-    ImmutableArray<FeatId> GrantedFeatIds,
-    ImmutableArray<TechniqueId> GrantedTechniqueIds)
+    ImmutableArray<FeatId> GrantedFeatIds)
     : ContentDefinition(TrainingProjectId.Value, SchemaVersion, Revision, NameKey, DescriptionKey);
 
 /// <summary>
@@ -135,59 +167,6 @@ public sealed record BackgroundDefinition(
     ImmutableArray<AbilityId> AbilityBonusIds,
     ImmutableArray<SkillId> FocusSkillIds)
     : ContentDefinition(BackgroundId.Value, SchemaVersion, Revision, NameKey, DescriptionKey);
-
-/// <summary>
-/// Defines a combat or special technique available to characters.
-/// </summary>
-public sealed record TechniqueDefinition(
-    TechniqueId TechniqueId,
-    int SchemaVersion,
-    int Revision,
-    string NameKey,
-    string DescriptionKey,
-    ImmutableArray<AccessId> RequiredAccessIds,
-    ImmutableArray<FeatId> GrantedFeatIds)
-    : ContentDefinition(TechniqueId.Value, SchemaVersion, Revision, NameKey, DescriptionKey);
-
-/// <summary>
-/// Defines a magical spell with resource cost, casting time, cooldown, and effect rules.
-/// </summary>
-public sealed record SpellDefinition(
-    SpellId SpellId,
-    int SchemaVersion,
-    int Revision,
-    string NameKey,
-    string DescriptionKey,
-    AccessId RequiredAccessId,
-    SkillId SkillId,
-    ResourceId FocusResourceId,
-    int FocusCost,
-    ContentId RangeId,
-    int CastTimeTicks,
-    int CooldownTicks,
-    ImmutableArray<string> TargetTags,
-    ImmutableArray<ContentId> EffectIds)
-    : ContentDefinition(SpellId.Value, SchemaVersion, Revision, NameKey, DescriptionKey);
-
-public sealed record PsychicTechniqueDefinition(
-    PsychicTechniqueId PsychicTechniqueId,
-    int SchemaVersion,
-    int Revision,
-    string NameKey,
-    string DescriptionKey,
-    AccessId RequiredAccessId,
-    SkillId SkillId,
-    SkillId ResistanceSkillId,
-    ResourceId StrainResourceId,
-    int StrainCost,
-    int SustainCostPerTick,
-    ContentId ContactModeId,
-    ContentId RangeId,
-    ContentId InformationScopeId,
-    ImmutableArray<ContentId> DisciplineIds,
-    ImmutableArray<string> TargetTags,
-    ImmutableArray<ContentId> EffectIds)
-    : ContentDefinition(PsychicTechniqueId.Value, SchemaVersion, Revision, NameKey, DescriptionKey);
 
 public sealed record CharacterDefinition(
     CharacterId CharacterId,

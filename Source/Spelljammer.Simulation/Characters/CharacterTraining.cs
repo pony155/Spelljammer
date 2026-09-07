@@ -12,7 +12,6 @@ public sealed record TrainingCompletionEvent(
     TrainingProjectId ProjectId,
     ImmutableArray<FeatId> GrantedFeatIds,
     ImmutableArray<AccessId> GrantedAccessIds,
-    ImmutableArray<TechniqueId> GrantedTechniqueIds,
     ResourceId ResourceId,
     int ResourceCost);
 
@@ -160,19 +159,6 @@ public static class CharacterTrainingSystem
             featBuilder.Add(feat);
         }
 
-        foreach (TechniqueId techniqueId in project.GrantedTechniqueIds)
-        {
-            bool known = techniqueId.Value.ToString().StartsWith("spell.", StringComparison.Ordinal)
-                ? catalog.TryGetSpell(new SpellId(techniqueId.Value), out _)
-                : techniqueId.Value.ToString().StartsWith("psionics.", StringComparison.Ordinal)
-                    ? catalog.TryGetPsychicTechnique(new PsychicTechniqueId(techniqueId.Value), out _)
-                    : catalog.TryGetTechnique(techniqueId, out _);
-            if (!known)
-            {
-                return Rejected(character, ActionRejectionCodes.ActionUnknown);
-            }
-        }
-
         ImmutableArray<FeatDefinition> feats = featBuilder.MoveToImmutable();
         CharacterCapabilities capabilities;
         try
@@ -197,7 +183,6 @@ public static class CharacterTrainingSystem
             projectId,
             [.. project.GrantedFeatIds.Order()],
             access,
-            project.GrantedTechniqueIds,
             project.ResourceId,
             project.ResourceCost);
         return new TrainingCommandResult(completed, true, ActionRejectionCodes.None, progress, completion);

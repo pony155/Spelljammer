@@ -33,7 +33,7 @@ public enum VoyageCommandKind : byte
     PersonalMelee,
     PersonalRanged,
     PersonalSpell,
-    PersonalPsychic,
+    PersonalPsionic,
     PersonalEngineering,
     PersonalMedicine,
     PersonalInteract,
@@ -580,7 +580,7 @@ public sealed record VoyageWorld(
             case VoyageCommandKind.PersonalMelee:
             case VoyageCommandKind.PersonalRanged:
             case VoyageCommandKind.PersonalSpell:
-            case VoyageCommandKind.PersonalPsychic:
+            case VoyageCommandKind.PersonalPsionic:
                 if (!ActorIdFrom(command.TargetId, out ActorId targetId) || !encounter.Actors.TryGetValue(targetId, out PersonalActorState? target))
                 {
                     return AddEvent(command, false, 0, "command.target-stale");

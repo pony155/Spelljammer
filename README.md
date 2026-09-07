@@ -43,8 +43,8 @@ Implemented foundations include:
 - a bounded gameplay-content foundation with validated stable IDs, strict JSON
   pack loading, deterministic dependency ordering, immutable snapshots,
   canonical SHA-256 fingerprints, transactional publication, and production
-  registries for seven Abilities, 29 Skills, the first character slice, one
-  Spell, and one psionics technique;
+  registries for seven Abilities, 29 Skills, the first character slice, and
+  passive and active Feats including spell and psionic rules;
 - deterministic immutable character creation for eleven races, an eight-member
   scenario-authored active-crew limit with protagonist-led NPC recruitment, bounded
   capability/grant storage, action eligibility and resolution, Feat training,

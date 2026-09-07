@@ -10,15 +10,14 @@ and performs no filesystem work.
 Milestone 2 additionally provides typed Ability and Skill registries whose
 dense indices are scoped to one fingerprint, required `en-US` key validation,
 and a headless inspection snapshot used by the offline `report` command.
-Milestone 3 registers Character, Background, Heritage, and Technique schemas,
-links bounded grant graphs, and exposes typed registries through the
+Milestone 3 registers Character, Background, Heritage, and Feat schemas, links
+bounded grant graphs, and exposes typed registries through the
 simulation-owned character catalog interface. Character creation and action
 rules remain in `Spelljammer.Simulation`; `RosterInspection` is a read-only,
 localization-ready presentation projection.
-Milestone 4 adds strict Spell and psionics-technique definitions, expanded
-training-project contracts, fingerprint-scoped registries, and validation for
-supernatural access, knowledge, targets, resources, consent, resistance, and
-bounded effects.
+Milestone 4 adds active Feats with strict spell and psionic execution rules,
+expanded training-project contracts, and validation for supernatural access,
+knowledge, targets, resources, consent, resistance, and bounded effects.
 Milestone 5 adds Equipment, Board Cell, Zone Link, Personal Board, Encounter,
 Ship Frame, Ship Module, and Ship Weapon Configuration schemas. Their linked,
 fingerprint-scoped registries feed the headless encounter runtime without

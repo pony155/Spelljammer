@@ -29,8 +29,8 @@ public static class ActionRejectionCodes
     /// <summary>The actor lacks the required access privilege to perform this action.</summary>
     public const string AccessRequired = "command.access-required";
 
-    /// <summary>The technique/spell/power required for this action is not known by the actor.</summary>
-    public const string TechniqueUnknown = "command.technique-unknown";
+    /// <summary>The active Feat required for this action is not known by the actor.</summary>
+    public const string FeatUnknown = "command.feat-unknown";
 
     /// <summary>The actor's skill level is too low to perform this action.</summary>
     public const string SkillRequired = "command.skill-required";
@@ -55,11 +55,11 @@ public static class ActionRejectionCodes
 /// Defines the requirements a character must meet to perform an action.
 /// </summary>
 /// <remarks>
-/// Action requirements include optional access privilege and technique checks, mandatory skill and ability minimums,
+/// Action requirements include optional access privilege and active-Feat checks, mandatory skill and ability minimums,
 /// and optional equipment and context requirements.
 /// </remarks>
 /// <param name="AccessId">The access privilege required to perform this action, if any.</param>
-/// <param name="TechniqueId">The technique/spell/power required, if any (for technique-based actions).</param>
+/// <param name="RequiredFeatId">The active Feat required, if any.</param>
 /// <param name="SkillId">The skill that governs success for this action.</param>
 /// <param name="MinimumSkill">The minimum skill level required to attempt this action.</param>
 /// <param name="AbilityId">The ability that provides the base modifier for this action.</param>
@@ -68,7 +68,7 @@ public static class ActionRejectionCodes
 /// <param name="ContextId">A context requirement (e.g., must be in water, must be outdoors), if any.</param>
 public sealed record ActionRequirement(
     AccessId? AccessId,
-    TechniqueId? TechniqueId,
+    FeatId? RequiredFeatId,
     SkillId SkillId,
     byte MinimumSkill,
     AbilityId AbilityId,
@@ -279,11 +279,13 @@ public static class CharacterActionSystem
             return Rejected(ActionRejectionCodes.AccessRequired, accessId.Value);
         }
 
-        if (requirement.TechniqueId is TechniqueId techniqueId &&
-            (!catalog.TryGetTechnique(techniqueId, out _) || !actor.Capabilities.Techniques.Contains(techniqueId) ||
-             !actor.Capabilities.GrantSources.Any(value => value.CapabilityId == techniqueId.Value)))
+        if (requirement.RequiredFeatId is FeatId requiredFeatId &&
+            (!catalog.TryGetFeat(requiredFeatId, out FeatDefinition? requiredFeat) ||
+             requiredFeat!.Activation != FeatActivation.Active ||
+             !actor.Capabilities.Feats.Contains(requiredFeatId) ||
+             !actor.Capabilities.GrantSources.Any(value => value.CapabilityId == requiredFeatId.Value)))
         {
-            return Rejected(ActionRejectionCodes.TechniqueUnknown, techniqueId.Value);
+            return Rejected(ActionRejectionCodes.FeatUnknown, requiredFeatId.Value);
         }
 
         if (!actor.Capabilities.TryGetSkill(requirement.SkillId, catalog, out byte skill, out _) ||

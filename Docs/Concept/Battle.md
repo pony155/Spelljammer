@@ -19,7 +19,7 @@ retreat remain valid before and during combat.
   locations instead of creating unrelated combat minigames.
 - Let ship layout, ruin structure, cover, atmosphere, gravity, visibility,
   hazards, and objectives matter as much as raw damage.
-- Make crew abilities, skills, equipment, positions, learned techniques,
+- Make crew abilities, skills, equipment, positions, learned active Feats,
   access Feats, and Racial Feats produce understandable tactical options.
 - Connect ship-to-ship fire, module damage, boarding, internal defense, and
   disengagement without discarding consequences between scales.
@@ -168,7 +168,7 @@ Actions use explicit phases:
 5. **Commit:** resolve the action and publish its effects atomically.
 6. **Recover:** apply recovery time, sustain costs, exposure, and cooldown.
 
-Ship movement, weapon fire, spells, psionics techniques, repairs, medical
+Ship movement, weapon fire, spells, psionics active Feats, repairs, medical
 actions, personal plans, and environmental changes can overlap on the fixed
 timeline. Equal-tick conflicts use documented priority categories and stable
 actor IDs as final tie-breakers, never UI order or thread completion timing.
@@ -184,7 +184,7 @@ Combat uses the same contextual capability model as ordinary crew work:
 
 ```text
 relevant ability + relevant skill + equipment + assistance
-+ technique and access + circumstances
++ active Feat and access + circumstances
 ```
 
 Examples include:
@@ -434,7 +434,7 @@ vehicle access, and extraction timing. The player's crew remains a small unit;
 armies and galaxy-scale battles are represented by strategic fronts while the
 ship handles one bounded objective within them.
 
-## Weapons, armor, and techniques
+## Weapons, armor, and active Feats
 
 Weapons are data-authored items with stable IDs and tags appropriate to their
 scale. Personal weapons can declare skill, grip, range, delivery, damage type,
@@ -457,12 +457,12 @@ damage sequence.
 - Magic and Psionics use their own skills, learned content, resources, and
   access requirements.
 - Defense covers active protection, positioning, shields, and learned defensive
-  techniques without becoming universal armor expertise.
+  active Feats without becoming universal armor expertise.
 
-Techniques provide bounded maneuvers such as disarm, suppress, pin, guard,
+Active Feats provide bounded maneuvers such as disarm, suppress, pin, guard,
 aimed shot, controlled burst, shield another, or fighting withdrawal. They are
 learned separately from skills when their definition requires it. A high skill
-improves execution but does not automatically grant every technique.
+improves execution but does not automatically grant every active Feat.
 
 Ship armor declares one Armor Value and Slot Cost. Personal armor remains a
 separate tactical item system. Ship armor is intentionally a simple defense
@@ -475,7 +475,7 @@ A character cannot cast because combat started. Spellcasting requires
 simple cast flow in [`Spells.md`](Spells.md). Only channeled or ritual spells
 can be interrupted or sustained across ticks.
 
-Psionics techniques require `access.psionics` and follow consent, resistance,
+Psionics active Feats require `access.psionics` and follow consent, resistance,
 privacy, information, and Psionics Strain rules in
 [`Psionics.md.md`](Psionics.md.md). A failed intrusion cannot reveal
 the information it failed to reach. Mental influence never silently replaces a
@@ -653,7 +653,7 @@ The first battle milestone should contain two connected encounters:
 The same crew, equipment, ammunition, injuries, spell resources, Psionics
 Strain, ship damage, knowledge, and faction consequences persist between the
 two. The slice includes one melee action, one ranged action, one defensive
-reaction, one spell or psionics technique with valid access, one medical
+reaction, one spell or psionics active Feat with valid access, one medical
 stabilization, one surrender or retreat, and one damaged object the player
 wanted to preserve.
 

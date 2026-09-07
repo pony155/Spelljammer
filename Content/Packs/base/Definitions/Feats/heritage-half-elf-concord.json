@@ -1,1 +1,1 @@
-{"schemaVersion":1,"revision":1,"id":"feat.heritage.half-elf.concord","nameKey":"feat.heritage.half-elf.concord.name","descriptionKey":"feat.heritage.half-elf.concord.description","compatibleRaceIds":["race.half-elf"],"grantedAccessIds":[],"grantedTechniqueIds":[]}
+{"schemaVersion":1,"revision":1,"activation":"passive","id":"feat.heritage.half-elf.concord","nameKey":"feat.heritage.half-elf.concord.name","descriptionKey":"feat.heritage.half-elf.concord.description","compatibleRaceIds":["race.half-elf"],"grantedAccessIds":[]}

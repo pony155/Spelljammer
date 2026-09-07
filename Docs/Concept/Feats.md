@@ -3,9 +3,9 @@
 ## Status
 
 The content compiler, immutable character capability state, bounded grant
-graphs, training projects, Race and Heritage grants, and the first Feat roster
-are implemented. Broader learned Feats and complete advancement presentation
-remain planned.
+graphs, training projects, Race and Heritage grants, and active and passive
+Feat rules are implemented. Broader learned Feats and complete advancement
+presentation remain planned.
 
 ## Purpose
 
@@ -15,27 +15,28 @@ or opaque bundle of bonuses. Every Feat declares its acquisition source,
 effects, requirements, and incompatibilities so its result can be inspected,
 validated, and saved deterministically.
 
-Spelljammer distinguishes two acquisition categories while presenting both as
-Feats:
+Spelljammer distinguishes activation and acquisition without creating another
+capability type:
 
-| Category | Source type | Example | Technical identity |
+| Category | Behavior | Example | Technical identity |
 | --- | --- | --- | --- |
-| Learned Feat | Training project or authored reward | Spellcasting Training | `feat.access.magic` |
-| Racial Feat | Race or compatible Heritage | Aether Sense | `feat.race.elf.aether-sense` |
-| Heritage Feat | Compatible Heritage | Dawnweave | `feat.heritage.elf.dawnweave` |
+| Passive Feat | Continuously changes a rule or grants access | Aether Sense | `feat.race.elf.aether-sense` |
+| Active Feat | Must be deliberately invoked as an action | Magic Missile | `feat.active.spell.spirit.magic-missile` |
 
 The source code uses one `FeatId`, `FeatDefinition`, registry, and character
-`Feats` collection for every category. Acquisition remains explicit through an
-optional `trainingProjectId`, compatible Race links, and grant provenance. A
-Feat may support more than one acquisition source. All categories use the
-`feat.*` ID namespace.
+`Feats` collection for every category. `FeatActivation` records whether a Feat
+is `Passive` or `Active`; an active Feat may carry general, spell, or psionic
+execution rules. Acquisition remains explicit through an optional
+`trainingProjectId`, compatible Race links, and grant provenance. A Feat may
+support more than one acquisition source. All categories use the `feat.*` ID
+namespace.
 
 ## Learned Feats
 
 A learned Feat is earned through a documented training project or another
 explicit campaign reward. It may grant access such as `access.magic` or
-`access.psionics`, but it does not automatically grant Skill ranks, techniques,
-free resources, or immunity to consequences.
+`access.psionics`, but it does not automatically grant Skill ranks, unrelated
+active Feats, free resources, or immunity to consequences.
 
 Training completion validates prerequisites, facilities, safety, work, and
 resource costs before granting the Feat and its access sources atomically.
@@ -80,10 +81,11 @@ feat.race.elf.aether-sense
 feat.heritage.elf.dawnweave
 ```
 
-Race, Heritage, Technique, and training-project definitions reference
+Race, Heritage, Feat, and training-project definitions reference
 `grantedFeatIds`. Persistent character state stores one bounded Feat ID set;
-the grant-source chain records whether each Feat came from a Race, Heritage,
-training project, technique, or authored consequence.
+there is only one capability collection. The grant-source chain records
+whether each Feat came from a Race, Heritage, another Feat, training project,
+or authored consequence.
 
 No Feat uses localized text as identity. Changing a released Feat ID, category,
 or meaning requires a content-schema revision and save migration.
@@ -101,4 +103,4 @@ The first crew-enabled slice needs:
 
 Additional combat, social, exploration, crafting, and ship-operation Feats
 remain planned until their rules create choices that cannot be expressed by
-Skills, equipment, techniques, or temporary status effects.
+Skills, equipment, existing Feats, or temporary status effects.

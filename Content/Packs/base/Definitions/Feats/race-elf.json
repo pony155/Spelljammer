@@ -1,1 +1,1 @@
-{"schemaVersion":1,"revision":1,"id":"feat.race.elf.aether-sense","nameKey":"feat.race.elf.aether-sense.name","descriptionKey":"feat.race.elf.aether-sense.description","compatibleRaceIds":["race.elf"],"grantedAccessIds":["access.magic"],"grantedTechniqueIds":[]}
+{"schemaVersion":1,"revision":1,"activation":"passive","id":"feat.race.elf.aether-sense","nameKey":"feat.race.elf.aether-sense.name","descriptionKey":"feat.race.elf.aether-sense.description","compatibleRaceIds":["race.elf"],"grantedAccessIds":["access.magic"]}

@@ -51,7 +51,7 @@ public static class RaceCapabilities
             new ContentId("formula.check.standard"),
             new ActionRequirement(
                 null,
-                new TechniqueId("technique.recovery.soul-reconstitution"),
+                new FeatId("feat.active.recovery.soul-reconstitution"),
                 new SkillId("skill.enchantment"),
                 0,
                 new AbilityId("ability.willpower"),

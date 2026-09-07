@@ -1,1 +1,1 @@
-{"schemaVersion":1,"revision":1,"id":"feat.race.gnome.closework","nameKey":"feat.race.gnome.closework.name","descriptionKey":"feat.race.gnome.closework.description","compatibleRaceIds":["race.gnome"],"grantedAccessIds":[],"grantedTechniqueIds":[]}
+{"schemaVersion":1,"revision":1,"activation":"passive","id":"feat.race.gnome.closework","nameKey":"feat.race.gnome.closework.name","descriptionKey":"feat.race.gnome.closework.description","compatibleRaceIds":["race.gnome"],"grantedAccessIds":[]}

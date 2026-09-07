@@ -127,7 +127,7 @@ Each choice declares:
 - facts required for the choice to be visible and facts required for it to be
   enabled;
 - required ship capability, module, item, position authority, Skill, Feat,
-  Racial Feat, known language, script, spell, or psionics technique;
+  Racial Feat, known language, script, spell, or psionics active Feat;
 - immediate costs, reservations, duration, exposure, and cancellation rules;
 - contextual Ability and Skill approaches rather than a character class;
 - deterministic outcome bands and the information the player may preview;

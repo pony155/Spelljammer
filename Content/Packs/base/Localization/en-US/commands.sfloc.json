@@ -29,9 +29,9 @@
       "description": "Disabled action reason.",
       "message": "A required capability access grant is missing."
     },
-    "command.technique-unknown": {
+    "command.feat-unknown": {
       "description": "Disabled action reason.",
-      "message": "The crew member does not know the required technique."
+      "message": "The crew member does not know the required active Feat."
     },
     "command.skill-required": {
       "description": "Disabled action reason.",

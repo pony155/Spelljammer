@@ -11,7 +11,7 @@
     },
     "access.magic.description": {
       "description": "Magical Access summary.",
-      "message": "Permission to learn and use explicitly known magical techniques."
+      "message": "Permission to learn and use explicitly known magical active Feats."
     },
     "access.psionics.name": {
       "description": "Psionic Access display name.",
@@ -19,7 +19,7 @@
     },
     "access.psionics.description": {
       "description": "Psionic Access summary.",
-      "message": "Permission to learn and use explicitly known psionics techniques."
+      "message": "Permission to learn and use explicitly known psionics active Feats."
     }
   }
 }
