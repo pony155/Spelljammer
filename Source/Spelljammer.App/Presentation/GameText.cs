@@ -6,8 +6,19 @@ using Spelljammer.Settings;
 
 namespace Spelljammer.Presentation;
 
+/// <summary>
+/// Manages game text and localization strings for the UI.
+/// </summary>
+/// <remarks>
+/// This class loads embedded localization artifacts for all supported languages
+/// (English, French, Traditional Chinese) organized by UI sections (menu, settings, creation).
+/// The localization service handles string lookup, fallbacks, and formatting.
+/// </remarks>
 internal sealed class GameText
 {
+    /// <summary>
+    /// Resource names of embedded localization artifacts for each language and section.
+    /// </summary>
     private static readonly string[] ResourceNames =
     [
         "Spelljammer.Localization.en-US.menu.sfloc",
@@ -25,12 +36,28 @@ internal sealed class GameText
     private readonly IReadOnlyCollection<LocalizationCatalog> catalogs;
     private CultureInfo culture = CultureInfo.InvariantCulture;
 
+    /// <summary>
+    /// Initializes a GameText instance with localization service and catalogs.
+    /// </summary>
+    /// <remarks>
+    /// This constructor is private; use the Load factory method to create instances.
+    /// </remarks>
     private GameText(LocalizationService localization, IReadOnlyCollection<LocalizationCatalog> catalogs)
     {
         this.localization = localization;
         this.catalogs = catalogs;
     }
 
+    /// <summary>
+    /// Loads and initializes game text strings for a specific language.
+    /// </summary>
+    /// <remarks>
+    /// Loads embedded localization artifacts from assembly resources, validates their size,
+    /// and initializes the localization service with all required UI namespaces.
+    /// </remarks>
+    /// <param name="language">The language code to load (e.g., "en-US", "fr-FR", "zh-Hant-TW").</param>
+    /// <returns>A new GameText instance with all strings loaded for the specified language.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if localization artifacts are missing or exceed size limits.</exception>
     internal static GameText Load(string language)
     {
         Assembly assembly = typeof(GameText).Assembly;
