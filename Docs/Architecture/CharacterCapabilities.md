@@ -18,7 +18,7 @@ Product behavior is defined in
 ## Core decision
 
 Source code implements generic attribute, skill, grant, training, and action
-machinery. The seven base Attributes and base Skill list are content, not enum
+machinery. The six base Attributes and base Skill list are content, not enum
 members or fixed properties on `CharacterState`.
 
 Avoid:

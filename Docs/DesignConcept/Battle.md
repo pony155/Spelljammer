@@ -195,7 +195,7 @@ Examples include:
   debris;
 - Willpower plus Magic to sustain Brace Ward under fire, requiring
   `access.magic` and the known spell;
-- Charisma plus Command to coordinate a fighting withdrawal;
+- Perception plus Command to coordinate a fighting withdrawal;
 - Toughness plus EVA to remain functional after suit damage; and
 - Intelligence plus Engineering to disable an ancient defense without
   destroying it.

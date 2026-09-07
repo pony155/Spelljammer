@@ -342,7 +342,7 @@ Examples include:
 - Toughness plus Salvage to continue an exterior recovery under strain;
 - Willpower plus Enchantment to stabilize a failing Ward Projector;
 - Intelligence plus Merchant to arrange cargo for inspection and sale; and
-- Charisma plus Negotiation to transmit acceptable docking terms through the
+- Perception plus Negotiation to transmit acceptable docking terms through the
   Signal Lantern.
 
 ## Damage, repair, and refit

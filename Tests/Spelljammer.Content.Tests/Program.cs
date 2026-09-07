@@ -183,11 +183,11 @@ internal static class ContentContracts
             expectedFingerprints.RootElement.GetProperty("baseSha256").GetString()!,
             snapshot.Fingerprint.ToString(),
             "The base Attribute and Skill fingerprint changed.");
-        Equal(7, snapshot.AttributeRegistry.Count, "The base Attribute roster is incomplete.");
+        Equal(6, snapshot.AttributeRegistry.Count, "The base Attribute roster is incomplete.");
         Equal(29, snapshot.SkillRegistry.Count, "The base Skill roster is incomplete.");
         string[] expectedAttributes =
         [
-            "attribute.agility", "attribute.charisma", "attribute.intelligence", "attribute.luck",
+            "attribute.agility", "attribute.intelligence", "attribute.perception",
             "attribute.strength", "attribute.toughness", "attribute.willpower",
         ];
         string[] expectedSkills =

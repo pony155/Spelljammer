@@ -99,12 +99,12 @@ failed to reach.
 Psychic techniques are not permanently bound to one attribute:
 
 - Intelligence interprets complex signals, memories, and psychic patterns.
-- Willpower establishes control, resists intrusion, and sustains shields.
-- Charisma communicates emotion, identity, intent, or a coherent mental voice.
+- Willpower establishes control, resists intrusion, sustains shields, and
+  projects emotion, identity, intent, or a coherent mental voice.
 - Agility coordinates psychokinesis with precise movement.
 - Toughness endures feedback, strain, or a hostile psychic environment.
-- Luck applies only when a technique explicitly permits a chance-driven
-  discovery or escape.
+- Perception applies only when a technique explicitly permits sensing a
+  faint signal, subtle opening, or narrow escape route.
 
 Resistance uses the target's explicit approach, commonly Willpower plus
 Psionics, Insight, or a suitable defense. The UI shows known participants,

@@ -2,7 +2,7 @@
 
 ## Status
 
-This document defines the attribute model. The seven definitions and their
+This document defines the attribute model. The six definitions and their
 typed immutable content registry are implemented. Character attribute values,
 generation, advancement, races, heritages, and complete character composition
 remain planned. Those character rules are defined in [`Races.md`](Races.md);
@@ -28,11 +28,10 @@ values.
 | --- | --- | --- |
 | Strength | `attribute.strength` | Physical force, lifting, carrying capacity, heavy weapons, and resisting forced movement |
 | Agility | `attribute.agility` | Coordination, balance, reflexes, precise manipulation, movement, and aim |
+| Perception | `attribute.perception` | Sensory awareness, spotting danger or details, tracking, ranged accuracy support, and noticing what others miss |
 | Toughness | `attribute.toughness` | Health, stamina, pain tolerance, physical recovery, and environmental resistance |
 | Willpower | `attribute.willpower` | Concentration, courage, self-control, and magical or psychic control and resistance |
 | Intelligence | `attribute.intelligence` | Observation, analysis, memory, diagnosis, planning, and technical learning |
-| Charisma | `attribute.charisma` | Leadership, empathy, intimidation, performance, deception, and negotiation |
-| Luck | `attribute.luck` | Bounded fortunate outcomes, rare opportunities, and narrow escapes where chance is relevant |
 
 ## Contextual use
 
@@ -50,11 +49,11 @@ attribute that matches its method and circumstances:
 - Intelligence plus Enchantment can inscribe a stable magical binding.
 - Intelligence plus Psionics can interpret an unfamiliar psychic signal.
 - Willpower plus Psionics can maintain a shield against psychic intrusion.
-- Charisma plus Psionics can send a clear emotion through a mindlink.
-- Luck plus Salvage can expose a rare find on a chance-driven sweep.
+- Perception plus Psionics can sense a faint emotion through a mindlink.
+- Perception plus Salvage can expose a rare find on a careful sweep.
 - Intelligence plus Merchant can recognize manipulated market records.
-- Charisma plus Negotiation can bargain for safer contract terms.
-- Charisma plus Ancient Lore can explain a discovery to a suspicious faction.
+- Perception plus Negotiation can read a bluff during contract terms.
+- Intelligence plus Ancient Lore can explain a discovery to a suspicious faction.
 
 The interface must identify the chosen attribute and explain why it applies.
 Alternative approaches should be available when fiction, equipment, and known
@@ -71,18 +70,6 @@ bonus.
 This distinction keeps race and heritage relevant to ship design and survival
 while allowing any character to become an expert in any field through training
 and experience.
-
-## Luck and determinism
-
-Luck is not a universal substitute for another attribute. An authored action
-must explicitly allow Luck because fortune materially affects its outcome. Luck
-then adjusts a bounded result, opportunity table, or consequence; it does not
-erase requirements or guarantee success.
-
-Luck uses the simulation's owned seeded random stream. Replaying the same seed
-and committed commands therefore produces the same fortunate or unfortunate
-result. UI timing, render cadence, save reloading, and repeated previews cannot
-reroll an outcome.
 
 ## Permanent and temporary change
 
@@ -114,7 +101,7 @@ changing a released attribute ID, scale, or meaning.
 
 ## First playable scope
 
-The first crew-enabled slice should include all seven attributes because they
+The first crew-enabled slice should include all six attributes because they
 form a small stable foundation. It only needs to exercise the attributes used
 by navigation, salvage, repair, cooking, medicine, and the first ancient-lore
 encounter. Attribute advancement can remain deferred; temporary modifiers and

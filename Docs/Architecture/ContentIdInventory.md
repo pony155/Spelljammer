@@ -32,7 +32,7 @@ inventoried when their definition schemas enter roadmap scope.
 
 | Category | Explicit unique IDs | Primary product source |
 | --- | ---: | --- |
-| Attributes | 7 | [`Attributes.md`](../DesignConcept/Attributes.md) |
+| Attributes | 6 | [`Attributes.md`](../DesignConcept/Attributes.md) |
 | Skills | 29 | [`Skills.md`](../DesignConcept/Skills.md) |
 | Learned Feats | 2 | [`Skills.md`](../DesignConcept/Skills.md) |
 | Racial Perks | 22 | [`Races.md`](../DesignConcept/Races.md) |
@@ -63,16 +63,15 @@ inventoried when their definition schemas enter roadmap scope.
 | Crisis families | 7 | [`Endgame_Crisis.md`](../DesignConcept/Endgame_Crisis.md) |
 | Crisis phases | 7 | [`Endgame_Crisis.md`](../DesignConcept/Endgame_Crisis.md) |
 | Crisis resolutions | 3 | [`Endgame_Crisis.md`](../DesignConcept/Endgame_Crisis.md) |
-| **Total** | **270** | |
+| **Total** | **269** | |
 
 ## Attributes
 
 | Display label | Stable ID |
 | --- | --- |
 | Agility | `attribute.agility` |
-| Charisma | `attribute.charisma` |
 | Intelligence | `attribute.intelligence` |
-| Luck | `attribute.luck` |
+| Perception | `attribute.perception` |
 | Strength | `attribute.strength` |
 | Toughness | `attribute.toughness` |
 | Willpower | `attribute.willpower` |

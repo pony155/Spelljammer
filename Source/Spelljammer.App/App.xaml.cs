@@ -31,8 +31,12 @@ public partial class App : Application
 
         string settingsPath = GameSettingsPath.CurrentUser;
 
+        // Load settings asynchronously on a background thread to prevent UI blocking.
+        // Tuple deconstruction unpacks both the loaded registry and diagnostic info (which may contain load errors).
         (GameSettingsRegistry registry, GameSettingsDiagnostic diagnostic) =
             await Task.Run(() => GameSettingsRegistry.Load(settingsPath));
+
+        // Load localized UI strings based on the user's preferred language setting.
         GameText strings = GameText.Load(registry.Active.Language);
 
         MainMenuWindow window = new(registry, settingsPath, diagnostic, strings);
