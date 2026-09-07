@@ -127,8 +127,6 @@ public sealed record RosterCreationResult(RosterSnapshot? Roster, CharacterCreat
 
 public static class CharacterCreator
 {
-    private const int MaximumRosterSize = 64;
-
     public static CharacterCreationResult Create(
         CharacterCreationRequest request,
         ICharacterContentCatalog catalog,
@@ -237,7 +235,6 @@ public static class CharacterCreator
             catalog.Fingerprint,
             abilities.MoveToImmutable(),
             skills.MoveToImmutable(),
-            ImmutableHashSet<FeatId>.Empty,
             grants.Feats,
             grants.Techniques,
             grants.Sources);
@@ -277,7 +274,7 @@ public static class CharacterCreator
             .Where(value => value.ScenarioIds.Contains(scenarioId))
             .OrderBy(value => value.CharacterId)
             .ToArray();
-        if (templates.Length is 0 or > MaximumRosterSize)
+        if (templates.Length is 0 || templates.Length > CharacterCapabilities.MaximumSetEntries)
         {
             return new RosterCreationResult(null, CharacterCreationFailure.CapacityExceeded, null);
         }

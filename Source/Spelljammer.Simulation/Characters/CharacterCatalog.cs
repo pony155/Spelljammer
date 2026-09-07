@@ -9,6 +9,7 @@ public interface ICharacterContentCatalog
     ImmutableArray<AbilityDefinition> Abilities { get; }
     ImmutableArray<SkillDefinition> Skills { get; }
     ImmutableArray<CharacterDefinition> Characters { get; }
+    ImmutableArray<ScenarioDefinition> Scenarios { get; }
     ImmutableArray<SpellDefinition> Spells { get; }
     ImmutableArray<PsychicTechniqueDefinition> PsychicTechniques { get; }
     ImmutableArray<EquipmentDefinition> Equipment { get; }
@@ -25,9 +26,9 @@ public interface ICharacterContentCatalog
     bool TryGetAccess(AccessId id, out AccessDefinition? definition);
     bool TryGetBackground(BackgroundId id, out BackgroundDefinition? definition);
     bool TryGetCharacter(CharacterId id, out CharacterDefinition? definition);
+    bool TryGetScenario(ScenarioId id, out ScenarioDefinition? definition);
     bool TryGetFeat(FeatId id, out FeatDefinition? definition);
     bool TryGetHeritage(HeritageId id, out HeritageDefinition? definition);
-    bool TryGetFeat(FeatId id, out FeatDefinition? definition);
     bool TryGetRace(RaceId id, out RaceDefinition? definition);
     bool TryGetSpell(SpellId id, out SpellDefinition? definition);
     bool TryGetPsychicTechnique(PsychicTechniqueId id, out PsychicTechniqueDefinition? definition);
@@ -55,7 +56,6 @@ public enum GrantSourceKind : byte
     Race,
     Heritage,
     Feat,
-    Feat,
     Technique,
     TrainingProject,
     Spell,
@@ -72,7 +72,6 @@ public sealed record CharacterCapabilitySnapshot(
     ContentFingerprint Fingerprint,
     ImmutableArray<AbilityValueSnapshot> Abilities,
     ImmutableArray<SkillValueSnapshot> Skills,
-    ImmutableArray<FeatId> Feats,
     ImmutableArray<FeatId> Feats,
     ImmutableArray<AccessId> Access,
     ImmutableArray<TechniqueId> Techniques,

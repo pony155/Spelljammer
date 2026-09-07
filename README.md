@@ -14,8 +14,8 @@ characters, rules, content, code, artwork, and sound remain original.
 > [!IMPORTANT]
 > Spelljammer is at a playable-prototype stage, not a content-complete game.
 > The current shell exposes a small deterministic expedition loop and a native
-> renderer demonstration. A headless eleven-character capability roster now
-> exists with trained and innate supernatural access, Magic Missile, and
+> renderer demonstration. A headless eleven-character candidate roster and
+> content-bounded protagonist/NPC recruitment model now exist with trained and innate supernatural access, Magic Missile, and
 > consensual Mindlink execution. Milestone 5 adds a headless modular ship
 > engagement and six-zone personal encounter slice, but these are not yet
 > connected to the WPF shell. Milestone 6 adds headless content-locked campaign
@@ -45,7 +45,8 @@ Implemented foundations include:
   canonical SHA-256 fingerprints, transactional publication, and production
   registries for seven Abilities, 29 Skills, the first character slice, one
   Spell, and one psionics technique;
-- deterministic immutable character creation for eleven races, bounded
+- deterministic immutable character creation for eleven races, an eight-member
+  scenario-authored active-crew limit with protagonist-led NPC recruitment, bounded
   capability/grant storage, action eligibility and resolution, Feat training,
   mixed-crew support validation, and localization-ready roster
   inspection;
@@ -104,7 +105,9 @@ defined in [`Docs/DesignConcept/Races.md`](Docs/DesignConcept/Races.md). The
 classless capability model is split into
 [`Docs/DesignConcept/Abilities.md`](Docs/DesignConcept/Abilities.md) and
 [`Docs/DesignConcept/Skills.md`](Docs/DesignConcept/Skills.md); learned and Racial
-Feat rules are defined in [`Docs/Concept/Feats.md`](Docs/Concept/Feats.md).
+Feat rules are defined in [`Docs/Concept/Feats.md`](Docs/Concept/Feats.md), and
+the protagonist, NPC recruitment, and active-roster limit are defined in
+[`Docs/Concept/Crew.md`](Docs/Concept/Crew.md).
 Implemented first-slice and planned personal weapons, armor, tools, and relics are defined in
 [`Docs/DesignConcept/Equipments.md`](Docs/DesignConcept/Equipments.md).
 Planned spellcasting rules,

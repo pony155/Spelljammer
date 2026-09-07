@@ -28,6 +28,7 @@ internal static class ContentContracts
         AdditiveSkillIsDynamicAndReversible();
         CharacterDefinitionsRejectInvalidGraphs();
         BaseRosterIsDeterministicAndDynamic();
+        RecruitmentHonorsScenarioRosterLimit();
         EligibilityAndResolutionAreAtomic();
         TrainingGrantsAccessOnlyAtCompletion();
         AccessSourcesCoexistAndRecompute();
@@ -372,6 +373,42 @@ internal static class ContentContracts
         Equal(first.Resolution!.Roll, repeated.Resolution!.Roll, "Owned action randomness was not reproducible.");
         Equal(before - 2, first.State.Resources[new ResourceId("resource.resonance")], "Committed Soul Anchor cost was wrong.");
         True(first.Resolution.AbilityId.IsValid && first.Resolution.SkillId.IsValid, "Resolution explanation omitted contributors.");
+    }
+
+    private static void RecruitmentHonorsScenarioRosterLimit()
+    {
+        Dictionary<string, byte[]> invalidFiles = ReadFiles(Path.Combine(Milestone2Root, "base"));
+        ReplaceText(
+            invalidFiles,
+            "Definitions/Scenarios/first-voyage.json",
+            "\"maximumRosterSize\": 8",
+            "\"maximumRosterSize\": 0");
+        ContentCompilationResult invalid = new GameContentCompiler().Compile(
+            [new MemoryPackSource(invalidFiles, [])], GameVersion);
+        False(invalid.Succeeded, "A scenario with no roster capacity was published.");
+        Equal("CONTENT_VALUE_OUT_OF_RANGE", invalid.Diagnostics[0].Code, "Roster capacity used the wrong diagnostic.");
+
+        (GameContentSnapshot snapshot, RosterSnapshot candidates) = BaseRoster();
+        ScenarioId scenarioId = new("scenario.first-voyage");
+        True(snapshot.TryGetScenario(scenarioId, out ScenarioDefinition? scenario), "The recruitment scenario was missing.");
+        Equal(8, scenario!.MaximumRosterSize, "The first-voyage roster limit did not come from scenario content.");
+
+        CharacterState protagonist = candidates.Characters.Single(value => value.RaceId == new RaceId("race.human"));
+        RecruitmentResult created = CrewRecruitmentSystem.Create(protagonist, snapshot);
+        True(created.Succeeded, created.Failure.ToString());
+        CrewRoster active = created.Roster!;
+        CharacterState[] npcs = [.. candidates.Characters.Where(value => value.Id != protagonist.Id)];
+        foreach (CharacterState npc in npcs.Take(scenario.MaximumRosterSize - 1))
+        {
+            RecruitmentResult recruited = CrewRecruitmentSystem.Recruit(active, npc, snapshot);
+            True(recruited.Succeeded, recruited.Failure.ToString());
+            active = recruited.Roster!;
+        }
+
+        Equal(scenario.MaximumRosterSize, active.Members.Length, "Recruitment did not fill the authored roster capacity.");
+        RecruitmentResult full = CrewRecruitmentSystem.Recruit(active, npcs[scenario.MaximumRosterSize - 1], snapshot);
+        False(full.Succeeded, "Recruitment exceeded the authored roster capacity.");
+        Equal(RecruitmentFailure.RosterFull, full.Failure, "A full roster returned the wrong failure.");
     }
 
     private static void TrainingGrantsAccessOnlyAtCompletion()

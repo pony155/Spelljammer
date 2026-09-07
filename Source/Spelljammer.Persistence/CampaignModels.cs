@@ -21,9 +21,9 @@ public static class CampaignSaveVersions
     public const ushort Envelope = 1;
 
     /// <summary>
-    /// Version of the save schema (overall data structure). Version 2 adopts feat state and identifiers.
+    /// Version of the save schema (overall data structure). Version 4 identifies the protagonist and active crew.
     /// </summary>
-    public const ushort SaveSchema = 2;
+    public const ushort SaveSchema = 4;
 
     /// <summary>Version of the world generation algorithm used in this save.</summary>
     public const int WorldGenerator = 1;
@@ -59,7 +59,9 @@ public static class CampaignSaveLimits
     /// <summary>Maximum number of entries in any collection (array, list) in the save.</summary>
     public const int MaximumCollectionEntries = 4_096;
 
-    /// <summary>Maximum number of characters that can be stored in a campaign.</summary>
+    /// <summary>
+    /// Defensive decoding ceiling for character records. Gameplay roster capacity comes from the active scenario.
+    /// </summary>
     public const int MaximumCharacters = 64;
 
     /// <summary>Maximum number of ships that can be stored in a campaign.</summary>
@@ -228,6 +230,7 @@ public sealed record CampaignState(
     CampaignContentLock ContentLock,
     ContentId CurrentLocationId,
     VoyageWorld Voyage,
+    CharacterId ProtagonistId,
     ImmutableArray<CharacterState> Characters)
 {
     public const int MaximumGameBuildBytes = 128;

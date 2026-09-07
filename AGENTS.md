@@ -167,9 +167,12 @@ For Spelljammer changes:
   `SpriteForgeNativeDir` property when native runtime copying is required.
 - Compile affected localization CMake or .NET targets when their sources or
   build declarations change.
-- Unit-test execution is user/CI-owned. Coding agents may compile test targets
-  but must not run the localization test executable, `ctest`, or equivalent
-  local unit-test commands.
+- Test execution is user-owned. When modifying or generating code, coding
+  agents must not run any test runner or test executable, including
+  `dotnet test`, `ctest`, or direct execution of a compiled `*.Tests` project.
+  Agents may compile test projects with `dotnet build`, must report that tests
+  were not run, and should identify the relevant tests for the user to run
+  manually.
 - Run formatting/static checks applicable to touched files and
   `git diff --check` before handoff.
 - Report engine build, game build, and CI-owned test status separately.

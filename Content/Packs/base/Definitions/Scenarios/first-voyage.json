@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "revision": 1,
+  "id": "scenario.first-voyage",
+  "nameKey": "creation.scenario.first-voyage.name",
+  "descriptionKey": "creation.scenario.first-voyage.description",
+  "maximumRosterSize": 8
+}

@@ -386,6 +386,7 @@ public static class CampaignSaveCodec
     private static CampaignPayloadDto ToDto(CampaignState campaign, GameContentSnapshot content) => new()
     {
         CurrentLocationId = campaign.CurrentLocationId.ToString(),
+        ProtagonistId = campaign.ProtagonistId.ToString(),
         World = ToDto(campaign.Voyage),
         Characters = [.. campaign.Characters.OrderBy(value => value.Id).Select(value => ToDto(value, content))],
     };
@@ -489,7 +490,6 @@ public static class CampaignSaveCodec
             {
                 Abilities = [.. snapshot.Abilities.Select(value => new AbilityValueDto { Id = value.Id.ToString(), Value = value.Value })],
                 Skills = [.. snapshot.Skills.Select(value => new SkillValueDto { Id = value.Id.ToString(), Value = value.Value })],
-                FeatIds = [.. snapshot.Feats.Select(value => value.ToString())],
                 FeatIds = [.. snapshot.Feats.Select(value => value.ToString())],
                 TechniqueIds = [.. snapshot.Techniques.Select(value => value.ToString())],
                 GrantSources = [.. snapshot.GrantSources.Select(value => new GrantDto
@@ -645,7 +645,13 @@ public static class CampaignSaveCodec
         CampaignContentLock activeLock = savedLock.EffectiveFingerprint == content.Fingerprint
             ? savedLock
             : CampaignContentLock.Create(content, savedLock.AppliedMigrationIds);
-        return new CampaignState(metadata.GameBuild, activeLock, new ContentId(payload.CurrentLocationId), world, characters);
+        return new CampaignState(
+            metadata.GameBuild,
+            activeLock,
+            new ContentId(payload.CurrentLocationId),
+            world,
+            new CharacterId(payload.ProtagonistId),
+            characters);
     }
 
     private static ShipState FromDto(ShipDto value, GameContentSnapshot content)
@@ -723,7 +729,6 @@ public static class CampaignSaveCodec
             content.Fingerprint,
             abilities,
             skills,
-            [.. ParseIds(value.Capabilities.FeatIds, CharacterCapabilities.MaximumSetEntries).Select(id => new FeatId(id))],
             [.. ParseIds(value.Capabilities.FeatIds, CharacterCapabilities.MaximumSetEntries).Select(id => new FeatId(id))],
             [.. value.Capabilities.GrantSources.Where(grant => grant.CapabilityId.StartsWith("access.", StringComparison.Ordinal))
                 .Select(grant => new AccessId(grant.CapabilityId)).Distinct().Order()],

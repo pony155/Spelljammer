@@ -36,9 +36,9 @@ public sealed class GameContentSnapshot : ICharacterContentCatalog
         ImmutableArray<AccessDefinition> access,
         ImmutableArray<BackgroundDefinition> backgrounds,
         ImmutableArray<CharacterDefinition> characters,
+        ImmutableArray<ScenarioDefinition> scenarios,
         ImmutableArray<FeatDefinition> feats,
         ImmutableArray<HeritageDefinition> heritages,
-        ImmutableArray<FeatDefinition> feats,
         ImmutableArray<RaceDefinition> races,
         ImmutableArray<SpellDefinition> spells,
         ImmutableArray<PsychicTechniqueDefinition> psychicTechniques,
@@ -62,9 +62,9 @@ public sealed class GameContentSnapshot : ICharacterContentCatalog
         Access = access;
         Backgrounds = backgrounds;
         Characters = characters;
+        Scenarios = scenarios;
         Feats = feats;
         Heritages = heritages;
-        Feats = feats;
         Races = races;
         Spells = spells;
         PsychicTechniques = psychicTechniques;
@@ -86,9 +86,9 @@ public sealed class GameContentSnapshot : ICharacterContentCatalog
         AccessRegistry = new TypedDefinitionRegistry<AccessId, AccessDefinition>(fingerprint, access, definition => definition.AccessId);
         BackgroundRegistry = new TypedDefinitionRegistry<BackgroundId, BackgroundDefinition>(fingerprint, backgrounds, definition => definition.BackgroundId);
         CharacterRegistry = new TypedDefinitionRegistry<CharacterId, CharacterDefinition>(fingerprint, characters, definition => definition.CharacterId);
+        ScenarioRegistry = new TypedDefinitionRegistry<ScenarioId, ScenarioDefinition>(fingerprint, scenarios, definition => definition.ScenarioId);
         FeatRegistry = new TypedDefinitionRegistry<FeatId, FeatDefinition>(fingerprint, feats, definition => definition.FeatId);
         HeritageRegistry = new TypedDefinitionRegistry<HeritageId, HeritageDefinition>(fingerprint, heritages, definition => definition.HeritageId);
-        FeatRegistry = new TypedDefinitionRegistry<FeatId, FeatDefinition>(fingerprint, feats, definition => definition.FeatId);
         RaceRegistry = new TypedDefinitionRegistry<RaceId, RaceDefinition>(fingerprint, races, definition => definition.RaceId);
         SpellRegistry = new TypedDefinitionRegistry<SpellId, SpellDefinition>(fingerprint, spells, definition => definition.SpellId);
         PsychicTechniqueRegistry = new TypedDefinitionRegistry<PsychicTechniqueId, PsychicTechniqueDefinition>(fingerprint, psychicTechniques, definition => definition.PsychicTechniqueId);
@@ -108,9 +108,9 @@ public sealed class GameContentSnapshot : ICharacterContentCatalog
             .Concat(access)
             .Concat(backgrounds)
             .Concat(characters)
+            .Concat(scenarios)
             .Concat(feats)
             .Concat(heritages)
-            .Concat(feats)
             .Concat(races)
             .Concat(spells)
             .Concat(psychicTechniques)
@@ -135,9 +135,9 @@ public sealed class GameContentSnapshot : ICharacterContentCatalog
     public ImmutableArray<AccessDefinition> Access { get; }
     public ImmutableArray<BackgroundDefinition> Backgrounds { get; }
     public ImmutableArray<CharacterDefinition> Characters { get; }
+    public ImmutableArray<ScenarioDefinition> Scenarios { get; }
     public ImmutableArray<FeatDefinition> Feats { get; }
     public ImmutableArray<HeritageDefinition> Heritages { get; }
-    public ImmutableArray<FeatDefinition> Feats { get; }
     public ImmutableArray<RaceDefinition> Races { get; }
     public ImmutableArray<SpellDefinition> Spells { get; }
     public ImmutableArray<PsychicTechniqueDefinition> PsychicTechniques { get; }
@@ -157,9 +157,9 @@ public sealed class GameContentSnapshot : ICharacterContentCatalog
     public TypedDefinitionRegistry<AccessId, AccessDefinition> AccessRegistry { get; }
     public TypedDefinitionRegistry<BackgroundId, BackgroundDefinition> BackgroundRegistry { get; }
     public TypedDefinitionRegistry<CharacterId, CharacterDefinition> CharacterRegistry { get; }
+    public TypedDefinitionRegistry<ScenarioId, ScenarioDefinition> ScenarioRegistry { get; }
     public TypedDefinitionRegistry<FeatId, FeatDefinition> FeatRegistry { get; }
     public TypedDefinitionRegistry<HeritageId, HeritageDefinition> HeritageRegistry { get; }
-    public TypedDefinitionRegistry<FeatId, FeatDefinition> FeatRegistry { get; }
     public TypedDefinitionRegistry<RaceId, RaceDefinition> RaceRegistry { get; }
     public TypedDefinitionRegistry<SpellId, SpellDefinition> SpellRegistry { get; }
     public TypedDefinitionRegistry<PsychicTechniqueId, PsychicTechniqueDefinition> PsychicTechniqueRegistry { get; }
@@ -183,9 +183,9 @@ public sealed class GameContentSnapshot : ICharacterContentCatalog
     public bool TryGetAccess(AccessId id, out AccessDefinition? definition) => AccessRegistry.TryGet(id, out definition);
     public bool TryGetBackground(BackgroundId id, out BackgroundDefinition? definition) => BackgroundRegistry.TryGet(id, out definition);
     public bool TryGetCharacter(CharacterId id, out CharacterDefinition? definition) => CharacterRegistry.TryGet(id, out definition);
+    public bool TryGetScenario(ScenarioId id, out ScenarioDefinition? definition) => ScenarioRegistry.TryGet(id, out definition);
     public bool TryGetFeat(FeatId id, out FeatDefinition? definition) => FeatRegistry.TryGet(id, out definition);
     public bool TryGetHeritage(HeritageId id, out HeritageDefinition? definition) => HeritageRegistry.TryGet(id, out definition);
-    public bool TryGetFeat(FeatId id, out FeatDefinition? definition) => FeatRegistry.TryGet(id, out definition);
     public bool TryGetRace(RaceId id, out RaceDefinition? definition) => RaceRegistry.TryGet(id, out definition);
     public bool TryGetSpell(SpellId id, out SpellDefinition? definition) => SpellRegistry.TryGet(id, out definition);
     public bool TryGetPsychicTechnique(PsychicTechniqueId id, out PsychicTechniqueDefinition? definition) =>
@@ -213,9 +213,9 @@ public sealed class GameContentSnapshot : ICharacterContentCatalog
         AddEntries(entries, "Access", Access, definition => definition.Id);
         AddEntries(entries, "Background", Backgrounds, definition => definition.Id);
         AddEntries(entries, "Character", Characters, definition => definition.Id);
+        AddEntries(entries, "Scenario", Scenarios, definition => definition.Id);
         AddEntries(entries, "Feat", Feats, definition => definition.Id);
         AddEntries(entries, "Heritage", Heritages, definition => definition.Id);
-        AddEntries(entries, "Feat", Feats, definition => definition.Id);
         AddEntries(entries, "Race", Races, definition => definition.Id);
         AddEntries(entries, "Spell", Spells, definition => definition.Id);
         AddEntries(entries, "PsychicTechnique", PsychicTechniques, definition => definition.Id);

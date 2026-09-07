@@ -90,9 +90,8 @@ internal static class CanonicalSemanticWriter
                 properties["scenarioIds"] = output => WriteIds(output, value.ScenarioIds.Select(id => id.Value));
                 properties["scriptIds"] = output => WriteIds(output, value.ScriptIds);
                 break;
-            case FeatDefinition value:
-                properties["grantedAccessIds"] = output => WriteIds(output, value.GrantedAccessIds.Select(id => id.Value));
-                properties["trainingProjectId"] = output => WriteString(output, value.TrainingProjectId.ToString());
+            case ScenarioDefinition value:
+                properties["maximumRosterSize"] = output => output.Append(value.MaximumRosterSize);
                 break;
             case FeatDefinition value:
                 properties["compatibleRaceIds"] = output => WriteIds(output, value.CompatibleRaceIds.Select(id => id.Value));
@@ -106,6 +105,11 @@ internal static class CanonicalSemanticWriter
                 if (!value.GrantedFeatIds.IsEmpty)
                 {
                     properties["grantedFeatIds"] = output => WriteIds(output, value.GrantedFeatIds.Select(id => id.Value));
+                }
+
+                if (value.TrainingProjectId is TrainingProjectId trainingProjectId)
+                {
+                    properties["trainingProjectId"] = output => WriteString(output, trainingProjectId.ToString());
                 }
 
                 break;
@@ -263,11 +267,11 @@ internal static class CanonicalSemanticWriter
         AbilityDefinition => 1,
         BackgroundDefinition => 2,
         CharacterDefinition => 3,
-        FeatDefinition => 4,
-        HeritageDefinition => 5,
-        RaceDefinition => 6,
-        SkillDefinition => 7,
-        FeatDefinition => 8,
+        ScenarioDefinition => 4,
+        FeatDefinition => 5,
+        HeritageDefinition => 6,
+        RaceDefinition => 7,
+        SkillDefinition => 8,
         PsychicTechniqueDefinition => 9,
         SpellDefinition => 10,
         TechniqueDefinition => 11,

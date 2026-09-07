@@ -17,7 +17,7 @@ contract is defined in [`CampaignSaves.md`](CampaignSaves.md).
 
 The first mod release supports local declarative packs that add validated:
 
-- Races, Heritages, Racial Feats, learned Feats, and Backgrounds;
+- scenarios with bounded crew rules, plus Races, Heritages, Feats, and Backgrounds;
 - Skills after every consumer supports a dynamic Skill registry;
 - spells, psionics abilities, combat techniques, recipes, and enchantments;
 - items, weapons, armor, ship frames, and ship modules;

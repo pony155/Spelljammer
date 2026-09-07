@@ -52,6 +52,8 @@
     "creation.race.somnari.name": { "description": "Nom de la lignée somnari.", "message": "Somnari" },
     "creation.race.tharun.name": { "description": "Nom de la lignée tharun.", "message": "Tharun" },
     "creation.race.veyr.name": { "description": "Nom de la lignée veyr.", "message": "Veyr" },
+    "creation.scenario.first-voyage.description": { "description": "Résumé du scénario Premier Voyage.", "message": "Choisissez un protagoniste et recrutez jusqu’à sept compagnons PNJ." },
+    "creation.scenario.first-voyage.name": { "description": "Nom du scénario Premier Voyage.", "message": "Premier Voyage" },
     "creation.status.ready": { "description": "État initial de l’écran de création.", "message": "Vérifiez le capitaine et la graine, puis confirmez votre choix." },
     "creation.status.selected": {
       "description": "État du menu après confirmation du capitaine.",

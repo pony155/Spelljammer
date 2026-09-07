@@ -7,7 +7,7 @@ namespace Spelljammer.Simulation.Characters;
 /// Represents all computed abilities, skills, and capabilities of a character.
 /// </summary>
 /// <remarks>
-/// This class encapsulates the character's abilities, skills, learned Feats, Racial Feats, and techniques.
+/// This class encapsulates the character's abilities, skills, Feats, and techniques.
 /// All data is immutable and validated against content definitions using fingerprints to ensure consistency.
 /// </remarks>
 public sealed class CharacterCapabilities
@@ -33,12 +33,11 @@ public sealed class CharacterCapabilities
         ImmutableArray<short> abilityValues,
         ImmutableArray<byte> skillValues,
         ImmutableHashSet<FeatId> feats,
-        ImmutableHashSet<FeatId> feats,
         ImmutableHashSet<TechniqueId> techniques,
         ImmutableArray<CapabilityGrant> grantSources)
     {
         if (abilityValues.Length == 0 || skillValues.Length == 0 ||
-            feats.Count > MaximumSetEntries || feats.Count > MaximumSetEntries ||
+            feats.Count > MaximumSetEntries ||
             techniques.Count > MaximumSetEntries || grantSources.Length > MaximumSetEntries)
         {
             throw new ArgumentException("Character capability storage is incomplete or exceeds its bounded capacity.");
@@ -47,7 +46,6 @@ public sealed class CharacterCapabilities
         Fingerprint = fingerprint;
         this.abilityValues = abilityValues;
         this.skillValues = skillValues;
-        Feats = feats;
         Feats = feats;
         Techniques = techniques;
         GrantSources = grantSources;
@@ -59,16 +57,12 @@ public sealed class CharacterCapabilities
     public ContentFingerprint Fingerprint { get; }
 
     /// <summary>
-    /// Gets the immutable set of feats this character has learned.
+    /// Gets every Feat granted to this character, regardless of acquisition source.
     /// </summary>
     public ImmutableHashSet<FeatId> Feats { get; }
 
     /// <summary>
-    /// Gets the immutable set of Feats granted by this character's Race, Heritage, or authored consequences.
-    /// </summary>
-    public ImmutableHashSet<FeatId> Feats { get; }
-    /// <summary>
-    /// Gets the set of access privileges this character has been granted from learned and Racial Feats.
+    /// Gets the set of access privileges this character has been granted from Feats.
     /// </summary>
     public ImmutableHashSet<AccessId> Access => GrantSources
         .Where(value => value.CapabilityId.ToString().StartsWith("access.", StringComparison.Ordinal))
@@ -198,7 +192,6 @@ public sealed class CharacterCapabilities
             abilities.MoveToImmutable(),
             skills.MoveToImmutable(),
             [.. Feats.Order()],
-            [.. Feats.Order()],
             [.. Access.Order()],
             [.. Techniques.Order()],
             [.. GrantSources.OrderBy(value => value.CapabilityId).ThenBy(value => value.SourceId)]);
@@ -210,7 +203,7 @@ public sealed class CharacterCapabilities
         ArgumentNullException.ThrowIfNull(catalog);
         if (snapshot.Fingerprint != catalog.Fingerprint || snapshot.Abilities.Length != catalog.Abilities.Length ||
             snapshot.Skills.Length != catalog.Skills.Length || snapshot.Feats.Length > MaximumSetEntries ||
-            snapshot.Feats.Length > MaximumSetEntries || snapshot.Techniques.Length > MaximumSetEntries ||
+            snapshot.Techniques.Length > MaximumSetEntries ||
             snapshot.Abilities.Select(value => value.Id).Distinct().Count() != snapshot.Abilities.Length ||
             snapshot.Skills.Select(value => value.Id).Distinct().Count() != snapshot.Skills.Length)
         {
@@ -242,7 +235,6 @@ public sealed class CharacterCapabilities
         }
 
         if (snapshot.Feats.Any(id => !catalog.TryGetFeat(id, out _)) ||
-            snapshot.Feats.Any(id => !catalog.TryGetFeat(id, out _)) ||
             snapshot.Techniques.Any(id => !TechniqueExists(id, catalog)) ||
             snapshot.GrantSources.Any(value => !value.CapabilityId.IsValid || !value.SourceId.IsValid))
         {
@@ -253,7 +245,6 @@ public sealed class CharacterCapabilities
             snapshot.Fingerprint,
             abilities.MoveToImmutable(),
             skills.MoveToImmutable(),
-            snapshot.Feats.ToImmutableHashSet(),
             snapshot.Feats.ToImmutableHashSet(),
             snapshot.Techniques.ToImmutableHashSet(),
             snapshot.GrantSources);
@@ -304,7 +295,7 @@ public sealed class CharacterCapabilities
             throw new InvalidOperationException("Training grants exceed the character capability capacity.");
         }
 
-        return new CharacterCapabilities(Fingerprint, abilityValues, skillValues, feats, Feats,
+        return new CharacterCapabilities(Fingerprint, abilityValues, skillValues, feats,
             techniques, grants.MoveToImmutable());
     }
 
@@ -336,7 +327,6 @@ public sealed class CharacterCapabilities
             Fingerprint,
             abilityValues,
             skillValues,
-            Feats,
             Feats.Add(feat.FeatId),
             Techniques.Union(feat.GrantedTechniqueIds),
             grants.MoveToImmutable());
@@ -366,7 +356,6 @@ public sealed class CharacterCapabilities
             Fingerprint,
             abilityValues,
             skillValues,
-            Feats.Where(value => retainedCapabilities.Contains(value.Value)).ToImmutableHashSet(),
             Feats.Where(value => retainedCapabilities.Contains(value.Value)).ToImmutableHashSet(),
             Techniques.Where(value => retainedCapabilities.Contains(value.Value)).ToImmutableHashSet(),
             remaining);

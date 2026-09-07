@@ -113,7 +113,7 @@ public sealed record ActionCost
 /// </summary>
 /// <remarks>
 /// Actions are the building blocks of character abilities and combat moves. Each action includes difficulty,
-/// success modifiers and potential Racial Feat grants.
+/// success modifiers and potential Feat grants.
 /// </remarks>
 public sealed record ActionDefinition(
     ActionId Id,

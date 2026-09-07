@@ -24,10 +24,11 @@ Feats:
 | Racial Feat | Race or compatible Heritage | Aether Sense | `feat.race.elf.aether-sense` |
 | Heritage Feat | Compatible Heritage | Dawnweave | `feat.heritage.elf.dawnweave` |
 
-The source code uses `FeatDefinition` for trained Feats and
-`FeatDefinition` for Race and Heritage Feats because their validation and
-acquisition contracts differ. Both use the player-facing Feat terminology and
-the `feat.*` ID namespace.
+The source code uses one `FeatId`, `FeatDefinition`, registry, and character
+`Feats` collection for every category. Acquisition remains explicit through an
+optional `trainingProjectId`, compatible Race links, and grant provenance. A
+Feat may support more than one acquisition source. All categories use the
+`feat.*` ID namespace.
 
 ## Learned Feats
 
@@ -69,9 +70,8 @@ graphs exceeding the configured depth or entry limits.
 
 ## Data and persistence
 
-Learned Feat definitions live under `Definitions/Feats` and use `FeatId`.
-Race and Heritage Feat definitions live under `Definitions/Feats` and use
-`FeatId`. Example IDs are:
+All Feat definitions live under `Definitions/Feats` and use `FeatId`. Example
+IDs are:
 
 ```text
 feat.access.magic
@@ -80,10 +80,10 @@ feat.race.elf.aether-sense
 feat.heritage.elf.dawnweave
 ```
 
-Race and Heritage definitions reference `grantedFeatIds`. Training
-projects reference `grantedFeatIds`. Persistent character state stores learned
-Feat IDs and Racial Feat IDs separately so acquisition rules and provenance can
-be reconstructed and validated.
+Race, Heritage, Technique, and training-project definitions reference
+`grantedFeatIds`. Persistent character state stores one bounded Feat ID set;
+the grant-source chain records whether each Feat came from a Race, Heritage,
+training project, technique, or authored consequence.
 
 No Feat uses localized text as identity. Changing a released Feat ID, category,
 or meaning requires a content-schema revision and save migration.

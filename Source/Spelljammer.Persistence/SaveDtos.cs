@@ -32,6 +32,7 @@ internal sealed class PackLockDto
 internal sealed class CampaignPayloadDto
 {
     public string CurrentLocationId { get; set; } = string.Empty;
+    public string ProtagonistId { get; set; } = string.Empty;
     public WorldDto World { get; set; } = new();
     public CharacterDto[] Characters { get; set; } = [];
 }
@@ -123,7 +124,6 @@ internal sealed class CapabilityDto
 {
     public AbilityValueDto[] Abilities { get; set; } = [];
     public SkillValueDto[] Skills { get; set; } = [];
-    public string[] FeatIds { get; set; } = [];
     public string[] FeatIds { get; set; } = [];
     public string[] TechniqueIds { get; set; } = [];
     public GrantDto[] GrantSources { get; set; } = [];

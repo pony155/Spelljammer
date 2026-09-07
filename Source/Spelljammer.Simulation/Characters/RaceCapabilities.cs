@@ -20,7 +20,7 @@ public sealed record ObservedRouteEvidence(ContentId RouteId, ContentId Evidence
 public sealed record TrailInterpretation(ContentId RouteId, ImmutableArray<ContentId> EvidenceIds, byte Confidence);
 
 /// <summary>
-/// Utility class for generating race-specific actions and abilities based on character effects and Racial Feats.
+/// Utility class for generating race-specific actions and abilities based on character effects and Feats.
 /// </summary>
 /// <remarks>
 /// This class creates dynamic action definitions for racial special abilities like soul anchor recovery

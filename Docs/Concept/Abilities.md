@@ -29,7 +29,7 @@ values.
 | Strength | `ability.strength` | Melee damage and hit chance, carry capacity, and weapon/armor weight requirements |
 | Agility | `ability.agility` | Turn meter speed, action points, and dodge rate |
 | Perception | `ability.perception` | Overall awareness, detecting hidden passages and objects, spotting stealthed creatures and NPCs, ranged weapon hit chance, and psionics |
-| Toughness | `ability.toughness` | Overall health, physical defense, and resistance to physical effects |
+| Toughness | `ability.toughness` | Overall health, stamina, physical defense, and resistance to physical effects |
 | Willpower | `ability.willpower` | Effectiveness with psionics and magic, resistance to mental effects, and psi point/mana regeneration |
 | Intelligence | `ability.intelligence` | Diagnosis and technical analysis, knowledge and lore recall, and effectiveness with enchantment and magic |
 

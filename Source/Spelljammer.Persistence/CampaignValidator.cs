@@ -50,7 +50,7 @@ public static class CampaignValidator
             campaign.ContentLock.AppliedMigrationIds.Distinct().Count() != campaign.ContentLock.AppliedMigrationIds.Length ||
             world.ContentFingerprint != content.Fingerprint || world.Tick < 0 ||
             world.Ships.Count is 0 or > CampaignSaveLimits.MaximumShips ||
-            campaign.Characters.Length > CampaignSaveLimits.MaximumCharacters ||
+            campaign.Characters.Length is 0 or > CampaignSaveLimits.MaximumCharacters ||
             world.Commands.Length > VoyageWorld.MaximumCommands ||
             world.CommandHistory.Length > CampaignSaveLimits.MaximumRetainedCommands ||
             world.ScheduledActions.Length > VoyageWorld.MaximumSchedules ||
@@ -66,6 +66,24 @@ public static class CampaignValidator
         }
 
         ImmutableHashSet<CharacterId> characterIds = campaign.Characters.Select(value => value.Id).ToImmutableHashSet();
+        if (!characterIds.Contains(campaign.ProtagonistId))
+        {
+            return false;
+        }
+
+        CharacterState protagonist = campaign.Characters.Single(value => value.Id == campaign.ProtagonistId);
+        if (!content.TryGetScenario(protagonist.ScenarioId, out ScenarioDefinition? scenario))
+        {
+            missingId = protagonist.ScenarioId.Value;
+            return false;
+        }
+
+        if (campaign.Characters.Length > scenario!.MaximumRosterSize ||
+            campaign.Characters.Any(character => character.ScenarioId != protagonist.ScenarioId))
+        {
+            return false;
+        }
+
         foreach (CharacterState character in campaign.Characters)
         {
             if (character.ContentFingerprint != content.Fingerprint ||
@@ -168,13 +186,13 @@ public static class CampaignValidator
         foreach (CharacterState character in campaign.Characters)
         {
             Add(character.Id.Value);
+            Add(character.ScenarioId.Value);
             Add(character.RaceId.Value);
             Add(character.HeritageId.Value);
             Add(character.BackgroundId.Value);
             CharacterCapabilitySnapshot capabilities = character.Capabilities.Snapshot(content);
             foreach (ContentId id in capabilities.Abilities.Select(value => value.Id.Value)
                          .Concat(capabilities.Skills.Select(value => value.Id.Value))
-                         .Concat(capabilities.Feats.Select(value => value.Value))
                          .Concat(capabilities.Feats.Select(value => value.Value))
                          .Concat(capabilities.Techniques.Select(value => value.Value))
                          .Concat(character.TrainingProgress.Keys.Select(value => value.Value))

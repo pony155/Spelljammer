@@ -3,6 +3,7 @@ using Spelljammer.Content.Diagnostics;
 using Spelljammer.Content.Manifests;
 using Spelljammer.Content.Parsing;
 using Spelljammer.Content.Sources;
+using Spelljammer.Simulation.Characters;
 using Spelljammer.Simulation.Content;
 
 namespace Spelljammer.Content.Compilation;
@@ -580,25 +581,11 @@ public sealed class GameContentCompiler
                     CheckPrimitives(definition, definition.Arrays["actionTags"], "/actionTags", diagnostics);
                     break;
                 case DefinitionKind.Feat:
-                    CheckReference(definition, definition.Strings["trainingProjectId"], DefinitionKind.TrainingProject, byId, "/trainingProjectId", diagnostics);
-                    CheckReferences(definition, definition.Arrays["grantedAccessIds"], DefinitionKind.Access, byId, "/grantedAccessIds", diagnostics);
-                    break;
-                case DefinitionKind.Background:
-                    CheckReferences(definition, definition.Arrays["compatibleRaceIds"], DefinitionKind.Race, byId, "/compatibleRaceIds", diagnostics);
-                    CheckReferences(definition, definition.Arrays["abilityBonusIds"], DefinitionKind.Ability, byId, "/abilityBonusIds", diagnostics);
-                    CheckReferences(definition, definition.Arrays["focusSkillIds"], DefinitionKind.Skill, byId, "/focusSkillIds", diagnostics);
-                    break;
-                case DefinitionKind.Character:
-                    CheckReference(definition, definition.Strings["raceId"], DefinitionKind.Race, byId, "/raceId", diagnostics);
-                    CheckReference(definition, definition.Strings["heritageId"], DefinitionKind.Heritage, byId, "/heritageId", diagnostics);
-                    CheckReference(definition, definition.Strings["backgroundId"], DefinitionKind.Background, byId, "/backgroundId", diagnostics);
-                    CheckReferences(definition, definition.Arrays["focusSkillIds"], DefinitionKind.Skill, byId, "/focusSkillIds", diagnostics);
-                    break;
-                case DefinitionKind.Heritage:
-                    CheckReference(definition, definition.Strings["raceId"], DefinitionKind.Race, byId, "/raceId", diagnostics);
-                    CheckReferences(definition, definition.Arrays["grantedFeatIds"], DefinitionKind.Feat, byId, "/grantedFeatIds", diagnostics);
-                    break;
-                case DefinitionKind.Feat:
+                    if (definition.Strings.TryGetValue("trainingProjectId", out string? trainingProjectId))
+                    {
+                        CheckReference(definition, trainingProjectId, DefinitionKind.TrainingProject, byId, "/trainingProjectId", diagnostics);
+                    }
+
                     CheckReferences(definition, definition.Arrays["compatibleRaceIds"], DefinitionKind.Race, byId, "/compatibleRaceIds", diagnostics);
                     CheckReferences(definition, definition.Arrays["grantedAccessIds"], DefinitionKind.Access, byId, "/grantedAccessIds", diagnostics);
                     foreach (string technique in definition.Arrays["grantedTechniqueIds"])
@@ -609,6 +596,22 @@ public sealed class GameContentCompiler
                     CheckReferences(definition, definition.Arrays["grantedFeatIds"], DefinitionKind.Feat, byId, "/grantedFeatIds", diagnostics);
                     CheckPrimitives(definition, definition.Arrays["effectIds"], "/effectIds", diagnostics);
 
+                    break;
+                case DefinitionKind.Background:
+                    CheckReferences(definition, definition.Arrays["compatibleRaceIds"], DefinitionKind.Race, byId, "/compatibleRaceIds", diagnostics);
+                    CheckReferences(definition, definition.Arrays["abilityBonusIds"], DefinitionKind.Ability, byId, "/abilityBonusIds", diagnostics);
+                    CheckReferences(definition, definition.Arrays["focusSkillIds"], DefinitionKind.Skill, byId, "/focusSkillIds", diagnostics);
+                    break;
+                case DefinitionKind.Character:
+                    CheckReference(definition, definition.Strings["raceId"], DefinitionKind.Race, byId, "/raceId", diagnostics);
+                    CheckReference(definition, definition.Strings["heritageId"], DefinitionKind.Heritage, byId, "/heritageId", diagnostics);
+                    CheckReference(definition, definition.Strings["backgroundId"], DefinitionKind.Background, byId, "/backgroundId", diagnostics);
+                    CheckReferences(definition, definition.Arrays["scenarioIds"], DefinitionKind.Scenario, byId, "/scenarioIds", diagnostics);
+                    CheckReferences(definition, definition.Arrays["focusSkillIds"], DefinitionKind.Skill, byId, "/focusSkillIds", diagnostics);
+                    break;
+                case DefinitionKind.Heritage:
+                    CheckReference(definition, definition.Strings["raceId"], DefinitionKind.Race, byId, "/raceId", diagnostics);
+                    CheckReferences(definition, definition.Arrays["grantedFeatIds"], DefinitionKind.Feat, byId, "/grantedFeatIds", diagnostics);
                     break;
                 case DefinitionKind.Race:
                     CheckReferences(definition, definition.Arrays["grantedFeatIds"], DefinitionKind.Feat, byId, "/grantedFeatIds", diagnostics);
@@ -721,6 +724,9 @@ public sealed class GameContentCompiler
                 case DefinitionKind.Skill:
                     ValidateSkill(definition, diagnostics);
                     break;
+                case DefinitionKind.Scenario when definition.Integers["maximumRosterSize"] is < 1 or > CharacterCapabilities.MaximumSetEntries:
+                    OutOfRange(definition, "/maximumRosterSize", diagnostics);
+                    break;
                 case DefinitionKind.TrainingProject when definition.Integers["workUnits"] is < 1 or > 1_000_000:
                     OutOfRange(definition, "/workUnits", diagnostics);
                     break;
@@ -807,9 +813,6 @@ public sealed class GameContentCompiler
 
             switch (definition.Kind)
             {
-                case DefinitionKind.Feat:
-                    RequireNonempty(definition, "grantedAccessIds", diagnostics);
-                    break;
                 case DefinitionKind.Background:
                     RequireNonempty(definition, "compatibleRaceIds", diagnostics);
                     RequireNonempty(definition, "focusSkillIds", diagnostics);
@@ -826,9 +829,6 @@ public sealed class GameContentCompiler
                 case DefinitionKind.Heritage:
                     ValidateHeritage(definition, byId, diagnostics);
                     RequireNonempty(definition, "grantedFeatIds", diagnostics);
-                    break;
-                case DefinitionKind.Feat:
-                    RequireNonempty(definition, "compatibleRaceIds", diagnostics);
                     break;
                 case DefinitionKind.Race:
                     ValidateRace(definition, byId, diagnostics);
@@ -925,9 +925,9 @@ public sealed class GameContentCompiler
         ImmutableArray<AccessDefinition> access = [.. sources.Where(value => value.Kind == DefinitionKind.Access).OrderBy(value => value.Id).Select(CompileAccess)];
         ImmutableArray<BackgroundDefinition> backgrounds = [.. sources.Where(value => value.Kind == DefinitionKind.Background).OrderBy(value => value.Id).Select(CompileBackground)];
         ImmutableArray<CharacterDefinition> characters = [.. sources.Where(value => value.Kind == DefinitionKind.Character).OrderBy(value => value.Id).Select(CompileCharacter)];
+        ImmutableArray<ScenarioDefinition> scenarios = [.. sources.Where(value => value.Kind == DefinitionKind.Scenario).OrderBy(value => value.Id).Select(CompileScenario)];
         ImmutableArray<FeatDefinition> feats = [.. sources.Where(value => value.Kind == DefinitionKind.Feat).OrderBy(value => value.Id).Select(CompileFeat)];
         ImmutableArray<HeritageDefinition> heritages = [.. sources.Where(value => value.Kind == DefinitionKind.Heritage).OrderBy(value => value.Id).Select(CompileHeritage)];
-        ImmutableArray<FeatDefinition> feats = [.. sources.Where(value => value.Kind == DefinitionKind.Feat).OrderBy(value => value.Id).Select(CompileFeat)];
         ImmutableArray<RaceDefinition> races = [.. sources.Where(value => value.Kind == DefinitionKind.Race).OrderBy(value => value.Id).Select(CompileRace)];
         ImmutableArray<SpellDefinition> spells = [.. sources.Where(value => value.Kind == DefinitionKind.Spell).OrderBy(value => value.Id).Select(CompileSpell)];
         ImmutableArray<PsychicTechniqueDefinition> psychicTechniques = [.. sources.Where(value => value.Kind == DefinitionKind.PsychicTechnique).OrderBy(value => value.Id).Select(CompilePsychicTechnique)];
@@ -943,12 +943,12 @@ public sealed class GameContentCompiler
         ImmutableArray<ShipWeaponConfigurationDefinition> shipWeapons = [.. sources.Where(value => value.Kind == DefinitionKind.ShipWeaponConfiguration).OrderBy(value => value.Id).Select(CompileShipWeapon)];
         ImmutableArray<ContentPackIdentity> identities = [.. packs.Select(pack => new ContentPackIdentity(
             pack.Manifest.Id, pack.Manifest.Version, pack.Manifest.ContentRevision))];
-        ContentDefinition[] all = [.. abilities, .. skills, .. access, .. backgrounds, .. characters, .. feats, .. heritages, .. feats, .. races, .. spells, .. psychicTechniques, .. techniques, .. training, .. equipment, .. boardCells, .. zoneLinks, .. personalBoards, .. encounters, .. shipFrames, .. shipModules, .. shipWeapons];
+        ContentDefinition[] all = [.. abilities, .. skills, .. access, .. backgrounds, .. characters, .. scenarios, .. feats, .. heritages, .. races, .. spells, .. psychicTechniques, .. techniques, .. training, .. equipment, .. boardCells, .. zoneLinks, .. personalBoards, .. encounters, .. shipFrames, .. shipModules, .. shipWeapons];
         (byte[] canonicalBytes, ContentFingerprint fingerprint) = CanonicalSemanticWriter.Write(identities, all);
         Dictionary<ContentId, ContentId> provenance = sources.ToDictionary(
             source => source.Id,
             source => new ContentId(source.PackId));
-        GameContentSnapshot snapshot = new(fingerprint, identities, abilities, skills, access, backgrounds, characters, feats, heritages, feats, races, spells, psychicTechniques, techniques, training,
+        GameContentSnapshot snapshot = new(fingerprint, identities, abilities, skills, access, backgrounds, characters, scenarios, feats, heritages, races, spells, psychicTechniques, techniques, training,
             equipment, boardCells, zoneLinks, personalBoards, encounters, shipFrames, shipModules, shipWeapons,
             [.. canonicalBytes], provenance);
         return new ContentCompilationResult(snapshot, diagnostics.ToImmutable(), null);
@@ -985,13 +985,15 @@ public sealed class GameContentCompiler
         Sort(value.Arrays["focusSkillIds"]).Select(item => new SkillId(item)).ToImmutableArray(),
         Sort(value.Arrays["resourceIds"]).Select(item => new ResourceId(item)).ToImmutableArray());
 
-    private static FeatDefinition CompileFeat(SourceDefinition value) => new(
-        new FeatId(value.Id), 1, value.Revision, value.NameKey, value.DescriptionKey,
-        new TrainingProjectId(value.Strings["trainingProjectId"]),
-        Sort(value.Arrays["grantedAccessIds"]).Select(item => new AccessId(item)).ToImmutableArray());
+    private static ScenarioDefinition CompileScenario(SourceDefinition value) => new(
+        new ScenarioId(value.Id), 1, value.Revision, value.NameKey, value.DescriptionKey,
+        value.Integers["maximumRosterSize"]);
 
     private static FeatDefinition CompileFeat(SourceDefinition value) => new(
         new FeatId(value.Id), 1, value.Revision, value.NameKey, value.DescriptionKey,
+        value.Strings.TryGetValue("trainingProjectId", out string? trainingProjectId)
+            ? new TrainingProjectId(trainingProjectId)
+            : null,
         Sort(value.Arrays["compatibleRaceIds"]).Select(item => new RaceId(item)).ToImmutableArray(),
         Sort(value.Arrays["grantedAccessIds"]).Select(item => new AccessId(item)).ToImmutableArray(),
         Sort(value.Arrays["grantedTechniqueIds"]).Select(item => new TechniqueId(item)).ToImmutableArray(),
@@ -1384,9 +1386,9 @@ public sealed class GameContentCompiler
         DefinitionKind.Access => "access.",
         DefinitionKind.Background => "background.",
         DefinitionKind.Character => "character.",
+        DefinitionKind.Scenario => "scenario.",
         DefinitionKind.Feat => "feat.",
         DefinitionKind.Heritage => "heritage.",
-        DefinitionKind.Feat => "feat.",
         DefinitionKind.Race => "race.",
         DefinitionKind.Spell => "spell.",
         DefinitionKind.PsychicTechnique => "psionics.",

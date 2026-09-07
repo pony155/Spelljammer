@@ -21,9 +21,10 @@ internal static class DefinitionParser
             [DefinitionKind.Background] = new(["compatibleRaceIds", "abilityBonusIds", "focusSkillIds"], []),
             [DefinitionKind.Character] = new(
                 ["raceId", "heritageId", "backgroundId", "scenarioIds", "positionId", "languageIds", "scriptIds", "equipmentIds", "focusSkillIds", "resourceIds"], []),
-            [DefinitionKind.Feat] = new(["trainingProjectId", "grantedAccessIds"], []),
+            [DefinitionKind.Scenario] = new(["maximumRosterSize"], []),
+            [DefinitionKind.Feat] = new(
+                ["grantedAccessIds"], ["trainingProjectId", "compatibleRaceIds", "grantedTechniqueIds", "grantedFeatIds", "effectIds"]),
             [DefinitionKind.Heritage] = new(["raceId", "grantedFeatIds"], []),
-            [DefinitionKind.Feat] = new(["compatibleRaceIds", "grantedAccessIds", "grantedTechniqueIds"], ["grantedFeatIds", "effectIds"]),
             [DefinitionKind.Race] = new(["grantedFeatIds"], ["requiredSupportIds"]),
             [DefinitionKind.Spell] = new(
                 ["requiredAccessId", "skillId", "focusResourceId", "focusCost", "rangeId", "castTimeTicks", "cooldownTicks", "targetTags", "effectIds"], []),
@@ -56,9 +57,9 @@ internal static class DefinitionParser
             ["Access"] = DefinitionKind.Access,
             ["Backgrounds"] = DefinitionKind.Background,
             ["Characters"] = DefinitionKind.Character,
+            ["Scenarios"] = DefinitionKind.Scenario,
             ["Feats"] = DefinitionKind.Feat,
             ["Heritages"] = DefinitionKind.Heritage,
-            ["Feats"] = DefinitionKind.Feat,
             ["Races"] = DefinitionKind.Race,
             ["Spells"] = DefinitionKind.Spell,
             ["PsychicTechniques"] = DefinitionKind.PsychicTechnique,

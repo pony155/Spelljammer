@@ -43,6 +43,7 @@ internal static class PersistenceContracts
         Equal(campaign.Voyage.Seed, loaded.Campaign!.Voyage.Seed, "Voyage seed did not round-trip.");
         Equal(campaign.Voyage.Tick, loaded.Campaign.Voyage.Tick, "Voyage tick did not round-trip.");
         Equal(campaign.CurrentLocationId, loaded.Campaign.CurrentLocationId, "Current location did not round-trip.");
+        Equal(campaign.ProtagonistId, loaded.Campaign.ProtagonistId, "Protagonist identity did not round-trip.");
         Equal(campaign.Characters.Length, loaded.Campaign.Characters.Length, "Roster did not round-trip.");
         Equal(campaign.Voyage.Ships.Values.Single().Modules.Length,
             loaded.Campaign.Voyage.Ships.Values.Single().Modules.Length, "Ship modules did not round-trip.");
@@ -239,6 +240,17 @@ internal static class PersistenceContracts
                 content.Races.SelectMany(value => value.RequiredSupportIds).ToImmutableHashSet(),
                 content.Characters.SelectMany(value => value.EquipmentIds).ToImmutableHashSet()));
         True(roster.Succeeded, roster.Failure.ToString());
+        CharacterState protagonist = roster.Roster!.Characters[0];
+        RecruitmentResult activeResult = CrewRecruitmentSystem.Create(protagonist, content);
+        True(activeResult.Succeeded, activeResult.Failure.ToString());
+        CrewRoster activeRoster = activeResult.Roster!;
+        ScenarioDefinition scenario = content.Scenarios.Single(value => value.ScenarioId == protagonist.ScenarioId);
+        foreach (CharacterState npc in roster.Roster.Characters.Skip(1).Take(scenario.MaximumRosterSize - 1))
+        {
+            activeResult = CrewRecruitmentSystem.Recruit(activeRoster, npc, content);
+            True(activeResult.Succeeded, activeResult.Failure.ToString());
+            activeRoster = activeResult.Roster!;
+        }
 
         ShipFrameDefinition frame = content.ShipFrames.Single();
         ContentId path = new("ship.path.arcane");
@@ -259,7 +271,7 @@ internal static class PersistenceContracts
             boardDefinition.CellIds.Select(id => content.BoardCells.Single(value => value.CellId == id)),
             boardDefinition.LinkIds.Select(id => content.ZoneLinks.Single(value => value.LinkId == id)));
         True(board.Accepted, board.RejectionCode);
-        CharacterState crew = roster.Roster!.Characters[0];
+        CharacterState crew = activeRoster.Members[0];
         ActorId actorId = new("actor.first-voyage.saved-crew");
         CellId cellId = new("cell.ruin.entry");
         PersonalActorState actor = new(
@@ -289,7 +301,8 @@ internal static class PersistenceContracts
             CampaignContentLock.Create(content),
             new ContentId("location.anchorage.home"),
             world,
-            roster.Roster.Characters);
+            activeRoster.ProtagonistId,
+            activeRoster.Members);
     }
 
     private static void True(bool condition, string message)

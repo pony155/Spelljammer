@@ -52,6 +52,8 @@
     "creation.race.somnari.name": { "description": "Somnari lineage name.", "message": "Somnari" },
     "creation.race.tharun.name": { "description": "Tharun lineage name.", "message": "Tharun" },
     "creation.race.veyr.name": { "description": "Veyr lineage name.", "message": "Veyr" },
+    "creation.scenario.first-voyage.description": { "description": "First Voyage scenario summary.", "message": "Choose one protagonist and recruit up to seven NPC companions." },
+    "creation.scenario.first-voyage.name": { "description": "First Voyage scenario name.", "message": "First Voyage" },
     "creation.status.ready": { "description": "Initial character-creation status.", "message": "Review the captain and seed, then confirm your choice." },
     "creation.status.selected": {
       "description": "Main-menu status after confirming a captain.",

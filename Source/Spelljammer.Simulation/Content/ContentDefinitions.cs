@@ -207,6 +207,18 @@ public sealed record CharacterDefinition(
     ImmutableArray<ResourceId> ResourceIds)
     : ContentDefinition(CharacterId.Value, SchemaVersion, Revision, NameKey, DescriptionKey);
 
+/// <summary>
+/// Defines scenario-level crew rules shared by character creation and recruitment.
+/// </summary>
+public sealed record ScenarioDefinition(
+    ScenarioId ScenarioId,
+    int SchemaVersion,
+    int Revision,
+    string NameKey,
+    string DescriptionKey,
+    int MaximumRosterSize)
+    : ContentDefinition(ScenarioId.Value, SchemaVersion, Revision, NameKey, DescriptionKey);
+
 public sealed record EquipmentDefinition(
     EquipmentId EquipmentId,
     int SchemaVersion,
