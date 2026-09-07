@@ -81,13 +81,26 @@ public sealed record CharacterResourceRule(
     bool Accumulates,
     ImmutableArray<int> ThresholdPercentages);
 
+public sealed record StaminaTurnMeterRule(
+    int MaximumStaminaPercentage,
+    int TurnMeterGainPercentage);
+
+public sealed record CharacterTurnRules(
+    int TurnMeterThreshold,
+    int BaseTurnMeterGain,
+    int BaseActionPoints,
+    int NormalTurnMeterGainPercentage,
+    ImmutableArray<StaminaTurnMeterRule> StaminaTurnMeterRules,
+    ImmutableDictionary<ContentId, int> ActionPointCosts);
+
 public sealed record CharacterResourceProfileDefinition(
     CharacterResourceProfileId CharacterResourceProfileId,
     int SchemaVersion,
     int Revision,
     string NameKey,
     string DescriptionKey,
-    ImmutableArray<CharacterResourceRule> Resources)
+    ImmutableArray<CharacterResourceRule> Resources,
+    CharacterTurnRules TurnRules)
     : ContentDefinition(CharacterResourceProfileId.Value, SchemaVersion, Revision, NameKey, DescriptionKey);
 
 /// <summary>

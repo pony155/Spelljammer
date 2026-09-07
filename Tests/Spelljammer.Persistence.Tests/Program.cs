@@ -272,10 +272,14 @@ internal static class PersistenceContracts
             boardDefinition.LinkIds.Select(id => content.ZoneLinks.Single(value => value.LinkId == id)));
         True(board.Accepted, board.RejectionCode);
         CharacterState crew = activeRoster.Members[0];
+        True(content.TryGetCharacterResourceProfile(new CharacterResourceProfileId("character-resources.standard"),
+            out CharacterResourceProfileDefinition? resourceProfile), "Character resource profile is missing.");
         ActorId actorId = new("actor.first-voyage.saved-crew");
         CellId cellId = new("cell.ruin.entry");
         PersonalActorState actor = new(
-            actorId, new TeamId("team.player"), crew.Id, cellId, 500, 100, 2, 7, true, false, false,
+            actorId, new TeamId("team.player"), crew.Id, cellId,
+            CharacterTurnState.Create(resourceProfile!.TurnRules) with { CurrentTurnMeter = 50, CurrentActionPoints = 2 },
+            crew.CharacterResources.WithCurrentValue(CharacterResourceIds.Health, 7), true, false, false,
             PersonalLoadout.Create(content.Equipment),
             [new InjuryState(new ContentId("injury.ruin.arc-burn"), InjurySeverity.Serious, true)]);
         PersonalEncounterState encounter = new(

@@ -502,16 +502,7 @@ public static class CampaignSaveCodec
             ScriptIds = [.. character.ScriptIds.Order().Select(value => value.ToString())],
             EquipmentIds = [.. character.EquipmentIds.Order().Select(value => value.ToString())],
             Resources = Values(character.Resources.Select(value => (value.Key.Value, value.Value))),
-            CharacterResources = [.. character.CharacterResources.Values.OrderBy(value => value.ResourceId).Select(value => new CharacterResourceDto
-            {
-                Id = value.ResourceId.ToString(),
-                CurrentValue = value.CurrentValue,
-                BaseMaximum = value.BaseMaximum,
-                BaseRecoveryRate = value.BaseRecoveryRate,
-                Accumulates = value.Accumulates,
-                PermanentModifiers = [.. value.PermanentModifiers.Select(ToDto)],
-                TemporaryModifiers = [.. value.TemporaryModifiers.Select(ToDto)],
-            })],
+            CharacterResources = [.. character.CharacterResources.Values.OrderBy(value => value.ResourceId).Select(ToDto)],
             TrainingProgress = Values(character.TrainingProgress.Select(value => (value.Key.Value, value.Value))),
             CanAct = character.CanAct,
             ActiveEffects = [.. character.ActiveEffects.Select(value => new CapabilityEffectDto
@@ -546,6 +537,74 @@ public static class CampaignSaveCodec
     private static CharacterResourceModifier FromDto(CharacterResourceModifierDto modifier) => new(
         new ContentId(modifier.SourceId), modifier.MaximumDelta, modifier.RecoveryRateDelta);
 
+    private static CharacterResourceDto ToDto(CharacterResourceState value) => new()
+    {
+        Id = value.ResourceId.ToString(),
+        CurrentValue = value.CurrentValue,
+        BaseMaximum = value.BaseMaximum,
+        BaseRecoveryRate = value.BaseRecoveryRate,
+        Accumulates = value.Accumulates,
+        PermanentModifiers = [.. value.PermanentModifiers.Select(ToDto)],
+        TemporaryModifiers = [.. value.TemporaryModifiers.Select(ToDto)],
+    };
+
+    private static CharacterResourceState FromDto(CharacterResourceDto value)
+    {
+        RequireCount(value.PermanentModifiers.Length, CharacterResourceSet.MaximumModifiersPerResource);
+        RequireCount(value.TemporaryModifiers.Length, CharacterResourceSet.MaximumModifiersPerResource);
+        return new CharacterResourceState(
+            new ResourceId(value.Id), value.CurrentValue, value.BaseMaximum, value.BaseRecoveryRate, value.Accumulates,
+            [.. value.PermanentModifiers.Select(FromDto)], [.. value.TemporaryModifiers.Select(FromDto)]);
+    }
+
+    private static CharacterTurnModifierDto ToDto(CharacterTurnModifier modifier) => new()
+    {
+        SourceId = modifier.SourceId.ToString(),
+        TurnMeterGainPercentageDelta = modifier.TurnMeterGainPercentageDelta,
+        MaximumActionPointsDelta = modifier.MaximumActionPointsDelta,
+    };
+
+    private static CharacterTurnModifier FromDto(CharacterTurnModifierDto modifier) => new(
+        new ContentId(modifier.SourceId), modifier.TurnMeterGainPercentageDelta, modifier.MaximumActionPointsDelta);
+
+    private static CharacterTurnDto ToDto(CharacterTurnState value) => new()
+    {
+        CurrentTurnMeter = value.CurrentTurnMeter,
+        TurnMeterThreshold = value.TurnMeterThreshold,
+        BaseTurnMeterGain = value.BaseTurnMeterGain,
+        CurrentActionPoints = value.CurrentActionPoints,
+        BaseMaximumActionPoints = value.BaseMaximumActionPoints,
+        NormalTurnMeterGainPercentage = value.NormalTurnMeterGainPercentage,
+        StaminaTurnMeterRules = [.. value.StaminaTurnMeterRules.Select(rule => new StaminaTurnMeterRuleDto
+        {
+            MaximumStaminaPercentage = rule.MaximumStaminaPercentage,
+            TurnMeterGainPercentage = rule.TurnMeterGainPercentage,
+        })],
+        ActionPointCosts = Values(value.ActionPointCosts.Select(pair => (pair.Key, pair.Value))),
+        PermanentModifiers = [.. value.PermanentModifiers.Select(ToDto)],
+        TemporaryModifiers = [.. value.TemporaryModifiers.Select(ToDto)],
+    };
+
+    private static CharacterTurnState FromDto(CharacterTurnDto value)
+    {
+        RequireCount(value.StaminaTurnMeterRules.Length, CampaignSaveLimits.MaximumCollectionEntries);
+        RequireCount(value.ActionPointCosts.Length, CampaignSaveLimits.MaximumCollectionEntries);
+        RequireCount(value.PermanentModifiers.Length, CharacterTurnState.MaximumModifiers);
+        RequireCount(value.TemporaryModifiers.Length, CharacterTurnState.MaximumModifiers);
+        return new CharacterTurnState(
+            value.CurrentTurnMeter,
+            value.TurnMeterThreshold,
+            value.BaseTurnMeterGain,
+            value.CurrentActionPoints,
+            value.BaseMaximumActionPoints,
+            value.NormalTurnMeterGainPercentage,
+            [.. value.StaminaTurnMeterRules.Select(rule => new StaminaTurnMeterRule(
+                rule.MaximumStaminaPercentage, rule.TurnMeterGainPercentage))],
+            ValueDictionary(value.ActionPointCosts).ToImmutableDictionary(),
+            [.. value.PermanentModifiers.Select(FromDto)],
+            [.. value.TemporaryModifiers.Select(FromDto)]).Clamp();
+    }
+
     private static PersonalEncounterDto ToDto(PersonalEncounterState encounter) => new()
     {
         Id = encounter.Id.ToString(),
@@ -556,10 +615,8 @@ public static class CampaignSaveCodec
             TeamId = value.TeamId.ToString(),
             CharacterId = value.CharacterId?.ToString(),
             CellId = value.CellId.ToString(),
-            TurnMeter = value.TurnMeter,
-            TurnRate = value.TurnRate,
-            ActionPoints = value.ActionPoints,
-            Health = value.Health,
+            Turn = ToDto(value.Turn),
+            CharacterResources = [.. value.CharacterResources.Values.OrderBy(resource => resource.ResourceId).Select(ToDto)],
             Defending = value.Defending,
             Surrendered = value.Surrendered,
             Prisoner = value.Prisoner,
@@ -766,11 +823,7 @@ public static class CampaignSaveCodec
             training.ToImmutableDictionary(pair => new TrainingProjectId(pair.Key), pair => pair.Value),
             value.CanAct)
         {
-            CharacterResources = CharacterResourceSet.Restore(value.CharacterResources.Select(resource => new CharacterResourceState(
-                new ResourceId(resource.Id), resource.CurrentValue, resource.BaseMaximum, resource.BaseRecoveryRate,
-                resource.Accumulates,
-                [.. resource.PermanentModifiers.Select(FromDto)],
-                [.. resource.TemporaryModifiers.Select(FromDto)]))),
+            CharacterResources = CharacterResourceSet.Restore(value.CharacterResources.Select(FromDto)),
             ActiveEffects = [.. value.ActiveEffects.Select(effect => new ActiveCapabilityEffect(
                 new ContentId(effect.EffectId), new ContentId(effect.SourceId), new CharacterId(effect.ActorId),
                 new CharacterId(effect.TargetId), effect.StartTick, effect.EndTick, new ContentId(effect.ScopeId)))],
@@ -806,6 +859,7 @@ public static class CampaignSaveCodec
         ImmutableDictionary<ActorId, PersonalActorState>.Builder actors = ImmutableDictionary.CreateBuilder<ActorId, PersonalActorState>();
         foreach (PersonalActorDto actorDto in value.Actors)
         {
+            RequireCount(actorDto.CharacterResources.Length, CampaignSaveLimits.MaximumCollectionEntries);
             CellId cellId = new(actorDto.CellId);
             ActorId actorId = new(actorDto.Id);
             ImmutableDictionary<ContentId, EquipmentState>.Builder slots = ImmutableDictionary.CreateBuilder<ContentId, EquipmentState>();
@@ -819,7 +873,7 @@ public static class CampaignSaveCodec
 
             PersonalActorState actor = new(
                 actorId, new TeamId(actorDto.TeamId), actorDto.CharacterId is null ? null : new CharacterId(actorDto.CharacterId),
-                cellId, actorDto.TurnMeter, actorDto.TurnRate, actorDto.ActionPoints, actorDto.Health, actorDto.Defending,
+                cellId, FromDto(actorDto.Turn), CharacterResourceSet.Restore(actorDto.CharacterResources.Select(FromDto)), actorDto.Defending,
                 actorDto.Surrendered, actorDto.Prisoner, new PersonalLoadout(slots.ToImmutable()),
                 [.. actorDto.Injuries.Select(injury => new InjuryState(
                     new ContentId(injury.Id), ParseEnum<InjurySeverity>(injury.Severity), injury.Stabilized))])

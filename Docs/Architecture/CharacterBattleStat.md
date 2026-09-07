@@ -18,7 +18,7 @@ The core design principle is:
 > **Attributes represent innate capability. Skills represent trained proficiency. Equipment determines how those capabilities are converted into combat performance.**
 
 The authoritative five-resource ownership and data contract are defined in
-[`../Concept/CharacterResources.md`](../Concept/CharacterResources.md). Health,
+[`../Concept/CharacterResourceSystem.md`](../Concept/CharacterResourceSystem.md). Health,
 Stamina, Mana, Resolve, and Strain are independent of Attributes and Skills.
 
 ---

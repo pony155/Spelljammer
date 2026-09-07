@@ -987,7 +987,18 @@ public sealed class GameContentCompiler
                 Rule("resource.mana", "mana", false),
                 Rule("resource.resolve", "resolve", false, "resolveThresholdPercentages"),
                 Rule("resource.strain", "strain", true, "strainThresholdPercentages"),
-            ]);
+            ],
+            new CharacterTurnRules(
+                value.Integers["turnMeterThreshold"],
+                value.Integers["baseTurnMeterGain"],
+                value.Integers["baseActionPoints"],
+                value.Integers["normalTurnMeterGainPercentage"],
+                [.. value.IntegerArrays["staminaTurnMeterThresholdPercentages"]
+                    .Zip(value.IntegerArrays["staminaTurnMeterGainPercentages"])
+                    .Select(pair => new StaminaTurnMeterRule(pair.First, pair.Second))],
+                value.Arrays["actionPointCostIds"]
+                    .Zip(value.IntegerArrays["actionPointCosts"])
+                    .ToImmutableDictionary(pair => new ContentId(pair.First), pair => pair.Second)));
     }
 
     private static AccessDefinition CompileAccess(SourceDefinition value) => new(
@@ -1211,6 +1222,43 @@ public sealed class GameContentCompiler
         {
             diagnostics.Add(ContentDiagnosticCodes.SemanticInvalid, definition.PackId, definition.RelativePath,
                 definition.Id.ToString(), invalidResolve ? "/resolveThresholdPercentages" : "/strainThresholdPercentages");
+        }
+
+        ImmutableArray<int> staminaThresholds = definition.IntegerArrays["staminaTurnMeterThresholdPercentages"];
+        ImmutableArray<int> staminaGains = definition.IntegerArrays["staminaTurnMeterGainPercentages"];
+        ImmutableArray<string> actionIds = definition.Arrays["actionPointCostIds"];
+        ImmutableArray<int> actionCosts = definition.IntegerArrays["actionPointCosts"];
+        string[] requiredActionIds =
+        [
+            "action.personal.defend",
+            "action.personal.engineering",
+            "action.personal.interact",
+            "action.personal.medicine",
+            "action.personal.melee",
+            "action.personal.move",
+            "action.personal.psionic",
+            "action.personal.ranged",
+            "action.personal.reserve-reaction",
+            "action.personal.retreat",
+            "action.personal.spell",
+            "action.personal.surrender",
+        ];
+        bool invalidTurnRules = definition.Integers["turnMeterThreshold"] <= 0 ||
+            definition.Integers["baseTurnMeterGain"] <= 0 ||
+            definition.Integers["baseActionPoints"] <= 0 ||
+            definition.Integers["normalTurnMeterGainPercentage"] <= 0 ||
+            staminaThresholds.IsEmpty || staminaThresholds.Length != staminaGains.Length ||
+            staminaThresholds.Any(value => value is < 0 or > 100) ||
+            staminaThresholds.Zip(staminaThresholds.Skip(1)).Any(pair => pair.First <= pair.Second) ||
+            staminaGains.Any(value => value is < 0 or > 100) ||
+            actionIds.IsEmpty || actionIds.Length != actionCosts.Length ||
+            actionIds.Distinct(StringComparer.Ordinal).Count() != actionIds.Length ||
+            !actionIds.Order(StringComparer.Ordinal).SequenceEqual(requiredActionIds) ||
+            actionCosts.Any(value => value <= 0 || value > definition.Integers["baseActionPoints"]);
+        if (invalidTurnRules)
+        {
+            diagnostics.Add(ContentDiagnosticCodes.SemanticInvalid, definition.PackId, definition.RelativePath,
+                definition.Id.ToString(), "/turnRules");
         }
     }
 

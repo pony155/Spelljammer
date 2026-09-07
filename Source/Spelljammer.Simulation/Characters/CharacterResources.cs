@@ -70,6 +70,14 @@ public sealed class CharacterResourceSet
         return With((resource with { CurrentValue = value }).Clamp());
     }
 
+    public CharacterResourceSet ClampResource(ResourceId id)
+    {
+        CharacterResourceState value = resources.TryGetValue(id, out CharacterResourceState? found)
+            ? found
+            : throw new KeyNotFoundException($"Character resource '{id}' is not present.");
+        return With(value.Clamp());
+    }
+
     public CharacterResourceSet WithModifier(ResourceId id, CharacterResourceModifier modifier, bool temporary)
     {
         CharacterResourceState value = resources.TryGetValue(id, out CharacterResourceState? found)
@@ -128,6 +136,21 @@ public sealed class CharacterResourceSet
 
     public CharacterResourceSet ReduceStrain(int amount) =>
         AdjustAccumulating(CharacterResourceIds.Strain, -RequireNonnegative(amount));
+
+    public int GetStrainPercentage() => GetResourcePercentage(CharacterResourceIds.Strain);
+
+    public int GetStrainThresholdState(CharacterResourceProfileDefinition profile)
+    {
+        ArgumentNullException.ThrowIfNull(profile);
+        CharacterResourceRule rule = profile.Resources.Single(value => value.ResourceId == CharacterResourceIds.Strain);
+        return GetThresholdIndex(rule);
+    }
+
+    public bool CheckPsionicOverload()
+    {
+        CharacterResourceState value = Require(CharacterResourceIds.Strain, true);
+        return value.CurrentValue >= value.Maximum;
+    }
 
     public int GetResourcePercentage(ResourceId id)
     {

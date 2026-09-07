@@ -52,7 +52,8 @@ Implemented foundations include:
   inspection;
 - a headless 20 Hz `VoyageWorld` with tactical pause, bounded ordered commands,
   immutable snapshots and replay logs, continuous ship combat, modular damage,
-  personal Turn Meters and Action Points, reactions, injuries, objectives, and
+  data-driven personal Turn Meters and Action Points, shared character
+  resources, stamina speed penalties, reactions, injuries, objectives, and
   encounter cleanup;
 - a versioned, bounded campaign-save envelope with content preflight, stable-ID
   reconstruction, transactional publication, durable replacement and recovery,

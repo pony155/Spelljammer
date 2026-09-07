@@ -22,6 +22,10 @@ Milestone 5 adds Equipment, Board Cell, Zone Link, Personal Board, Encounter,
 Ship Frame, Ship Module, and Ship Weapon Configuration schemas. Their linked,
 fingerprint-scoped registries feed the headless encounter runtime without
 adding filesystem access to Simulation.
+Character resource profiles define Health, Stamina, Mana, Resolve, Strain,
+Turn Meter, Action Points, stamina speed bands, and stable personal-action AP
+costs. These values are compiled and fingerprinted with the rest of gameplay
+content rather than supplied by simulation fallbacks.
 
 Public namespaces are:
 

@@ -84,6 +84,14 @@ public static class CampaignValidator
             return false;
         }
 
+        CharacterResourceProfileDefinition? resourceProfile = null;
+        if (scenario.CharacterResourceProfileId is CharacterResourceProfileId resourceProfileId &&
+            !content.TryGetCharacterResourceProfile(resourceProfileId, out resourceProfile))
+        {
+            missingId = resourceProfileId.Value;
+            return false;
+        }
+
         foreach (CharacterState character in campaign.Characters)
         {
             if (character.ContentFingerprint != content.Fingerprint ||
@@ -109,14 +117,9 @@ public static class CampaignValidator
             try
             {
                 _ = CharacterCapabilities.Restore(character.Capabilities.Snapshot(content), content);
-                if (scenario.CharacterResourceProfileId is CharacterResourceProfileId profileId)
+                if (resourceProfile is not null)
                 {
-                    if (!content.TryGetCharacterResourceProfile(profileId, out CharacterResourceProfileDefinition? profile))
-                    {
-                        return false;
-                    }
-
-                    character.CharacterResources.Validate(profile!);
+                    character.CharacterResources.Validate(resourceProfile);
                 }
             }
             catch (InvalidOperationException)
@@ -168,7 +171,7 @@ public static class CampaignValidator
         }
 
         if (world.PersonalEncounter is PersonalEncounterState encounter &&
-            !ValidateEncounter(encounter, characterIds, content, out missingId))
+            !ValidateEncounter(encounter, characterIds, content, resourceProfile, out missingId))
         {
             return false;
         }
@@ -242,6 +245,7 @@ public static class CampaignValidator
         PersonalEncounterState encounter,
         ImmutableHashSet<CharacterId> characterIds,
         GameContentSnapshot content,
+        CharacterResourceProfileDefinition? resourceProfile,
         out ContentId? missingId)
     {
         missingId = null;
@@ -259,9 +263,19 @@ public static class CampaignValidator
         {
             if (!encounter.Board.Cells.ContainsKey(actor.CellId) ||
                 actor.CharacterId is CharacterId characterId && !characterIds.Contains(characterId) ||
-                actor.TurnMeter is < 0 or > VoyageTime.TurnMeterThreshold ||
-                actor.ActionPoints is < 0 or > VoyageTime.ActionPointsPerActivation || actor.Health < 0 ||
+                resourceProfile is null || actor.Health < 0 ||
                 actor.Loadout.Slots.Count > PersonalLoadout.MaximumSlots || actor.Injuries.Length > CampaignSaveLimits.MaximumCollectionEntries)
+            {
+                return false;
+            }
+
+
+            try
+            {
+                actor.CharacterResources.Validate(resourceProfile);
+                actor.Turn.Validate(resourceProfile.TurnRules);
+            }
+            catch (InvalidOperationException)
             {
                 return false;
             }

@@ -85,6 +85,19 @@ internal static class CanonicalSemanticWriter
                     }
                 }
 
+                properties["actionPointCostIds"] = output => WriteIds(output,
+                    value.TurnRules.ActionPointCosts.OrderBy(pair => pair.Key).Select(pair => pair.Key));
+                properties["actionPointCosts"] = output => WriteIntegers(output,
+                    value.TurnRules.ActionPointCosts.OrderBy(pair => pair.Key).Select(pair => pair.Value));
+                properties["baseActionPoints"] = output => output.Append(value.TurnRules.BaseActionPoints);
+                properties["baseTurnMeterGain"] = output => output.Append(value.TurnRules.BaseTurnMeterGain);
+                properties["normalTurnMeterGainPercentage"] = output => output.Append(value.TurnRules.NormalTurnMeterGainPercentage);
+                properties["staminaTurnMeterGainPercentages"] = output => WriteIntegers(output,
+                    value.TurnRules.StaminaTurnMeterRules.Select(rule => rule.TurnMeterGainPercentage));
+                properties["staminaTurnMeterThresholdPercentages"] = output => WriteIntegers(output,
+                    value.TurnRules.StaminaTurnMeterRules.Select(rule => rule.MaximumStaminaPercentage));
+                properties["turnMeterThreshold"] = output => output.Append(value.TurnRules.TurnMeterThreshold);
+
                 break;
             case AccessDefinition value:
                 properties["tags"] = output => WriteStrings(output, value.Tags);

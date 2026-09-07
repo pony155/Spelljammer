@@ -6,6 +6,6 @@
   "textDirection": "ltr",
   "messages": {
     "character-resources.standard.name": {"description":"Resource profile name.","message":"Standard Character Resources"},
-    "character-resources.standard.description": {"description":"Resource profile summary.","message":"Health, Stamina, Mana, Resolve, and accumulating Strain rules."}
+    "character-resources.standard.description": {"description":"Resource profile summary.","message":"Health, Stamina, Mana, Resolve, Strain, Turn Meter, and Action Point rules."}
   }
 }

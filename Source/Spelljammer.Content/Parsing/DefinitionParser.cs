@@ -21,7 +21,10 @@ internal static class DefinitionParser
             [DefinitionKind.CharacterResourceProfile] = new(
                 ["healthMaximum", "healthRecoveryRate", "staminaMaximum", "staminaRecoveryRate",
                  "manaMaximum", "manaRecoveryRate", "resolveMaximum", "resolveRecoveryRate",
-                 "strainMaximum", "strainRecoveryRate", "resolveThresholdPercentages", "strainThresholdPercentages"], []),
+                 "strainMaximum", "strainRecoveryRate", "resolveThresholdPercentages", "strainThresholdPercentages",
+                 "turnMeterThreshold", "baseTurnMeterGain", "baseActionPoints", "normalTurnMeterGainPercentage",
+                 "staminaTurnMeterThresholdPercentages", "staminaTurnMeterGainPercentages",
+                 "actionPointCostIds", "actionPointCosts"], []),
             [DefinitionKind.Access] = new(["tags"], []),
             [DefinitionKind.Background] = new(["compatibleRaceIds", "abilityBonusIds", "focusSkillIds"], []),
             [DefinitionKind.Character] = new(
@@ -167,7 +170,8 @@ internal static class DefinitionParser
                 JsonElement[] items = [.. value.EnumerateArray()];
                 if (items.Length == 0)
                 {
-                    if (field.EndsWith("ThresholdPercentages", StringComparison.Ordinal))
+                    if (field.EndsWith("ThresholdPercentages", StringComparison.Ordinal) ||
+                        field is "staminaTurnMeterGainPercentages" or "actionPointCosts")
                     {
                         integerArrays.Add(field, []);
                     }

@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using Spelljammer.Simulation;
+using Spelljammer.Simulation.Characters;
 using Spelljammer.Simulation.Content;
 using Spelljammer.Simulation.Encounters;
 
@@ -193,11 +194,14 @@ internal static class SimulationContracts
         ActorId attackerId = new("actor.ruin.attacker");
         PersonalActorState defender = Actor(defenderId, new TeamId("team.player"), entry) with
         {
-            ActionPoints = 3,
+            Turn = ActorTurn() with { CurrentActionPoints = 10 },
             ReservedReactionPoints = 1,
             ReactionExpiresTick = 20,
         };
-        PersonalActorState attacker = Actor(attackerId, new TeamId("team.ruin.sentinels"), exit) with { ActionPoints = 3 };
+        PersonalActorState attacker = Actor(attackerId, new TeamId("team.ruin.sentinels"), exit) with
+        {
+            Turn = ActorTurn() with { CurrentActionPoints = 10 },
+        };
         PersonalEncounterState encounter = new(
             new EncounterId("encounter.ruin.glass-observatory"),
             board.Place(defenderId, entry).Place(attackerId, exit),
@@ -307,8 +311,42 @@ internal static class SimulationContracts
         new LinkId(id), 1, 1, $"{id}.name", $"{id}.description", from, to, new ContentId("traversal.open"), 0, retreat);
 
     private static PersonalActorState Actor(ActorId id, TeamId team, CellId cell) => new(
-        id, team, null, cell, 0, 100, 0, 10, false, false, false,
+        id, team, null, cell, ActorTurn(), ActorResources(), false, false, false,
         PersonalLoadout.Create([]), []);
+
+    private static CharacterTurnState ActorTurn() => CharacterTurnState.Create(new CharacterTurnRules(
+        100,
+        10,
+        10,
+        100,
+        [new StaminaTurnMeterRule(50, 90), new StaminaTurnMeterRule(25, 80)],
+        new Dictionary<ContentId, int>
+        {
+            [new ContentId("action.personal.defend")] = 4,
+            [new ContentId("action.personal.engineering")] = 5,
+            [new ContentId("action.personal.interact")] = 3,
+            [new ContentId("action.personal.medicine")] = 3,
+            [new ContentId("action.personal.melee")] = 5,
+            [new ContentId("action.personal.move")] = 2,
+            [new ContentId("action.personal.psionic")] = 5,
+            [new ContentId("action.personal.ranged")] = 5,
+            [new ContentId("action.personal.reserve-reaction")] = 4,
+            [new ContentId("action.personal.retreat")] = 2,
+            [new ContentId("action.personal.spell")] = 6,
+            [new ContentId("action.personal.surrender")] = 1,
+        }.ToImmutableDictionary()));
+
+    private static CharacterResourceSet ActorResources() => CharacterResourceSet.Restore(
+    [
+        Resource(CharacterResourceIds.Health, 10, 10, 0, false),
+        Resource(CharacterResourceIds.Stamina, 100, 100, 5, false),
+        Resource(CharacterResourceIds.Mana, 100, 100, 1, false),
+        Resource(CharacterResourceIds.Resolve, 100, 100, 2, false),
+        Resource(CharacterResourceIds.Strain, 0, 100, 3, true),
+    ]);
+
+    private static CharacterResourceState Resource(ResourceId id, int current, int maximum, int recovery, bool accumulates) =>
+        new(id, current, maximum, recovery, accumulates, [], []);
 
     private static void True(bool condition, string message)
     {

@@ -341,12 +341,13 @@ tactical combinations.
 
 ## 10. Action Points
 
-Characters use a small Action Point pool.
+Characters use a small Action Point pool. Its baseline and every personal
+action cost come from the scenario-selected character resource profile.
 
-Initial prototype target:
+Base-profile target:
 
 ``` text
-AP = 6
+AP = 10
 ```
 
 Example costs:

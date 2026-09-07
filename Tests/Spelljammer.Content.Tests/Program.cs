@@ -264,12 +264,19 @@ internal static class ContentContracts
         Equal(5, staminaRule.BaseRecoveryRate, "Stamina recovery did not come from JSON.");
         Equal("50|75|100", string.Join('|', profile.Resources.Single(value =>
             value.ResourceId == CharacterResourceIds.Strain).ThresholdPercentages), "Strain thresholds did not come from JSON.");
+        Equal(100, profile.TurnRules.TurnMeterThreshold, "Turn Meter threshold did not come from JSON.");
+        Equal(10, profile.TurnRules.BaseActionPoints, "Base AP did not come from JSON.");
+        CharacterTurnState turn = CharacterTurnState.Create(profile.TurnRules).AddTurnMeter(20);
+        Equal(8, turn.CurrentTurnMeter, "Low Stamina did not apply the authored Turn Meter penalty.");
+        Equal(6, turn.GetActionPointCost(new ContentId("action.personal.spell")),
+            "The spell AP cost did not come from JSON.");
 
         CharacterResourceSet spent = character.CharacterResources.SpendResource(CharacterResourceIds.Stamina, 20);
         Equal(80, spent.GetCurrentValue(CharacterResourceIds.Stamina), "Stamina spending produced the wrong value.");
         Equal(85, spent.RecoverOneTick().GetCurrentValue(CharacterResourceIds.Stamina), "Stamina recovery ignored its profile.");
         CharacterResourceSet strained = character.CharacterResources.GenerateStrain(150);
         Equal(100, strained.GetCurrentValue(CharacterResourceIds.Strain), "Strain was not clamped to its authored maximum.");
+        True(strained.CheckPsionicOverload(), "Maximum Strain did not report overload risk.");
         Equal(97, strained.RecoverOneTick().GetCurrentValue(CharacterResourceIds.Strain), "Strain decay moved in the wrong direction.");
     }
 

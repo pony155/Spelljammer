@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using Spelljammer.Simulation.Characters;
 using Spelljammer.Simulation.Content;
 
 namespace Spelljammer.Simulation.Encounters;
@@ -289,19 +290,46 @@ public sealed record PersonalActorState(
     TeamId TeamId,
     CharacterId? CharacterId,
     CellId CellId,
-    int TurnMeter,
-    int TurnRate,
-    int ActionPoints,
-    int Health,
+    CharacterTurnState Turn,
+    CharacterResourceSet CharacterResources,
     bool Defending,
     bool Surrendered,
     bool Prisoner,
     PersonalLoadout Loadout,
     ImmutableArray<InjuryState> Injuries)
 {
+    public int TurnMeter => Turn.CurrentTurnMeter;
+    public int TurnRate => Turn.BaseTurnMeterGain;
+    public int ActionPoints => Turn.CurrentActionPoints;
+    public int Health => CharacterResources.GetCurrentValue(CharacterResourceIds.Health);
     public bool IsIncapacitated => Health <= 0 || Injuries.Any(value => value.Severity == InjurySeverity.Incapacitating && !value.Stabilized);
     public int ReservedReactionPoints { get; init; }
     public long ReactionExpiresTick { get; init; }
+
+    public static PersonalActorState Create(
+        ActorId actorId,
+        TeamId teamId,
+        CharacterState character,
+        CellId cellId,
+        CharacterResourceProfileDefinition profile,
+        PersonalLoadout loadout)
+    {
+        ArgumentNullException.ThrowIfNull(character);
+        ArgumentNullException.ThrowIfNull(profile);
+        character.CharacterResources.Validate(profile);
+        return new PersonalActorState(
+            actorId,
+            teamId,
+            character.Id,
+            cellId,
+            CharacterTurnState.Create(profile.TurnRules),
+            character.CharacterResources,
+            false,
+            false,
+            false,
+            loadout,
+            []);
+    }
 }
 
 public enum ObjectiveState : byte

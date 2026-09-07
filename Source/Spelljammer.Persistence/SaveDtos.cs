@@ -139,6 +139,33 @@ internal sealed class CharacterResourceModifierDto
     public int RecoveryRateDelta { get; set; }
 }
 
+internal sealed class CharacterTurnDto
+{
+    public int CurrentTurnMeter { get; set; }
+    public int TurnMeterThreshold { get; set; }
+    public int BaseTurnMeterGain { get; set; }
+    public int CurrentActionPoints { get; set; }
+    public int BaseMaximumActionPoints { get; set; }
+    public int NormalTurnMeterGainPercentage { get; set; }
+    public StaminaTurnMeterRuleDto[] StaminaTurnMeterRules { get; set; } = [];
+    public ValueDto[] ActionPointCosts { get; set; } = [];
+    public CharacterTurnModifierDto[] PermanentModifiers { get; set; } = [];
+    public CharacterTurnModifierDto[] TemporaryModifiers { get; set; } = [];
+}
+
+internal sealed class StaminaTurnMeterRuleDto
+{
+    public int MaximumStaminaPercentage { get; set; }
+    public int TurnMeterGainPercentage { get; set; }
+}
+
+internal sealed class CharacterTurnModifierDto
+{
+    public string SourceId { get; set; } = string.Empty;
+    public int TurnMeterGainPercentageDelta { get; set; }
+    public int MaximumActionPointsDelta { get; set; }
+}
+
 internal sealed class CapabilityDto
 {
     public AbilityValueDto[] Abilities { get; set; } = [];
@@ -206,10 +233,8 @@ internal sealed class PersonalActorDto
     public string TeamId { get; set; } = string.Empty;
     public string? CharacterId { get; set; }
     public string CellId { get; set; } = string.Empty;
-    public int TurnMeter { get; set; }
-    public int TurnRate { get; set; }
-    public int ActionPoints { get; set; }
-    public int Health { get; set; }
+    public CharacterTurnDto Turn { get; set; } = new();
+    public CharacterResourceDto[] CharacterResources { get; set; } = [];
     public bool Defending { get; set; }
     public bool Surrendered { get; set; }
     public bool Prisoner { get; set; }

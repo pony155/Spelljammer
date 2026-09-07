@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using Spelljammer.Simulation.Characters;
 using Spelljammer.Simulation.Content;
 
 namespace Spelljammer.Simulation.Encounters;
@@ -7,8 +8,6 @@ public static class VoyageTime
 {
     public const int TicksPerSecond = 20;
     public const int MaximumCatchUpTicks = 8;
-    public const int TurnMeterThreshold = 1_000;
-    public const int ActionPointsPerActivation = 3;
 }
 
 public enum VoyageCommandKind : byte
@@ -39,6 +38,7 @@ public enum VoyageCommandKind : byte
     PersonalInteract,
     PersonalSurrender,
     PersonalRetreat,
+    PersonalEndActivation,
 }
 
 public enum ScheduledActionPhase : byte
@@ -503,8 +503,27 @@ public sealed record VoyageWorld(
 
         PersonalEncounterState encounter = PersonalEncounter;
         PersonalActorState updated = actor;
-        int apCost = command.Kind is VoyageCommandKind.PersonalMove or VoyageCommandKind.PersonalReserveReaction ? 1 : 2;
-        if (updated.ActionPoints < apCost)
+        if (command.Kind == VoyageCommandKind.PersonalEndActivation)
+        {
+            updated = updated with { Turn = updated.Turn.EndActivation() };
+            encounter = encounter with { Actors = encounter.Actors.SetItem(actorId, updated) };
+            ImmutableArray<ActorId> remaining = ReadyActors.Remove(actorId);
+            bool remainPaused = remaining.Any(id => encounter.Actors[id].TeamId == PlayerTeamId);
+            return (this with { PersonalEncounter = encounter, ReadyActors = remaining, PersonalPaused = remainPaused })
+                .AddEvent(command, true, 0, string.Empty);
+        }
+
+        int apCost;
+        try
+        {
+            apCost = updated.Turn.GetActionPointCost(PersonalActionId(command.Kind));
+        }
+        catch (KeyNotFoundException)
+        {
+            return AddEvent(command, false, 0, "command.action-unknown");
+        }
+
+        if (!updated.Turn.CanSpendActionPoints(apCost))
         {
             return AddEvent(command, false, 0, "command.action-points-insufficient");
         }
@@ -594,16 +613,23 @@ public sealed record VoyageWorld(
                     target = target with { ReservedReactionPoints = 0, ReactionExpiresTick = 0 };
                 }
 
-                int health = Math.Max(0, target.Health - (target.Defending ? Math.Max(1, damage / 2) : damage));
+                bool wasIncapacitated = target.IsIncapacitated;
+                int healthDamage = target.Defending ? Math.Max(1, damage / 2) : damage;
+                CharacterResourceSet targetResources = target.CharacterResources.ApplyResourceDamage(
+                    CharacterResourceIds.Health, healthDamage);
                 ImmutableArray<InjuryState> injuries = target.Injuries;
-                if (health == 0 && !target.IsIncapacitated)
+                if (targetResources.GetCurrentValue(CharacterResourceIds.Health) == 0 && !wasIncapacitated)
                 {
                     injuries = injuries.Add(new InjuryState(new ContentId("injury.combat.incapacitated"), InjurySeverity.Incapacitating, false));
                 }
 
                 encounter = encounter with
                 {
-                    Actors = encounter.Actors.SetItem(targetId, target with { Health = health, Injuries = injuries }),
+                    Actors = encounter.Actors.SetItem(targetId, target with
+                    {
+                        CharacterResources = targetResources,
+                        Injuries = injuries,
+                    }),
                     DamagedObjects = command.OptionId is ContentId objectId ? encounter.DamagedObjects.Add(objectId) : encounter.DamagedObjects,
                 };
                 break;
@@ -611,7 +637,7 @@ public sealed record VoyageWorld(
                 return AddEvent(command, false, 0, "command.action-unknown");
         }
 
-        updated = updated with { ActionPoints = updated.ActionPoints - apCost };
+        updated = updated with { Turn = updated.Turn.SpendActionPoints(apCost) };
         encounter = encounter with { Actors = encounter.Actors.SetItem(actorId, updated) };
         ImmutableArray<ActorId> ready = updated.ActionPoints == 0 ? ReadyActors.Remove(actorId) : ReadyActors;
         bool pause = ready.Any(id => encounter.Actors[id].TeamId == PlayerTeamId);
@@ -664,20 +690,26 @@ public sealed record VoyageWorld(
                 continue;
             }
 
-            int meter = Math.Min(VoyageTime.TurnMeterThreshold, current.TurnMeter + current.TurnRate);
-            if (meter == VoyageTime.TurnMeterThreshold)
+            CharacterResourceSet recoveredResources = current.CharacterResources.RecoverOneTick();
+            CharacterTurnState advancedTurn = current.Turn.AddTurnMeter(
+                recoveredResources.GetResourcePercentage(CharacterResourceIds.Stamina));
+            if (advancedTurn.CanActivate)
             {
                 becameReady.Add(current.Id);
                 actors[current.Id] = current with
                 {
-                    TurnMeter = 0,
-                    ActionPoints = VoyageTime.ActionPointsPerActivation,
+                    Turn = advancedTurn.BeginActivation(),
+                    CharacterResources = recoveredResources,
                     Defending = false,
                 };
             }
             else
             {
-                actors[current.Id] = current with { TurnMeter = meter };
+                actors[current.Id] = current with
+                {
+                    Turn = advancedTurn,
+                    CharacterResources = recoveredResources,
+                };
             }
         }
 
@@ -746,6 +778,23 @@ public sealed record VoyageWorld(
     private bool CanSubmitPersonal(ContentId issuerId) =>
         ActorIdFrom(issuerId, out ActorId actorId) && ReadyActors.Contains(actorId) &&
         PersonalEncounter?.Actors.TryGetValue(actorId, out PersonalActorState? actor) == true && actor.ActionPoints > 0;
+
+    private static ContentId PersonalActionId(VoyageCommandKind kind) => kind switch
+    {
+        VoyageCommandKind.PersonalMove => new("action.personal.move"),
+        VoyageCommandKind.PersonalDefend => new("action.personal.defend"),
+        VoyageCommandKind.PersonalReserveReaction => new("action.personal.reserve-reaction"),
+        VoyageCommandKind.PersonalMelee => new("action.personal.melee"),
+        VoyageCommandKind.PersonalRanged => new("action.personal.ranged"),
+        VoyageCommandKind.PersonalSpell => new("action.personal.spell"),
+        VoyageCommandKind.PersonalPsionic => new("action.personal.psionic"),
+        VoyageCommandKind.PersonalEngineering => new("action.personal.engineering"),
+        VoyageCommandKind.PersonalMedicine => new("action.personal.medicine"),
+        VoyageCommandKind.PersonalInteract => new("action.personal.interact"),
+        VoyageCommandKind.PersonalSurrender => new("action.personal.surrender"),
+        VoyageCommandKind.PersonalRetreat => new("action.personal.retreat"),
+        _ => throw new KeyNotFoundException("The command is not a personal action."),
+    };
 
     private bool TryShip(ContentId id, out ShipState? ship)
     {

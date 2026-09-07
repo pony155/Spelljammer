@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 1,
+  "revision": 2,
   "id": "character-resources.standard",
   "nameKey": "character-resources.standard.name",
   "descriptionKey": "character-resources.standard.description",
@@ -15,5 +15,26 @@
   "strainMaximum": 100,
   "strainRecoveryRate": 3,
   "resolveThresholdPercentages": [50, 25, 0],
-  "strainThresholdPercentages": [50, 75, 100]
+  "strainThresholdPercentages": [50, 75, 100],
+  "turnMeterThreshold": 100,
+  "baseTurnMeterGain": 10,
+  "baseActionPoints": 10,
+  "normalTurnMeterGainPercentage": 100,
+  "staminaTurnMeterThresholdPercentages": [50, 25],
+  "staminaTurnMeterGainPercentages": [90, 80],
+  "actionPointCostIds": [
+    "action.personal.defend",
+    "action.personal.engineering",
+    "action.personal.interact",
+    "action.personal.medicine",
+    "action.personal.melee",
+    "action.personal.move",
+    "action.personal.psionic",
+    "action.personal.ranged",
+    "action.personal.reserve-reaction",
+    "action.personal.retreat",
+    "action.personal.spell",
+    "action.personal.surrender"
+  ],
+  "actionPointCosts": [4, 5, 3, 3, 5, 2, 5, 5, 4, 2, 6, 1]
 }

@@ -21,9 +21,9 @@ public static class CampaignSaveVersions
     public const ushort Envelope = 1;
 
     /// <summary>
-    /// Version of the save schema. Version 6 persists the five-resource state and modifier provenance.
+    /// Version of the save schema. Version 7 persists encounter resources and the data-driven turn economy.
     /// </summary>
-    public const ushort SaveSchema = 6;
+    public const ushort SaveSchema = 7;
 
     /// <summary>Version of the world generation algorithm used in this save.</summary>
     public const int WorldGenerator = 1;

@@ -5,9 +5,11 @@
 Milestone 5 implements the first headless combat framework: fixed-tick ship
 orders with tactical pause, continuous fixed-point movement, modular damage,
 and a bounded personal hex encounter with Turn Meters, Action Points, injuries,
-objectives, surrender, and retreat. The WPF host still presents the expedition
-prototype; boarding transitions, EVA, settlements, save serialization, and the
-broader catalog in this document remain planned.
+objectives, surrender, and retreat. Personal actors use the shared five-resource
+state, data-driven stamina speed bands and per-action AP costs, and versioned
+save serialization. The WPF host still presents the expedition prototype;
+boarding transitions, EVA, settlements, threshold statuses, and the broader
+catalog in this document remain planned.
 
 Battle is one possible way to resolve an encounter, not a separate campaign
 genre. Exploration, negotiation, stealth, rescue, sabotage, surrender, and
@@ -127,10 +129,12 @@ owns two separate bounded values:
 
 - **Turn Meter:** determines when that actor becomes Ready. It advances only
   with authoritative combat time. Agility, equipment, injuries, conditions,
-  preparation, and recovery can modify its documented fill rate.
+  preparation, and recovery can modify its documented fill rate. The current
+  base profile also applies data-driven penalties at low Stamina.
 - **Action Points (AP):** determine how much the actor can plan during one
   activation. Moving through cells, attacking, using an item, operating an
-  object, casting, assisting, and changing stance have explicit AP costs.
+  object, casting, assisting, and changing stance have explicit AP costs stored
+  in the active resource-system profile rather than command code.
 
 When an actor's Turn Meter reaches its threshold, the actor enters the Ready
 queue. Equal-tick readiness is ordered by documented priority, then stable
@@ -144,6 +148,10 @@ becomes unable to act, or a declared plan reaches its bounded limit. Unspent AP
 does not carry into the next activation. AP deliberately reserved for a
 reaction remains unavailable to ordinary actions until it is spent or expires
 at that actor's next activation.
+
+The headless command stream exposes `PersonalEndActivation`; it discards the
+remaining AP through `CharacterTurnState.EndActivation` and removes the actor
+from the Ready queue without charging a synthetic resource cost.
 
 Committing a plan does not guarantee every step. Planned actions still prepare,
 validate at their execution boundary, trigger reactions, commit atomically,
@@ -492,6 +500,8 @@ Characters use Health for immediate physical survivability and authored injury
 bands for persistent consequences. Health reaching zero enters incapacitation
 handling; it does not replace superficial, wounded, critical, bleeding,
 fracture, burn, poison, vacuum exposure, psionics shock, or similar injuries.
+Encounter damage updates the actor's shared `CharacterResourceSet`; the old
+encounter-only Health integer is no longer authoritative.
 
 Armor, cover, wards, resistance, and Toughness can reduce or redirect harm when
 their tags apply. Toughness improves endurance and survival; it does not make a
