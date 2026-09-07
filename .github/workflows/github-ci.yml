@@ -33,5 +33,8 @@ jobs:
         with:
           dotnet-version: 10.0.x
 
+      - name: Check C# formatting
+        run: dotnet format .\Spelljammer.slnx --verify-no-changes --verbosity diagnostic
+
       - name: Build solution
         run: dotnet build .\Spelljammer.slnx --configuration Release /p:ContinuousIntegrationBuild=true
