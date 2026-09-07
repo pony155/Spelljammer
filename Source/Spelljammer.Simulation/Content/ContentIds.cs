@@ -2,10 +2,26 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Spelljammer.Simulation.Content;
 
+/// <summary>
+/// A strongly-typed identifier for game content entities.
+/// </summary>
+/// <remarks>
+/// Content IDs follow a strict canonical grammar: lowercase letters and digits separated by dots and hyphens,
+/// with at least 3 characters and at most 127 characters. The format is: namespace.type-variant or similar.
+/// This ensures IDs are human-readable, deterministic, and safe for serialization.
+/// </remarks>
 public readonly record struct ContentId : IComparable<ContentId>
 {
+    /// <summary>
+    /// The maximum allowed length of a content ID string in characters.
+    /// </summary>
     public const int MaximumLength = 127;
 
+    /// <summary>
+    /// Initializes a new content ID from a string value.
+    /// </summary>
+    /// <param name="value">The ID string, which must match the canonical lowercase ASCII grammar.</param>
+    /// <exception cref="ArgumentException">Thrown if <paramref name="value"/> does not conform to the canonical grammar.</exception>
     public ContentId(string value)
     {
         if (!IsCanonical(value))
@@ -16,14 +32,34 @@ public readonly record struct ContentId : IComparable<ContentId>
         Value = value;
     }
 
+    /// <summary>
+    /// Gets the string value of this content ID, or null if the ID is invalid (default struct).
+    /// </summary>
     public string? Value { get; }
 
+    /// <summary>
+    /// Gets a value indicating whether this content ID is valid (not the default value).
+    /// </summary>
     public bool IsValid => Value is not null;
 
+    /// <summary>
+    /// Compares this content ID with another using ordinal string comparison.
+    /// </summary>
+    /// <param name="other">The content ID to compare with.</param>
+    /// <returns>A negative value if this ID is less than <paramref name="other"/>, zero if equal, positive if greater.</returns>
     public int CompareTo(ContentId other) => StringComparer.Ordinal.Compare(Value, other.Value);
 
+    /// <summary>
+    /// Returns the string representation of this content ID.
+    /// </summary>
     public override string ToString() => Value ?? string.Empty;
 
+    /// <summary>
+    /// Attempts to parse a string into a content ID without throwing exceptions.
+    /// </summary>
+    /// <param name="value">The string to parse.</param>
+    /// <param name="id">When this method returns true, contains the parsed content ID; otherwise, the default value.</param>
+    /// <returns>True if the string was successfully parsed as a valid content ID; otherwise, false.</returns>
     public static bool TryParse(string? value, out ContentId id)
     {
         if (IsCanonical(value))
@@ -36,6 +72,19 @@ public readonly record struct ContentId : IComparable<ContentId>
         return false;
     }
 
+    /// <summary>
+    /// Determines whether a string conforms to the canonical content ID grammar.
+    /// </summary>
+    /// <remarks>
+    /// A canonical content ID must:
+    /// - Be between 3 and 127 characters long (inclusive)
+    /// - Contain 2 to 8 dot-separated segments
+    /// - Start each segment with a lowercase letter (a-z)
+    /// - Contain only lowercase letters, digits, and hyphens within segments
+    /// - Not have hyphens adjacent to dots or other hyphens
+    /// </remarks>
+    /// <param name="value">The string to validate.</param>
+    /// <returns>True if the string is a canonical content ID; otherwise, false.</returns>
     public static bool IsCanonical([NotNullWhen(true)] string? value)
     {
         if (value is null || value.Length is < 3 or > MaximumLength)
@@ -94,21 +143,61 @@ public readonly record struct ContentId : IComparable<ContentId>
     }
 }
 
+/// <summary>
+/// A strongly-typed identifier for a character attribute (e.g., Strength, Dexterity).
+/// </summary>
+/// <remarks>
+/// Attribute IDs must have the "attribute." prefix. They are used to reference base character attributes
+/// that affect skills, saving throws, and other mechanics.
+/// </remarks>
 public readonly record struct AttributeId : IComparable<AttributeId>
 {
+    /// <summary>
+    /// Initializes an attribute ID from a content ID that must begin with "attribute.".
+    /// </summary>
+    /// <param name="value">A content ID with the "attribute." prefix.</param>
+    /// <exception cref="ArgumentException">Thrown if the content ID does not have the required prefix.</exception>
     public AttributeId(ContentId value) => Value = TypedContentId.RequirePrefix(value, "attribute.");
+
+    /// <summary>
+    /// Initializes an attribute ID from a string (which must be a valid content ID with the "attribute." prefix).
+    /// </summary>
     public AttributeId(string value) : this(new ContentId(value)) { }
+
+    /// <summary>
+    /// Gets the underlying content ID.
+    /// </summary>
     public ContentId Value { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether this attribute ID is valid.
+    /// </summary>
     public bool IsValid => Value.IsValid;
+
+    /// <summary>
+    /// Compares this attribute ID with another using ordinal content ID comparison.
+    /// </summary>
     public int CompareTo(AttributeId other) => Value.CompareTo(other.Value);
+
+    /// <summary>
+    /// Returns the string representation of this attribute ID.
+    /// </summary>
     public override string ToString() => Value.ToString();
+
+    /// <summary>
+    /// Attempts to parse a string into an attribute ID without throwing exceptions.
+    /// </summary>
     public static bool TryParse(string? value, out AttributeId id) => TypedContentId.TryParse(value, "attribute.", out id);
 }
 
+/// <summary>
+/// A strongly-typed identifier for a character skill.
+/// </summary>
 public readonly record struct SkillId : IComparable<SkillId>
 {
     public SkillId(ContentId value) => Value = TypedContentId.RequirePrefix(value, "skill.");
     public SkillId(string value) : this(new ContentId(value)) { }
+    /// <summary>Gets the underlying content ID.</summary>
     public ContentId Value { get; }
     public bool IsValid => Value.IsValid;
     public int CompareTo(SkillId other) => Value.CompareTo(other.Value);
@@ -116,10 +205,14 @@ public readonly record struct SkillId : IComparable<SkillId>
     public static bool TryParse(string? value, out SkillId id) => TypedContentId.TryParse(value, "skill.", out id);
 }
 
+/// <summary>
+/// A strongly-typed identifier for an access privilege or ability category.
+/// </summary>
 public readonly record struct AccessId : IComparable<AccessId>
 {
     public AccessId(ContentId value) => Value = TypedContentId.RequirePrefix(value, "access.");
     public AccessId(string value) : this(new ContentId(value)) { }
+    /// <summary>Gets the underlying content ID.</summary>
     public ContentId Value { get; }
     public bool IsValid => Value.IsValid;
     public int CompareTo(AccessId other) => Value.CompareTo(other.Value);
@@ -127,6 +220,7 @@ public readonly record struct AccessId : IComparable<AccessId>
     public static bool TryParse(string? value, out AccessId id) => TypedContentId.TryParse(value, "access.", out id);
 }
 
+/// <summary>A strongly-typed identifier for a feat (special ability or achievement).</summary>
 public readonly record struct FeatId : IComparable<FeatId>
 {
     public FeatId(ContentId value) => Value = TypedContentId.RequirePrefix(value, "feat.");
@@ -138,6 +232,7 @@ public readonly record struct FeatId : IComparable<FeatId>
     public static bool TryParse(string? value, out FeatId id) => TypedContentId.TryParse(value, "feat.", out id);
 }
 
+/// <summary>A strongly-typed identifier for a perk (racial or class ability).</summary>
 public readonly record struct PerkId : IComparable<PerkId>
 {
     public PerkId(ContentId value) => Value = TypedContentId.RequirePrefix(value, "perk.");
@@ -149,6 +244,7 @@ public readonly record struct PerkId : IComparable<PerkId>
     public static bool TryParse(string? value, out PerkId id) => TypedContentId.TryParse(value, "perk.", out id);
 }
 
+/// <summary>A strongly-typed identifier for a player character race.</summary>
 public readonly record struct RaceId : IComparable<RaceId>
 {
     public RaceId(ContentId value) => Value = TypedContentId.RequirePrefix(value, "race.");
@@ -160,6 +256,7 @@ public readonly record struct RaceId : IComparable<RaceId>
     public static bool TryParse(string? value, out RaceId id) => TypedContentId.TryParse(value, "race.", out id);
 }
 
+/// <summary>A strongly-typed identifier for a character definition or instance.</summary>
 public readonly record struct CharacterId : IComparable<CharacterId>
 {
     public CharacterId(ContentId value) => Value = TypedContentId.RequirePrefix(value, "character.");
@@ -171,6 +268,7 @@ public readonly record struct CharacterId : IComparable<CharacterId>
     public static bool TryParse(string? value, out CharacterId id) => TypedContentId.TryParse(value, "character.", out id);
 }
 
+/// <summary>A strongly-typed identifier for a character heritage (sub-race variant).</summary>
 public readonly record struct HeritageId : IComparable<HeritageId>
 {
     public HeritageId(ContentId value) => Value = TypedContentId.RequirePrefix(value, "heritage.");
@@ -182,6 +280,7 @@ public readonly record struct HeritageId : IComparable<HeritageId>
     public static bool TryParse(string? value, out HeritageId id) => TypedContentId.TryParse(value, "heritage.", out id);
 }
 
+/// <summary>A strongly-typed identifier for a character background (origin story).</summary>
 public readonly record struct BackgroundId : IComparable<BackgroundId>
 {
     public BackgroundId(ContentId value) => Value = TypedContentId.RequirePrefix(value, "background.");
@@ -193,6 +292,7 @@ public readonly record struct BackgroundId : IComparable<BackgroundId>
     public static bool TryParse(string? value, out BackgroundId id) => TypedContentId.TryParse(value, "background.", out id);
 }
 
+/// <summary>A strongly-typed identifier for a character training project.</summary>
 public readonly record struct TrainingProjectId : IComparable<TrainingProjectId>
 {
     public TrainingProjectId(ContentId value) => Value = TypedContentId.RequirePrefix(value, "training.");
@@ -204,8 +304,11 @@ public readonly record struct TrainingProjectId : IComparable<TrainingProjectId>
     public static bool TryParse(string? value, out TrainingProjectId id) => TypedContentId.TryParse(value, "training.", out id);
 }
 
+/// <summary>A strongly-typed identifier for any technique (combat ability, spell, or psychic power).</summary>
+/// <remarks>This is a union type that accepts technique., spell., or psychic. prefixes.</remarks>
 public readonly record struct TechniqueId : IComparable<TechniqueId>
 {
+    /// <summary>Initializes a technique ID from a content ID with technique, spell, or psychic prefix.</summary>
     public TechniqueId(ContentId value) => Value = HasTechniquePrefix(value)
         ? value
         : throw new ArgumentException("Technique ID must use the technique, spell, or psychic domain.", nameof(value));
@@ -232,6 +335,7 @@ public readonly record struct TechniqueId : IComparable<TechniqueId>
          value.ToString().StartsWith("psychic.", StringComparison.Ordinal));
 }
 
+/// <summary>A strongly-typed identifier for a magical spell.</summary>
 public readonly record struct SpellId : IComparable<SpellId>
 {
     public SpellId(ContentId value) => Value = TypedContentId.RequirePrefix(value, "spell.");
@@ -243,6 +347,7 @@ public readonly record struct SpellId : IComparable<SpellId>
     public static bool TryParse(string? value, out SpellId id) => TypedContentId.TryParse(value, "spell.", out id);
 }
 
+/// <summary>A strongly-typed identifier for a psychic technique.</summary>
 public readonly record struct PsychicTechniqueId : IComparable<PsychicTechniqueId>
 {
     public PsychicTechniqueId(ContentId value) => Value = TypedContentId.RequirePrefix(value, "psychic.");
@@ -254,6 +359,7 @@ public readonly record struct PsychicTechniqueId : IComparable<PsychicTechniqueI
     public static bool TryParse(string? value, out PsychicTechniqueId id) => TypedContentId.TryParse(value, "psychic.", out id);
 }
 
+/// <summary>A strongly-typed identifier for an adventure scenario.</summary>
 public readonly record struct ScenarioId : IComparable<ScenarioId>
 {
     public ScenarioId(ContentId value) => Value = TypedContentId.RequirePrefix(value, "scenario.");
@@ -264,6 +370,7 @@ public readonly record struct ScenarioId : IComparable<ScenarioId>
     public override string ToString() => Value.ToString();
 }
 
+/// <summary>A strongly-typed identifier for a game action or ability.</summary>
 public readonly record struct ActionId : IComparable<ActionId>
 {
     public ActionId(ContentId value) => Value = TypedContentId.RequirePrefix(value, "action.");
@@ -274,6 +381,7 @@ public readonly record struct ActionId : IComparable<ActionId>
     public override string ToString() => Value.ToString();
 }
 
+/// <summary>A strongly-typed identifier for a game resource (fuel, ammo, health, etc.).</summary>
 public readonly record struct ResourceId : IComparable<ResourceId>
 {
     public ResourceId(ContentId value) => Value = TypedContentId.RequirePrefix(value, "resource.");
@@ -284,6 +392,7 @@ public readonly record struct ResourceId : IComparable<ResourceId>
     public override string ToString() => Value.ToString();
 }
 
+/// <summary>A strongly-typed identifier for a game actor (NPC or entity).</summary>
 public readonly record struct ActorId : IComparable<ActorId>
 {
     public ActorId(ContentId value) => Value = TypedContentId.RequirePrefix(value, "actor.");
@@ -294,6 +403,7 @@ public readonly record struct ActorId : IComparable<ActorId>
     public override string ToString() => Value.ToString();
 }
 
+/// <summary>A strongly-typed identifier for a team (group of characters or units).</summary>
 public readonly record struct TeamId : IComparable<TeamId>
 {
     public TeamId(ContentId value) => Value = TypedContentId.RequirePrefix(value, "team.");
@@ -304,6 +414,7 @@ public readonly record struct TeamId : IComparable<TeamId>
     public override string ToString() => Value.ToString();
 }
 
+/// <summary>A strongly-typed identifier for a space object (asteroid, debris, station).</summary>
 public readonly record struct SpaceObjectId : IComparable<SpaceObjectId>
 {
     public SpaceObjectId(ContentId value) => Value = TypedContentId.RequirePrefix(value, "space-object.");
@@ -314,6 +425,7 @@ public readonly record struct SpaceObjectId : IComparable<SpaceObjectId>
     public override string ToString() => Value.ToString();
 }
 
+/// <summary>A strongly-typed identifier for a personal combat board (encounter arena).</summary>
 public readonly record struct PersonalBoardId : IComparable<PersonalBoardId>
 {
     public PersonalBoardId(ContentId value) => Value = TypedContentId.RequirePrefix(value, "board.");
@@ -324,6 +436,7 @@ public readonly record struct PersonalBoardId : IComparable<PersonalBoardId>
     public override string ToString() => Value.ToString();
 }
 
+/// <summary>A strongly-typed identifier for a combat board cell (hex or square).</summary>
 public readonly record struct CellId : IComparable<CellId>
 {
     public CellId(ContentId value) => Value = TypedContentId.RequirePrefix(value, "cell.");
@@ -334,6 +447,7 @@ public readonly record struct CellId : IComparable<CellId>
     public override string ToString() => Value.ToString();
 }
 
+/// <summary>A strongly-typed identifier for a board zone (tactical area).</summary>
 public readonly record struct ZoneId : IComparable<ZoneId>
 {
     public ZoneId(ContentId value) => Value = TypedContentId.RequirePrefix(value, "zone.");
@@ -344,6 +458,7 @@ public readonly record struct ZoneId : IComparable<ZoneId>
     public override string ToString() => Value.ToString();
 }
 
+/// <summary>A strongly-typed identifier for a link between board cells.</summary>
 public readonly record struct LinkId : IComparable<LinkId>
 {
     public LinkId(ContentId value) => Value = TypedContentId.RequirePrefix(value, "link.");
@@ -354,6 +469,7 @@ public readonly record struct LinkId : IComparable<LinkId>
     public override string ToString() => Value.ToString();
 }
 
+/// <summary>A strongly-typed identifier for a combat encounter definition.</summary>
 public readonly record struct EncounterId : IComparable<EncounterId>
 {
     public EncounterId(ContentId value) => Value = TypedContentId.RequirePrefix(value, "encounter.");
@@ -364,6 +480,7 @@ public readonly record struct EncounterId : IComparable<EncounterId>
     public override string ToString() => Value.ToString();
 }
 
+/// <summary>A strongly-typed identifier for a combat or quest objective.</summary>
 public readonly record struct ObjectiveId : IComparable<ObjectiveId>
 {
     public ObjectiveId(ContentId value) => Value = TypedContentId.RequirePrefix(value, "objective.");
@@ -374,6 +491,7 @@ public readonly record struct ObjectiveId : IComparable<ObjectiveId>
     public override string ToString() => Value.ToString();
 }
 
+/// <summary>A strongly-typed identifier for a piece of equipment or gear.</summary>
 public readonly record struct EquipmentId : IComparable<EquipmentId>
 {
     public EquipmentId(ContentId value) => Value = TypedContentId.RequirePrefix(value, "equipment.");
@@ -384,6 +502,7 @@ public readonly record struct EquipmentId : IComparable<EquipmentId>
     public override string ToString() => Value.ToString();
 }
 
+/// <summary>A strongly-typed identifier for a ship instance or definition.</summary>
 public readonly record struct ShipId : IComparable<ShipId>
 {
     public ShipId(ContentId value) => Value = TypedContentId.RequirePrefix(value, "ship.");
@@ -394,6 +513,7 @@ public readonly record struct ShipId : IComparable<ShipId>
     public override string ToString() => Value.ToString();
 }
 
+/// <summary>A strongly-typed identifier for a ship hull frame.</summary>
 public readonly record struct ShipFrameId : IComparable<ShipFrameId>
 {
     public ShipFrameId(ContentId value) => Value = TypedContentId.RequirePrefix(value, "frame.");
@@ -404,6 +524,7 @@ public readonly record struct ShipFrameId : IComparable<ShipFrameId>
     public override string ToString() => Value.ToString();
 }
 
+/// <summary>A strongly-typed identifier for a ship module or subsystem.</summary>
 public readonly record struct ModuleId : IComparable<ModuleId>
 {
     public ModuleId(ContentId value) => Value = TypedContentId.RequirePrefix(value, "module.");
@@ -414,6 +535,7 @@ public readonly record struct ModuleId : IComparable<ModuleId>
     public override string ToString() => Value.ToString();
 }
 
+/// <summary>A strongly-typed identifier for a ship weapon configuration.</summary>
 public readonly record struct ShipWeaponConfigurationId : IComparable<ShipWeaponConfigurationId>
 {
     public ShipWeaponConfigurationId(ContentId value) => Value = TypedContentId.RequirePrefix(value, "ship.weapon.");
@@ -424,6 +546,7 @@ public readonly record struct ShipWeaponConfigurationId : IComparable<ShipWeapon
     public override string ToString() => Value.ToString();
 }
 
+/// <summary>A strongly-typed identifier for a power network or electrical system.</summary>
 public readonly record struct NetworkId : IComparable<NetworkId>
 {
     public NetworkId(ContentId value) => Value = TypedContentId.RequirePrefix(value, "network.");
@@ -434,6 +557,7 @@ public readonly record struct NetworkId : IComparable<NetworkId>
     public override string ToString() => Value.ToString();
 }
 
+/// <summary>A strongly-typed identifier for a ship station or facility.</summary>
 public readonly record struct StationId : IComparable<StationId>
 {
     public StationId(ContentId value) => Value = TypedContentId.RequirePrefix(value, "station.");
@@ -444,6 +568,7 @@ public readonly record struct StationId : IComparable<StationId>
     public override string ToString() => Value.ToString();
 }
 
+/// <summary>A strongly-typed identifier for a ship compartment or room.</summary>
 public readonly record struct CompartmentId : IComparable<CompartmentId>
 {
     public CompartmentId(ContentId value) => Value = TypedContentId.RequirePrefix(value, "compartment.");
@@ -454,6 +579,7 @@ public readonly record struct CompartmentId : IComparable<CompartmentId>
     public override string ToString() => Value.ToString();
 }
 
+/// <summary>A strongly-typed identifier for an instance of a ship module in the world.</summary>
 public readonly record struct ModuleInstanceId : IComparable<ModuleInstanceId>
 {
     public ModuleInstanceId(ContentId value) => Value = TypedContentId.RequirePrefix(value, "module-instance.");
@@ -464,6 +590,7 @@ public readonly record struct ModuleInstanceId : IComparable<ModuleInstanceId>
     public override string ToString() => Value.ToString();
 }
 
+/// <summary>A strongly-typed identifier for a game event trigger or occurrence.</summary>
 public readonly record struct EventId : IComparable<EventId>
 {
     public EventId(ContentId value) => Value = TypedContentId.RequirePrefix(value, "event.");
@@ -474,6 +601,7 @@ public readonly record struct EventId : IComparable<EventId>
     public override string ToString() => Value.ToString();
 }
 
+/// <summary>A strongly-typed identifier for a game effect or status condition.</summary>
 public readonly record struct EffectId : IComparable<EffectId>
 {
     public EffectId(ContentId value) => Value = TypedContentId.RequirePrefix(value, "effect.");
@@ -484,8 +612,21 @@ public readonly record struct EffectId : IComparable<EffectId>
     public override string ToString() => Value.ToString();
 }
 
+/// <summary>
+/// A SHA-256 hash fingerprint used to validate content integrity and detect modifications.
+/// </summary>
+/// <remarks>
+/// Content fingerprints are 64-character lowercase hexadecimal strings representing SHA-256 hashes.
+/// They allow the game to detect if content has been modified or corrupted.
+/// </remarks>
 public readonly record struct ContentFingerprint
 {
+    /// <summary>
+    /// Initializes a content fingerprint from a lowercase hexadecimal SHA-256 hash string.
+    /// </summary>
+    /// <param name="hexadecimal">A 64-character lowercase hexadecimal string representing a SHA-256 hash.</param>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="hexadecimal"/> is null.</exception>
+    /// <exception cref="ArgumentException">Thrown if the string is not exactly 64 characters or contains non-hex characters.</exception>
     public ContentFingerprint(string hexadecimal)
     {
         ArgumentNullException.ThrowIfNull(hexadecimal);
@@ -498,18 +639,47 @@ public readonly record struct ContentFingerprint
         Hexadecimal = hexadecimal;
     }
 
+    /// <summary>
+    /// Gets the hexadecimal representation of the SHA-256 hash, or null if invalid.
+    /// </summary>
     public string? Hexadecimal { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether this fingerprint is valid (not the default value).
+    /// </summary>
     public bool IsValid => Hexadecimal is not null;
+
+    /// <summary>
+    /// Returns the hexadecimal string representation of this fingerprint.
+    /// </summary>
     public override string ToString() => Hexadecimal ?? string.Empty;
 }
 
+/// <summary>
+/// Internal helper for creating and validating typed content IDs with specific prefixes.
+/// </summary>
 file static class TypedContentId
 {
+    /// <summary>
+    /// Validates that a content ID has the required prefix, throwing if not.
+    /// </summary>
+    /// <param name="value">The content ID to validate.</param>
+    /// <param name="prefix">The required prefix (e.g., "attribute.").</param>
+    /// <returns>The validated content ID.</returns>
+    /// <exception cref="ArgumentException">Thrown if the ID does not have the required prefix.</exception>
     public static ContentId RequirePrefix(ContentId value, string prefix) =>
         value.IsValid && value.ToString().StartsWith(prefix, StringComparison.Ordinal)
             ? value
             : throw new ArgumentException($"Content ID must begin with '{prefix}'.", nameof(value));
 
+    /// <summary>
+    /// Attempts to parse a string into a typed content ID with a specific prefix.
+    /// </summary>
+    /// <typeparam name="T">The typed ID struct to create (must have a constructor taking a ContentId).</typeparam>
+    /// <param name="value">The string to parse.</param>
+    /// <param name="prefix">The required prefix for this type.</param>
+    /// <param name="id">When true is returned, contains the parsed typed ID; otherwise, the default value.</param>
+    /// <returns>True if successfully parsed with the correct prefix; otherwise, false.</returns>
     public static bool TryParse<T>(string? value, string prefix, out T id)
         where T : struct
     {
