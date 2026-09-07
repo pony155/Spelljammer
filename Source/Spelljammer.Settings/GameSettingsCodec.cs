@@ -3,8 +3,19 @@ using System.Text.Json.Serialization;
 
 namespace Spelljammer.Settings;
 
+/// <summary>
+/// Provides serialization and deserialization of game settings to and from JSON.
+/// </summary>
+/// <remarks>
+/// This codec handles both current-version settings and legacy version 1 settings, automatically migrating
+/// old settings to the current schema when needed. The codec also validates settings before and after
+/// serialization to ensure integrity and prevent corruption.
+/// </remarks>
 public static class GameSettingsCodec
 {
+    /// <summary>
+    /// The JSON property names used in legacy version 1 settings (without language and resolution).
+    /// </summary>
     private static readonly string[] Version1Properties =
     [
         "schemaVersion",
@@ -17,6 +28,9 @@ public static class GameSettingsCodec
         "uiScalePercent",
     ];
 
+    /// <summary>
+    /// The JSON property names used in the current version of settings.
+    /// </summary>
     private static readonly string[] CurrentProperties =
     [
         .. Version1Properties,
@@ -24,6 +38,9 @@ public static class GameSettingsCodec
         "resolution",
     ];
 
+    /// <summary>
+    /// JSON serializer options configured for settings serialization.
+    /// </summary>
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -33,6 +50,14 @@ public static class GameSettingsCodec
         WriteIndented = true,
     };
 
+    /// <summary>
+    /// Encodes a valid game settings profile to a UTF-8 JSON byte array.
+    /// </summary>
+    /// <param name="profile">The settings profile to encode. Must not be null and must pass <see cref="GameSettingsProfile.IsValid"/>.</param>
+    /// <returns>The UTF-8 encoded JSON representation of the profile.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="profile"/> is null.</exception>
+    /// <exception cref="ArgumentException">Thrown if the profile fails validation checks.</exception>
+    /// <exception cref="InvalidOperationException">Thrown if the encoded bytes exceed <see cref="GameSettingsProfile.MaximumSerializedBytes"/>.</exception>
     public static byte[] Encode(GameSettingsProfile profile)
     {
         ArgumentNullException.ThrowIfNull(profile);
@@ -50,6 +75,19 @@ public static class GameSettingsCodec
         return bytes;
     }
 
+    /// <summary>
+    /// Decodes a UTF-8 JSON byte array into a game settings profile.
+    /// </summary>
+    /// <remarks>
+    /// This method performs extensive validation including:
+    /// - Checking size constraints before parsing
+    /// - Verifying JSON structure and property names
+    /// - Handling legacy version 1 settings with automatic migration
+    /// - Validating all settings values against constraints
+    /// All errors are captured and returned as diagnostic codes rather than exceptions.
+    /// </remarks>
+    /// <param name="bytes">The UTF-8 JSON bytes to decode.</param>
+    /// <returns>A <see cref="GameSettingsReadResult"/> containing the decoded profile (or default if decode failed) and a diagnostic code.</returns>
     public static GameSettingsReadResult Decode(ReadOnlyMemory<byte> bytes)
     {
         if (bytes.Length > GameSettingsProfile.MaximumSerializedBytes)
@@ -114,6 +152,16 @@ public static class GameSettingsCodec
         }
     }
 
+    /// <summary>
+    /// Decodes and migrates legacy version 1 settings to the current schema version.
+    /// </summary>
+    /// <remarks>
+    /// Version 1 settings lacked language and resolution properties. This migration adds default values
+    /// (English and desktop resolution) to make the settings compatible with the current schema.
+    /// </remarks>
+    /// <param name="bytes">The UTF-8 JSON bytes of the version 1 settings.</param>
+    /// <param name="properties">A set of property names found in the JSON document.</param>
+    /// <returns>A <see cref="GameSettingsReadResult"/> containing the migrated profile.</returns>
     private static GameSettingsReadResult DecodeVersion1(ReadOnlySpan<byte> bytes, HashSet<string> properties)
     {
         if (!properties.SetEquals(Version1Properties))
@@ -143,6 +191,17 @@ public static class GameSettingsCodec
             : Failed(GameSettingsDiagnostic.InvalidValue);
     }
 
+    /// <summary>
+    /// Collects all property names from a JSON document, validating that there is exactly one root object
+    /// and no duplicate properties.
+    /// </summary>
+    /// <remarks>
+    /// This method is used to ensure the JSON structure is well-formed before deserializing, helping detect
+    /// corruption or tampering. It validates that the document contains a single root object with no duplicates.
+    /// </remarks>
+    /// <param name="json">The UTF-8 JSON bytes to scan.</param>
+    /// <returns>A set of all property names found in the root object.</returns>
+    /// <exception cref="JsonException">Thrown if the JSON is malformed or contains duplicate properties.</exception>
     private static HashSet<string> CollectProperties(ReadOnlySpan<byte> json)
     {
         Utf8JsonReader reader = new(json, new JsonReaderOptions
@@ -187,6 +246,13 @@ public static class GameSettingsCodec
         return rootProperties;
     }
 
+    /// <summary>
+    /// Represents the legacy version 1 settings format used by older game versions.
+    /// </summary>
+    /// <remarks>
+    /// Version 1 lacked the <c>language</c> and <c>resolution</c> properties that are required by the
+    /// current schema. This type is used only for deserialization and migration purposes.
+    /// </remarks>
     private sealed record Version1Profile(
         int SchemaVersion,
         int MasterVolume,
@@ -197,6 +263,11 @@ public static class GameSettingsCodec
         bool ScreenShake,
         int UiScalePercent);
 
+    /// <summary>
+    /// Creates a failed read result with the default settings profile and the given diagnostic code.
+    /// </summary>
+    /// <param name="diagnostic">The diagnostic code indicating why the read failed.</param>
+    /// <returns>A <see cref="GameSettingsReadResult"/> with <see cref="GameSettingsReadResult.Loaded"/> set to false.</returns>
     private static GameSettingsReadResult Failed(GameSettingsDiagnostic diagnostic) =>
         new(GameSettingsProfile.Default, false, diagnostic);
 }
