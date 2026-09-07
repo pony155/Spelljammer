@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "locale": "en-US",
+  "namespace": "command",
+  "fallbacks": [],
+  "textDirection": "ltr",
+  "messages": {
+    "command.action-unknown": {
+      "description": "Disabled action reason.",
+      "message": "That action is unavailable in the active content."
+    },
+    "command.actor-missing": {
+      "description": "Disabled action reason.",
+      "message": "The acting crew member is unavailable."
+    },
+    "command.actor-cannot-act": {
+      "description": "Disabled action reason.",
+      "message": "The crew member cannot act right now."
+    },
+    "command.target-missing": {
+      "description": "Disabled action reason.",
+      "message": "A target is required."
+    },
+    "command.target-illegal": {
+      "description": "Disabled action reason.",
+      "message": "That target is not legal for this action."
+    },
+    "command.access-required": {
+      "description": "Disabled action reason.",
+      "message": "A required capability access grant is missing."
+    },
+    "command.technique-unknown": {
+      "description": "Disabled action reason.",
+      "message": "The crew member does not know the required technique."
+    },
+    "command.skill-required": {
+      "description": "Disabled action reason.",
+      "message": "The required skill is too low."
+    },
+    "command.attribute-required": {
+      "description": "Disabled action reason.",
+      "message": "The required attribute is too low."
+    },
+    "command.equipment-required": {
+      "description": "Disabled action reason.",
+      "message": "Required equipment is missing."
+    },
+    "command.context-required": {
+      "description": "Disabled action reason.",
+      "message": "The current situation does not permit this action."
+    },
+    "command.resource-insufficient": {
+      "description": "Disabled action reason.",
+      "message": "The required resource is insufficient."
+    },
+    "command.content-mismatch": {
+      "description": "Disabled action reason.",
+      "message": "This character belongs to a different content revision."
+    },
+    "command.queue-capacity": {
+      "description": "Disabled action reason.",
+      "message": "The bounded action queue is full."
+    },
+    "command.training-already-started": {
+      "description": "Training rejection reason.",
+      "message": "That training project is already active."
+    },
+    "command.training-not-started": {
+      "description": "Training rejection reason.",
+      "message": "That training project has not been started."
+    },
+    "command.training-facility-required": {
+      "description": "Training rejection reason.",
+      "message": "The required training facility is unavailable."
+    },
+    "command.training-safety-required": {
+      "description": "Training rejection reason.",
+      "message": "The required training safety provision is unavailable."
+    },
+    "command.training-work-invalid": {
+      "description": "Training rejection reason.",
+      "message": "That training contribution exceeds the project limits."
+    },
+    "command.training-incomplete": {
+      "description": "Training rejection reason.",
+      "message": "The training project is not ready to complete."
+    },
+    "command.action-phase-invalid": {
+      "description": "Supernatural action rejection reason.",
+      "message": "That action is not in the required phase."
+    },
+    "command.action-not-channeled": {
+      "description": "Spell interruption rejection reason.",
+      "message": "Only a channeled spell can be interrupted."
+    },
+    "command.consent-required": {
+      "description": "Psychic contact rejection reason.",
+      "message": "The target must accept this psychic contact first."
+    },
+    "command.consent-owner-required": {
+      "description": "Psychic consent rejection reason.",
+      "message": "Only the consenting target can revoke this link."
+    }
+  }
+}

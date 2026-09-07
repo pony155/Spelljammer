@@ -1,0 +1,1 @@
+{"schemaVersion":1,"revision":1,"id":"skill.defense","nameKey":"skill.defense.name","descriptionKey":"skill.defense.description","minimum":0,"maximum":100,"progressionCurveId":"progression.skill.standard","actionTags":[]}

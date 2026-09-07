@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "locale": "en-US",
+  "namespace": "access",
+  "fallbacks": [],
+  "textDirection": "ltr",
+  "messages": {
+    "access.magic.name": {
+      "description": "Magical Access display name.",
+      "message": "Magical Access"
+    },
+    "access.magic.description": {
+      "description": "Magical Access summary.",
+      "message": "Permission to learn and use explicitly known magical techniques."
+    },
+    "access.psionics.name": {
+      "description": "Psionic Access display name.",
+      "message": "Psionic Access"
+    },
+    "access.psionics.description": {
+      "description": "Psionic Access summary.",
+      "message": "Permission to learn and use explicitly known psychic techniques."
+    }
+  }
+}

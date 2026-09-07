@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "locale": "en-US",
+  "namespace": "psychic",
+  "fallbacks": [],
+  "textDirection": "ltr",
+  "messages": {
+    "psychic.contact.mindlink.name": {
+      "description": "Mindlink display name.",
+      "message": "Mindlink"
+    },
+    "psychic.contact.mindlink.description": {
+      "description": "Mindlink summary.",
+      "message": "Open a consensual near-range channel for deliberate messages."
+    }
+  }
+}

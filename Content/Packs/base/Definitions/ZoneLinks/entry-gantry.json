@@ -1,0 +1,1 @@
+{"schemaVersion":1,"revision":1,"id":"link.ruin.entry-gantry","nameKey":"link.ruin.entry-gantry.name","descriptionKey":"link.ruin.entry-gantry.description","fromCellId":"cell.ruin.entry","toCellId":"cell.ruin.gantry","accessId":"traversal.open","oneWay":0,"allowsRetreat":1}

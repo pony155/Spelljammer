@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "locale": "fr-FR",
+  "namespace": "menu",
+  "fallbacks": ["en-US"],
+  "textDirection": "ltr",
+  "messages": {
+    "menu.accessibility.main": {
+      "description": "Nom accessible du menu principal.",
+      "message": "Menu principal"
+    },
+    "menu.accessibility.status": {
+      "description": "Nom accessible du message d’état du menu principal.",
+      "message": "État du menu principal"
+    },
+    "menu.button.quit": {
+      "description": "Bouton qui ferme l’application.",
+      "message": "Quitter le jeu"
+    },
+    "menu.button.new-game": {
+      "description": "Bouton qui ouvre la création de personnage pour un nouveau voyage.",
+      "message": "Nouvelle partie"
+    },
+    "menu.button.settings": {
+      "description": "Bouton qui ouvre les paramètres du jeu.",
+      "message": "Paramètres du jeu"
+    },
+    "menu.subtitle": {
+      "description": "Brève description du jeu dans le menu principal.",
+      "message": "Un bac à sable spatial parmi les étoiles"
+    },
+    "menu.title": {
+      "description": "Titre du jeu dans le menu principal.",
+      "message": "Spelljammer"
+    },
+    "menu.version": {
+      "description": "Version de l’application affichée en bas à droite du menu principal.",
+      "arguments": {
+        "version": "text"
+      },
+      "message": "Version {version}"
+    },
+    "menu.window-title": {
+      "description": "Titre système de la fenêtre du menu principal.",
+      "message": "Spelljammer"
+    }
+  }
+}

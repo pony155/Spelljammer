@@ -1,0 +1,10 @@
+<Project>
+
+  <ItemGroup Condition="'$(CopySpriteForgeNativeRuntime)' == 'true' and Exists('$(SpriteForgeNativeDir)')">
+    <None Include="$(SpriteForgeNativeDir)\*.dll"
+          Link="%(Filename)%(Extension)"
+          CopyToOutputDirectory="PreserveNewest"
+          CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

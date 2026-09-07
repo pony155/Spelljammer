@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "locale": "en-US",
+  "namespace": "equipment",
+  "fallbacks": [],
+  "textDirection": "ltr",
+  "messages": {
+    "equipment.personal.boarding-blade.name": { "description": "Boarding blade display name.", "message": "Boarding Blade" },
+    "equipment.personal.boarding-blade.description": { "description": "Boarding blade summary.", "message": "A close-quarters blade made for cramped decks." },
+    "equipment.personal.service-pistol.name": { "description": "Service pistol display name.", "message": "Service Pistol" },
+    "equipment.personal.service-pistol.description": { "description": "Service pistol summary.", "message": "A dependable six-shot sidearm." },
+    "equipment.personal.pressure-suit.name": { "description": "Pressure suit display name.", "message": "Pressure Suit" },
+    "equipment.personal.pressure-suit.description": { "description": "Pressure suit summary.", "message": "Protective clothing for thin air and flying debris." },
+    "equipment.personal.field-medkit.name": { "description": "Field medkit display name.", "message": "Field Medkit" },
+    "equipment.personal.field-medkit.description": { "description": "Field medkit summary.", "message": "Three bounded charges for stabilizing injuries." },
+    "equipment.personal.casting-focus.name": { "description": "Casting focus display name.", "message": "Casting Focus" },
+    "equipment.personal.casting-focus.description": { "description": "Casting focus summary.", "message": "A relic that channels a limited reserve of Focus." }
+  }
+}

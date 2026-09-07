@@ -1,0 +1,181 @@
+{
+  "schemaVersion": 1,
+  "locale": "zh-Hant-TW",
+  "namespace": "settings",
+  "fallbacks": ["en-US"],
+  "textDirection": "ltr",
+  "messages": {
+    "settings.accessibility.dialog": {
+      "description": "設定模態介面的無障礙名稱。",
+      "message": "遊戲設定對話框"
+    },
+    "settings.accessibility.description": {
+      "description": "設定說明文字的無障礙名稱。",
+      "message": "設定說明"
+    },
+    "settings.accessibility.option": {
+      "description": "包含設定名稱與所選選項的無障礙名稱。",
+      "arguments": {
+        "setting": "text",
+        "value": "text"
+      },
+      "message": "{setting}：{value}"
+    },
+    "settings.accessibility.status": {
+      "description": "設定狀態區域的無障礙名稱。",
+      "message": "設定狀態"
+    },
+    "settings.accessibility.value": {
+      "description": "滑桿數值無障礙名稱的後綴。",
+      "arguments": {
+        "setting": "text"
+      },
+      "message": "{setting}的值"
+    },
+    "settings.button.apply": {
+      "description": "套用按鈕標籤。",
+      "message": "套用"
+    },
+    "settings.button.cancel": {
+      "description": "取消按鈕標籤。",
+      "message": "取消"
+    },
+    "settings.button.open": {
+      "description": "開啟遊戲設定的按鈕。",
+      "message": "遊戲設定"
+    },
+    "settings.button.reset": {
+      "description": "重設按鈕標籤。",
+      "message": "重設"
+    },
+    "settings.heading.accessibility": {
+      "description": "介面與無障礙區段標題。",
+      "message": "介面與無障礙"
+    },
+    "settings.heading.audio": {
+      "description": "音訊區段標題。",
+      "message": "音訊"
+    },
+    "settings.heading.display": {
+      "description": "顯示與語言區段標題。",
+      "message": "顯示與語言"
+    },
+    "settings.introduction": {
+      "description": "顯示於設定頂端的說明。",
+      "message": "玩家偏好設定僅儲存在本機，絕不會改變確定性的航行結果。"
+    },
+    "settings.label.effects-volume": {
+      "description": "效果音量設定標籤。",
+      "message": "效果音量"
+    },
+    "settings.label.interface-scale": {
+      "description": "介面縮放設定標籤。",
+      "message": "介面縮放"
+    },
+    "settings.label.language": {
+      "description": "語言設定標籤。",
+      "message": "語言"
+    },
+    "settings.label.master-volume": {
+      "description": "主音量設定標籤。",
+      "message": "主音量"
+    },
+    "settings.label.music-volume": {
+      "description": "音樂音量設定標籤。",
+      "message": "音樂音量"
+    },
+    "settings.label.reduced-motion": {
+      "description": "減少動態效果設定標籤。",
+      "message": "減少動態效果"
+    },
+    "settings.label.resolution": {
+      "description": "顯示解析度設定標籤。",
+      "message": "解析度"
+    },
+    "settings.label.screen-shake": {
+      "description": "畫面震動設定標籤。",
+      "message": "畫面震動"
+    },
+    "settings.label.subtitles": {
+      "description": "字幕設定標籤。",
+      "message": "字幕"
+    },
+    "settings.state.off": {
+      "description": "切換選項的停用值。",
+      "message": "關"
+    },
+    "settings.state.on": {
+      "description": "切換選項的啟用值。",
+      "message": "開"
+    },
+    "settings.status.load-failed": {
+      "description": "無法載入設定時的啟動警告。",
+      "arguments": {
+        "code": "text"
+      },
+      "message": "無法載入設定（{code}）；目前使用安全的預設值。"
+    },
+    "settings.status.ready": {
+      "description": "設定對話框的初始狀態。",
+      "message": "變更會顯示於此，只有成功套用後才會儲存。"
+    },
+    "settings.status.reset": {
+      "description": "重設對話框草稿後的狀態。",
+      "message": "已還原此對話框中的預設值。請選擇「套用」以儲存。"
+    },
+    "settings.status.save-failed": {
+      "description": "設定寫入失敗時的狀態。",
+      "arguments": {
+        "code": "text"
+      },
+      "message": "無法儲存設定（{code}）。先前的設定仍然有效。"
+    },
+    "settings.status.saved": {
+      "description": "設定成功保存後的狀態。",
+      "message": "遊戲設定已驗證並儲存。"
+    },
+    "settings.status.saving": {
+      "description": "正在保存設定時的狀態。",
+      "message": "正在儲存並驗證設定……"
+    },
+    "settings.title": {
+      "description": "設定對話框標題。",
+      "message": "遊戲設定"
+    },
+    "settings.title.window": {
+      "description": "設定視窗的系統標題。",
+      "message": "Spelljammer — 遊戲設定"
+    },
+    "settings.value.language.en-us": {
+      "description": "英文語言選項的名稱。",
+      "message": "英文"
+    },
+    "settings.value.language.fr-fr": {
+      "description": "法文語言選項的名稱。",
+      "message": "法文"
+    },
+    "settings.value.language.zh-hant-tw": {
+      "description": "繁體中文語言選項的名稱。",
+      "message": "繁體中文"
+    },
+    "settings.value.percent": {
+      "description": "顯示於滑桿旁的整數百分比。",
+      "arguments": {
+        "value": "integer"
+      },
+      "message": "{value, number}%"
+    },
+    "settings.value.resolution.desktop": {
+      "description": "使用桌面工作區域的解析度選項。",
+      "message": "桌面"
+    },
+    "settings.value.resolution.pixels": {
+      "description": "固定顯示解析度選項。",
+      "arguments": {
+        "width": "integer",
+        "height": "integer"
+      },
+      "message": "{width, number} × {height, number}"
+    }
+  }
+}

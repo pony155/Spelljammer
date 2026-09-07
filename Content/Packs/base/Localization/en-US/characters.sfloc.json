@@ -1,0 +1,97 @@
+{
+  "schemaVersion": 1,
+  "locale": "en-US",
+  "namespace": "character",
+  "fallbacks": [],
+  "textDirection": "ltr",
+  "messages": {
+    "character.first-voyage.human.name": {
+      "description": "Human Captain display name.",
+      "message": "Human Captain"
+    },
+    "character.first-voyage.human.description": {
+      "description": "Human Captain summary.",
+      "message": "An authored first-voyage Human crew member."
+    },
+    "character.first-voyage.elf.name": {
+      "description": "Elf Navigator display name.",
+      "message": "Elf Navigator"
+    },
+    "character.first-voyage.elf.description": {
+      "description": "Elf Navigator summary.",
+      "message": "An authored first-voyage Elf crew member."
+    },
+    "character.first-voyage.half-elf.name": {
+      "description": "Half-elf Envoy display name.",
+      "message": "Half-elf Envoy"
+    },
+    "character.first-voyage.half-elf.description": {
+      "description": "Half-elf Envoy summary.",
+      "message": "An authored first-voyage Half-elf crew member."
+    },
+    "character.first-voyage.dwarf.name": {
+      "description": "Dwarf Engineer display name.",
+      "message": "Dwarf Engineer"
+    },
+    "character.first-voyage.dwarf.description": {
+      "description": "Dwarf Engineer summary.",
+      "message": "An authored first-voyage Dwarf crew member."
+    },
+    "character.first-voyage.orc.name": {
+      "description": "Orc Bosun display name.",
+      "message": "Orc Bosun"
+    },
+    "character.first-voyage.orc.description": {
+      "description": "Orc Bosun summary.",
+      "message": "An authored first-voyage Orc crew member."
+    },
+    "character.first-voyage.gnome.name": {
+      "description": "Gnome Technician display name.",
+      "message": "Gnome Technician"
+    },
+    "character.first-voyage.gnome.description": {
+      "description": "Gnome Technician summary.",
+      "message": "An authored first-voyage Gnome crew member."
+    },
+    "character.first-voyage.goblin.name": {
+      "description": "Goblin Salvager display name.",
+      "message": "Goblin Salvager"
+    },
+    "character.first-voyage.goblin.description": {
+      "description": "Goblin Salvager summary.",
+      "message": "An authored first-voyage Goblin crew member."
+    },
+    "character.first-voyage.somnari.name": {
+      "description": "Somnari Medic display name.",
+      "message": "Somnari Medic"
+    },
+    "character.first-voyage.somnari.description": {
+      "description": "Somnari Medic summary.",
+      "message": "An authored first-voyage Somnari crew member."
+    },
+    "character.first-voyage.veyr.name": {
+      "description": "Veyr Steward display name.",
+      "message": "Veyr Steward"
+    },
+    "character.first-voyage.veyr.description": {
+      "description": "Veyr Steward summary.",
+      "message": "An authored first-voyage Veyr crew member."
+    },
+    "character.first-voyage.eidolon.name": {
+      "description": "Eidolon Enchanter display name.",
+      "message": "Eidolon Enchanter"
+    },
+    "character.first-voyage.eidolon.description": {
+      "description": "Eidolon Enchanter summary.",
+      "message": "An authored first-voyage Eidolon crew member."
+    },
+    "character.first-voyage.tharun.name": {
+      "description": "Tharun Scout display name.",
+      "message": "Tharun Scout"
+    },
+    "character.first-voyage.tharun.description": {
+      "description": "Tharun Scout summary.",
+      "message": "An authored first-voyage Tharun crew member."
+    }
+  }
+}

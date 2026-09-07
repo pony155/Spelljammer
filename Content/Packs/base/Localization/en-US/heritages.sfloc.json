@@ -1,0 +1,97 @@
+{
+  "schemaVersion": 1,
+  "locale": "en-US",
+  "namespace": "heritage",
+  "fallbacks": [],
+  "textDirection": "ltr",
+  "messages": {
+    "heritage.human.hearthworld.name": {
+      "description": "Hearthworld display name.",
+      "message": "Hearthworld"
+    },
+    "heritage.human.hearthworld.description": {
+      "description": "Hearthworld summary.",
+      "message": "The first-slice Hearthworld heritage for Human characters."
+    },
+    "heritage.elf.dawnweave.name": {
+      "description": "Dawnweave display name.",
+      "message": "Dawnweave"
+    },
+    "heritage.elf.dawnweave.description": {
+      "description": "Dawnweave summary.",
+      "message": "The first-slice Dawnweave heritage for Elf characters."
+    },
+    "heritage.half-elf.concord.name": {
+      "description": "Concord display name.",
+      "message": "Concord"
+    },
+    "heritage.half-elf.concord.description": {
+      "description": "Concord summary.",
+      "message": "The first-slice Concord heritage for Half-elf characters."
+    },
+    "heritage.dwarf.cometdelver.name": {
+      "description": "Cometdelver display name.",
+      "message": "Cometdelver"
+    },
+    "heritage.dwarf.cometdelver.description": {
+      "description": "Cometdelver summary.",
+      "message": "The first-slice Cometdelver heritage for Dwarf characters."
+    },
+    "heritage.orc.redwake.name": {
+      "description": "Redwake display name.",
+      "message": "Redwake"
+    },
+    "heritage.orc.redwake.description": {
+      "description": "Redwake summary.",
+      "message": "The first-slice Redwake heritage for Orc characters."
+    },
+    "heritage.gnome.coilwhisper.name": {
+      "description": "Coilwhisper display name.",
+      "message": "Coilwhisper"
+    },
+    "heritage.gnome.coilwhisper.description": {
+      "description": "Coilwhisper summary.",
+      "message": "The first-slice Coilwhisper heritage for Gnome characters."
+    },
+    "heritage.goblin.hullrunner.name": {
+      "description": "Hullrunner display name.",
+      "message": "Hullrunner"
+    },
+    "heritage.goblin.hullrunner.description": {
+      "description": "Hullrunner summary.",
+      "message": "The first-slice Hullrunner heritage for Goblin characters."
+    },
+    "heritage.somnari.chorusborn.name": {
+      "description": "Chorusborn display name.",
+      "message": "Chorusborn"
+    },
+    "heritage.somnari.chorusborn.description": {
+      "description": "Chorusborn summary.",
+      "message": "The first-slice Chorusborn heritage for Somnari characters."
+    },
+    "heritage.veyr.crimson-court.name": {
+      "description": "Crimson Court display name.",
+      "message": "Crimson Court"
+    },
+    "heritage.veyr.crimson-court.description": {
+      "description": "Crimson Court summary.",
+      "message": "The first-slice Crimson Court heritage for Veyr characters."
+    },
+    "heritage.eidolon.reliquary-bound.name": {
+      "description": "Reliquary-Bound display name.",
+      "message": "Reliquary-Bound"
+    },
+    "heritage.eidolon.reliquary-bound.description": {
+      "description": "Reliquary-Bound summary.",
+      "message": "The first-slice Reliquary-Bound heritage for Eidolon characters."
+    },
+    "heritage.tharun.startrail.name": {
+      "description": "Startrail display name.",
+      "message": "Startrail"
+    },
+    "heritage.tharun.startrail.description": {
+      "description": "Startrail summary.",
+      "message": "The first-slice Startrail heritage for Tharun characters."
+    }
+  }
+}

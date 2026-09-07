@@ -1,0 +1,1 @@
+{"schemaVersion":1,"revision":1,"id":"link.ruin.sanctum-extraction","nameKey":"link.ruin.sanctum-extraction.name","descriptionKey":"link.ruin.sanctum-extraction.description","fromCellId":"cell.ruin.sanctum","toCellId":"cell.ruin.extraction","accessId":"traversal.open","oneWay":0,"allowsRetreat":1}

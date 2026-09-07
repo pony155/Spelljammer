@@ -1,0 +1,1 @@
+{"schemaVersion":1,"revision":1,"id":"perk.race.eidolon.soul-anchor","nameKey":"perk.race.eidolon.soul-anchor.name","descriptionKey":"perk.race.eidolon.soul-anchor.description","compatibleRaceIds":["race.eidolon"],"grantedAccessIds":[],"grantedTechniqueIds":["technique.recovery.soul-reconstitution"],"effectIds":["effect.recovery.soul-anchor"]}

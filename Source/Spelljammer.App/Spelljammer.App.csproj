@@ -1,0 +1,59 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <PlatformTarget>x64</PlatformTarget>
+    <UseWPF>true</UseWPF>
+    <VersionPrefix>0.1.0</VersionPrefix>
+    <CopySpriteForgeNativeRuntime>true</CopySpriteForgeNativeRuntime>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Spelljammer.Localization\Spelljammer.Localization.csproj" />
+    <ProjectReference Include="..\Spelljammer.Settings\Spelljammer.Settings.csproj" />
+    <ProjectReference Include="..\Spelljammer.Simulation\Spelljammer.Simulation.csproj" />
+    <ProjectReference Include="..\..\Tools\Spelljammer.Localization.Compiler\Spelljammer.Localization.Compiler.csproj"
+                      ReferenceOutputAssembly="false"
+                      PrivateAssets="all" />
+    <EmbeddedResource Include="$(IntermediateOutputPath)Localization\en-US\menu.sfloc"
+                      LogicalName="Spelljammer.Localization.en-US.menu.sfloc" />
+    <EmbeddedResource Include="$(IntermediateOutputPath)Localization\en-US\settings.sfloc"
+                      LogicalName="Spelljammer.Localization.en-US.settings.sfloc" />
+    <EmbeddedResource Include="$(IntermediateOutputPath)Localization\en-US\creation.sfloc"
+                      LogicalName="Spelljammer.Localization.en-US.creation.sfloc" />
+    <EmbeddedResource Include="$(IntermediateOutputPath)Localization\fr-FR\menu.sfloc"
+                      LogicalName="Spelljammer.Localization.fr-FR.menu.sfloc" />
+    <EmbeddedResource Include="$(IntermediateOutputPath)Localization\fr-FR\settings.sfloc"
+                      LogicalName="Spelljammer.Localization.fr-FR.settings.sfloc" />
+    <EmbeddedResource Include="$(IntermediateOutputPath)Localization\fr-FR\creation.sfloc"
+                      LogicalName="Spelljammer.Localization.fr-FR.creation.sfloc" />
+    <EmbeddedResource Include="$(IntermediateOutputPath)Localization\zh-Hant-TW\menu.sfloc"
+                      LogicalName="Spelljammer.Localization.zh-Hant-TW.menu.sfloc" />
+    <EmbeddedResource Include="$(IntermediateOutputPath)Localization\zh-Hant-TW\settings.sfloc"
+                      LogicalName="Spelljammer.Localization.zh-Hant-TW.settings.sfloc" />
+    <EmbeddedResource Include="$(IntermediateOutputPath)Localization\zh-Hant-TW\creation.sfloc"
+                      LogicalName="Spelljammer.Localization.zh-Hant-TW.creation.sfloc" />
+    <Resource Include="..\..\Content\Packs\base\Assets\UI\MainMenu\Background.png"
+              Link="Assets\UI\MainMenu\Background.png" />
+  </ItemGroup>
+
+  <Target Name="CompileApplicationLocalizationCatalogs"
+          BeforeTargets="CoreCompile"
+          Inputs="$(MSBuildProjectDirectory)\..\..\Content\Packs\base\Localization\en-US\menu.sfloc.json;$(MSBuildProjectDirectory)\..\..\Content\Packs\base\Localization\en-US\settings.sfloc.json;$(MSBuildProjectDirectory)\..\..\Content\Packs\base\Localization\en-US\creation.sfloc.json;$(MSBuildProjectDirectory)\..\..\Content\Packs\base\Localization\fr-FR\menu.sfloc.json;$(MSBuildProjectDirectory)\..\..\Content\Packs\base\Localization\fr-FR\settings.sfloc.json;$(MSBuildProjectDirectory)\..\..\Content\Packs\base\Localization\fr-FR\creation.sfloc.json;$(MSBuildProjectDirectory)\..\..\Content\Packs\base\Localization\zh-Hant-TW\menu.sfloc.json;$(MSBuildProjectDirectory)\..\..\Content\Packs\base\Localization\zh-Hant-TW\settings.sfloc.json;$(MSBuildProjectDirectory)\..\..\Content\Packs\base\Localization\zh-Hant-TW\creation.sfloc.json"
+          Outputs="$(IntermediateOutputPath)Localization\en-US\menu.sfloc;$(IntermediateOutputPath)Localization\en-US\settings.sfloc;$(IntermediateOutputPath)Localization\en-US\creation.sfloc;$(IntermediateOutputPath)Localization\fr-FR\menu.sfloc;$(IntermediateOutputPath)Localization\fr-FR\settings.sfloc;$(IntermediateOutputPath)Localization\fr-FR\creation.sfloc;$(IntermediateOutputPath)Localization\zh-Hant-TW\menu.sfloc;$(IntermediateOutputPath)Localization\zh-Hant-TW\settings.sfloc;$(IntermediateOutputPath)Localization\zh-Hant-TW\creation.sfloc">
+    <MakeDir Directories="$(IntermediateOutputPath)Localization\en-US" />
+    <MakeDir Directories="$(IntermediateOutputPath)Localization\fr-FR" />
+    <MakeDir Directories="$(IntermediateOutputPath)Localization\zh-Hant-TW" />
+    <Exec Command="dotnet &quot;$(MSBuildProjectDirectory)\..\..\Tools\Spelljammer.Localization.Compiler\bin\$(Configuration)\net10.0\Spelljammer.Localization.Compiler.dll&quot; compile &quot;$(MSBuildProjectDirectory)\..\..\Content\Packs\base\Localization\en-US\menu.sfloc.json&quot; &quot;$(IntermediateOutputPath)Localization\en-US\menu.sfloc&quot;" />
+    <Exec Command="dotnet &quot;$(MSBuildProjectDirectory)\..\..\Tools\Spelljammer.Localization.Compiler\bin\$(Configuration)\net10.0\Spelljammer.Localization.Compiler.dll&quot; compile &quot;$(MSBuildProjectDirectory)\..\..\Content\Packs\base\Localization\en-US\settings.sfloc.json&quot; &quot;$(IntermediateOutputPath)Localization\en-US\settings.sfloc&quot;" />
+    <Exec Command="dotnet &quot;$(MSBuildProjectDirectory)\..\..\Tools\Spelljammer.Localization.Compiler\bin\$(Configuration)\net10.0\Spelljammer.Localization.Compiler.dll&quot; compile &quot;$(MSBuildProjectDirectory)\..\..\Content\Packs\base\Localization\en-US\creation.sfloc.json&quot; &quot;$(IntermediateOutputPath)Localization\en-US\creation.sfloc&quot;" />
+    <Exec Command="dotnet &quot;$(MSBuildProjectDirectory)\..\..\Tools\Spelljammer.Localization.Compiler\bin\$(Configuration)\net10.0\Spelljammer.Localization.Compiler.dll&quot; compile &quot;$(MSBuildProjectDirectory)\..\..\Content\Packs\base\Localization\fr-FR\menu.sfloc.json&quot; &quot;$(IntermediateOutputPath)Localization\fr-FR\menu.sfloc&quot;" />
+    <Exec Command="dotnet &quot;$(MSBuildProjectDirectory)\..\..\Tools\Spelljammer.Localization.Compiler\bin\$(Configuration)\net10.0\Spelljammer.Localization.Compiler.dll&quot; compile &quot;$(MSBuildProjectDirectory)\..\..\Content\Packs\base\Localization\fr-FR\settings.sfloc.json&quot; &quot;$(IntermediateOutputPath)Localization\fr-FR\settings.sfloc&quot;" />
+    <Exec Command="dotnet &quot;$(MSBuildProjectDirectory)\..\..\Tools\Spelljammer.Localization.Compiler\bin\$(Configuration)\net10.0\Spelljammer.Localization.Compiler.dll&quot; compile &quot;$(MSBuildProjectDirectory)\..\..\Content\Packs\base\Localization\fr-FR\creation.sfloc.json&quot; &quot;$(IntermediateOutputPath)Localization\fr-FR\creation.sfloc&quot;" />
+    <Exec Command="dotnet &quot;$(MSBuildProjectDirectory)\..\..\Tools\Spelljammer.Localization.Compiler\bin\$(Configuration)\net10.0\Spelljammer.Localization.Compiler.dll&quot; compile &quot;$(MSBuildProjectDirectory)\..\..\Content\Packs\base\Localization\zh-Hant-TW\menu.sfloc.json&quot; &quot;$(IntermediateOutputPath)Localization\zh-Hant-TW\menu.sfloc&quot;" />
+    <Exec Command="dotnet &quot;$(MSBuildProjectDirectory)\..\..\Tools\Spelljammer.Localization.Compiler\bin\$(Configuration)\net10.0\Spelljammer.Localization.Compiler.dll&quot; compile &quot;$(MSBuildProjectDirectory)\..\..\Content\Packs\base\Localization\zh-Hant-TW\settings.sfloc.json&quot; &quot;$(IntermediateOutputPath)Localization\zh-Hant-TW\settings.sfloc&quot;" />
+    <Exec Command="dotnet &quot;$(MSBuildProjectDirectory)\..\..\Tools\Spelljammer.Localization.Compiler\bin\$(Configuration)\net10.0\Spelljammer.Localization.Compiler.dll&quot; compile &quot;$(MSBuildProjectDirectory)\..\..\Content\Packs\base\Localization\zh-Hant-TW\creation.sfloc.json&quot; &quot;$(IntermediateOutputPath)Localization\zh-Hant-TW\creation.sfloc&quot;" />
+  </Target>
+
+</Project>

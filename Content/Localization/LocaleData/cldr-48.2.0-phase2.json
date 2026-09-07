@@ -1,0 +1,19 @@
+{
+  "dataVersion": "CLDR-48.2.0",
+  "license": "Unicode-3.0",
+  "source": "https://cldr.unicode.org/index/downloads",
+  "tableHash": "bb8b91669fa8c4c07974c07bff22bccd54080ededdfb9906e377340a9c801c1a",
+  "scope": "Reviewed Phase 2 decimal, percent, cardinal, and ordinal profiles only",
+  "profiles": {
+    "en": "Latin digits; comma grouping; period decimal; English cardinal and ordinal rules",
+    "fr": "Latin digits; narrow no-break-space grouping; comma decimal; French cardinal rules",
+    "ru": "Latin digits; no-break-space grouping; comma decimal; Russian cardinal rules",
+    "ar": "Arabic-Indic digits and separators; Arabic cardinal rules",
+    "zh": "Latin digits; comma grouping; period decimal; other-only cardinal and ordinal rules"
+  },
+  "notes": [
+    "Runtime tables are generated as explicit code in PinnedLocaleData.cs.",
+    "No CLDR data is downloaded during configure, build, or execution.",
+    "Production locale enablement still requires native-speaker and font-coverage review."
+  ]
+}

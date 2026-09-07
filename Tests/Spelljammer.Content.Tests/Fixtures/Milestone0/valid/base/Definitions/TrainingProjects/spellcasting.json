@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "revision": 1,
+  "id": "training.magic.spellcasting",
+  "nameKey": "training.magic.spellcasting.name",
+  "descriptionKey": "training.magic.spellcasting.description",
+  "requiredSkillIds": ["skill.magic"],
+  "workUnits": 100,
+  "grantedFeatIds": ["feat.access.magic"]
+}

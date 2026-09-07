@@ -1,0 +1,1 @@
+{"schemaVersion":1,"revision":1,"id":"skill.command","nameKey":"skill.command.name","descriptionKey":"skill.command.description","minimum":0,"maximum":100,"progressionCurveId":"progression.skill.standard","actionTags":[]}

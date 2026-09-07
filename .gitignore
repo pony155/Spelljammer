@@ -1,0 +1,45 @@
+# .NET build output
+[Bb]in/
+[Oo]bj/
+artifacts/
+TestResults/
+*.user
+*.suo
+*.rsuser
+
+# CMake and Ninja output (Build/ is authored source)
+/CMakeCache.txt
+/CMakeFiles/
+/CTestTestfile.cmake
+/Testing/
+/cmake_install.cmake
+/install_manifest.txt
+/build.ninja
+/.ninja_deps
+/.ninja_log
+/cmake-build-*/
+
+# Generated game/tool output
+/out/
+*.log
+*.dmp
+*.coverage
+*.coveragexml
+
+# Editors and operating systems
+.vs/
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Temporary files
+*.tmp
+*.bak
+*.orig
+*.rej
+*.swp
+*~

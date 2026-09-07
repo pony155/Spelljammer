@@ -1,0 +1,280 @@
+{
+  "schemaVersion": 1,
+  "baseFixture": "../valid/base",
+  "defaultGameVersion": "0.1.0",
+  "cases": [
+    {
+      "id": "manifest-missing",
+      "removeFiles": ["manifest.json"],
+      "expectedPrimaryDiagnostic": "CONTENT_MANIFEST_MISSING"
+    },
+    {
+      "id": "manifest-multiple",
+      "duplicateFiles": ["manifest.json"],
+      "expectedPrimaryDiagnostic": "CONTENT_MANIFEST_MULTIPLE"
+    },
+    {
+      "id": "invalid-utf8",
+      "writeHex": [
+        {
+          "path": "manifest.json",
+          "bytes": "7b226964223aff7d"
+        }
+      ],
+      "expectedPrimaryDiagnostic": "CONTENT_INVALID_UTF8"
+    },
+    {
+      "id": "json-invalid",
+      "writeText": [
+        {
+          "path": "manifest.json",
+          "text": "{"
+        }
+      ],
+      "expectedPrimaryDiagnostic": "CONTENT_JSON_INVALID"
+    },
+    {
+      "id": "json-duplicate-property",
+      "writeText": [
+        {
+          "path": "manifest.json",
+          "text": "{\"schemaVersion\":1,\"id\":\"spelljammer.base\",\"id\":\"spelljammer.base\",\"version\":\"0.1.0\",\"displayNameKey\":\"content-pack.spelljammer.base.name\",\"gameVersionRange\":\">=0.1.0 <0.2.0\",\"dependencies\":[],\"loadAfter\":[],\"definitionRoots\":[\"Definitions\"],\"localizationRoots\":[],\"contentRevision\":1}"
+        }
+      ],
+      "expectedPrimaryDiagnostic": "CONTENT_JSON_DUPLICATE_PROPERTY"
+    },
+    {
+      "id": "schema-unsupported",
+      "writeText": [
+        {
+          "path": "manifest.json",
+          "text": "{\"schemaVersion\":2,\"id\":\"spelljammer.base\",\"version\":\"0.1.0\",\"displayNameKey\":\"content-pack.spelljammer.base.name\",\"gameVersionRange\":\">=0.1.0 <0.2.0\",\"dependencies\":[],\"loadAfter\":[],\"definitionRoots\":[\"Definitions\"],\"localizationRoots\":[],\"contentRevision\":1}"
+        }
+      ],
+      "expectedPrimaryDiagnostic": "CONTENT_SCHEMA_UNSUPPORTED"
+    },
+    {
+      "id": "required-property-missing",
+      "writeText": [
+        {
+          "path": "manifest.json",
+          "text": "{\"schemaVersion\":1,\"id\":\"spelljammer.base\",\"version\":\"0.1.0\",\"displayNameKey\":\"content-pack.spelljammer.base.name\",\"gameVersionRange\":\">=0.1.0 <0.2.0\",\"dependencies\":[],\"loadAfter\":[],\"definitionRoots\":[\"Definitions\"],\"localizationRoots\":[]}"
+        }
+      ],
+      "expectedPrimaryDiagnostic": "CONTENT_REQUIRED_PROPERTY_MISSING"
+    },
+    {
+      "id": "unknown-property",
+      "writeText": [
+        {
+          "path": "manifest.json",
+          "text": "{\"schemaVersion\":1,\"id\":\"spelljammer.base\",\"version\":\"0.1.0\",\"displayNameKey\":\"content-pack.spelljammer.base.name\",\"gameVersionRange\":\">=0.1.0 <0.2.0\",\"dependencies\":[],\"loadAfter\":[],\"definitionRoots\":[\"Definitions\"],\"localizationRoots\":[],\"contentRevision\":1,\"surprise\":true}"
+        }
+      ],
+      "expectedPrimaryDiagnostic": "CONTENT_UNKNOWN_PROPERTY"
+    },
+    {
+      "id": "id-invalid",
+      "writeText": [
+        {
+          "path": "manifest.json",
+          "text": "{\"schemaVersion\":1,\"id\":\"Spelljammer.Base\",\"version\":\"0.1.0\",\"displayNameKey\":\"content-pack.spelljammer.base.name\",\"gameVersionRange\":\">=0.1.0 <0.2.0\",\"dependencies\":[],\"loadAfter\":[],\"definitionRoots\":[\"Definitions\"],\"localizationRoots\":[],\"contentRevision\":1}"
+        }
+      ],
+      "expectedPrimaryDiagnostic": "CONTENT_ID_INVALID"
+    },
+    {
+      "id": "path-invalid",
+      "writeText": [
+        {
+          "path": "manifest.json",
+          "text": "{\"schemaVersion\":1,\"id\":\"spelljammer.base\",\"version\":\"0.1.0\",\"displayNameKey\":\"content-pack.spelljammer.base.name\",\"gameVersionRange\":\">=0.1.0 <0.2.0\",\"dependencies\":[],\"loadAfter\":[],\"definitionRoots\":[\"../Definitions\"],\"localizationRoots\":[],\"contentRevision\":1}"
+        }
+      ],
+      "expectedPrimaryDiagnostic": "CONTENT_PATH_INVALID"
+    },
+    {
+      "id": "pack-id-duplicate",
+      "additionalPacks": [
+        {
+          "root": "duplicate-base",
+          "files": [
+            {
+              "path": "manifest.json",
+              "text": "{\"schemaVersion\":1,\"id\":\"spelljammer.base\",\"version\":\"0.1.0\",\"displayNameKey\":\"duplicate.name\",\"gameVersionRange\":\">=0.1.0 <0.2.0\",\"dependencies\":[],\"loadAfter\":[],\"definitionRoots\":[\"Definitions\"],\"localizationRoots\":[],\"contentRevision\":1}"
+            }
+          ]
+        }
+      ],
+      "expectedPrimaryDiagnostic": "CONTENT_PACK_ID_DUPLICATE"
+    },
+    {
+      "id": "version-invalid",
+      "writeText": [
+        {
+          "path": "manifest.json",
+          "text": "{\"schemaVersion\":1,\"id\":\"spelljammer.base\",\"version\":\"0.1\",\"displayNameKey\":\"content-pack.spelljammer.base.name\",\"gameVersionRange\":\">=0.1.0 <0.2.0\",\"dependencies\":[],\"loadAfter\":[],\"definitionRoots\":[\"Definitions\"],\"localizationRoots\":[],\"contentRevision\":1}"
+        }
+      ],
+      "expectedPrimaryDiagnostic": "CONTENT_VERSION_INVALID"
+    },
+    {
+      "id": "game-version-incompatible",
+      "gameVersion": "1.0.0",
+      "expectedPrimaryDiagnostic": "CONTENT_GAME_VERSION_INCOMPATIBLE"
+    },
+    {
+      "id": "dependency-missing",
+      "additionalPacks": [
+        {
+          "root": "dependent",
+          "files": [
+            {
+              "path": "manifest.json",
+              "text": "{\"schemaVersion\":1,\"id\":\"mod.dependent\",\"version\":\"1.0.0\",\"displayNameKey\":\"mod.dependent.name\",\"gameVersionRange\":\">=0.1.0 <0.2.0\",\"dependencies\":[{\"id\":\"mod.missing\",\"versionRange\":\">=1.0.0 <2.0.0\"}],\"loadAfter\":[],\"definitionRoots\":[\"Definitions\"],\"localizationRoots\":[],\"contentRevision\":1}"
+            }
+          ]
+        }
+      ],
+      "expectedPrimaryDiagnostic": "CONTENT_DEPENDENCY_MISSING"
+    },
+    {
+      "id": "dependency-version-mismatch",
+      "additionalPacks": [
+        {
+          "root": "library",
+          "files": [
+            {
+              "path": "manifest.json",
+              "text": "{\"schemaVersion\":1,\"id\":\"mod.library\",\"version\":\"2.0.0\",\"displayNameKey\":\"mod.library.name\",\"gameVersionRange\":\">=0.1.0 <0.2.0\",\"dependencies\":[],\"loadAfter\":[],\"definitionRoots\":[\"Definitions\"],\"localizationRoots\":[],\"contentRevision\":1}"
+            }
+          ]
+        },
+        {
+          "root": "dependent",
+          "files": [
+            {
+              "path": "manifest.json",
+              "text": "{\"schemaVersion\":1,\"id\":\"mod.dependent\",\"version\":\"1.0.0\",\"displayNameKey\":\"mod.dependent.name\",\"gameVersionRange\":\">=0.1.0 <0.2.0\",\"dependencies\":[{\"id\":\"mod.library\",\"versionRange\":\">=1.0.0 <2.0.0\"}],\"loadAfter\":[],\"definitionRoots\":[\"Definitions\"],\"localizationRoots\":[],\"contentRevision\":1}"
+            }
+          ]
+        }
+      ],
+      "expectedPrimaryDiagnostic": "CONTENT_DEPENDENCY_VERSION_MISMATCH"
+    },
+    {
+      "id": "dependency-cycle",
+      "additionalPacks": [
+        {
+          "root": "alpha",
+          "files": [
+            {
+              "path": "manifest.json",
+              "text": "{\"schemaVersion\":1,\"id\":\"mod.alpha\",\"version\":\"1.0.0\",\"displayNameKey\":\"mod.alpha.name\",\"gameVersionRange\":\">=0.1.0 <0.2.0\",\"dependencies\":[{\"id\":\"mod.beta\",\"versionRange\":\">=1.0.0 <2.0.0\"}],\"loadAfter\":[],\"definitionRoots\":[\"Definitions\"],\"localizationRoots\":[],\"contentRevision\":1}"
+            }
+          ]
+        },
+        {
+          "root": "beta",
+          "files": [
+            {
+              "path": "manifest.json",
+              "text": "{\"schemaVersion\":1,\"id\":\"mod.beta\",\"version\":\"1.0.0\",\"displayNameKey\":\"mod.beta.name\",\"gameVersionRange\":\">=0.1.0 <0.2.0\",\"dependencies\":[{\"id\":\"mod.alpha\",\"versionRange\":\">=1.0.0 <2.0.0\"}],\"loadAfter\":[],\"definitionRoots\":[\"Definitions\"],\"localizationRoots\":[],\"contentRevision\":1}"
+            }
+          ]
+        }
+      ],
+      "expectedPrimaryDiagnostic": "CONTENT_DEPENDENCY_CYCLE"
+    },
+    {
+      "id": "namespace-violation",
+      "additionalPacks": [
+        {
+          "root": "starwrights",
+          "files": [
+            {
+              "path": "manifest.json",
+              "text": "{\"schemaVersion\":1,\"id\":\"mod.starwrights\",\"version\":\"1.0.0\",\"displayNameKey\":\"mod.starwrights.name\",\"gameVersionRange\":\">=0.1.0 <0.2.0\",\"dependencies\":[],\"loadAfter\":[],\"definitionRoots\":[\"Definitions\"],\"localizationRoots\":[],\"contentRevision\":1}"
+            },
+            {
+              "path": "Definitions/Skills/engineering.json",
+              "text": "{\"schemaVersion\":1,\"revision\":1,\"id\":\"skill.engineering\",\"nameKey\":\"skill.engineering.name\",\"descriptionKey\":\"skill.engineering.description\",\"minimum\":0,\"maximum\":100,\"progressionCurveId\":\"progression.skill.standard\",\"actionTags\":[]}"
+            }
+          ]
+        }
+      ],
+      "expectedPrimaryDiagnostic": "CONTENT_NAMESPACE_VIOLATION"
+    },
+    {
+      "id": "definition-id-duplicate",
+      "writeText": [
+        {
+          "path": "Definitions/Attributes/second-strength.json",
+          "text": "{\"schemaVersion\":1,\"revision\":1,\"id\":\"attribute.strength\",\"nameKey\":\"attribute.strength.name\",\"descriptionKey\":\"attribute.strength.description\",\"minimum\":1,\"maximum\":10,\"defaultValue\":5,\"tags\":[]}"
+        }
+      ],
+      "expectedPrimaryDiagnostic": "CONTENT_DEFINITION_ID_DUPLICATE"
+    },
+    {
+      "id": "reference-unknown",
+      "writeText": [
+        {
+          "path": "Definitions/Feats/spellcasting-training.json",
+          "text": "{\"schemaVersion\":1,\"revision\":1,\"id\":\"feat.access.magic\",\"nameKey\":\"feat.access.magic.name\",\"descriptionKey\":\"feat.access.magic.description\",\"trainingProjectId\":\"training.magic.spellcasting\",\"grantedAccessIds\":[\"access.unknown\"]}"
+        }
+      ],
+      "expectedPrimaryDiagnostic": "CONTENT_REFERENCE_UNKNOWN"
+    },
+    {
+      "id": "kind-mismatch",
+      "writeText": [
+        {
+          "path": "Definitions/Attributes/agility.json",
+          "text": "{\"schemaVersion\":1,\"revision\":1,\"id\":\"skill.agility\",\"nameKey\":\"attribute.agility.name\",\"descriptionKey\":\"attribute.agility.description\",\"minimum\":1,\"maximum\":10,\"defaultValue\":5,\"tags\":[]}"
+        }
+      ],
+      "expectedPrimaryDiagnostic": "CONTENT_KIND_MISMATCH"
+    },
+    {
+      "id": "value-out-of-range",
+      "writeText": [
+        {
+          "path": "Definitions/Attributes/strength.json",
+          "text": "{\"schemaVersion\":1,\"revision\":1,\"id\":\"attribute.strength\",\"nameKey\":\"attribute.strength.name\",\"descriptionKey\":\"attribute.strength.description\",\"minimum\":1,\"maximum\":10,\"defaultValue\":11,\"tags\":[\"physical\",\"force\"]}"
+        }
+      ],
+      "expectedPrimaryDiagnostic": "CONTENT_VALUE_OUT_OF_RANGE"
+    },
+    {
+      "id": "collection-duplicate",
+      "writeText": [
+        {
+          "path": "Definitions/Attributes/strength.json",
+          "text": "{\"schemaVersion\":1,\"revision\":1,\"id\":\"attribute.strength\",\"nameKey\":\"attribute.strength.name\",\"descriptionKey\":\"attribute.strength.description\",\"minimum\":1,\"maximum\":10,\"defaultValue\":5,\"tags\":[\"physical\",\"physical\"]}"
+        }
+      ],
+      "expectedPrimaryDiagnostic": "CONTENT_COLLECTION_DUPLICATE"
+    },
+    {
+      "id": "semantic-invalid",
+      "writeText": [
+        {
+          "path": "Definitions/Races/human.json",
+          "text": "{\"schemaVersion\":1,\"revision\":1,\"id\":\"race.human\",\"nameKey\":\"race.human.name\",\"descriptionKey\":\"race.human.description\",\"grantedPerkIds\":[]}"
+        },
+        {
+          "path": "Definitions/Perks/elf-aether-sense.json",
+          "text": "{\"schemaVersion\":1,\"revision\":1,\"id\":\"perk.race.elf.aether-sense\",\"nameKey\":\"perk.race.elf.aether-sense.name\",\"descriptionKey\":\"perk.race.elf.aether-sense.description\",\"compatibleRaceIds\":[\"race.human\"],\"grantedAccessIds\":[\"access.magic\"],\"grantedTechniqueIds\":[]}"
+        }
+      ],
+      "expectedPrimaryDiagnostic": "CONTENT_SEMANTIC_INVALID"
+    },
+    {
+      "id": "limit-exceeded",
+      "limitOverrides": {
+        "manifestBytes": 16
+      },
+      "expectedPrimaryDiagnostic": "CONTENT_LIMIT_EXCEEDED"
+    }
+  ]
+}

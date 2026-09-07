@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "locale": "en-US",
+  "namespace": "training",
+  "fallbacks": [],
+  "textDirection": "ltr",
+  "messages": {
+    "training.magic.spellcasting.name": {
+      "description": "Spellcasting Training display name.",
+      "message": "Spellcasting Training"
+    },
+    "training.magic.spellcasting.description": {
+      "description": "Spellcasting Training summary.",
+      "message": "A bounded project that grants magical access only on completion."
+    },
+    "training.magic.magic-missile.name": {
+      "description": "Magic Missile study display name.",
+      "message": "Magic Missile Study"
+    },
+    "training.magic.magic-missile.description": {
+      "description": "Magic Missile study summary.",
+      "message": "Learn Magic Missile after completing supervised arcane study."
+    },
+    "training.psionics.awakening.name": {
+      "description": "Psionic Awakening display name.",
+      "message": "Psionic Awakening"
+    },
+    "training.psionics.awakening.description": {
+      "description": "Psionic Awakening summary.",
+      "message": "A bounded project that grants psionic access only on completion."
+    },
+    "training.psionics.mindlink.name": {
+      "description": "Mindlink study display name.",
+      "message": "Mindlink Study"
+    },
+    "training.psionics.mindlink.description": {
+      "description": "Mindlink study summary.",
+      "message": "Learn the consensual Mindlink technique in a supervised quiet sanctum."
+    }
+  }
+}

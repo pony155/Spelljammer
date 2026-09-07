@@ -1,0 +1,1 @@
+{"schemaVersion":1,"revision":1,"id":"link.ruin.reactor-sanctum","nameKey":"link.ruin.reactor-sanctum.name","descriptionKey":"link.ruin.reactor-sanctum.description","fromCellId":"cell.ruin.reactor","toCellId":"cell.ruin.sanctum","accessId":"traversal.open","oneWay":0,"allowsRetreat":0}

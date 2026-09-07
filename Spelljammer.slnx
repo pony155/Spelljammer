@@ -1,0 +1,15 @@
+<Solution>
+  <Project Path="Source/Spelljammer.App/Spelljammer.App.csproj" />
+  <Project Path="Source/Spelljammer.Content/Spelljammer.Content.csproj" />
+  <Project Path="Source/Spelljammer.Localization/Spelljammer.Localization.csproj" />
+  <Project Path="Source/Spelljammer.Persistence/Spelljammer.Persistence.csproj" />
+  <Project Path="Source/Spelljammer.Settings/Spelljammer.Settings.csproj" />
+  <Project Path="Source/Spelljammer.Simulation/Spelljammer.Simulation.csproj" />
+  <Project Path="Tests/Spelljammer.Localization.Tests/Spelljammer.Localization.Tests.csproj" />
+  <Project Path="Tests/Spelljammer.Persistence.Tests/Spelljammer.Persistence.Tests.csproj" />
+  <Project Path="Tests/Spelljammer.Settings.Tests/Spelljammer.Settings.Tests.csproj" />
+  <Project Path="Tests/Spelljammer.Content.Tests/Spelljammer.Content.Tests.csproj" />
+  <Project Path="Tests/Spelljammer.Simulation.Tests/Spelljammer.Simulation.Tests.csproj" />
+  <Project Path="Tools/Spelljammer.Localization.Compiler/Spelljammer.Localization.Compiler.csproj" />
+  <Project Path="Tools/Spelljammer.Content.Compiler/Spelljammer.Content.Compiler.csproj" />
+</Solution>

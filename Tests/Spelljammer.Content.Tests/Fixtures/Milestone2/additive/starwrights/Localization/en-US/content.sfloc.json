@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "locale": "en-US",
+  "namespace": "starwrights",
+  "fallbacks": [],
+  "textDirection": "ltr",
+  "messages": {
+    "content-pack.mod.starwrights.name": {"message":"Starwrights fixture"},
+    "skill.mod.starwrights.gravimetry.name": {"message":"Gravimetry"},
+    "skill.mod.starwrights.gravimetry.description": {"message":"Measures and interprets local gravitational fields."}
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "revision": 1,
+  "id": "access.magic",
+  "nameKey": "access.magic.name",
+  "descriptionKey": "access.magic.description",
+  "tags": ["supernatural", "magic"]
+}

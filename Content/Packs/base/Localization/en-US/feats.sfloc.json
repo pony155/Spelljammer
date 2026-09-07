@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "locale": "en-US",
+  "namespace": "feat",
+  "fallbacks": [],
+  "textDirection": "ltr",
+  "messages": {
+    "feat.access.magic.name": {
+      "description": "Spellcasting Training display name.",
+      "message": "Spellcasting Training"
+    },
+    "feat.access.magic.description": {
+      "description": "Spellcasting Training summary.",
+      "message": "A completed training grant for magical access."
+    },
+    "feat.access.psionics.name": {
+      "description": "Psionic Awakening display name.",
+      "message": "Psionic Awakening"
+    },
+    "feat.access.psionics.description": {
+      "description": "Psionic Awakening summary.",
+      "message": "A completed training grant for psionic access."
+    }
+  }
+}

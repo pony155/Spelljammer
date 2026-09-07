@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "locale": "en-US",
+  "namespace": "link",
+  "fallbacks": [],
+  "textDirection": "ltr",
+  "messages": {
+    "link.ruin.entry-gantry.name": { "description": "Entry to gantry link name.", "message": "Airlock Causeway" },
+    "link.ruin.entry-gantry.description": { "description": "Entry to gantry link summary.", "message": "A reversible route back to the airlock." },
+    "link.ruin.gantry-archive.name": { "description": "Gantry to archive link name.", "message": "Archive Threshold" },
+    "link.ruin.gantry-archive.description": { "description": "Gantry to archive link summary.", "message": "A clear passage between gantry and stacks." },
+    "link.ruin.archive-reactor.name": { "description": "Archive to reactor link name.", "message": "Conduit Passage" },
+    "link.ruin.archive-reactor.description": { "description": "Archive to reactor link summary.", "message": "A service corridor leading into the reactor." },
+    "link.ruin.reactor-sanctum.name": { "description": "Reactor to sanctum link name.", "message": "Sentinel Gate" },
+    "link.ruin.reactor-sanctum.description": { "description": "Reactor to sanctum link summary.", "message": "A reinforced gate watched by ancient defenses." },
+    "link.ruin.sanctum-extraction.name": { "description": "Sanctum to extraction link name.", "message": "Skiff Access" },
+    "link.ruin.sanctum-extraction.description": { "description": "Sanctum to extraction link summary.", "message": "A reversible route to the exposed dock." }
+  }
+}

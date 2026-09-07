@@ -1,0 +1,1 @@
+{"schemaVersion":1,"revision":1,"id":"race.orc","nameKey":"race.orc.name","descriptionKey":"race.orc.description","grantedPerkIds":["perk.race.orc.second-wind"],"requiredSupportIds":["support.care.organic","support.environment.standard","support.nutrition.high","support.quarters.reinforced","support.rest.sleep"]}

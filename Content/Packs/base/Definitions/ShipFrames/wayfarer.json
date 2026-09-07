@@ -1,0 +1,1 @@
+{"schemaVersion":1,"revision":1,"id":"frame.wayfarer","nameKey":"frame.wayfarer.name","descriptionKey":"frame.wayfarer.description","maximumHull":30,"baseArmor":1,"maximumSlots":18,"cargoCapacity":20,"mountIds":["mount.power","mount.propulsion","mount.armor","mount.shield","mount.prow","mount.weapon","mount.cargo"]}

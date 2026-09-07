@@ -1,0 +1,1 @@
+{"schemaVersion":1,"revision":1,"id":"link.ruin.archive-reactor","nameKey":"link.ruin.archive-reactor.name","descriptionKey":"link.ruin.archive-reactor.description","fromCellId":"cell.ruin.archive","toCellId":"cell.ruin.reactor","accessId":"traversal.open","oneWay":0,"allowsRetreat":0}

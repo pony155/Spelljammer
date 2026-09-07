@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "locale": "en-US",
+  "namespace": "ship",
+  "fallbacks": [],
+  "textDirection": "ltr",
+  "messages": {
+    "ship.weapon.arcane.aether-cannon.name": { "description": "Aether cannon name.", "message": "Aether Cannon" },
+    "ship.weapon.arcane.aether-cannon.description": { "description": "Aether cannon summary.", "message": "An arcane battery with efficient cadence and moderate penetration." },
+    "ship.weapon.industrial.diesel-shell-cannon.name": { "description": "Diesel shell cannon name.", "message": "Diesel Shell Cannon" },
+    "ship.weapon.industrial.diesel-shell-cannon.description": { "description": "Diesel shell cannon summary.", "message": "An industrial battery with slower, harder-hitting ammunition." }
+  }
+}

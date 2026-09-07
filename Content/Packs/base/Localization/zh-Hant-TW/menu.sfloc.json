@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "locale": "zh-Hant-TW",
+  "namespace": "menu",
+  "fallbacks": ["en-US"],
+  "textDirection": "ltr",
+  "messages": {
+    "menu.accessibility.main": {
+      "description": "主選單面板的無障礙名稱。",
+      "message": "主選單"
+    },
+    "menu.accessibility.status": {
+      "description": "主選單狀態文字的無障礙名稱。",
+      "message": "主選單狀態"
+    },
+    "menu.button.quit": {
+      "description": "結束應用程式的按鈕。",
+      "message": "結束遊戲"
+    },
+    "menu.button.new-game": {
+      "description": "開啟新航程角色建立介面的按鈕。",
+      "message": "新遊戲"
+    },
+    "menu.button.settings": {
+      "description": "開啟遊戲設定的按鈕。",
+      "message": "遊戲設定"
+    },
+    "menu.subtitle": {
+      "description": "主選單中的簡短遊戲說明。",
+      "message": "穿梭星海的虛空航行沙盒"
+    },
+    "menu.title": {
+      "description": "主選單中的遊戲標題。",
+      "message": "Spelljammer"
+    },
+    "menu.version": {
+      "description": "顯示於主選單右下角的應用程式版本。",
+      "arguments": {
+        "version": "text"
+      },
+      "message": "版本 {version}"
+    },
+    "menu.window-title": {
+      "description": "主選單視窗的系統標題。",
+      "message": "Spelljammer"
+    }
+  }
+}

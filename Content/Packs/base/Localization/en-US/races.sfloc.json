@@ -1,0 +1,97 @@
+{
+  "schemaVersion": 1,
+  "locale": "en-US",
+  "namespace": "race",
+  "fallbacks": [],
+  "textDirection": "ltr",
+  "messages": {
+    "race.human.name": {
+      "description": "Human display name.",
+      "message": "Human"
+    },
+    "race.human.description": {
+      "description": "Human summary.",
+      "message": "The base Human race definition and its bounded crew-support requirements."
+    },
+    "race.elf.name": {
+      "description": "Elf display name.",
+      "message": "Elf"
+    },
+    "race.elf.description": {
+      "description": "Elf summary.",
+      "message": "The base Elf race definition and its bounded crew-support requirements."
+    },
+    "race.half-elf.name": {
+      "description": "Half-elf display name.",
+      "message": "Half-elf"
+    },
+    "race.half-elf.description": {
+      "description": "Half-elf summary.",
+      "message": "The base Half-elf race definition and its bounded crew-support requirements."
+    },
+    "race.dwarf.name": {
+      "description": "Dwarf display name.",
+      "message": "Dwarf"
+    },
+    "race.dwarf.description": {
+      "description": "Dwarf summary.",
+      "message": "The base Dwarf race definition and its bounded crew-support requirements."
+    },
+    "race.orc.name": {
+      "description": "Orc display name.",
+      "message": "Orc"
+    },
+    "race.orc.description": {
+      "description": "Orc summary.",
+      "message": "The base Orc race definition and its bounded crew-support requirements."
+    },
+    "race.gnome.name": {
+      "description": "Gnome display name.",
+      "message": "Gnome"
+    },
+    "race.gnome.description": {
+      "description": "Gnome summary.",
+      "message": "The base Gnome race definition and its bounded crew-support requirements."
+    },
+    "race.goblin.name": {
+      "description": "Goblin display name.",
+      "message": "Goblin"
+    },
+    "race.goblin.description": {
+      "description": "Goblin summary.",
+      "message": "The base Goblin race definition and its bounded crew-support requirements."
+    },
+    "race.somnari.name": {
+      "description": "Somnari display name.",
+      "message": "Somnari"
+    },
+    "race.somnari.description": {
+      "description": "Somnari summary.",
+      "message": "The base Somnari race definition and its bounded crew-support requirements."
+    },
+    "race.veyr.name": {
+      "description": "Veyr display name.",
+      "message": "Veyr"
+    },
+    "race.veyr.description": {
+      "description": "Veyr summary.",
+      "message": "The base Veyr race definition and its bounded crew-support requirements."
+    },
+    "race.eidolon.name": {
+      "description": "Eidolon display name.",
+      "message": "Eidolon"
+    },
+    "race.eidolon.description": {
+      "description": "Eidolon summary.",
+      "message": "The base Eidolon race definition and its bounded crew-support requirements."
+    },
+    "race.tharun.name": {
+      "description": "Tharun display name.",
+      "message": "Tharun"
+    },
+    "race.tharun.description": {
+      "description": "Tharun summary.",
+      "message": "The base Tharun race definition and its bounded crew-support requirements."
+    }
+  }
+}

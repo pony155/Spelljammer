@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "locale": "en-US",
+  "namespace": "encounter",
+  "fallbacks": [],
+  "textDirection": "ltr",
+  "messages": {
+    "encounter.ruin.glass-observatory.name": { "description": "Glass observatory encounter name.", "message": "The Sleeping Observatory" },
+    "encounter.ruin.glass-observatory.description": { "description": "Glass observatory encounter summary.", "message": "Disable an ancient defense, survive its sentinels, and extract the relic." }
+  }
+}

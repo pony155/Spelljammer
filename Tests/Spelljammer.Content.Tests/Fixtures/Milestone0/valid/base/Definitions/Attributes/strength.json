@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "revision": 1,
+  "id": "attribute.strength",
+  "nameKey": "attribute.strength.name",
+  "descriptionKey": "attribute.strength.description",
+  "minimum": 1,
+  "maximum": 10,
+  "defaultValue": 5,
+  "tags": ["physical", "force"]
+}

@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "id": "spelljammer.base",
+  "version": "0.1.0",
+  "displayNameKey": "content-pack.spelljammer.base.name",
+  "gameVersionRange": ">=0.1.0 <0.2.0",
+  "dependencies": [],
+  "loadAfter": [],
+  "definitionRoots": ["Definitions"],
+  "localizationRoots": ["Localization"],
+  "contentRevision": 5
+}

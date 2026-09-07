@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "locale": "en-US",
+  "namespace": "attribute",
+  "fallbacks": [],
+  "textDirection": "ltr",
+  "messages": {
+    "attribute.agility.name": {"description":"Attribute display name.","message":"Agility"},
+    "attribute.agility.description": {"description":"Attribute summary.","message":"Coordination, balance, reflexes, precise movement, and aim."},
+    "attribute.charisma.name": {"description":"Attribute display name.","message":"Charisma"},
+    "attribute.charisma.description": {"description":"Attribute summary.","message":"Leadership, empathy, intimidation, performance, deception, and negotiation."},
+    "attribute.intelligence.name": {"description":"Attribute display name.","message":"Intelligence"},
+    "attribute.intelligence.description": {"description":"Attribute summary.","message":"Observation, analysis, memory, diagnosis, planning, and technical learning."},
+    "attribute.luck.name": {"description":"Attribute display name.","message":"Luck"},
+    "attribute.luck.description": {"description":"Attribute summary.","message":"Bounded fortunate outcomes, rare opportunities, and narrow escapes."},
+    "attribute.strength.name": {"description":"Attribute display name.","message":"Strength"},
+    "attribute.strength.description": {"description":"Attribute summary.","message":"Physical force, lifting, carrying, heavy weapons, and resisting forced movement."},
+    "attribute.toughness.name": {"description":"Attribute display name.","message":"Toughness"},
+    "attribute.toughness.description": {"description":"Attribute summary.","message":"Health, stamina, pain tolerance, recovery, and environmental resistance."},
+    "attribute.willpower.name": {"description":"Attribute display name.","message":"Willpower"},
+    "attribute.willpower.description": {"description":"Attribute summary.","message":"Concentration, courage, self-control, and supernatural control or resistance."}
+  }
+}

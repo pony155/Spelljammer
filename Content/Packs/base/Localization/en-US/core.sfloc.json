@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "locale": "en-US",
+  "namespace": "ui",
+  "fallbacks": [],
+  "textDirection": "ltr",
+  "messages": {
+    "ui.example.locale-ready": {
+      "description": "Development smoke-test copy shown when localization is initialized.",
+      "message": "Localization is ready."
+    },
+    "ui.example.order-summary": {
+      "description": "Example showing a crew count, progress ratio, and selected shipboard role.",
+      "arguments": {
+        "count": "integer",
+        "ratio": {
+          "type": "percent",
+          "scale": 4
+        },
+        "role": {
+          "type": "select",
+          "values": ["pilot", "deckhand"]
+        }
+      },
+      "message": "{count, plural, =0 {No crew} one {# crew member} other {# crew members}} ready at {ratio, percent} — {role, select, pilot {pilot} deckhand {deckhand} other {unknown role}}."
+    },
+    "ui.example.window-title": {
+      "description": "Title for the current expedition prototype window.",
+      "message": "Spelljammer — Voidfaring Prototype"
+    }
+  }
+}

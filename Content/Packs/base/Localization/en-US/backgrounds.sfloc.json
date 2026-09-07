@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "locale": "en-US",
+  "namespace": "background",
+  "fallbacks": [],
+  "textDirection": "ltr",
+  "messages": {
+    "background.expedition-veteran.name": {
+      "description": "Expedition Veteran display name.",
+      "message": "Expedition Veteran"
+    },
+    "background.expedition-veteran.description": {
+      "description": "Expedition Veteran summary.",
+      "message": "Prior voidfaring experience with steadiness and emergency movement."
+    }
+  }
+}

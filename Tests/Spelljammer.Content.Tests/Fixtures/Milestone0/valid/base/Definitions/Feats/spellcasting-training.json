@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "revision": 1,
+  "id": "feat.access.magic",
+  "nameKey": "feat.access.magic.name",
+  "descriptionKey": "feat.access.magic.description",
+  "trainingProjectId": "training.magic.spellcasting",
+  "grantedAccessIds": ["access.magic"]
+}

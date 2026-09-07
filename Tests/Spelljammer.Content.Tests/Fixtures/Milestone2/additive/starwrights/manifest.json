@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "id": "mod.starwrights",
+  "version": "1.0.0",
+  "displayNameKey": "content-pack.mod.starwrights.name",
+  "gameVersionRange": ">=0.1.0 <0.2.0",
+  "dependencies": [
+    {
+      "id": "spelljammer.base",
+      "versionRange": ">=0.1.0 <0.2.0"
+    }
+  ],
+  "loadAfter": [],
+  "definitionRoots": ["Definitions"],
+  "localizationRoots": ["Localization"],
+  "contentRevision": 1
+}

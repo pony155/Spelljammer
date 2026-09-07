@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "locale": "en-US",
+  "namespace": "frame",
+  "fallbacks": [],
+  "textDirection": "ltr",
+  "messages": {
+    "frame.wayfarer.name": { "description": "Wayfarer frame display name.", "message": "Wayfarer Frame" },
+    "frame.wayfarer.description": { "description": "Wayfarer frame summary.", "message": "A compact expedition hull with mounts for either technology package." }
+  }
+}

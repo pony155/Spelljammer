@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "locale": "en-US",
+  "namespace": "cell",
+  "fallbacks": [],
+  "textDirection": "ltr",
+  "messages": {
+    "cell.ruin.entry.name": { "description": "Ruin entry cell name.", "message": "Shattered Airlock" },
+    "cell.ruin.entry.description": { "description": "Ruin entry cell summary.", "message": "The expedition team gains its first defensible foothold here." },
+    "cell.ruin.gantry.name": { "description": "Ruin gantry cell name.", "message": "Glass Gantry" },
+    "cell.ruin.gantry.description": { "description": "Ruin gantry cell summary.", "message": "A narrow bridge above the observatory void." },
+    "cell.ruin.archive.name": { "description": "Ruin archive cell name.", "message": "Silent Archive" },
+    "cell.ruin.archive.description": { "description": "Ruin archive cell summary.", "message": "Dense stacks provide cover around a dormant console." },
+    "cell.ruin.reactor.name": { "description": "Ruin reactor cell name.", "message": "Arc Reactor" },
+    "cell.ruin.reactor.description": { "description": "Ruin reactor cell summary.", "message": "Unstable conduits periodically flare across the chamber." },
+    "cell.ruin.sanctum.name": { "description": "Ruin sanctum cell name.", "message": "Defense Sanctum" },
+    "cell.ruin.sanctum.description": { "description": "Ruin sanctum cell summary.", "message": "Ancient sentinels guard the sealed inner dais." },
+    "cell.ruin.extraction.name": { "description": "Ruin extraction cell name.", "message": "Survey Skiff Dock" },
+    "cell.ruin.extraction.description": { "description": "Ruin extraction cell summary.", "message": "An exposed dock offers a second retreat route." }
+  }
+}

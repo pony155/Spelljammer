@@ -1,0 +1,1 @@
+{"schemaVersion":1,"revision":1,"id":"skill.sensors","nameKey":"skill.sensors.name","descriptionKey":"skill.sensors.description","minimum":0,"maximum":100,"progressionCurveId":"progression.skill.standard","actionTags":[]}

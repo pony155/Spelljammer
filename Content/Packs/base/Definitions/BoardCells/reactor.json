@@ -1,0 +1,1 @@
+{"schemaVersion":1,"revision":1,"id":"cell.ruin.reactor","nameKey":"cell.ruin.reactor.name","descriptionKey":"cell.ruin.reactor.description","zoneId":"zone.ruin.reactor","q":3,"r":0,"capacity":4,"cover":30,"visibility":50,"atmosphereId":"atmosphere.breathable","gravityId":"gravity.standard","hazardTags":["arc-flare"]}

@@ -1,6 +1,0 @@
-<Solution>
-  <Project Path="Game.csproj" />
-  <Project Path="Localization/SpriteForge.Game.Localization.csproj" />
-  <Project Path="Tests/Localization/SpriteForge.Game.Localization.Tests.csproj" />
-  <Project Path="Tools/Localization/SpriteForge.Localization.Compiler.csproj" />
-</Solution>

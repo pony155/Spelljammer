@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "locale": "en-US",
+  "namespace": "board",
+  "fallbacks": [],
+  "textDirection": "ltr",
+  "messages": {
+    "board.ruin.glass-observatory.name": { "description": "Glass observatory board name.", "message": "Glass Observatory" },
+    "board.ruin.glass-observatory.description": { "description": "Glass observatory board summary.", "message": "A six-zone ruin with two retreat routes and an unstable reactor." }
+  }
+}

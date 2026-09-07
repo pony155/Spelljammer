@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "cases": [
+    {
+      "id": "attribute-required-field",
+      "writeText": [{"path":"Definitions/Attributes/agility.json","text":"{\"schemaVersion\":1,\"revision\":1,\"id\":\"attribute.agility\",\"nameKey\":\"attribute.agility.name\",\"descriptionKey\":\"attribute.agility.description\",\"minimum\":1,\"maximum\":10,\"tags\":[]}"}],
+      "expectedPrimaryDiagnostic": "CONTENT_REQUIRED_PROPERTY_MISSING"
+    },
+    {
+      "id": "attribute-invalid-range",
+      "writeText": [{"path":"Definitions/Attributes/agility.json","text":"{\"schemaVersion\":1,\"revision\":1,\"id\":\"attribute.agility\",\"nameKey\":\"attribute.agility.name\",\"descriptionKey\":\"attribute.agility.description\",\"minimum\":1,\"maximum\":10,\"defaultValue\":11,\"tags\":[]}"}],
+      "expectedPrimaryDiagnostic": "CONTENT_VALUE_OUT_OF_RANGE"
+    },
+    {
+      "id": "attribute-duplicate-tag",
+      "writeText": [{"path":"Definitions/Attributes/agility.json","text":"{\"schemaVersion\":1,\"revision\":1,\"id\":\"attribute.agility\",\"nameKey\":\"attribute.agility.name\",\"descriptionKey\":\"attribute.agility.description\",\"minimum\":1,\"maximum\":10,\"defaultValue\":5,\"tags\":[\"physical\",\"physical\"]}"}],
+      "expectedPrimaryDiagnostic": "CONTENT_COLLECTION_DUPLICATE"
+    },
+    {
+      "id": "attribute-tag-capacity",
+      "limitOverrides": {"tagsPerDefinition": 1},
+      "expectedPrimaryDiagnostic": "CONTENT_LIMIT_EXCEEDED"
+    },
+    {
+      "id": "skill-unknown-curve",
+      "writeText": [{"path":"Definitions/Skills/acrobatics.json","text":"{\"schemaVersion\":1,\"revision\":1,\"id\":\"skill.acrobatics\",\"nameKey\":\"skill.acrobatics.name\",\"descriptionKey\":\"skill.acrobatics.description\",\"minimum\":0,\"maximum\":100,\"progressionCurveId\":\"progression.skill.unknown\",\"actionTags\":[]}"}],
+      "expectedPrimaryDiagnostic": "CONTENT_REFERENCE_UNKNOWN"
+    },
+    {
+      "id": "skill-invalid-range",
+      "writeText": [{"path":"Definitions/Skills/acrobatics.json","text":"{\"schemaVersion\":1,\"revision\":1,\"id\":\"skill.acrobatics\",\"nameKey\":\"skill.acrobatics.name\",\"descriptionKey\":\"skill.acrobatics.description\",\"minimum\":1,\"maximum\":100,\"progressionCurveId\":\"progression.skill.standard\",\"actionTags\":[]}"}],
+      "expectedPrimaryDiagnostic": "CONTENT_VALUE_OUT_OF_RANGE"
+    },
+    {
+      "id": "skill-duplicate-action-tag",
+      "writeText": [{"path":"Definitions/Skills/magic.json","text":"{\"schemaVersion\":1,\"revision\":1,\"id\":\"skill.magic\",\"nameKey\":\"skill.magic.name\",\"descriptionKey\":\"skill.magic.description\",\"minimum\":0,\"maximum\":100,\"progressionCurveId\":\"progression.skill.standard\",\"actionTags\":[\"action.spell.cast\",\"action.spell.cast\"]}"}],
+      "expectedPrimaryDiagnostic": "CONTENT_COLLECTION_DUPLICATE"
+    },
+    {
+      "id": "skill-reference-capacity",
+      "limitOverrides": {"referencesPerDefinition": 2},
+      "expectedPrimaryDiagnostic": "CONTENT_LIMIT_EXCEEDED"
+    },
+    {
+      "id": "localization-key-missing",
+      "writeText": [{"path":"Definitions/Skills/acrobatics.json","text":"{\"schemaVersion\":1,\"revision\":1,\"id\":\"skill.acrobatics\",\"nameKey\":\"skill.acrobatics.missing\",\"descriptionKey\":\"skill.acrobatics.description\",\"minimum\":0,\"maximum\":100,\"progressionCurveId\":\"progression.skill.standard\",\"actionTags\":[]}"}],
+      "expectedPrimaryDiagnostic": "CONTENT_LOCALIZATION_KEY_MISSING"
+    }
+  ]
+}

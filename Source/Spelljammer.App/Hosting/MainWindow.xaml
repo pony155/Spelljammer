@@ -1,0 +1,197 @@
+<Window x:Class="Spelljammer.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:presentation="clr-namespace:Spelljammer.Presentation"
+        Title="Spelljammer — Voidfaring Prototype"
+        Width="1180"
+        Height="720"
+        MinWidth="1040"
+        MinHeight="660"
+        Background="#090D18"
+        Foreground="#F2E9D8"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True">
+    <Window.Resources>
+        <Style TargetType="Button">
+            <Setter Property="Background" Value="#283755" />
+            <Setter Property="Foreground" Value="#F2E9D8" />
+            <Setter Property="BorderBrush" Value="#61759B" />
+            <Setter Property="Padding" Value="12,7" />
+            <Setter Property="Margin" Value="4" />
+        </Style>
+        <Style x:Key="StatLabel" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#8EA0BF" />
+            <Setter Property="FontSize" Value="12" />
+        </Style>
+        <Style x:Key="StatValue" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#80DED9" />
+            <Setter Property="FontFamily" Value="Consolas" />
+            <Setter Property="FontSize" Value="18" />
+        </Style>
+    </Window.Resources>
+
+    <Grid x:Name="RootGrid" Margin="26">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="310" />
+            <ColumnDefinition Width="24" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <Grid Grid.ColumnSpan="3" Margin="0,0,0,20">
+            <StackPanel>
+                <TextBlock FontSize="30"
+                           FontWeight="SemiBold"
+                           Text="SPELLJAMMER" />
+                <TextBlock Margin="0,4,0,0"
+                           Foreground="#93A1BE"
+                           Text="A deterministic voyage across a perilous, uncharted void" />
+            </StackPanel>
+            <Button x:Name="SettingsButton"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Center"
+                    Click="SettingsButton_Click" />
+        </Grid>
+
+        <Border Grid.Row="1"
+                Padding="18"
+                Background="#111827"
+                BorderBrush="#2F4163"
+                BorderThickness="1"
+                CornerRadius="8">
+            <StackPanel>
+                <DockPanel>
+                    <StackPanel DockPanel.Dock="Left">
+                        <TextBlock Foreground="#8EA0BF" Text="CURRENT SECTOR" />
+                        <TextBlock x:Name="SectorLabel"
+                                   Margin="0,3,0,0"
+                                   FontSize="21"
+                                   FontWeight="SemiBold" />
+                    </StackPanel>
+                    <TextBlock x:Name="TurnLabel"
+                               HorizontalAlignment="Right"
+                               Foreground="#D7AF70"
+                               FontFamily="Consolas" />
+                </DockPanel>
+
+                <UniformGrid Margin="0,18,0,0" Columns="4">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource StatLabel}" Text="FUEL" />
+                        <TextBlock x:Name="FuelLabel" Style="{StaticResource StatValue}" />
+                    </StackPanel>
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource StatLabel}" Text="HULL" />
+                        <TextBlock x:Name="HullLabel" Style="{StaticResource StatValue}" />
+                    </StackPanel>
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource StatLabel}" Text="SUPPLY" />
+                        <TextBlock x:Name="SuppliesLabel" Style="{StaticResource StatValue}" />
+                    </StackPanel>
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource StatLabel}" Text="CARGO" />
+                        <TextBlock x:Name="CargoLabel" Style="{StaticResource StatValue}" />
+                    </StackPanel>
+                </UniformGrid>
+
+                <TextBlock x:Name="SectorMapLabel"
+                           Margin="0,18,0,0"
+                           HorizontalAlignment="Center"
+                           Foreground="#AFC7E8"
+                           FontFamily="Consolas"
+                           FontSize="18"
+                           LineHeight="24"
+                           TextAlignment="Center" />
+
+                <Grid Margin="0,16,0,0" HorizontalAlignment="Center">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="82" />
+                        <ColumnDefinition Width="82" />
+                        <ColumnDefinition Width="82" />
+                    </Grid.ColumnDefinitions>
+                    <Button Grid.Row="0" Grid.Column="1" Click="NorthButton_Click" Content="North" />
+                    <Button Grid.Row="1" Grid.Column="0" Click="WestButton_Click" Content="West" />
+                    <Button Grid.Row="1" Grid.Column="2" Click="EastButton_Click" Content="East" />
+                    <Button Grid.Row="2" Grid.Column="1" Click="SouthButton_Click" Content="South" />
+                </Grid>
+
+                <WrapPanel Margin="0,12,0,0" HorizontalAlignment="Center">
+                    <Button Click="SalvageButton_Click" Content="Salvage" />
+                    <Button Click="RepairButton_Click" Content="Patch hull" />
+                    <Button Click="ReturnButton_Click" Content="End voyage" />
+                </WrapPanel>
+
+                <Border Margin="0,16,0,0"
+                        Padding="10"
+                        Background="#0B1220"
+                        CornerRadius="4">
+                    <TextBlock x:Name="EventLabel"
+                               Foreground="#D7AF70"
+                               TextWrapping="Wrap" />
+                </Border>
+
+                <Button Margin="0,14,0,0"
+                        HorizontalAlignment="Stretch"
+                        Click="NewVoyageButton_Click"
+                        Content="Chart a new void" />
+            </StackPanel>
+        </Border>
+
+        <Border Grid.Row="1"
+                Grid.Column="2"
+                Background="#070A12"
+                BorderBrush="#2F4163"
+                BorderThickness="1"
+                CornerRadius="8"
+                ClipToBounds="True">
+            <Grid>
+                <presentation:EngineViewport x:Name="Viewport" />
+                <Border Margin="18"
+                        Padding="10,7"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Top"
+                        Background="#CC090D18"
+                        CornerRadius="4">
+                    <StackPanel>
+                        <TextBlock x:Name="SeedLabel"
+                                   Foreground="#80DED9"
+                                   FontFamily="Consolas" />
+                        <TextBlock x:Name="SectorDetailLabel"
+                                   Margin="0,3,0,0"
+                                   Foreground="#AAB5CA" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="2" Grid.Column="2" Margin="0,14,0,0">
+            <TextBlock x:Name="FrameLabel"
+                       VerticalAlignment="Center"
+                       Foreground="#80DED9"
+                       FontFamily="Consolas" />
+            <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
+                <Button x:Name="PlayPauseButton" Click="PlayPauseButton_Click" Content="Pause drive" />
+                <Button Click="StepButton_Click" Content="Step drive" />
+                <Button Click="RestartButton_Click" Content="Restart drive" />
+            </StackPanel>
+            <TextBlock HorizontalAlignment="Right"
+                       VerticalAlignment="Center"
+                       Foreground="#71809C"
+                       Text="D3D12 · nearest · integer fit" />
+        </Grid>
+
+        <TextBlock Grid.Row="2"
+                   Margin="0,14,0,0"
+                   VerticalAlignment="Center"
+                   Foreground="#71809C"
+                   Text="Recover 8 cargo, then return to the anchorage." />
+    </Grid>
+</Window>

@@ -1,0 +1,1 @@
+{"schemaVersion":1,"revision":1,"id":"perk.race.tharun.trail-sense","nameKey":"perk.race.tharun.trail-sense.name","descriptionKey":"perk.race.tharun.trail-sense.description","compatibleRaceIds":["race.tharun"],"grantedAccessIds":[],"grantedTechniqueIds":["technique.navigation.trail-interpretation"],"effectIds":["effect.tracking.observed-trail"]}

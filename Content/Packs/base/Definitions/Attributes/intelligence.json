@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "revision": 1,
+  "id": "attribute.intelligence",
+  "nameKey": "attribute.intelligence.name",
+  "descriptionKey": "attribute.intelligence.description",
+  "minimum": 1,
+  "maximum": 10,
+  "defaultValue": 5,
+  "tags": ["analysis", "mental"]
+}

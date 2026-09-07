@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "locale": "en-US",
+  "namespace": "technique",
+  "fallbacks": [],
+  "textDirection": "ltr",
+  "messages": {
+    "technique.recovery.soul-reconstitution.name": {
+      "description": "Soul Reconstitution display name.",
+      "message": "Soul Reconstitution"
+    },
+    "technique.recovery.soul-reconstitution.description": {
+      "description": "Soul Reconstitution summary.",
+      "message": "Rebuild an Eidolon vessel beside a safe charged Soul Anchor."
+    },
+    "technique.navigation.trail-interpretation.name": {
+      "description": "Trail Interpretation display name.",
+      "message": "Trail Interpretation"
+    },
+    "technique.navigation.trail-interpretation.description": {
+      "description": "Trail Interpretation summary.",
+      "message": "Correlate route traces from evidence already observed."
+    }
+  }
+}

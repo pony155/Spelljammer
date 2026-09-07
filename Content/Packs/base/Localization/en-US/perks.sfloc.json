@@ -1,0 +1,185 @@
+{
+  "schemaVersion": 1,
+  "locale": "en-US",
+  "namespace": "perk",
+  "fallbacks": [],
+  "textDirection": "ltr",
+  "messages": {
+    "perk.race.human.versatility.name": {
+      "description": "Versatility display name.",
+      "message": "Versatility"
+    },
+    "perk.race.human.versatility.description": {
+      "description": "Versatility summary.",
+      "message": "The Human racial capability, including only its explicitly declared grants."
+    },
+    "perk.heritage.human.hearthworld.name": {
+      "description": "Hearthworld Heritage display name.",
+      "message": "Hearthworld Heritage"
+    },
+    "perk.heritage.human.hearthworld.description": {
+      "description": "Hearthworld Heritage summary.",
+      "message": "The focused strength and logistical cost of the Hearthworld heritage."
+    },
+    "perk.race.elf.aether-sense.name": {
+      "description": "Aether Sense display name.",
+      "message": "Aether Sense"
+    },
+    "perk.race.elf.aether-sense.description": {
+      "description": "Aether Sense summary.",
+      "message": "The Elf racial capability, including only its explicitly declared grants."
+    },
+    "perk.heritage.elf.dawnweave.name": {
+      "description": "Dawnweave Heritage display name.",
+      "message": "Dawnweave Heritage"
+    },
+    "perk.heritage.elf.dawnweave.description": {
+      "description": "Dawnweave Heritage summary.",
+      "message": "The focused strength and logistical cost of the Dawnweave heritage."
+    },
+    "perk.race.half-elf.blended-physiology.name": {
+      "description": "Blended Physiology display name.",
+      "message": "Blended Physiology"
+    },
+    "perk.race.half-elf.blended-physiology.description": {
+      "description": "Blended Physiology summary.",
+      "message": "The Half-elf racial capability, including only its explicitly declared grants."
+    },
+    "perk.heritage.half-elf.concord.name": {
+      "description": "Concord Heritage display name.",
+      "message": "Concord Heritage"
+    },
+    "perk.heritage.half-elf.concord.description": {
+      "description": "Concord Heritage summary.",
+      "message": "The focused strength and logistical cost of the Concord heritage."
+    },
+    "perk.race.dwarf.braced-stance.name": {
+      "description": "Braced Stance display name.",
+      "message": "Braced Stance"
+    },
+    "perk.race.dwarf.braced-stance.description": {
+      "description": "Braced Stance summary.",
+      "message": "The Dwarf racial capability, including only its explicitly declared grants."
+    },
+    "perk.heritage.dwarf.cometdelver.name": {
+      "description": "Cometdelver Heritage display name.",
+      "message": "Cometdelver Heritage"
+    },
+    "perk.heritage.dwarf.cometdelver.description": {
+      "description": "Cometdelver Heritage summary.",
+      "message": "The focused strength and logistical cost of the Cometdelver heritage."
+    },
+    "perk.race.orc.second-wind.name": {
+      "description": "Second Wind display name.",
+      "message": "Second Wind"
+    },
+    "perk.race.orc.second-wind.description": {
+      "description": "Second Wind summary.",
+      "message": "The Orc racial capability, including only its explicitly declared grants."
+    },
+    "perk.heritage.orc.redwake.name": {
+      "description": "Redwake Heritage display name.",
+      "message": "Redwake Heritage"
+    },
+    "perk.heritage.orc.redwake.description": {
+      "description": "Redwake Heritage summary.",
+      "message": "The focused strength and logistical cost of the Redwake heritage."
+    },
+    "perk.race.gnome.closework.name": {
+      "description": "Closework display name.",
+      "message": "Closework"
+    },
+    "perk.race.gnome.closework.description": {
+      "description": "Closework summary.",
+      "message": "The Gnome racial capability, including only its explicitly declared grants."
+    },
+    "perk.heritage.gnome.coilwhisper.name": {
+      "description": "Coilwhisper Heritage display name.",
+      "message": "Coilwhisper Heritage"
+    },
+    "perk.heritage.gnome.coilwhisper.description": {
+      "description": "Coilwhisper Heritage summary.",
+      "message": "The focused strength and logistical cost of the Coilwhisper heritage."
+    },
+    "perk.race.goblin.tight-passage.name": {
+      "description": "Tight Passage display name.",
+      "message": "Tight Passage"
+    },
+    "perk.race.goblin.tight-passage.description": {
+      "description": "Tight Passage summary.",
+      "message": "The Goblin racial capability, including only its explicitly declared grants."
+    },
+    "perk.heritage.goblin.hullrunner.name": {
+      "description": "Hullrunner Heritage display name.",
+      "message": "Hullrunner Heritage"
+    },
+    "perk.heritage.goblin.hullrunner.description": {
+      "description": "Hullrunner Heritage summary.",
+      "message": "The focused strength and logistical cost of the Hullrunner heritage."
+    },
+    "perk.race.somnari.mindwake.name": {
+      "description": "Mindwake display name.",
+      "message": "Mindwake"
+    },
+    "perk.race.somnari.mindwake.description": {
+      "description": "Mindwake summary.",
+      "message": "The Somnari racial capability, including only its explicitly declared grants."
+    },
+    "perk.heritage.somnari.chorusborn.name": {
+      "description": "Chorusborn Heritage display name.",
+      "message": "Chorusborn Heritage"
+    },
+    "perk.heritage.somnari.chorusborn.description": {
+      "description": "Chorusborn Heritage summary.",
+      "message": "The focused strength and logistical cost of the Chorusborn heritage."
+    },
+    "perk.race.veyr.dusk-sight.name": {
+      "description": "Dusk Sight display name.",
+      "message": "Dusk Sight"
+    },
+    "perk.race.veyr.dusk-sight.description": {
+      "description": "Dusk Sight summary.",
+      "message": "The Veyr racial capability, including only its explicitly declared grants."
+    },
+    "perk.heritage.veyr.crimson-court.name": {
+      "description": "Crimson Court Heritage display name.",
+      "message": "Crimson Court Heritage"
+    },
+    "perk.heritage.veyr.crimson-court.description": {
+      "description": "Crimson Court Heritage summary.",
+      "message": "The focused strength and logistical cost of the Crimson Court heritage."
+    },
+    "perk.race.eidolon.soul-anchor.name": {
+      "description": "Soul Anchor display name.",
+      "message": "Soul Anchor"
+    },
+    "perk.race.eidolon.soul-anchor.description": {
+      "description": "Soul Anchor summary.",
+      "message": "The Eidolon racial capability, including only its explicitly declared grants."
+    },
+    "perk.heritage.eidolon.reliquary-bound.name": {
+      "description": "Reliquary-Bound Heritage display name.",
+      "message": "Reliquary-Bound Heritage"
+    },
+    "perk.heritage.eidolon.reliquary-bound.description": {
+      "description": "Reliquary-Bound Heritage summary.",
+      "message": "The focused strength and logistical cost of the Reliquary-Bound heritage."
+    },
+    "perk.race.tharun.trail-sense.name": {
+      "description": "Trail Sense display name.",
+      "message": "Trail Sense"
+    },
+    "perk.race.tharun.trail-sense.description": {
+      "description": "Trail Sense summary.",
+      "message": "The Tharun racial capability, including only its explicitly declared grants."
+    },
+    "perk.heritage.tharun.startrail.name": {
+      "description": "Startrail Heritage display name.",
+      "message": "Startrail Heritage"
+    },
+    "perk.heritage.tharun.startrail.description": {
+      "description": "Startrail Heritage summary.",
+      "message": "The focused strength and logistical cost of the Startrail heritage."
+    }
+  }
+}

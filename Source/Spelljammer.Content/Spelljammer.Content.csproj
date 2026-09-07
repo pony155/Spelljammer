@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\Spelljammer.Simulation\Spelljammer.Simulation.csproj" />
+  </ItemGroup>
+
+</Project>

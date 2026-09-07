@@ -1,0 +1,181 @@
+{
+  "schemaVersion": 1,
+  "locale": "fr-FR",
+  "namespace": "settings",
+  "fallbacks": ["en-US"],
+  "textDirection": "ltr",
+  "messages": {
+    "settings.accessibility.dialog": {
+      "description": "Nom accessible de la fenêtre modale des paramètres.",
+      "message": "Fenêtre des paramètres du jeu"
+    },
+    "settings.accessibility.description": {
+      "description": "Nom accessible du texte explicatif des paramètres.",
+      "message": "Description des paramètres"
+    },
+    "settings.accessibility.option": {
+      "description": "Nom accessible contenant un paramètre et l’option sélectionnée.",
+      "arguments": {
+        "setting": "text",
+        "value": "text"
+      },
+      "message": "{setting} : {value}"
+    },
+    "settings.accessibility.status": {
+      "description": "Nom accessible de la zone d’état des paramètres.",
+      "message": "État des paramètres"
+    },
+    "settings.accessibility.value": {
+      "description": "Suffixe des noms accessibles pour les valeurs des curseurs.",
+      "arguments": {
+        "setting": "text"
+      },
+      "message": "Valeur de {setting}"
+    },
+    "settings.button.apply": {
+      "description": "Libellé du bouton Appliquer.",
+      "message": "Appliquer"
+    },
+    "settings.button.cancel": {
+      "description": "Libellé du bouton Annuler.",
+      "message": "Annuler"
+    },
+    "settings.button.open": {
+      "description": "Bouton qui ouvre les paramètres du jeu.",
+      "message": "Paramètres du jeu"
+    },
+    "settings.button.reset": {
+      "description": "Libellé du bouton Réinitialiser.",
+      "message": "Réinitialiser"
+    },
+    "settings.heading.accessibility": {
+      "description": "Titre de la section interface et accessibilité.",
+      "message": "Interface et accessibilité"
+    },
+    "settings.heading.audio": {
+      "description": "Titre de la section audio.",
+      "message": "Audio"
+    },
+    "settings.heading.display": {
+      "description": "Titre de la section affichage et langue.",
+      "message": "Affichage et langue"
+    },
+    "settings.introduction": {
+      "description": "Explication affichée en haut des paramètres.",
+      "message": "Les préférences sont locales et ne modifient jamais les résultats déterministes du voyage."
+    },
+    "settings.label.effects-volume": {
+      "description": "Libellé du volume des effets.",
+      "message": "Volume des effets"
+    },
+    "settings.label.interface-scale": {
+      "description": "Libellé de l’échelle de l’interface.",
+      "message": "Échelle de l’interface"
+    },
+    "settings.label.language": {
+      "description": "Libellé du choix de langue.",
+      "message": "Langue"
+    },
+    "settings.label.master-volume": {
+      "description": "Libellé du volume principal.",
+      "message": "Volume principal"
+    },
+    "settings.label.music-volume": {
+      "description": "Libellé du volume de la musique.",
+      "message": "Volume de la musique"
+    },
+    "settings.label.reduced-motion": {
+      "description": "Libellé de la réduction des animations.",
+      "message": "Réduire les animations"
+    },
+    "settings.label.resolution": {
+      "description": "Libellé de la résolution d’affichage.",
+      "message": "Résolution"
+    },
+    "settings.label.screen-shake": {
+      "description": "Libellé du tremblement de l’écran.",
+      "message": "Tremblement de l’écran"
+    },
+    "settings.label.subtitles": {
+      "description": "Libellé des sous-titres.",
+      "message": "Sous-titres"
+    },
+    "settings.state.off": {
+      "description": "Valeur désactivée d’un interrupteur.",
+      "message": "Non"
+    },
+    "settings.state.on": {
+      "description": "Valeur activée d’un interrupteur.",
+      "message": "Oui"
+    },
+    "settings.status.load-failed": {
+      "description": "Avertissement au démarrage lorsque les paramètres ne peuvent pas être chargés.",
+      "arguments": {
+        "code": "text"
+      },
+      "message": "Impossible de charger les paramètres ({code}) ; les valeurs sûres sont actives."
+    },
+    "settings.status.ready": {
+      "description": "État initial de la fenêtre des paramètres.",
+      "message": "Les modifications sont prévisualisées ici et enregistrées uniquement après l’application."
+    },
+    "settings.status.reset": {
+      "description": "État après la restauration des valeurs par défaut.",
+      "message": "Valeurs par défaut restaurées. Choisissez Appliquer pour les enregistrer."
+    },
+    "settings.status.save-failed": {
+      "description": "État lorsque l’écriture des paramètres échoue.",
+      "arguments": {
+        "code": "text"
+      },
+      "message": "Impossible d’enregistrer les paramètres ({code}). Les paramètres précédents restent actifs."
+    },
+    "settings.status.saved": {
+      "description": "État après l’enregistrement des paramètres.",
+      "message": "Les paramètres du jeu ont été validés et enregistrés."
+    },
+    "settings.status.saving": {
+      "description": "État pendant l’enregistrement des paramètres.",
+      "message": "Enregistrement et validation des paramètres..."
+    },
+    "settings.title": {
+      "description": "Titre de la fenêtre des paramètres.",
+      "message": "Paramètres du jeu"
+    },
+    "settings.title.window": {
+      "description": "Titre système de la fenêtre des paramètres.",
+      "message": "Spelljammer — Paramètres du jeu"
+    },
+    "settings.value.language.en-us": {
+      "description": "Nom de l’option de langue anglaise.",
+      "message": "Anglais"
+    },
+    "settings.value.language.fr-fr": {
+      "description": "Nom de l’option de langue française.",
+      "message": "Français"
+    },
+    "settings.value.language.zh-hant-tw": {
+      "description": "Nom de l’option de langue chinoise traditionnelle.",
+      "message": "Chinois traditionnel"
+    },
+    "settings.value.percent": {
+      "description": "Pourcentage entier affiché à côté d’un curseur.",
+      "arguments": {
+        "value": "integer"
+      },
+      "message": "{value, number} %"
+    },
+    "settings.value.resolution.desktop": {
+      "description": "Option de résolution utilisant la zone de travail du bureau.",
+      "message": "Bureau"
+    },
+    "settings.value.resolution.pixels": {
+      "description": "Option de résolution d’affichage fixe.",
+      "arguments": {
+        "width": "integer",
+        "height": "integer"
+      },
+      "message": "{width, number} × {height, number}"
+    }
+  }
+}

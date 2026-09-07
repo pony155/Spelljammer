@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "locale": "en-US",
+  "namespace": "spell",
+  "fallbacks": [],
+  "textDirection": "ltr",
+  "messages": {
+    "spell.spirit.magic-missile.name": {
+      "description": "Magic Missile display name.",
+      "message": "Magic Missile"
+    },
+    "spell.spirit.magic-missile.description": {
+      "description": "Magic Missile summary.",
+      "message": "Launch a reliable bolt of arcane force at one visible distant target."
+    }
+  }
+}

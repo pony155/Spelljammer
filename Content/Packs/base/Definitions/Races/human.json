@@ -1,0 +1,1 @@
+{"schemaVersion":1,"revision":1,"id":"race.human","nameKey":"race.human.name","descriptionKey":"race.human.description","grantedPerkIds":["perk.race.human.versatility"],"requiredSupportIds":["support.care.organic","support.environment.standard","support.nutrition.standard","support.quarters.standard","support.rest.sleep"]}

@@ -1,0 +1,181 @@
+{
+  "schemaVersion": 1,
+  "locale": "en-US",
+  "namespace": "settings",
+  "fallbacks": [],
+  "textDirection": "ltr",
+  "messages": {
+    "settings.accessibility.dialog": {
+      "description": "Accessible name for the settings modal.",
+      "message": "Game settings dialog"
+    },
+    "settings.accessibility.description": {
+      "description": "Accessible name for the explanatory settings text.",
+      "message": "Settings description"
+    },
+    "settings.accessibility.option": {
+      "description": "Accessible name containing a setting and its selected option.",
+      "arguments": {
+        "setting": "text",
+        "value": "text"
+      },
+      "message": "{setting}: {value}"
+    },
+    "settings.accessibility.status": {
+      "description": "Accessible name for the settings status region.",
+      "message": "Settings status"
+    },
+    "settings.accessibility.value": {
+      "description": "Suffix used in accessible names for slider value text.",
+      "arguments": {
+        "setting": "text"
+      },
+      "message": "{setting} value"
+    },
+    "settings.button.apply": {
+      "description": "Apply button label.",
+      "message": "Apply"
+    },
+    "settings.button.cancel": {
+      "description": "Cancel button label.",
+      "message": "Cancel"
+    },
+    "settings.button.open": {
+      "description": "Button that opens game settings.",
+      "message": "Game settings"
+    },
+    "settings.button.reset": {
+      "description": "Reset button label.",
+      "message": "Reset"
+    },
+    "settings.heading.accessibility": {
+      "description": "Interface and accessibility section heading.",
+      "message": "Interface & accessibility"
+    },
+    "settings.heading.audio": {
+      "description": "Audio section heading.",
+      "message": "Audio"
+    },
+    "settings.heading.display": {
+      "description": "Display and language section heading.",
+      "message": "Display & language"
+    },
+    "settings.introduction": {
+      "description": "Explanation shown at the top of settings.",
+      "message": "Player preferences are local and never alter deterministic voyage results."
+    },
+    "settings.label.effects-volume": {
+      "description": "Effects volume setting label.",
+      "message": "Effects volume"
+    },
+    "settings.label.interface-scale": {
+      "description": "Interface scale setting label.",
+      "message": "Interface scale"
+    },
+    "settings.label.language": {
+      "description": "Language setting label.",
+      "message": "Language"
+    },
+    "settings.label.master-volume": {
+      "description": "Master volume setting label.",
+      "message": "Master volume"
+    },
+    "settings.label.music-volume": {
+      "description": "Music volume setting label.",
+      "message": "Music volume"
+    },
+    "settings.label.reduced-motion": {
+      "description": "Reduced motion setting label.",
+      "message": "Reduced motion"
+    },
+    "settings.label.resolution": {
+      "description": "Display resolution setting label.",
+      "message": "Resolution"
+    },
+    "settings.label.screen-shake": {
+      "description": "Screen shake setting label.",
+      "message": "Screen shake"
+    },
+    "settings.label.subtitles": {
+      "description": "Subtitles setting label.",
+      "message": "Subtitles"
+    },
+    "settings.state.off": {
+      "description": "Disabled toggle value.",
+      "message": "Off"
+    },
+    "settings.state.on": {
+      "description": "Enabled toggle value.",
+      "message": "On"
+    },
+    "settings.status.load-failed": {
+      "description": "Startup warning when settings could not be loaded.",
+      "arguments": {
+        "code": "text"
+      },
+      "message": "Settings could not be loaded ({code}); safe defaults are active."
+    },
+    "settings.status.ready": {
+      "description": "Initial settings dialog status.",
+      "message": "Changes are previewed here and saved only when Apply succeeds."
+    },
+    "settings.status.reset": {
+      "description": "Status after resetting the dialog draft.",
+      "message": "Defaults restored in this dialog. Choose Apply to save them."
+    },
+    "settings.status.save-failed": {
+      "description": "Status when a settings write fails.",
+      "arguments": {
+        "code": "text"
+      },
+      "message": "Could not save settings ({code}). Previous settings remain active."
+    },
+    "settings.status.saved": {
+      "description": "Status after settings were persisted.",
+      "message": "Game settings were validated and saved."
+    },
+    "settings.status.saving": {
+      "description": "Status while settings are being persisted.",
+      "message": "Saving and validating settings..."
+    },
+    "settings.title": {
+      "description": "Settings dialog heading.",
+      "message": "Game settings"
+    },
+    "settings.title.window": {
+      "description": "Settings window title.",
+      "message": "Spelljammer — Game Settings"
+    },
+    "settings.value.percent": {
+      "description": "Bounded integer percentage displayed beside a slider.",
+      "arguments": {
+        "value": "integer"
+      },
+      "message": "{value, number}%"
+    },
+    "settings.value.language.en-us": {
+      "description": "Name of the English language option.",
+      "message": "English"
+    },
+    "settings.value.language.fr-fr": {
+      "description": "Name of the French language option.",
+      "message": "French"
+    },
+    "settings.value.language.zh-hant-tw": {
+      "description": "Name of the Traditional Chinese language option.",
+      "message": "Traditional Chinese"
+    },
+    "settings.value.resolution.desktop": {
+      "description": "Resolution option that uses the desktop work area.",
+      "message": "Desktop"
+    },
+    "settings.value.resolution.pixels": {
+      "description": "Fixed display resolution option.",
+      "arguments": {
+        "width": "integer",
+        "height": "integer"
+      },
+      "message": "{width, number} × {height, number}"
+    }
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "locale": "en-US",
+  "namespace": "module",
+  "fallbacks": [],
+  "textDirection": "ltr",
+  "messages": {
+    "module.power.aether-dynamo.name": { "description": "Aether dynamo name.", "message": "Aether Dynamo" },
+    "module.power.aether-dynamo.description": { "description": "Aether dynamo summary.", "message": "Generates power for an arcane network." },
+    "module.propulsion.flux-sail.name": { "description": "Flux sail name.", "message": "Flux Sail" },
+    "module.propulsion.flux-sail.description": { "description": "Flux sail summary.", "message": "Arcane propulsion that draws from the aether network." },
+    "module.power.diesel-generator.name": { "description": "Diesel generator name.", "message": "Diesel Generator" },
+    "module.power.diesel-generator.description": { "description": "Diesel generator summary.", "message": "Generates power for an industrial network." },
+    "module.propulsion.propellant-drive.name": { "description": "Propellant drive name.", "message": "Propellant Drive" },
+    "module.propulsion.propellant-drive.description": { "description": "Propellant drive summary.", "message": "Industrial propulsion with predictable power demand." },
+    "module.defense.reinforced-plating.name": { "description": "Reinforced plating name.", "message": "Reinforced Plating" },
+    "module.defense.reinforced-plating.description": { "description": "Reinforced plating summary.", "message": "Passive armor compatible with either technology path." },
+    "module.defense.arcane-energy-shield.name": { "description": "Arcane shield name.", "message": "Arcane Energy Shield" },
+    "module.defense.arcane-energy-shield.description": { "description": "Arcane shield summary.", "message": "A rechargeable barrier on the aether network." },
+    "module.defense.industrial-energy-shield.name": { "description": "Industrial shield name.", "message": "Industrial Energy Shield" },
+    "module.defense.industrial-energy-shield.description": { "description": "Industrial shield summary.", "message": "A rechargeable barrier on the power network." },
+    "module.prow.ram.name": { "description": "Prow ram name.", "message": "Reinforced Prow Ram" },
+    "module.prow.ram.description": { "description": "Prow ram summary.", "message": "A common hardpoint for deliberate collision attacks." },
+    "module.weapon.arcane-deck-battery.name": { "description": "Arcane battery name.", "message": "Arcane Deck Battery" },
+    "module.weapon.arcane-deck-battery.description": { "description": "Arcane battery summary.", "message": "A weapon mount configured for aether cannon fire." },
+    "module.weapon.industrial-deck-battery.name": { "description": "Industrial battery name.", "message": "Industrial Deck Battery" },
+    "module.weapon.industrial-deck-battery.description": { "description": "Industrial battery summary.", "message": "A weapon mount configured for diesel shell fire." },
+    "module.cargo.hold.name": { "description": "Cargo hold name.", "message": "Expedition Cargo Hold" },
+    "module.cargo.hold.description": { "description": "Cargo hold summary.", "message": "A common bounded storage module." }
+  }
+}

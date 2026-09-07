@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "locale": "en-US",
+  "namespace": "content-pack",
+  "fallbacks": [],
+  "textDirection": "ltr",
+  "messages": {
+    "content-pack.spelljammer.base.name": {
+      "description": "Display name for the built-in gameplay content pack.",
+      "message": "Spelljammer Base Content"
+    }
+  }
+}

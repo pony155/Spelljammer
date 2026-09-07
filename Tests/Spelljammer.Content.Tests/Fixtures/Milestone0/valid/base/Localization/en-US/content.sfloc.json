@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "locale": "en-US",
+  "namespace": "content",
+  "fallbacks": [],
+  "textDirection": "ltr",
+  "messages": {
+    "content-pack.spelljammer.base.name": {"message":"Fixture base pack"},
+    "access.magic.name": {"message":"Magic access"},
+    "access.magic.description": {"message":"Fixture magic access."},
+    "attribute.strength.name": {"message":"Strength"},
+    "attribute.strength.description": {"message":"Fixture strength."},
+    "feat.access.magic.name": {"message":"Spellcasting Training"},
+    "feat.access.magic.description": {"message":"Fixture learned access."},
+    "perk.race.elf.aether-sense.name": {"message":"Aether Sense"},
+    "perk.race.elf.aether-sense.description": {"message":"Fixture racial perk."},
+    "race.elf.name": {"message":"Elf"},
+    "race.elf.description": {"message":"Fixture race."},
+    "skill.magic.name": {"message":"Magic"},
+    "skill.magic.description": {"message":"Fixture magic skill."},
+    "training.magic.spellcasting.name": {"message":"Spellcasting training"},
+    "training.magic.spellcasting.description": {"message":"Fixture training project."}
+  }
+}

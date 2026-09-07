@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Source\Spelljammer.Localization\Spelljammer.Localization.csproj" />
+    <ProjectReference Include="..\..\Tools\Spelljammer.Localization.Compiler\Spelljammer.Localization.Compiler.csproj" />
+  </ItemGroup>
+
+</Project>
