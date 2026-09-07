@@ -7,8 +7,28 @@ using Spelljammer.Simulation.Encounters;
 
 namespace Spelljammer.Persistence;
 
+/// <summary>
+/// Validates campaign state for consistency, completeness, and compatibility with content definitions.
+/// </summary>
+/// <remarks>
+/// This validator checks:
+/// - Content fingerprints match (base content, packs, manifests)
+/// - Version numbers are consistent (schema, world generator, formulas, effects)
+/// - All collections stay within capacity limits (characters, ships, commands, events)
+/// - No duplicate IDs exist in command history or character roster
+/// - Commands are properly sorted by execution order
+/// - All character references are valid and unique
+/// - All equipment and scenario references exist in content
+/// </remarks>
 public static class CampaignValidator
 {
+    /// <summary>
+    /// Validates a campaign state against a content snapshot, returning any missing definition ID.
+    /// </summary>
+    /// <param name="campaign">The campaign state to validate.</param>
+    /// <param name="content">The content snapshot to validate against.</param>
+    /// <param name="missingId">If validation fails due to missing content, contains the missing definition ID; otherwise, null.</param>
+    /// <returns>True if the campaign is valid and consistent; false otherwise.</returns>
     public static bool TryValidate(CampaignState campaign, GameContentSnapshot content, out ContentId? missingId)
     {
         ArgumentNullException.ThrowIfNull(campaign);

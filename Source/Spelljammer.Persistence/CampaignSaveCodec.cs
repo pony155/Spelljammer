@@ -12,6 +12,17 @@ using Spelljammer.Simulation.Encounters;
 
 namespace Spelljammer.Persistence;
 
+/// <summary>
+/// Encodes and decodes campaign state to/from binary save files with validation and compression.
+/// </summary>
+/// <remarks>
+/// The codec uses a structured binary format with:
+/// - 52-byte header (magic number, checksums, metadata)
+/// - Preflight section: discriminator, game build, required definitions
+/// - Payload section: compressed campaign state JSON
+///
+/// All sections are validated against size limits and integrity checksums.
+/// </remarks>
 public static class CampaignSaveCodec
 {
     private const int HeaderBytes = 52;
@@ -25,6 +36,18 @@ public static class CampaignSaveCodec
         WriteIndented = false,
     };
 
+    /// <summary>
+    /// Encodes a campaign state into a binary save file format.
+    /// </summary>
+    /// <remarks>
+    /// The campaign state is validated before encoding. All content definitions referenced by
+    /// the campaign are identified and stored in the save file header for dependency tracking.
+    /// </remarks>
+    /// <param name="campaign">The campaign state to encode.</param>
+    /// <param name="content">The content definitions snapshot used in this campaign.</param>
+    /// <returns>Binary save file data ready to be written to disk.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if campaign or content is null.</exception>
+    /// <exception cref="InvalidOperationException">Thrown if campaign is invalid or exceeds size limits.</exception>
     public static byte[] Encode(CampaignState campaign, GameContentSnapshot content)
     {
         ArgumentNullException.ThrowIfNull(campaign);

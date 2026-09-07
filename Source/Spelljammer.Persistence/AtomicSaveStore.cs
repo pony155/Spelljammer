@@ -2,23 +2,48 @@ using Spelljammer.Content.Compilation;
 
 namespace Spelljammer.Persistence;
 
+/// <summary>
+/// Abstract file system interface for campaign save operations (for testing and alternate backends).
+/// </summary>
 public interface ICampaignSaveFileSystem
 {
+    /// <summary>Checks if a file exists at the given path.</summary>
     bool Exists(string path);
+
+    /// <summary>Gets the size of a file in bytes.</summary>
     long GetLength(string path);
+
+    /// <summary>Reads entire file contents into memory.</summary>
     byte[] ReadAllBytes(string path);
+
+    /// <summary>Writes data to a new file with durability guarantees (write-through).</summary>
     void WriteDurable(string path, ReadOnlySpan<byte> bytes);
+
+    /// <summary>Moves/renames a file from source to destination.</summary>
     void Move(string source, string destination);
+
+    /// <summary>Atomically replaces destination with source, optionally keeping a backup recovery file.</summary>
     void Replace(string source, string destination, string? recoveryPath);
+
+    /// <summary>Deletes a file.</summary>
     void Delete(string path);
 }
 
+/// <summary>
+/// Physical file system implementation for campaign save operations using Windows APIs.
+/// </summary>
 public sealed class PhysicalCampaignSaveFileSystem : ICampaignSaveFileSystem
 {
+    /// <inheritdoc/>
     public bool Exists(string path) => File.Exists(path);
+
+    /// <inheritdoc/>
     public long GetLength(string path) => new FileInfo(path).Length;
+
+    /// <inheritdoc/>
     public byte[] ReadAllBytes(string path) => File.ReadAllBytes(path);
 
+    /// <inheritdoc/>
     public void WriteDurable(string path, ReadOnlySpan<byte> bytes)
     {
         using FileStream stream = new(path, FileMode.CreateNew, FileAccess.Write, FileShare.None, 64 * 1024,
@@ -27,12 +52,24 @@ public sealed class PhysicalCampaignSaveFileSystem : ICampaignSaveFileSystem
         stream.Flush(true);
     }
 
+    /// <inheritdoc/>
     public void Move(string source, string destination) => File.Move(source, destination);
+
+    /// <inheritdoc/>
     public void Replace(string source, string destination, string? recoveryPath) =>
         File.Replace(source, destination, recoveryPath, true);
+
+    /// <inheritdoc/>
     public void Delete(string path) => File.Delete(path);
 }
 
+/// <summary>
+/// The result of a campaign save write operation with diagnostic and recovery information.
+/// </summary>
+/// <param name="Succeeded">Whether the save was successfully written and verified.</param>
+/// <param name="Diagnostic">Diagnostic code indicating outcome or failure reason.</param>
+/// <param name="TargetPath">The path where the save file was written or attempted to be written.</param>
+/// <param name="RecoveryPath">The path to the recovery backup, if one was created and needs cleanup.</param>
 public sealed record SaveWriteResult(
     bool Succeeded,
     SaveDiagnosticCode Diagnostic,
