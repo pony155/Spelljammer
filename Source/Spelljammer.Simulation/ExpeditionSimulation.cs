@@ -1,13 +1,46 @@
 namespace Spelljammer.Simulation;
 
+/// <summary>
+/// Core game simulation engine for expedition mechanics including travel, salvage, repair, and resource management.
+/// </summary>
+/// <remarks>
+/// This class encapsulates the rules and logic for expeditions, determining whether commands are valid,
+/// calculating outcomes (hull damage, cargo recovered, fuel consumed), and transitioning the expedition
+/// to new states. The simulation is deterministic given a seed, allowing consistent sector generation
+/// and reproducible gameplay.
+/// </remarks>
 public sealed class ExpeditionSimulation
 {
+    /// <summary>
+    /// The maximum hull integrity a ship can have at the start of an expedition.
+    /// </summary>
     public const int MaximumHull = 12;
+
+    /// <summary>
+    /// The amount of cargo space required to perform a single repair action.
+    /// </summary>
     public const int RepairCargoCost = 2;
+
+    /// <summary>
+    /// The minimum cargo required to be considered a significant salvage prize worthy of recovery.
+    /// </summary>
     public const int PrizeCargoRequired = 8;
 
     private static readonly SectorPosition Anchorage = new(1, 1);
 
+    /// <summary>
+    /// Creates and initializes a new expedition with the given random seed.
+    /// </summary>
+    /// <remarks>
+    /// The new expedition starts at the anchorage sector (1,1) with base resources:
+    /// - 10 fuel units
+    /// - 12 hull points
+    /// - 7 supplies
+    /// - 0 cargo
+    /// The ship has visited and salvaged the anchorage already, preventing immediate salvage.
+    /// </remarks>
+    /// <param name="seed">The random seed used to generate deterministic sector properties throughout the expedition.</param>
+    /// <returns>A new active expedition state ready for commands.</returns>
     public ExpeditionState Create(ulong seed)
     {
         ushort anchorageMask = ToMask(Anchorage);
@@ -24,12 +57,34 @@ public sealed class ExpeditionSimulation
             ExpeditionStatus.Active);
     }
 
+    /// <summary>
+    /// Retrieves the deterministically-generated snapshot of the sector at the ship's current position.
+    /// </summary>
+    /// <remarks>
+    /// This method does not consume resources or modify the expedition state; it only observes the sector.
+    /// The snapshot includes danger level, salvage yield, and fuel cache information.
+    /// </remarks>
+    /// <param name="state">The current expedition state.</param>
+    /// <returns>A snapshot of the sector at the ship's position.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="state"/> is null.</exception>
     public SectorSnapshot Inspect(ExpeditionState state)
     {
         ArgumentNullException.ThrowIfNull(state);
         return GenerateSector(state.Seed, state.Position);
     }
 
+    /// <summary>
+    /// Applies a command to the expedition, returning the result (new state or rejection reason).
+    /// </summary>
+    /// <remarks>
+    /// This is the primary interface for advancing the expedition. The method validates the command
+    /// against the current state and rules, then either executes it (returning a new state) or rejects it
+    /// (returning the unchanged state with a rejection reason).
+    /// </remarks>
+    /// <param name="state">The current expedition state.</param>
+    /// <param name="command">The command to execute.</param>
+    /// <returns>A result containing the new state (if accepted) or the unchanged state with a rejection code.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="state"/> is null.</exception>
     public CommandResult Apply(ExpeditionState state, ExpeditionCommand command)
     {
         ArgumentNullException.ThrowIfNull(state);

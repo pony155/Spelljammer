@@ -2,8 +2,24 @@ using System.Collections.Immutable;
 
 namespace Spelljammer.Simulation.Content;
 
+/// <summary>
+/// Base class for all content entity definitions, providing common metadata for game content.
+/// </summary>
+/// <remarks>
+/// This abstract record serves as the parent for all specific content types (skills, feats, spells, etc.).
+/// It provides common fields for versioning, localization keys, and identification.
+/// All content definitions are immutable records for thread-safety and functional programming patterns.
+/// </remarks>
+/// <param name="Id">The unique content ID identifying this entity.</param>
+/// <param name="SchemaVersion">The schema version of this content definition, used for compatibility checking.</param>
+/// <param name="Revision">The revision number of this content, incremented when the content is updated.</param>
+/// <param name="NameKey">A localization key for the entity's display name (e.g., "content.skill.athletics").</param>
+/// <param name="DescriptionKey">A localization key for the entity's description text.</param>
 public abstract record ContentDefinition(ContentId Id, int SchemaVersion, int Revision, string NameKey, string DescriptionKey);
 
+/// <summary>
+/// Defines a character attribute (Strength, Dexterity, etc.) with its range and default value.
+/// </summary>
 public sealed record AttributeDefinition(
     AttributeId AttributeId,
     int SchemaVersion,
@@ -16,6 +32,9 @@ public sealed record AttributeDefinition(
     ImmutableArray<string> Tags)
     : ContentDefinition(AttributeId.Value, SchemaVersion, Revision, NameKey, DescriptionKey);
 
+/// <summary>
+/// Defines a character skill with proficiency range and progression rules.
+/// </summary>
 public sealed record SkillDefinition(
     SkillId SkillId,
     int SchemaVersion,
@@ -28,6 +47,9 @@ public sealed record SkillDefinition(
     ImmutableArray<ContentId> ActionTags)
     : ContentDefinition(SkillId.Value, SchemaVersion, Revision, NameKey, DescriptionKey);
 
+/// <summary>
+/// Defines an access privilege or ability category that characters can be granted.
+/// </summary>
 public sealed record AccessDefinition(
     AccessId AccessId,
     int SchemaVersion,
@@ -37,6 +59,9 @@ public sealed record AccessDefinition(
     ImmutableArray<string> Tags)
     : ContentDefinition(AccessId.Value, SchemaVersion, Revision, NameKey, DescriptionKey);
 
+/// <summary>
+/// Defines a feat that characters can learn through training projects.
+/// </summary>
 public sealed record FeatDefinition(
     FeatId FeatId,
     int SchemaVersion,
@@ -47,6 +72,9 @@ public sealed record FeatDefinition(
     ImmutableArray<AccessId> GrantedAccessIds)
     : ContentDefinition(FeatId.Value, SchemaVersion, Revision, NameKey, DescriptionKey);
 
+/// <summary>
+/// Defines a perk (racial or class ability) that grants access privileges, techniques, and effects.
+/// </summary>
 public sealed record PerkDefinition(
     PerkId PerkId,
     int SchemaVersion,
@@ -60,6 +88,9 @@ public sealed record PerkDefinition(
     ImmutableArray<ContentId> EffectIds)
     : ContentDefinition(PerkId.Value, SchemaVersion, Revision, NameKey, DescriptionKey);
 
+/// <summary>
+/// Defines a playable character race with inherent perks and compatibility requirements.
+/// </summary>
 public sealed record RaceDefinition(
     RaceId RaceId,
     int SchemaVersion,
@@ -70,6 +101,9 @@ public sealed record RaceDefinition(
     ImmutableArray<ContentId> RequiredSupportIds)
     : ContentDefinition(RaceId.Value, SchemaVersion, Revision, NameKey, DescriptionKey);
 
+/// <summary>
+/// Defines a training project that characters can undertake to learn feats and techniques.
+/// </summary>
 public sealed record TrainingProjectDefinition(
     TrainingProjectId TrainingProjectId,
     int SchemaVersion,
@@ -87,6 +121,9 @@ public sealed record TrainingProjectDefinition(
     ImmutableArray<TechniqueId> GrantedTechniqueIds)
     : ContentDefinition(TrainingProjectId.Value, SchemaVersion, Revision, NameKey, DescriptionKey);
 
+/// <summary>
+/// Defines a heritage or ethnic variant of a race with additional perks.
+/// </summary>
 public sealed record HeritageDefinition(
     HeritageId HeritageId,
     int SchemaVersion,
@@ -97,6 +134,9 @@ public sealed record HeritageDefinition(
     ImmutableArray<PerkId> GrantedPerkIds)
     : ContentDefinition(HeritageId.Value, SchemaVersion, Revision, NameKey, DescriptionKey);
 
+/// <summary>
+/// Defines a character background (origin story) with skill bonuses and attribute increases.
+/// </summary>
 public sealed record BackgroundDefinition(
     BackgroundId BackgroundId,
     int SchemaVersion,
@@ -108,6 +148,9 @@ public sealed record BackgroundDefinition(
     ImmutableArray<SkillId> FocusSkillIds)
     : ContentDefinition(BackgroundId.Value, SchemaVersion, Revision, NameKey, DescriptionKey);
 
+/// <summary>
+/// Defines a combat or special technique available to characters.
+/// </summary>
 public sealed record TechniqueDefinition(
     TechniqueId TechniqueId,
     int SchemaVersion,
@@ -118,6 +161,9 @@ public sealed record TechniqueDefinition(
     ImmutableArray<PerkId> GrantedPerkIds)
     : ContentDefinition(TechniqueId.Value, SchemaVersion, Revision, NameKey, DescriptionKey);
 
+/// <summary>
+/// Defines a magical spell with resource cost, casting time, cooldown, and effect rules.
+/// </summary>
 public sealed record SpellDefinition(
     SpellId SpellId,
     int SchemaVersion,
