@@ -144,6 +144,11 @@ public static class CharacterCreator
             return Failure(CharacterCreationFailure.DefinitionMissing, request.CharacterId.Value);
         }
 
+        if (!catalog.TryGetScenario(request.ScenarioId, out ScenarioDefinition? scenario))
+        {
+            return Failure(CharacterCreationFailure.DefinitionMissing, request.ScenarioId.Value);
+        }
+
         if (!catalog.TryGetRace(request.RaceId, out RaceDefinition? race))
         {
             return Failure(CharacterCreationFailure.DefinitionMissing, request.RaceId.Value);
@@ -237,8 +242,18 @@ public static class CharacterCreator
             skills.MoveToImmutable(),
             grants.Feats,
             grants.Sources);
+        CharacterResourceProfileDefinition? resourceProfile = null;
+        if (scenario!.CharacterResourceProfileId is CharacterResourceProfileId profileId &&
+            !catalog.TryGetCharacterResourceProfile(profileId, out resourceProfile))
+        {
+            return Failure(CharacterCreationFailure.DefinitionMissing, profileId.Value);
+        }
+
+        ImmutableHashSet<ResourceId> characterResourceIds = resourceProfile?.Resources
+            .Select(value => value.ResourceId).ToImmutableHashSet() ?? [];
         ImmutableDictionary<ResourceId, int> resources = template.ResourceIds
-            .ToImmutableDictionary(id => id, id => id == new ResourceId("resource.psionics-strain") ? 0 : 10);
+            .Where(id => !characterResourceIds.Contains(id))
+            .ToImmutableDictionary(id => id, _ => 10);
 
         CharacterState published = new(
             template.CharacterId,
@@ -253,7 +268,12 @@ public static class CharacterCreator
             template.ScriptIds,
             template.EquipmentIds.ToImmutableHashSet(),
             resources,
-            ImmutableDictionary<TrainingProjectId, int>.Empty);
+            ImmutableDictionary<TrainingProjectId, int>.Empty)
+        {
+            CharacterResources = resourceProfile is not null
+                ? CharacterResourceSet.Create(resourceProfile)
+                : CharacterResourceSet.Empty,
+        };
         return new CharacterCreationResult(published, CharacterCreationFailure.None, null);
     }
 

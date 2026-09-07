@@ -8,6 +8,7 @@ internal enum DefinitionKind : byte
     Ability,
     Skill,
     LevelProgressionTable,
+    CharacterResourceProfile,
     Access,
     Background,
     Character,
@@ -38,6 +39,7 @@ internal sealed record SourceDefinition(
     IReadOnlyDictionary<string, int> Integers,
     IReadOnlyDictionary<string, string> Strings,
     IReadOnlyDictionary<string, ImmutableArray<string>> Arrays,
+    IReadOnlyDictionary<string, ImmutableArray<int>> IntegerArrays,
     AbilitySourceDto? Ability,
     SkillSourceDto? Skill,
     ImmutableArray<LevelProgressionEntry> LevelProgressionEntries);

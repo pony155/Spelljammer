@@ -502,6 +502,16 @@ public static class CampaignSaveCodec
             ScriptIds = [.. character.ScriptIds.Order().Select(value => value.ToString())],
             EquipmentIds = [.. character.EquipmentIds.Order().Select(value => value.ToString())],
             Resources = Values(character.Resources.Select(value => (value.Key.Value, value.Value))),
+            CharacterResources = [.. character.CharacterResources.Values.OrderBy(value => value.ResourceId).Select(value => new CharacterResourceDto
+            {
+                Id = value.ResourceId.ToString(),
+                CurrentValue = value.CurrentValue,
+                BaseMaximum = value.BaseMaximum,
+                BaseRecoveryRate = value.BaseRecoveryRate,
+                Accumulates = value.Accumulates,
+                PermanentModifiers = [.. value.PermanentModifiers.Select(ToDto)],
+                TemporaryModifiers = [.. value.TemporaryModifiers.Select(ToDto)],
+            })],
             TrainingProgress = Values(character.TrainingProgress.Select(value => (value.Key.Value, value.Value))),
             CanAct = character.CanAct,
             ActiveEffects = [.. character.ActiveEffects.Select(value => new CapabilityEffectDto
@@ -525,6 +535,16 @@ public static class CampaignSaveCodec
             })],
         };
     }
+
+    private static CharacterResourceModifierDto ToDto(CharacterResourceModifier modifier) => new()
+    {
+        SourceId = modifier.SourceId.ToString(),
+        MaximumDelta = modifier.MaximumDelta,
+        RecoveryRateDelta = modifier.RecoveryRateDelta,
+    };
+
+    private static CharacterResourceModifier FromDto(CharacterResourceModifierDto modifier) => new(
+        new ContentId(modifier.SourceId), modifier.MaximumDelta, modifier.RecoveryRateDelta);
 
     private static PersonalEncounterDto ToDto(PersonalEncounterState encounter) => new()
     {
@@ -746,6 +766,11 @@ public static class CampaignSaveCodec
             training.ToImmutableDictionary(pair => new TrainingProjectId(pair.Key), pair => pair.Value),
             value.CanAct)
         {
+            CharacterResources = CharacterResourceSet.Restore(value.CharacterResources.Select(resource => new CharacterResourceState(
+                new ResourceId(resource.Id), resource.CurrentValue, resource.BaseMaximum, resource.BaseRecoveryRate,
+                resource.Accumulates,
+                [.. resource.PermanentModifiers.Select(FromDto)],
+                [.. resource.TemporaryModifiers.Select(FromDto)]))),
             ActiveEffects = [.. value.ActiveEffects.Select(effect => new ActiveCapabilityEffect(
                 new ContentId(effect.EffectId), new ContentId(effect.SourceId), new CharacterId(effect.ActorId),
                 new CharacterId(effect.TargetId), effect.StartTick, effect.EndTick, new ContentId(effect.ScopeId)))],

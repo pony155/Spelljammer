@@ -26,6 +26,7 @@ internal static class ContentContracts
         FailedReplacementPreservesPublishedSnapshot();
         BaseAbilitysAndSkillsAreTypedAndIndexed();
         LevelProgressionTablesAreDataDriven();
+        CharacterResourcesAreBoundedAndDirectional();
         Milestone2InvalidCasesAreRecognized();
         AdditiveSkillIsDynamicAndReversible();
         CharacterDefinitionsRejectInvalidGraphs();
@@ -251,6 +252,25 @@ internal static class ContentContracts
         ContentCompilationResult rejected = new GameContentCompiler().Compile([new MemoryPackSource(invalid, [])], GameVersion);
         Equal(ContentDiagnosticCodes.SemanticInvalid, rejected.Diagnostics.FirstOrDefault()?.Code ?? "<none>",
             "A non-increasing XP threshold was accepted.");
+    }
+
+    private static void CharacterResourcesAreBoundedAndDirectional()
+    {
+        (GameContentSnapshot snapshot, RosterSnapshot roster) = BaseRoster();
+        CharacterState character = roster.Characters[0];
+        True(snapshot.TryGetCharacterResourceProfile(new CharacterResourceProfileId("character-resources.standard"),
+            out CharacterResourceProfileDefinition? profile), "The character resource profile was not published.");
+        CharacterResourceRule staminaRule = profile!.Resources.Single(value => value.ResourceId == CharacterResourceIds.Stamina);
+        Equal(5, staminaRule.BaseRecoveryRate, "Stamina recovery did not come from JSON.");
+        Equal("50|75|100", string.Join('|', profile.Resources.Single(value =>
+            value.ResourceId == CharacterResourceIds.Strain).ThresholdPercentages), "Strain thresholds did not come from JSON.");
+
+        CharacterResourceSet spent = character.CharacterResources.SpendResource(CharacterResourceIds.Stamina, 20);
+        Equal(80, spent.GetCurrentValue(CharacterResourceIds.Stamina), "Stamina spending produced the wrong value.");
+        Equal(85, spent.RecoverOneTick().GetCurrentValue(CharacterResourceIds.Stamina), "Stamina recovery ignored its profile.");
+        CharacterResourceSet strained = character.CharacterResources.GenerateStrain(150);
+        Equal(100, strained.GetCurrentValue(CharacterResourceIds.Strain), "Strain was not clamped to its authored maximum.");
+        Equal(97, strained.RecoverOneTick().GetCurrentValue(CharacterResourceIds.Strain), "Strain decay moved in the wrong direction.");
     }
 
     private static void AdditiveSkillIsDynamicAndReversible()
@@ -507,30 +527,32 @@ internal static class ContentContracts
         Equal(ActionRejectionCodes.ContentMismatch, wrongFingerprint.RejectionCode,
             "Known Spell state crossed its active content fingerprint.");
 
-        CharacterState lowFocus = caster with
+        CharacterState lowMana = caster with
         {
-            Resources = caster.Resources.SetItem(new ResourceId("resource.focus"), 1),
+            CharacterResources = caster.CharacterResources.WithCurrentValue(CharacterResourceIds.Mana, 1),
         };
-        SpellActionResult lowDeclared = SpellActionSystem.Declare(lowFocus, spellId, spellTarget, 42, 3, 7, snapshot);
+        SpellActionResult lowDeclared = SpellActionSystem.Declare(lowMana, spellId, spellTarget, 42, 3, 7, snapshot);
         SpellActionResult lowPreviewed = SpellActionSystem.Preview(lowDeclared.Action!);
         SpellActionResult insufficient = SpellActionSystem.Reserve(lowPreviewed.Action!);
-        Equal(ActionRejectionCodes.ResourceInsufficient, insufficient.RejectionCode, "A Spell bypassed its Focus cost.");
-        True(ReferenceEquals(lowFocus, insufficient.Actor), "Failed Spell reservation changed the actor state.");
+        Equal(ActionRejectionCodes.ResourceInsufficient, insufficient.RejectionCode, "A Spell bypassed its Mana cost.");
+        True(ReferenceEquals(lowMana, insufficient.Actor), "Failed Spell reservation changed the actor state.");
 
         SpellActionResult declared = SpellActionSystem.Declare(caster, spellId, spellTarget, 42, 3, 7, snapshot);
         True(declared.Accepted, declared.RejectionCode);
         SpellActionResult previewed = SpellActionSystem.Preview(declared.Action!);
         SpellActionResult reserved = SpellActionSystem.Reserve(previewed.Action!);
-        Equal(caster.Resources[new ResourceId("resource.focus")], reserved.Actor.Resources[new ResourceId("resource.focus")],
-            "Spell reservation mutated published Focus.");
+        Equal(caster.CharacterResources.GetCurrentValue(CharacterResourceIds.Mana),
+            reserved.Actor.CharacterResources.GetCurrentValue(CharacterResourceIds.Mana),
+            "Spell reservation mutated published Mana.");
         SpellActionResult prepared = SpellActionSystem.Prepare(reserved.Action!);
         SpellActionResult resolved = SpellActionSystem.Resolve(prepared.Action!, snapshot);
         SpellActionResult replay = SpellActionSystem.Resolve(prepared.Action!, snapshot);
         Equal(resolved.Action!.Roll, replay.Action!.Roll, "Spell replay changed its owned random result.");
         SpellActionResult committed = SpellActionSystem.Commit(resolved.Action);
         True(committed.Accepted, committed.RejectionCode);
-        Equal(caster.Resources[new ResourceId("resource.focus")] - 2, committed.Actor.Resources[new ResourceId("resource.focus")],
-            "Spell commit charged the wrong Focus cost.");
+        Equal(caster.CharacterResources.GetCurrentValue(CharacterResourceIds.Mana) - 2,
+            committed.Actor.CharacterResources.GetCurrentValue(CharacterResourceIds.Mana),
+            "Spell commit charged the wrong Mana cost.");
         True(committed.Actor.Evidence.Any(value => value.SourceId == spellId.Value), "Spell commit omitted observable evidence.");
         True(committed.Actor.ActiveEffects.Any(value => value.SourceId == spellId.Value), "Spell commit omitted its bounded active effect.");
         SpellActionResult recovered = SpellActionSystem.Recover(committed.Actor, committed.Action!);
@@ -558,17 +580,17 @@ internal static class ContentContracts
         Equal(0, declined.Actor.Evidence.Length, "Rejected Mindlink leaked protected evidence.");
         MindlinkResult accepted = MindlinkSystem.Respond(invited.Link!, human.Id, true);
         MindlinkResult reserved = MindlinkSystem.Reserve(accepted.Link!);
-        Equal(0, reserved.Actor.Resources[new ResourceId("resource.psionics-strain")], "Mindlink reservation mutated published Strain.");
+        Equal(0, reserved.Actor.CharacterResources.GetCurrentValue(CharacterResourceIds.Strain), "Mindlink reservation mutated published Strain.");
         MindlinkResult active = MindlinkSystem.Commit(reserved.Link!);
         MindlinkResult replay = MindlinkSystem.Commit(reserved.Link!);
-        Equal(active.Actor.Resources[new ResourceId("resource.psionics-strain")], replay.Actor.Resources[new ResourceId("resource.psionics-strain")],
+        Equal(active.Actor.CharacterResources.GetCurrentValue(CharacterResourceIds.Strain), replay.Actor.CharacterResources.GetCurrentValue(CharacterResourceIds.Strain),
             "Mindlink replay changed deterministic strain publication.");
-        Equal(4, active.Actor.Resources[new ResourceId("resource.psionics-strain")], "Mindlink charged the wrong initial Strain.");
+        Equal(4, active.Actor.CharacterResources.GetCurrentValue(CharacterResourceIds.Strain), "Mindlink charged the wrong initial Strain.");
         True(active.Actor.Evidence.Any(value => value.SourceId == mindlinkId.Value), "Mindlink commit omitted observable evidence.");
         True(active.Actor.ActiveEffects.Any(value => value.ScopeId == new ContentId("psionics.scope.deliberate-message")),
             "Mindlink exposed a broader information scope.");
         MindlinkResult sustained = MindlinkSystem.Sustain(active.Actor, active.Link!, 12);
-        Equal(5, sustained.Actor.Resources[new ResourceId("resource.psionics-strain")], "Mindlink sustain charged the wrong Strain.");
+        Equal(5, sustained.Actor.CharacterResources.GetCurrentValue(CharacterResourceIds.Strain), "Mindlink sustain charged the wrong Strain.");
         MindlinkResult revoked = MindlinkSystem.Revoke(sustained.Actor, sustained.Link!, human.Id);
         False(revoked.Actor.ActiveEffects.Any(value => value.SourceId == mindlinkId.Value), "Revoked Mindlink retained its active channel.");
 

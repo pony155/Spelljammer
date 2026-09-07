@@ -313,8 +313,10 @@ public static class CharacterActionSystem
         ImmutableDictionary<ResourceId, int>.Builder reserved = ImmutableDictionary.CreateBuilder<ResourceId, int>();
         foreach (ActionCost cost in definition.Costs.OrderBy(value => value.ResourceId))
         {
-            actor.Resources.TryGetValue(cost.ResourceId, out int available);
-            if (available < cost.Amount)
+            bool available = actor.CharacterResources.TryGet(cost.ResourceId, out _)
+                ? actor.CharacterResources.CanSpendResource(cost.ResourceId, cost.Amount)
+                : actor.Resources.TryGetValue(cost.ResourceId, out int inventoryAmount) && inventoryAmount >= cost.Amount;
+            if (!available)
             {
                 return Rejected(ActionRejectionCodes.ResourceInsufficient, cost.ResourceId.Value);
             }
@@ -341,9 +343,17 @@ public static class CharacterActionSystem
         int total = checked(reservation.AbilityValue * 10 + reservation.SkillValue + reservation.Definition.Modifier + roll);
         bool succeeded = total >= reservation.Definition.Difficulty;
         ImmutableDictionary<ResourceId, int>.Builder resources = reservation.OriginalState.Resources.ToBuilder();
+        CharacterResourceSet characterResources = reservation.OriginalState.CharacterResources;
         foreach ((ResourceId id, int amount) in reservation.ReservedResources)
         {
-            resources[id] -= amount;
+            if (characterResources.TryGet(id, out _))
+            {
+                characterResources = characterResources.SpendResource(id, amount);
+            }
+            else
+            {
+                resources[id] -= amount;
+            }
         }
 
         CharacterCapabilities capabilities = reservation.OriginalState.Capabilities;
@@ -356,6 +366,7 @@ public static class CharacterActionSystem
         CharacterState committed = reservation.OriginalState with
         {
             Resources = resources.ToImmutable(),
+            CharacterResources = characterResources,
             Capabilities = capabilities,
         };
         ActionResolutionEvent resolution = new(

@@ -174,6 +174,15 @@ add_custom_target(SpelljammerLocalizationCatalogs
         -p:Platform=AnyCPU
         --no-build
         -- compile
+        ${SPELLJAMMER_ROOT}/Content/Packs/base/Localization/en-US/character-resources.sfloc.json
+        ${CMAKE_CURRENT_BINARY_DIR}/Localization/en-US/character-resources.sfloc
+    COMMAND ${CMAKE_COMMAND} -E env DOTNET_CLI_TELEMETRY_OPTOUT=1
+        ${SPELLJAMMER_DOTNET_EXECUTABLE} run
+        --project ${SPELLJAMMER_ROOT}/Tools/Spelljammer.Localization.Compiler/Spelljammer.Localization.Compiler.csproj
+        --configuration ${SPELLJAMMER_DOTNET_CONFIGURATION}
+        -p:Platform=AnyCPU
+        --no-build
+        -- compile
         ${SPELLJAMMER_ROOT}/Content/Packs/base/Localization/en-US/accesses.sfloc.json
         ${CMAKE_CURRENT_BINARY_DIR}/Localization/en-US/accesses.sfloc
     COMMAND ${CMAKE_COMMAND} -E env DOTNET_CLI_TELEMETRY_OPTOUT=1
@@ -343,6 +352,7 @@ add_custom_target(SpelljammerLocalizationCatalogs
         ${CMAKE_CURRENT_BINARY_DIR}/Localization/en-US/abilities.sfloc
         ${CMAKE_CURRENT_BINARY_DIR}/Localization/en-US/skills.sfloc
         ${CMAKE_CURRENT_BINARY_DIR}/Localization/en-US/level-progression.sfloc
+        ${CMAKE_CURRENT_BINARY_DIR}/Localization/en-US/character-resources.sfloc
         ${CMAKE_CURRENT_BINARY_DIR}/Localization/en-US/characters.sfloc
         ${CMAKE_CURRENT_BINARY_DIR}/Localization/en-US/equipment.sfloc
         ${CMAKE_CURRENT_BINARY_DIR}/Localization/en-US/cells.sfloc

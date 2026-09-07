@@ -109,6 +109,15 @@ public static class CampaignValidator
             try
             {
                 _ = CharacterCapabilities.Restore(character.Capabilities.Snapshot(content), content);
+                if (scenario.CharacterResourceProfileId is CharacterResourceProfileId profileId)
+                {
+                    if (!content.TryGetCharacterResourceProfile(profileId, out CharacterResourceProfileDefinition? profile))
+                    {
+                        return false;
+                    }
+
+                    character.CharacterResources.Validate(profile!);
+                }
             }
             catch (InvalidOperationException)
             {

@@ -73,6 +73,19 @@ internal static class CanonicalSemanticWriter
             case LevelProgressionTableDefinition value:
                 properties["levels"] = output => WriteLevelProgressionEntries(output, value.Levels);
                 break;
+            case CharacterResourceProfileDefinition value:
+                foreach (CharacterResourceRule rule in value.Resources)
+                {
+                    string prefix = rule.ResourceId.ToString()["resource.".Length..];
+                    properties[prefix + "Maximum"] = output => output.Append(rule.BaseMaximum);
+                    properties[prefix + "RecoveryRate"] = output => output.Append(rule.BaseRecoveryRate);
+                    if (!rule.ThresholdPercentages.IsEmpty)
+                    {
+                        properties[prefix + "ThresholdPercentages"] = output => WriteIntegers(output, rule.ThresholdPercentages);
+                    }
+                }
+
+                break;
             case AccessDefinition value:
                 properties["tags"] = output => WriteStrings(output, value.Tags);
                 break;
@@ -98,6 +111,11 @@ internal static class CanonicalSemanticWriter
                 if (value.LevelProgressionTableId is LevelProgressionTableId progressionTableId)
                 {
                     properties["levelProgressionTableId"] = output => WriteString(output, progressionTableId.ToString());
+                }
+
+                if (value.CharacterResourceProfileId is CharacterResourceProfileId resourceProfileId)
+                {
+                    properties["characterResourceProfileId"] = output => WriteString(output, resourceProfileId.ToString());
                 }
 
                 break;
@@ -130,8 +148,8 @@ internal static class CanonicalSemanticWriter
                     properties["activeKind"] = output => WriteString(output, "spell");
                     properties["castTimeTicks"] = output => output.Append(spell.CastTimeTicks);
                     properties["cooldownTicks"] = output => output.Append(spell.CooldownTicks);
-                    properties["focusCost"] = output => output.Append(spell.FocusCost);
-                    properties["focusResourceId"] = output => WriteString(output, spell.FocusResourceId.ToString());
+                    properties["manaCost"] = output => output.Append(spell.ManaCost);
+                    properties["manaResourceId"] = output => WriteString(output, spell.ManaResourceId.ToString());
                     properties["rangeId"] = output => WriteString(output, spell.RangeId.ToString());
                     properties["skillId"] = output => WriteString(output, spell.SkillId.ToString());
                     properties["targetTags"] = output => WriteStrings(output, spell.TargetTags);
@@ -286,15 +304,16 @@ internal static class CanonicalSemanticWriter
         RaceDefinition => 7,
         SkillDefinition => 8,
         LevelProgressionTableDefinition => 9,
-        TrainingProjectDefinition => 10,
-        EquipmentDefinition => 11,
-        BoardCellDefinition => 12,
-        ZoneLinkDefinition => 13,
-        PersonalBoardDefinition => 14,
-        EncounterDefinition => 15,
-        ShipFrameDefinition => 16,
-        ShipModuleDefinition => 17,
-        ShipWeaponConfigurationDefinition => 18,
+        CharacterResourceProfileDefinition => 10,
+        TrainingProjectDefinition => 11,
+        EquipmentDefinition => 12,
+        BoardCellDefinition => 13,
+        ZoneLinkDefinition => 14,
+        PersonalBoardDefinition => 15,
+        EncounterDefinition => 16,
+        ShipFrameDefinition => 17,
+        ShipModuleDefinition => 18,
+        ShipWeaponConfigurationDefinition => 19,
         _ => throw new ArgumentOutOfRangeException(nameof(definition)),
     };
 
@@ -319,6 +338,11 @@ internal static class CanonicalSemanticWriter
     private static void WriteIds(StringBuilder builder, IEnumerable<ContentId> ids) =>
         WriteStrings(builder, ids.Select(id => id.ToString()));
 
+    private static void WriteIntegers(StringBuilder builder, IEnumerable<int> values)
+    {
+        builder.Append('[').AppendJoin(',', values).Append(']');
+    }
+
     private static void WriteLevelProgressionEntries(
         StringBuilder builder,
         IEnumerable<LevelProgressionEntry> entries)
@@ -338,7 +362,9 @@ internal static class CanonicalSemanticWriter
                 .Append(",\"level\":").Append(entry.Level)
                 .Append(",\"maximumHealthIncrease\":").Append(entry.MaximumHealthIncrease)
                 .Append(",\"maximumManaIncrease\":").Append(entry.MaximumManaIncrease)
+                .Append(",\"maximumResolveIncrease\":").Append(entry.MaximumResolveIncrease)
                 .Append(",\"maximumStaminaIncrease\":").Append(entry.MaximumStaminaIncrease)
+                .Append(",\"maximumStrainIncrease\":").Append(entry.MaximumStrainIncrease)
                 .Append(",\"requiredExperience\":").Append(entry.RequiredExperience)
                 .Append(",\"skillPoints\":").Append(entry.SkillPoints)
                 .Append('}');

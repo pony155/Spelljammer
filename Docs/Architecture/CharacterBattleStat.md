@@ -17,6 +17,10 @@ The core design principle is:
 
 > **Attributes represent innate capability. Skills represent trained proficiency. Equipment determines how those capabilities are converted into combat performance.**
 
+The authoritative five-resource ownership and data contract are defined in
+[`../Concept/CharacterResources.md`](../Concept/CharacterResources.md). Health,
+Stamina, Mana, Resolve, and Strain are independent of Attributes and Skills.
+
 ---
 
 # 2. Combat Layers
@@ -779,9 +783,12 @@ Initial implementation should focus on:
 
 ```text
 Health
+Stamina
+Mana
+Resolve
+Strain
 Armor
 Evasion
-Resolve
 Willpower
 
 Strength
@@ -827,9 +834,12 @@ Core statistics:
 
 ```text
 Health
+Stamina
+Mana
+Resolve
+Strain
 Armor
 Evasion
-Resolve
 Willpower
 Strength
 Melee Weapons
@@ -861,7 +871,7 @@ Potential future additions:
 - Cover
 - Overwatch
 - Opportunity attacks
-- Fatigue / Stamina
+- deeper fatigue conditions beyond Stamina
 - Initiative
 - Action Points
 - Shipboard environmental hazards

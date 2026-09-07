@@ -8,6 +8,7 @@ public interface ICharacterContentCatalog
     ContentFingerprint Fingerprint { get; }
     ImmutableArray<AbilityDefinition> Abilities { get; }
     ImmutableArray<SkillDefinition> Skills { get; }
+    ImmutableArray<CharacterResourceProfileDefinition> CharacterResourceProfiles { get; }
     ImmutableArray<CharacterDefinition> Characters { get; }
     ImmutableArray<ScenarioDefinition> Scenarios { get; }
     ImmutableArray<EquipmentDefinition> Equipment { get; }
@@ -21,6 +22,7 @@ public interface ICharacterContentCatalog
 
     bool TryGetAbility(AbilityId id, out AbilityDefinition? definition, out int index);
     bool TryGetSkill(SkillId id, out SkillDefinition? definition, out int index);
+    bool TryGetCharacterResourceProfile(CharacterResourceProfileId id, out CharacterResourceProfileDefinition? definition);
     bool TryGetAccess(AccessId id, out AccessDefinition? definition);
     bool TryGetBackground(BackgroundId id, out BackgroundDefinition? definition);
     bool TryGetCharacter(CharacterId id, out CharacterDefinition? definition);

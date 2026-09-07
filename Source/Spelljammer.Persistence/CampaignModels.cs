@@ -21,9 +21,9 @@ public static class CampaignSaveVersions
     public const ushort Envelope = 1;
 
     /// <summary>
-    /// Version of the save schema (overall data structure). Version 5 unifies active and passive Feats.
+    /// Version of the save schema. Version 6 persists the five-resource state and modifier provenance.
     /// </summary>
-    public const ushort SaveSchema = 5;
+    public const ushort SaveSchema = 6;
 
     /// <summary>Version of the world generation algorithm used in this save.</summary>
     public const int WorldGenerator = 1;

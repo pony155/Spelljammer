@@ -18,6 +18,11 @@ Telepathy never rewrites memory, forces permanent belief, or grants
 unrestricted mind reading. A resisted attempt still creates Psionics Strain,
 distorted impressions, or detectable feedback for the target.
 
+Psionic active Feats generate `resource.strain`; they do not spend Mana or
+Resolve by default. Maximum Strain is a risk threshold rather than a hard ban
+on further use. Backlash and Resolve damage are authored effects, and Strain
+decay and overload thresholds come from the active character resource profile.
+
 ### Telekinesis
 
 | Active Feat | Stable ID | Tier | Intended effect |

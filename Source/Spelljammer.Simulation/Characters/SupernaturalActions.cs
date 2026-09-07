@@ -30,7 +30,7 @@ public sealed record SpellActionState(
     ulong RandomSeed,
     ulong RandomSequence,
     long Tick,
-    int ReservedFocus,
+    int ReservedMana,
     int Roll,
     bool Succeeded);
 
@@ -120,8 +120,7 @@ public static class SpellActionSystem
         }
 
         SpellFeatRules rules = action.Definition.SpellRules!;
-        action.OriginalActor.Resources.TryGetValue(rules.FocusResourceId, out int available);
-        if (available < rules.FocusCost)
+        if (!action.OriginalActor.CharacterResources.CanSpendResource(rules.ManaResourceId, rules.ManaCost))
         {
             return Rejected(action.OriginalActor, ActionRejectionCodes.ResourceInsufficient, action);
         }
@@ -129,7 +128,7 @@ public static class SpellActionSystem
         return Accepted(action.OriginalActor, action with
         {
             Phase = SpellActionPhase.Reserved,
-            ReservedFocus = rules.FocusCost,
+            ReservedMana = rules.ManaCost,
         });
     }
 
@@ -148,7 +147,7 @@ public static class SpellActionSystem
             return Rejected(action.OriginalActor, "command.action-phase-invalid", action);
         }
 
-        return Accepted(action.OriginalActor, action with { Phase = SpellActionPhase.Interrupted, ReservedFocus = 0 });
+        return Accepted(action.OriginalActor, action with { Phase = SpellActionPhase.Interrupted, ReservedMana = 0 });
     }
 
     public static SpellActionResult Resolve(SpellActionState action, ICharacterContentCatalog catalog)
@@ -189,8 +188,7 @@ public static class SpellActionSystem
         }
 
         SpellFeatRules rules = action.Definition.SpellRules!;
-        action.OriginalActor.Resources.TryGetValue(rules.FocusResourceId, out int available);
-        if (available < action.ReservedFocus)
+        if (!action.OriginalActor.CharacterResources.CanSpendResource(rules.ManaResourceId, action.ReservedMana))
         {
             return Rejected(action.OriginalActor, ActionRejectionCodes.ResourceInsufficient, action);
         }
@@ -214,9 +212,9 @@ public static class SpellActionSystem
             action.Succeeded);
         CharacterState committed = action.OriginalActor with
         {
-            Resources = action.OriginalActor.Resources.SetItem(
-                rules.FocusResourceId,
-                available - action.ReservedFocus),
+            CharacterResources = action.OriginalActor.CharacterResources.SpendResource(
+                rules.ManaResourceId,
+                action.ReservedMana),
             ActiveEffects = effects,
             Evidence = [.. action.OriginalActor.Evidence, evidence],
         };
@@ -282,7 +280,6 @@ public sealed record MindlinkResult(
 
 public static class MindlinkSystem
 {
-    public const int MaximumPsionicStrain = 100;
 
     public static MindlinkResult Invite(
         CharacterState actor,
@@ -350,8 +347,8 @@ public static class MindlinkSystem
         }
 
         PsionicFeatRules rules = link.Definition.PsionicRules!;
-        link.OriginalActor.Resources.TryGetValue(rules.StrainResourceId, out int strain);
-        if (strain + rules.StrainCost > MaximumPsionicStrain)
+        if (!link.OriginalActor.CharacterResources.TryGet(rules.StrainResourceId, out CharacterResourceState? strain) ||
+            !strain!.Accumulates)
         {
             return Rejected(link.OriginalActor, ActionRejectionCodes.ResourceInsufficient, link);
         }
@@ -377,12 +374,6 @@ public static class MindlinkSystem
         }
 
         PsionicFeatRules rules = link.Definition.PsionicRules!;
-        link.OriginalActor.Resources.TryGetValue(rules.StrainResourceId, out int strain);
-        if (strain + link.ReservedStrain > MaximumPsionicStrain)
-        {
-            return Rejected(link.OriginalActor, ActionRejectionCodes.ResourceInsufficient, link);
-        }
-
         ImmutableArray<ActiveCapabilityEffect> effects =
             [.. link.OriginalActor.ActiveEffects, .. link.Definition.EffectIds.Select(id => new ActiveCapabilityEffect(
                 id,
@@ -401,7 +392,7 @@ public static class MindlinkSystem
             true);
         CharacterState committed = link.OriginalActor with
         {
-            Resources = link.OriginalActor.Resources.SetItem(rules.StrainResourceId, strain + link.ReservedStrain),
+            CharacterResources = link.OriginalActor.CharacterResources.GenerateStrain(link.ReservedStrain),
             ActiveEffects = effects,
             Evidence = [.. link.OriginalActor.Evidence, evidence],
         };
@@ -416,17 +407,9 @@ public static class MindlinkSystem
         }
 
         PsionicFeatRules rules = link.Definition.PsionicRules!;
-        actor.Resources.TryGetValue(rules.StrainResourceId, out int strain);
-        if (strain + rules.SustainCostPerTick > MaximumPsionicStrain)
-        {
-            return Rejected(actor, ActionRejectionCodes.ResourceInsufficient, link);
-        }
-
         CharacterState sustained = actor with
         {
-            Resources = actor.Resources.SetItem(
-                rules.StrainResourceId,
-                strain + rules.SustainCostPerTick),
+            CharacterResources = actor.CharacterResources.GenerateStrain(rules.SustainCostPerTick),
         };
         return Accepted(sustained, link with { LastSustainTick = tick });
     }

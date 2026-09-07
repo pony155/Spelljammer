@@ -36,6 +36,12 @@ Examples include:
 Statuses must never silently rewrite permanent abilities, learned skills,
 Race, Heritage, equipment identity, or player commands.
 
+Health, Stamina, Mana, Resolve, and Strain are numeric character resources,
+not statuses. A threshold crossing may apply an authored status such as Shaken
+or Psionic Overload, but the status records its own source and lifecycle while
+the resource remains in `CharacterResourceSet`. See
+[`CharacterResources.md`](CharacterResources.md).
+
 ## Status categories
 
 ### Conditions
@@ -112,6 +118,12 @@ Morale is not mind control. Magical or psionic coercion uses separate authored
 effects, resistance, consent, and evidence rules. A morale change must record
 the event or source that caused it so the player can understand and respond to
 it.
+
+Resolve is the numeric capacity to resist immediate mental pressure; morale is
+an inspectable social and psychological condition with causes and choices.
+Resolve reaching a configured threshold can contribute to Shaken, Vulnerable,
+or Mental Break effects without replacing morale or forcing one universal
+behavior.
 
 ## Status definition contract
 

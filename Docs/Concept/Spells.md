@@ -9,10 +9,10 @@ encounter integration are planned.
 ## Simple magic rule
 
 Magic creates memorable choices, not aether chemistry or ritual accounting. A
-spell tooltip shows its **Focus cost**, **range**, **cast time**, and **effect**;
+spell tooltip shows its **Mana cost**, **range**, **cast time**, and **effect**;
 it may also show a short cooldown. Arcane is the overall magical practice;
 Aether is the non-material medium that carries its energy. A personal spell uses
-Focus, while an item or ship spell may explicitly consume Aether charge.
+Mana, while an item or ship spell may explicitly consume Aether charge.
 
 Casting is one action: choose a legal target, preview the effect, pay the cost,
 and resolve it. A failed spell spends its stated cost and clearly says why it
@@ -30,7 +30,7 @@ Characters have no mage class. To cast, a character needs:
 1. `access.magic`, from `feat.access.magic` (Spellcasting Training) or a
    Racial Feat that explicitly grants it;
 2. the spell's active `FeatId` in their Feats collection; and
-3. enough Focus and a legal target.
+3. enough Mana and a legal target.
 
 The Elf Race Feat **Aether Sense** is the initial innate source of
 `access.magic`. It grants the ability to perceive nearby Aether patterns, but
@@ -56,7 +56,7 @@ teaching; they are not classes and do not add separate resource systems.
 ## Spell definition
 
 Every active Spell Feat contains a stable ID, localized name and description,
-required access ID, Focus cost, range, cast time, one bounded effect, and an
+required access ID, Mana cost, range, cast time, one bounded effect, and an
 optional cooldown. It may additionally declare legal target tags, damage type,
 or resistance. Definitions must have bounded targets and a clear end condition.
 
@@ -64,7 +64,7 @@ or resistance. Definitions must have bounded targets and a clear end condition.
 
 The first character-combat slice uses four Tier 1 spells:
 
-| Spell | Stable ID | Focus | Range | Cast time | Effect |
+| Spell | Stable ID | Mana | Range | Cast time | Effect |
 | --- | --- | ---: | --- | --- | --- |
 | Magic Missile | `feat.active.spell.spirit.magic-missile` | Low | Far | Instant | Deal reliable Arcane damage to one visible target. |
 | Burning Hands | `feat.active.spell.elemental.burning-hands` | Low | Near | Instant | Deal fire damage in a short previewed cone. |
@@ -99,7 +99,7 @@ allies.
 Spirit effects change perception or strike through Arcane force; they do not rewrite
 memory, create physical cover, or force belief. A successful inspection or
 Spirit detection effect reveals an illusion or invisible subject. Magic Missile
-still needs a legal visible target, Focus, and any defense declared by its
+still needs a legal visible target, Mana, and any defense declared by its
 definition.
 
 ### Hex

@@ -218,6 +218,16 @@ public readonly record struct LevelProgressionTableId : IComparable<LevelProgres
         TypedContentId.TryParse(value, "level-progression.", out id);
 }
 
+public readonly record struct CharacterResourceProfileId : IComparable<CharacterResourceProfileId>
+{
+    public CharacterResourceProfileId(ContentId value) => Value = TypedContentId.RequirePrefix(value, "character-resources.");
+    public CharacterResourceProfileId(string value) : this(new ContentId(value)) { }
+    public ContentId Value { get; }
+    public bool IsValid => Value.IsValid;
+    public int CompareTo(CharacterResourceProfileId other) => Value.CompareTo(other.Value);
+    public override string ToString() => Value.ToString();
+}
+
 /// <summary>
 /// A strongly-typed identifier for an access privilege or ability category.
 /// </summary>

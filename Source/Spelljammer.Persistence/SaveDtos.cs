@@ -114,10 +114,29 @@ internal sealed class CharacterDto
     public string[] ScriptIds { get; set; } = [];
     public string[] EquipmentIds { get; set; } = [];
     public ValueDto[] Resources { get; set; } = [];
+    public CharacterResourceDto[] CharacterResources { get; set; } = [];
     public ValueDto[] TrainingProgress { get; set; } = [];
     public bool CanAct { get; set; }
     public CapabilityEffectDto[] ActiveEffects { get; set; } = [];
     public CapabilityEvidenceDto[] Evidence { get; set; } = [];
+}
+
+internal sealed class CharacterResourceDto
+{
+    public string Id { get; set; } = string.Empty;
+    public int CurrentValue { get; set; }
+    public int BaseMaximum { get; set; }
+    public int BaseRecoveryRate { get; set; }
+    public bool Accumulates { get; set; }
+    public CharacterResourceModifierDto[] PermanentModifiers { get; set; } = [];
+    public CharacterResourceModifierDto[] TemporaryModifiers { get; set; } = [];
+}
+
+internal sealed class CharacterResourceModifierDto
+{
+    public string SourceId { get; set; } = string.Empty;
+    public int MaximumDelta { get; set; }
+    public int RecoveryRateDelta { get; set; }
 }
 
 internal sealed class CapabilityDto

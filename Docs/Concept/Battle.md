@@ -25,7 +25,7 @@ retreat remain valid before and during combat.
   disengagement without discarding consequences between scales.
 - Support Arcane, Industrial, and hybrid equipment without making one path the
   mandatory combat build.
-- Make injury, ammunition, Focus, Psionics Strain, damaged modules, lost cargo,
+- Make injury, ammunition, Mana, Resolve, Strain, damaged modules, lost cargo,
   prisoners, witnesses, and faction consequences persist after battle.
 - Keep surrender, rescue, capture, escape, delay, and partial success as real
   outcomes; eliminating every opponent is not the default objective.
@@ -161,7 +161,7 @@ Actions use explicit phases:
 1. **Declare:** select actor, action, target, route, equipment, and parameters.
 2. **Validate:** check knowledge, range, access, resources, friendly fire, and
    current command authority.
-3. **Reserve:** reserve ammunition, charge, Focus, Stamina, Psionics Strain
+3. **Reserve:** reserve ammunition, charge, Mana, Stamina, and generated Strain
    capacity, stations, and required items.
 4. **Prepare:** spend wind-up time, aim, move, speak, cast, reload, or operate a
    station.
@@ -477,7 +477,7 @@ can be interrupted or sustained across ticks.
 
 Psionics active Feats require `access.psionics` and follow consent, resistance,
 privacy, information, and Psionics Strain rules in
-[`Psionics.md.md`](Psionics.md.md). A failed intrusion cannot reveal
+[`Psionics.md`](Psionics.md). A failed intrusion cannot reveal
 the information it failed to reach. Mental influence never silently replaces a
 player command.
 
@@ -488,10 +488,10 @@ targeting, and failure behavior.
 
 ## Harm, injury, and incapacitation
 
-Characters do not rely on a large undifferentiated health pool. Harm resolves
-through bounded severity bands such as superficial, wounded, critical, and
-incapacitated, with authored injury tags for bleeding, fracture, burn, poison,
-vacuum exposure, psionics shock, and similar consequences.
+Characters use Health for immediate physical survivability and authored injury
+bands for persistent consequences. Health reaching zero enters incapacitation
+handling; it does not replace superficial, wounded, critical, bleeding,
+fracture, burn, poison, vacuum exposure, psionics shock, or similar injuries.
 
 Armor, cover, wards, resistance, and Toughness can reduce or redirect harm when
 their tags apply. Toughness improves endurance and survival; it does not make a
@@ -551,7 +551,7 @@ terminal conditions commit. The cleanup phase records:
 - surviving, injured, incapacitated, dead, missing, captured, and rescued
   characters;
 - ship, module, equipment, cargo, ruin, and environmental damage;
-- ammunition, charge, Focus, Stamina, Psionics Strain, medicine, fuel, and time
+- ammunition, charge, Health, Stamina, Mana, Resolve, Strain, medicine, fuel, and time
   spent;
 - recovered items, registered salvage, contraband, prisoners, and evidence;
 - witnesses, reports, law violations, agreements, standing, and Alarm changes;

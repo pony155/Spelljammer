@@ -24,8 +24,9 @@ A level progression table owns an ordered `levels` array. Each row declares:
 
 - `level`, beginning at 1 and increasing without gaps;
 - `requiredExperience`, the cumulative minimum XP for that level;
-- `maximumHealthIncrease`, `maximumManaIncrease`, and
-  `maximumStaminaIncrease`, applied to the character's maximum pools;
+- `maximumHealthIncrease`, `maximumManaIncrease`, `maximumStaminaIncrease`,
+  `maximumResolveIncrease`, and `maximumStrainIncrease`, applied to the
+  character's maximum pools;
 - `abilityPoints`, `skillPoints`, and `featPoints`, added to the corresponding
   unspent advancement budgets.
 
@@ -46,10 +47,15 @@ grants every crossed row exactly once and records pending player choices.
 Rewards are committed transactionally with the experience change; partial
 granting is invalid.
 
-Health, Mana, and Stamina increases affect maximum values. Whether current
-values are restored on level-up must be a separate campaign/content rule; it
+Health, Mana, Stamina, Resolve, and Strain increases affect maximum values.
+Whether current values are restored on level-up must be a separate
+campaign/content rule; it
 must not be inferred from the maximum increase. Ability, Skill, and Feat points
 remain unspent until an explicit valid command allocates them.
+
+Base maxima, regeneration, decay, and Resolve or Strain thresholds belong to
+the scenario's character resource profile. The level table contains only the
+increment granted by crossing each authored level.
 
 Changing a table used by a saved campaign changes the content fingerprint and
 requires the normal compatibility or migration path. Saves persist the table
@@ -63,4 +69,3 @@ Content compilation rejects missing or empty tables, non-contiguous levels, a
 non-zero level-1 threshold, non-increasing XP thresholds, negative rewards,
 invalid IDs, missing localization keys, and scenario references to unknown
 tables. Collection and file-size limits continue to bound authored tables.
-

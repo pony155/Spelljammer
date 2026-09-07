@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "revision": 1,
+  "id": "character-resources.standard",
+  "nameKey": "character-resources.standard.name",
+  "descriptionKey": "character-resources.standard.description",
+  "healthMaximum": 100,
+  "healthRecoveryRate": 0,
+  "staminaMaximum": 100,
+  "staminaRecoveryRate": 5,
+  "manaMaximum": 100,
+  "manaRecoveryRate": 1,
+  "resolveMaximum": 100,
+  "resolveRecoveryRate": 2,
+  "strainMaximum": 100,
+  "strainRecoveryRate": 3,
+  "resolveThresholdPercentages": [50, 25, 0],
+  "strainThresholdPercentages": [50, 75, 100]
+}

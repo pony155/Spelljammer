@@ -1,9 +1,10 @@
 {
   "schemaVersion": 1,
-  "revision": 2,
+  "revision": 3,
   "id": "scenario.first-voyage",
   "nameKey": "creation.scenario.first-voyage.name",
   "descriptionKey": "creation.scenario.first-voyage.description",
   "maximumRosterSize": 8,
-  "levelProgressionTableId": "level-progression.character.standard"
+  "levelProgressionTableId": "level-progression.character.standard",
+  "characterResourceProfileId": "character-resources.standard"
 }

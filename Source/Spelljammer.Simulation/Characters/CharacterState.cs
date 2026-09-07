@@ -336,6 +336,7 @@ public sealed record CharacterState(
 
     public ImmutableArray<ActiveCapabilityEffect> ActiveEffects { get; init; } = [];
     public ImmutableArray<ObservableCapabilityEvidence> Evidence { get; init; } = [];
+    public CharacterResourceSet CharacterResources { get; init; } = CharacterResourceSet.Empty;
 
     /// <summary>
     /// Validates the complete character state against the active content catalog.
@@ -352,6 +353,17 @@ public sealed record CharacterState(
         if (ContentFingerprint != catalog.Fingerprint || Capabilities.Fingerprint != ContentFingerprint)
         {
             throw new InvalidOperationException("Character state does not belong to the active content catalog.");
+        }
+
+        if (catalog.TryGetScenario(ScenarioId, out ScenarioDefinition? scenario) &&
+            scenario!.CharacterResourceProfileId is CharacterResourceProfileId profileId)
+        {
+            if (!catalog.TryGetCharacterResourceProfile(profileId, out CharacterResourceProfileDefinition? profile))
+            {
+                throw new InvalidOperationException("Character resource profile is missing.");
+            }
+
+            CharacterResources.Validate(profile!);
         }
 
         if (LanguageIds.Length > CharacterCapabilities.MaximumSetEntries ||

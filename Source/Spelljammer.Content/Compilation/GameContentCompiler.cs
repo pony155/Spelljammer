@@ -17,8 +17,11 @@ public sealed class GameContentCompiler
         "action.spell.identify",
         "effect.recovery.soul-anchor",
         "effect.tracking.observed-trail",
-        "resource.focus",
-        "resource.psionics-strain",
+        "resource.health",
+        "resource.stamina",
+        "resource.mana",
+        "resource.resolve",
+        "resource.strain",
         "resource.training-supplies",
         "facility.arcane-study",
         "facility.quiet-sanctum",
@@ -587,6 +590,12 @@ public sealed class GameContentCompiler
                             "/levelProgressionTableId", diagnostics);
                     }
 
+                    if (definition.Strings.TryGetValue("characterResourceProfileId", out string? characterResourceProfileId))
+                    {
+                        CheckReference(definition, characterResourceProfileId, DefinitionKind.CharacterResourceProfile, byId,
+                            "/characterResourceProfileId", diagnostics);
+                    }
+
                     break;
                 case DefinitionKind.Feat:
                     if (definition.Strings.TryGetValue("trainingProjectId", out string? trainingProjectId))
@@ -609,7 +618,7 @@ public sealed class GameContentCompiler
                         CheckReference(definition, resistanceSkillId, DefinitionKind.Skill, byId, "/resistanceSkillId", diagnostics);
                     }
 
-                    foreach (string field in new[] { "focusResourceId", "strainResourceId", "contactModeId", "rangeId", "informationScopeId" })
+                    foreach (string field in new[] { "manaResourceId", "strainResourceId", "contactModeId", "rangeId", "informationScopeId" })
                     {
                         if (definition.Strings.TryGetValue(field, out string? primitive))
                         {
@@ -722,6 +731,9 @@ public sealed class GameContentCompiler
                     break;
                 case DefinitionKind.LevelProgressionTable:
                     ValidateLevelProgressionTable(definition, diagnostics);
+                    break;
+                case DefinitionKind.CharacterResourceProfile:
+                    ValidateCharacterResourceProfile(definition, diagnostics);
                     break;
                 case DefinitionKind.Feat:
                     ValidateFeat(definition, diagnostics);
@@ -911,6 +923,10 @@ public sealed class GameContentCompiler
             .Where(value => value.Kind == DefinitionKind.LevelProgressionTable)
             .OrderBy(value => value.Id)
             .Select(CompileLevelProgressionTable)];
+        ImmutableArray<CharacterResourceProfileDefinition> characterResourceProfiles = [.. sources
+            .Where(value => value.Kind == DefinitionKind.CharacterResourceProfile)
+            .OrderBy(value => value.Id)
+            .Select(CompileCharacterResourceProfile)];
         ImmutableArray<AccessDefinition> access = [.. sources.Where(value => value.Kind == DefinitionKind.Access).OrderBy(value => value.Id).Select(CompileAccess)];
         ImmutableArray<BackgroundDefinition> backgrounds = [.. sources.Where(value => value.Kind == DefinitionKind.Background).OrderBy(value => value.Id).Select(CompileBackground)];
         ImmutableArray<CharacterDefinition> characters = [.. sources.Where(value => value.Kind == DefinitionKind.Character).OrderBy(value => value.Id).Select(CompileCharacter)];
@@ -929,12 +945,12 @@ public sealed class GameContentCompiler
         ImmutableArray<ShipWeaponConfigurationDefinition> shipWeapons = [.. sources.Where(value => value.Kind == DefinitionKind.ShipWeaponConfiguration).OrderBy(value => value.Id).Select(CompileShipWeapon)];
         ImmutableArray<ContentPackIdentity> identities = [.. packs.Select(pack => new ContentPackIdentity(
             pack.Manifest.Id, pack.Manifest.Version, pack.Manifest.ContentRevision))];
-        ContentDefinition[] all = [.. abilities, .. skills, .. levelProgressionTables, .. access, .. backgrounds, .. characters, .. scenarios, .. feats, .. heritages, .. races, .. training, .. equipment, .. boardCells, .. zoneLinks, .. personalBoards, .. encounters, .. shipFrames, .. shipModules, .. shipWeapons];
+        ContentDefinition[] all = [.. abilities, .. skills, .. levelProgressionTables, .. characterResourceProfiles, .. access, .. backgrounds, .. characters, .. scenarios, .. feats, .. heritages, .. races, .. training, .. equipment, .. boardCells, .. zoneLinks, .. personalBoards, .. encounters, .. shipFrames, .. shipModules, .. shipWeapons];
         (byte[] canonicalBytes, ContentFingerprint fingerprint) = CanonicalSemanticWriter.Write(identities, all);
         Dictionary<ContentId, ContentId> provenance = sources.ToDictionary(
             source => source.Id,
             source => new ContentId(source.PackId));
-        GameContentSnapshot snapshot = new(fingerprint, identities, abilities, skills, levelProgressionTables, access, backgrounds, characters, scenarios, feats, heritages, races, training,
+        GameContentSnapshot snapshot = new(fingerprint, identities, abilities, skills, levelProgressionTables, characterResourceProfiles, access, backgrounds, characters, scenarios, feats, heritages, races, training,
             equipment, boardCells, zoneLinks, personalBoards, encounters, shipFrames, shipModules, shipWeapons,
             [.. canonicalBytes], provenance);
         return new ContentCompilationResult(snapshot, diagnostics.ToImmutable(), null);
@@ -953,6 +969,26 @@ public sealed class GameContentCompiler
     private static LevelProgressionTableDefinition CompileLevelProgressionTable(SourceDefinition value) => new(
         new LevelProgressionTableId(value.Id), 1, value.Revision, value.NameKey, value.DescriptionKey,
         value.LevelProgressionEntries);
+
+    private static CharacterResourceProfileDefinition CompileCharacterResourceProfile(SourceDefinition value)
+    {
+        CharacterResourceRule Rule(string id, string fieldPrefix, bool accumulates, string? thresholdsField = null) => new(
+            new ResourceId(id),
+            value.Integers[fieldPrefix + "Maximum"],
+            value.Integers[fieldPrefix + "RecoveryRate"],
+            accumulates,
+            thresholdsField is null ? [] : value.IntegerArrays[thresholdsField]);
+
+        return new CharacterResourceProfileDefinition(
+            new CharacterResourceProfileId(value.Id), 1, value.Revision, value.NameKey, value.DescriptionKey,
+            [
+                Rule("resource.health", "health", false),
+                Rule("resource.stamina", "stamina", false),
+                Rule("resource.mana", "mana", false),
+                Rule("resource.resolve", "resolve", false, "resolveThresholdPercentages"),
+                Rule("resource.strain", "strain", true, "strainThresholdPercentages"),
+            ]);
+    }
 
     private static AccessDefinition CompileAccess(SourceDefinition value) => new(
         new AccessId(value.Id), 1, value.Revision, value.NameKey, value.DescriptionKey, Sort(value.Arrays["tags"]));
@@ -980,6 +1016,9 @@ public sealed class GameContentCompiler
         value.Integers["maximumRosterSize"],
         value.Strings.TryGetValue("levelProgressionTableId", out string? progressionTableId)
             ? new LevelProgressionTableId(progressionTableId)
+            : null,
+        value.Strings.TryGetValue("characterResourceProfileId", out string? resourceProfileId)
+            ? new CharacterResourceProfileId(resourceProfileId)
             : null);
 
     private static FeatDefinition CompileFeat(SourceDefinition value) => new(
@@ -999,8 +1038,8 @@ public sealed class GameContentCompiler
     private static SpellFeatRules? CompileSpellRules(SourceDefinition value) =>
         value.Strings.GetValueOrDefault("activeKind") == "spell"
             ? new SpellFeatRules(
-                new SkillId(value.Strings["skillId"]), new ResourceId(value.Strings["focusResourceId"]),
-                value.Integers["focusCost"], new ContentId(value.Strings["rangeId"]),
+                new SkillId(value.Strings["skillId"]), new ResourceId(value.Strings["manaResourceId"]),
+                value.Integers["manaCost"], new ContentId(value.Strings["rangeId"]),
                 value.Integers["castTimeTicks"], value.Integers["cooldownTicks"], Sort(value.Arrays["targetTags"]))
             : null;
 
@@ -1140,6 +1179,7 @@ public sealed class GameContentCompiler
                 ? entry.RequiredExperience != 0
                 : entry.RequiredExperience <= previousExperience;
             bool invalidReward = entry.MaximumHealthIncrease < 0 || entry.MaximumManaIncrease < 0 || entry.MaximumStaminaIncrease < 0 ||
+                entry.MaximumResolveIncrease < 0 || entry.MaximumStrainIncrease < 0 ||
                 entry.AbilityPoints < 0 || entry.SkillPoints < 0 || entry.FeatPoints < 0;
             if (invalidLevel || invalidExperience || invalidReward)
             {
@@ -1148,6 +1188,29 @@ public sealed class GameContentCompiler
             }
 
             previousExperience = entry.RequiredExperience;
+        }
+    }
+
+    private static void ValidateCharacterResourceProfile(SourceDefinition definition, DiagnosticSink diagnostics)
+    {
+        string[] prefixes = ["health", "stamina", "mana", "resolve", "strain"];
+        if (prefixes.Any(prefix => definition.Integers[prefix + "Maximum"] <= 0 ||
+                definition.Integers[prefix + "RecoveryRate"] < 0))
+        {
+            diagnostics.Add(ContentDiagnosticCodes.ValueOutOfRange, definition.PackId, definition.RelativePath,
+                definition.Id.ToString(), "/resources");
+        }
+
+        ImmutableArray<int> resolve = definition.IntegerArrays["resolveThresholdPercentages"];
+        ImmutableArray<int> strain = definition.IntegerArrays["strainThresholdPercentages"];
+        bool invalidResolve = resolve.IsEmpty || resolve.Any(value => value is < 0 or > 100) ||
+            resolve.Zip(resolve.Skip(1)).Any(pair => pair.First <= pair.Second);
+        bool invalidStrain = strain.IsEmpty || strain.Any(value => value is < 0 or > 100) ||
+            strain.Zip(strain.Skip(1)).Any(pair => pair.First >= pair.Second);
+        if (invalidResolve || invalidStrain)
+        {
+            diagnostics.Add(ContentDiagnosticCodes.SemanticInvalid, definition.PackId, definition.RelativePath,
+                definition.Id.ToString(), invalidResolve ? "/resolveThresholdPercentages" : "/strainThresholdPercentages");
         }
     }
 
@@ -1173,9 +1236,9 @@ public sealed class GameContentCompiler
 
         if (activeKind == "spell")
         {
-            if (!HasStrings("skillId", "focusResourceId", "rangeId") ||
-                !HasIntegers("focusCost", "castTimeTicks", "cooldownTicks") ||
-                definition.Integers.GetValueOrDefault("focusCost") is < 1 or > 1_000_000 ||
+            if (!HasStrings("skillId", "manaResourceId", "rangeId") ||
+                !HasIntegers("manaCost", "castTimeTicks", "cooldownTicks") ||
+                definition.Integers.GetValueOrDefault("manaCost") is < 1 or > 1_000_000 ||
                 definition.Integers.GetValueOrDefault("castTimeTicks") is < 0 or > 10_000 ||
                 definition.Integers.GetValueOrDefault("cooldownTicks") is < 0 or > 1_000_000 ||
                 definition.Arrays["targetTags"].IsEmpty || definition.Arrays["effectIds"].IsEmpty)
@@ -1448,6 +1511,7 @@ public sealed class GameContentCompiler
         DefinitionKind.Ability => "ability.",
         DefinitionKind.Skill => "skill.",
         DefinitionKind.LevelProgressionTable => "level-progression.",
+        DefinitionKind.CharacterResourceProfile => "character-resources.",
         DefinitionKind.Access => "access.",
         DefinitionKind.Background => "background.",
         DefinitionKind.Character => "character.",

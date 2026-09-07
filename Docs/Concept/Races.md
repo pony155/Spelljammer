@@ -269,7 +269,7 @@ control, clarity, range, and learned active Feats. Psionics storms, crowded mind
 and repeated use cause strain, and Mindwake never reveals private thoughts
 without an explicit effect and a consent or resistance check.
 
-See [`Psionics.md.md`](Psionics.md.md) for contact, consent,
+See [`Psionics.md`](Psionics.md) for contact, consent,
 resistance, strain, and information rules.
 
 Somnari breathe, eat, and rest normally, but their sleep includes a vivid dream

@@ -29,7 +29,7 @@ An equipment tooltip normally shows only:
 1. its category and slot;
 2. one primary effect, such as damage, Armor Value, range, healing support, or
    an exploration action;
-3. an optional energy, ammunition, or Focus cost; and
+3. an optional energy, ammunition, or Mana cost; and
 4. an explicit requirement when one exists.
 
 Items are **Ready**, **Depleted**, or **Damaged**. There is no routine tracking
@@ -69,7 +69,7 @@ found items as cargo, but must equip them to use their active effect.
 ## Technology and magic
 
 Arcane is the overall magical practice; Aether is the non-material medium that
-carries its energy. Arcane equipment uses Focus, Aether charge, a
+carries its energy. Arcane equipment uses Mana, Aether charge, a
 known spell, or `access.magic` only when its definition says so. Industrial
 equipment may use ammunition or stored energy. Atompunk equipment can be powerful and rare, but it remains a simple
 item with a visible effect; radiation, reactor management, and exotic fuel

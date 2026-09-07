@@ -342,7 +342,7 @@ A caster uses the surrounding Aether as a focus medium, while a ship couples to
 it through physical resonators, conduits, and accumulators. **Aether charge**
 is not stored Aether; it is the usable Arcane energy that a device has captured
 and held after coupling to the medium. Ordinary personal casting keeps this
-simple: Focus represents the caster's controlled use of available Arcane
+simple: Mana represents the caster's personal capacity to control available Arcane
 energy. A spell or item names Aether charge only when that extra cost is an
 interesting player decision.
 
@@ -390,7 +390,7 @@ boarder, and a laser or plasma weapon can challenge armor. None is a universal
 answer.
 
 The game presents these ideas through readable choices rather than technical
-simulation. A player sees useful values and consequences—such as Focus, Aether
+simulation. A player sees useful values and consequences—such as Mana, Aether
 charge,
 energy, fuel, ammunition, armor, shields, and module slots—not hidden
 engineering calculations.

@@ -34,6 +34,7 @@ public sealed class GameContentSnapshot : ICharacterContentCatalog
         ImmutableArray<AbilityDefinition> abilities,
         ImmutableArray<SkillDefinition> skills,
         ImmutableArray<LevelProgressionTableDefinition> levelProgressionTables,
+        ImmutableArray<CharacterResourceProfileDefinition> characterResourceProfiles,
         ImmutableArray<AccessDefinition> access,
         ImmutableArray<BackgroundDefinition> backgrounds,
         ImmutableArray<CharacterDefinition> characters,
@@ -58,6 +59,7 @@ public sealed class GameContentSnapshot : ICharacterContentCatalog
         Abilities = abilities;
         Skills = skills;
         LevelProgressionTables = levelProgressionTables;
+        CharacterResourceProfiles = characterResourceProfiles;
         Access = access;
         Backgrounds = backgrounds;
         Characters = characters;
@@ -81,6 +83,8 @@ public sealed class GameContentSnapshot : ICharacterContentCatalog
             fingerprint, skills, definition => definition.SkillId);
         LevelProgressionTableRegistry = new TypedDefinitionRegistry<LevelProgressionTableId, LevelProgressionTableDefinition>(
             fingerprint, levelProgressionTables, definition => definition.LevelProgressionTableId);
+        CharacterResourceProfileRegistry = new TypedDefinitionRegistry<CharacterResourceProfileId, CharacterResourceProfileDefinition>(
+            fingerprint, characterResourceProfiles, definition => definition.CharacterResourceProfileId);
         AccessRegistry = new TypedDefinitionRegistry<AccessId, AccessDefinition>(fingerprint, access, definition => definition.AccessId);
         BackgroundRegistry = new TypedDefinitionRegistry<BackgroundId, BackgroundDefinition>(fingerprint, backgrounds, definition => definition.BackgroundId);
         CharacterRegistry = new TypedDefinitionRegistry<CharacterId, CharacterDefinition>(fingerprint, characters, definition => definition.CharacterId);
@@ -101,6 +105,7 @@ public sealed class GameContentSnapshot : ICharacterContentCatalog
         definitionsById = abilities.Cast<ContentDefinition>()
             .Concat(skills)
             .Concat(levelProgressionTables)
+            .Concat(characterResourceProfiles)
             .Concat(access)
             .Concat(backgrounds)
             .Concat(characters)
@@ -126,6 +131,7 @@ public sealed class GameContentSnapshot : ICharacterContentCatalog
     public ImmutableArray<AbilityDefinition> Abilities { get; }
     public ImmutableArray<SkillDefinition> Skills { get; }
     public ImmutableArray<LevelProgressionTableDefinition> LevelProgressionTables { get; }
+    public ImmutableArray<CharacterResourceProfileDefinition> CharacterResourceProfiles { get; }
     public ImmutableArray<AccessDefinition> Access { get; }
     public ImmutableArray<BackgroundDefinition> Backgrounds { get; }
     public ImmutableArray<CharacterDefinition> Characters { get; }
@@ -146,6 +152,7 @@ public sealed class GameContentSnapshot : ICharacterContentCatalog
     public TypedDefinitionRegistry<AbilityId, AbilityDefinition> AbilityRegistry { get; }
     public TypedDefinitionRegistry<SkillId, SkillDefinition> SkillRegistry { get; }
     public TypedDefinitionRegistry<LevelProgressionTableId, LevelProgressionTableDefinition> LevelProgressionTableRegistry { get; }
+    public TypedDefinitionRegistry<CharacterResourceProfileId, CharacterResourceProfileDefinition> CharacterResourceProfileRegistry { get; }
     public TypedDefinitionRegistry<AccessId, AccessDefinition> AccessRegistry { get; }
     public TypedDefinitionRegistry<BackgroundId, BackgroundDefinition> BackgroundRegistry { get; }
     public TypedDefinitionRegistry<CharacterId, CharacterDefinition> CharacterRegistry { get; }
@@ -172,6 +179,10 @@ public sealed class GameContentSnapshot : ICharacterContentCatalog
     public bool TryGetLevelProgressionTable(
         LevelProgressionTableId id,
         out LevelProgressionTableDefinition? definition) => LevelProgressionTableRegistry.TryGet(id, out definition);
+
+    public bool TryGetCharacterResourceProfile(
+        CharacterResourceProfileId id,
+        out CharacterResourceProfileDefinition? definition) => CharacterResourceProfileRegistry.TryGet(id, out definition);
 
     public bool TryGetAccess(AccessId id, out AccessDefinition? definition) => AccessRegistry.TryGet(id, out definition);
     public bool TryGetBackground(BackgroundId id, out BackgroundDefinition? definition) => BackgroundRegistry.TryGet(id, out definition);
@@ -200,6 +211,7 @@ public sealed class GameContentSnapshot : ICharacterContentCatalog
         AddEntries(entries, "Ability", Abilities, definition => definition.Id);
         AddEntries(entries, "Skill", Skills, definition => definition.Id);
         AddEntries(entries, "LevelProgressionTable", LevelProgressionTables, definition => definition.Id);
+        AddEntries(entries, "CharacterResourceProfile", CharacterResourceProfiles, definition => definition.Id);
         AddEntries(entries, "Access", Access, definition => definition.Id);
         AddEntries(entries, "Background", Backgrounds, definition => definition.Id);
         AddEntries(entries, "Character", Characters, definition => definition.Id);

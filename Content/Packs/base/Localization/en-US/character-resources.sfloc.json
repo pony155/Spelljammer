@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "locale": "en-US",
+  "namespace": "character-resources",
+  "fallbacks": [],
+  "textDirection": "ltr",
+  "messages": {
+    "character-resources.standard.name": {"description":"Resource profile name.","message":"Standard Character Resources"},
+    "character-resources.standard.description": {"description":"Resource profile summary.","message":"Health, Stamina, Mana, Resolve, and accumulating Strain rules."}
+  }
+}

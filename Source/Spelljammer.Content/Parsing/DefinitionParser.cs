@@ -18,15 +18,19 @@ internal static class DefinitionParser
             [DefinitionKind.Ability] = new(["minimum", "maximum", "defaultValue", "tags"], []),
             [DefinitionKind.Skill] = new(["minimum", "maximum", "progressionCurveId", "actionTags"], []),
             [DefinitionKind.LevelProgressionTable] = new(["levels"], []),
+            [DefinitionKind.CharacterResourceProfile] = new(
+                ["healthMaximum", "healthRecoveryRate", "staminaMaximum", "staminaRecoveryRate",
+                 "manaMaximum", "manaRecoveryRate", "resolveMaximum", "resolveRecoveryRate",
+                 "strainMaximum", "strainRecoveryRate", "resolveThresholdPercentages", "strainThresholdPercentages"], []),
             [DefinitionKind.Access] = new(["tags"], []),
             [DefinitionKind.Background] = new(["compatibleRaceIds", "abilityBonusIds", "focusSkillIds"], []),
             [DefinitionKind.Character] = new(
                 ["raceId", "heritageId", "backgroundId", "scenarioIds", "positionId", "languageIds", "scriptIds", "equipmentIds", "focusSkillIds", "resourceIds"], []),
-            [DefinitionKind.Scenario] = new(["maximumRosterSize"], ["levelProgressionTableId"]),
+            [DefinitionKind.Scenario] = new(["maximumRosterSize"], ["levelProgressionTableId", "characterResourceProfileId"]),
             [DefinitionKind.Feat] = new(
                 ["activation", "grantedAccessIds"],
                 ["activeKind", "trainingProjectId", "compatibleRaceIds", "requiredAccessIds", "grantedFeatIds", "effectIds",
-                 "skillId", "focusResourceId", "focusCost", "rangeId", "castTimeTicks", "cooldownTicks", "targetTags",
+                 "skillId", "manaResourceId", "manaCost", "rangeId", "castTimeTicks", "cooldownTicks", "targetTags",
                  "resistanceSkillId", "strainResourceId", "strainCost", "sustainCostPerTick", "contactModeId",
                  "informationScopeId", "disciplineIds"]),
             [DefinitionKind.Heritage] = new(["raceId", "grantedFeatIds"], []),
@@ -55,6 +59,7 @@ internal static class DefinitionParser
             ["Abilities"] = DefinitionKind.Ability,
             ["Skills"] = DefinitionKind.Skill,
             ["LevelProgressionTables"] = DefinitionKind.LevelProgressionTable,
+            ["CharacterResourceProfiles"] = DefinitionKind.CharacterResourceProfile,
             ["Access"] = DefinitionKind.Access,
             ["Backgrounds"] = DefinitionKind.Background,
             ["Characters"] = DefinitionKind.Character,
@@ -126,6 +131,7 @@ internal static class DefinitionParser
         Dictionary<string, int> integers = new(StringComparer.Ordinal);
         Dictionary<string, string> strings = new(StringComparer.Ordinal);
         Dictionary<string, ImmutableArray<string>> arrays = new(StringComparer.Ordinal);
+        Dictionary<string, ImmutableArray<int>> integerArrays = new(StringComparer.Ordinal);
         ImmutableArray<LevelProgressionEntry> levelProgressionEntries = [];
         foreach (string field in kindFields)
         {
@@ -158,19 +164,31 @@ internal static class DefinitionParser
             }
             else if (value.ValueKind == JsonValueKind.Array)
             {
-                ImmutableArray<string>.Builder values = ImmutableArray.CreateBuilder<string>();
-                foreach (JsonElement item in value.EnumerateArray())
+                JsonElement[] items = [.. value.EnumerateArray()];
+                if (items.Length == 0)
                 {
-                    if (item.ValueKind != JsonValueKind.String)
+                    if (field.EndsWith("ThresholdPercentages", StringComparison.Ordinal))
                     {
-                        diagnostics.Add(ContentDiagnosticCodes.JsonInvalid, packId, relativePath, idText, "/" + field);
-                        return null;
+                        integerArrays.Add(field, []);
                     }
-
-                    values.Add(item.GetString()!);
+                    else
+                    {
+                        arrays.Add(field, []);
+                    }
                 }
-
-                arrays.Add(field, values.ToImmutable());
+                else if (items.All(item => item.ValueKind == JsonValueKind.Number && item.TryGetInt32(out _)))
+                {
+                    integerArrays.Add(field, [.. items.Select(item => item.GetInt32())]);
+                }
+                else if (items.All(item => item.ValueKind == JsonValueKind.String))
+                {
+                    arrays.Add(field, [.. items.Select(item => item.GetString()!)]);
+                }
+                else
+                {
+                    diagnostics.Add(ContentDiagnosticCodes.JsonInvalid, packId, relativePath, idText, "/" + field);
+                    return null;
+                }
             }
             else
             {
@@ -232,7 +250,7 @@ internal static class DefinitionParser
                 [.. arrays["actionTags"].Select(value => new ContentId(value))])
             : null;
         return new SourceDefinition(kind, id, 1, revision, nameKey, descriptionKey, packId, relativePath,
-            integers, strings, arrays, ability, skill, levelProgressionEntries);
+            integers, strings, arrays, integerArrays, ability, skill, levelProgressionEntries);
     }
 
     private static bool TryParseLevelProgressionEntries(
@@ -253,6 +271,7 @@ internal static class DefinitionParser
         string[] fields =
         [
             "level", "requiredExperience", "maximumHealthIncrease", "maximumManaIncrease", "maximumStaminaIncrease",
+            "maximumResolveIncrease", "maximumStrainIncrease",
             "abilityPoints", "skillPoints", "featPoints"
         ];
         HashSet<string> allowed = new(fields, StringComparer.Ordinal);
@@ -281,7 +300,7 @@ internal static class DefinitionParser
             }
 
             builder.Add(new LevelProgressionEntry(
-                numbers[0], numbers[1], numbers[2], numbers[3], numbers[4], numbers[5], numbers[6], numbers[7]));
+                numbers[0], numbers[1], numbers[2], numbers[3], numbers[4], numbers[5], numbers[6], numbers[7], numbers[8], numbers[9]));
             index++;
         }
 

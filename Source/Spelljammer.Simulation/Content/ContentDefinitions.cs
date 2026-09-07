@@ -54,6 +54,8 @@ public sealed record LevelProgressionEntry(
     int MaximumHealthIncrease,
     int MaximumManaIncrease,
     int MaximumStaminaIncrease,
+    int MaximumResolveIncrease,
+    int MaximumStrainIncrease,
     int AbilityPoints,
     int SkillPoints,
     int FeatPoints);
@@ -71,6 +73,22 @@ public sealed record LevelProgressionTableDefinition(
     /// <summary>The highest level authored by this table.</summary>
     public int MaximumLevel => Levels.Length;
 }
+
+public sealed record CharacterResourceRule(
+    ResourceId ResourceId,
+    int BaseMaximum,
+    int BaseRecoveryRate,
+    bool Accumulates,
+    ImmutableArray<int> ThresholdPercentages);
+
+public sealed record CharacterResourceProfileDefinition(
+    CharacterResourceProfileId CharacterResourceProfileId,
+    int SchemaVersion,
+    int Revision,
+    string NameKey,
+    string DescriptionKey,
+    ImmutableArray<CharacterResourceRule> Resources)
+    : ContentDefinition(CharacterResourceProfileId.Value, SchemaVersion, Revision, NameKey, DescriptionKey);
 
 /// <summary>
 /// Defines an access privilege or ability category that characters can be granted.
@@ -96,8 +114,8 @@ public enum FeatActivation : byte
 /// <summary>Execution rules for an active spell Feat.</summary>
 public sealed record SpellFeatRules(
     SkillId SkillId,
-    ResourceId FocusResourceId,
-    int FocusCost,
+    ResourceId ManaResourceId,
+    int ManaCost,
     ContentId RangeId,
     int CastTimeTicks,
     int CooldownTicks,
@@ -221,7 +239,8 @@ public sealed record ScenarioDefinition(
     string NameKey,
     string DescriptionKey,
     int MaximumRosterSize,
-    LevelProgressionTableId? LevelProgressionTableId)
+    LevelProgressionTableId? LevelProgressionTableId,
+    CharacterResourceProfileId? CharacterResourceProfileId)
     : ContentDefinition(ScenarioId.Value, SchemaVersion, Revision, NameKey, DescriptionKey);
 
 public sealed record EquipmentDefinition(

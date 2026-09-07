@@ -14,6 +14,6 @@
     "equipment.personal.field-medkit.name": { "description": "Field medkit display name.", "message": "Field Medkit" },
     "equipment.personal.field-medkit.description": { "description": "Field medkit summary.", "message": "Three bounded charges for stabilizing injuries." },
     "equipment.personal.casting-focus.name": { "description": "Casting focus display name.", "message": "Casting Focus" },
-    "equipment.personal.casting-focus.description": { "description": "Casting focus summary.", "message": "A relic that channels a limited reserve of Focus." }
+    "equipment.personal.casting-focus.description": { "description": "Casting focus summary.", "message": "A relic that increases or channels a caster's Mana reserve." }
   }
 }
