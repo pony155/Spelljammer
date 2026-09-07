@@ -2,6 +2,13 @@ using System.Text;
 
 namespace Spelljammer.Localization;
 
+/// <summary>
+/// A unique identifier for a localization string key.
+/// </summary>
+/// <remarks>
+/// Keys must follow canonical naming rules (lowercase, dot-separated namespaces).
+/// The key maintains both a stable hash for fast comparison and the original string name.
+/// </remarks>
 public readonly struct LocalizationKey : IEquatable<LocalizationKey>
 {
     private LocalizationKey(ulong value, string name)
@@ -10,10 +17,19 @@ public readonly struct LocalizationKey : IEquatable<LocalizationKey>
         Name = name;
     }
 
+    /// <summary>Gets the stable hash value of the key name.</summary>
     public ulong Value { get; }
 
+    /// <summary>Gets the original string key name.</summary>
     public string Name { get; }
 
+    /// <summary>
+    /// Attempts to create a localization key from a string name without throwing.
+    /// </summary>
+    /// <param name="name">The key name to validate and create.</param>
+    /// <param name="key">The created key if valid; otherwise, default.</param>
+    /// <param name="error">A description of any validation error.</param>
+    /// <returns>True if the key was successfully created; false if the name is invalid.</returns>
     public static bool TryCreate(string name, out LocalizationKey key, out string error)
     {
         if (!LocalizationNames.IsCanonicalKey(name, out error))
@@ -26,6 +42,12 @@ public readonly struct LocalizationKey : IEquatable<LocalizationKey>
         return true;
     }
 
+    /// <summary>
+    /// Creates a localization key from a string name.
+    /// </summary>
+    /// <param name="name">The key name to create.</param>
+    /// <returns>A new localization key.</returns>
+    /// <exception cref="ArgumentException">Thrown if the name does not follow canonical naming rules.</exception>
     public static LocalizationKey Create(string name)
     {
         if (!TryCreate(name, out LocalizationKey key, out string error))
@@ -49,6 +71,13 @@ public readonly struct LocalizationKey : IEquatable<LocalizationKey>
     public static bool operator !=(LocalizationKey left, LocalizationKey right) => !left.Equals(right);
 }
 
+/// <summary>
+/// A unique identifier for a locale (language and region combination).
+/// </summary>
+/// <remarks>
+/// Locales are identified by BCP 47 tags (e.g., "en-US", "fr-FR"). The struct maintains both
+/// a stable hash for comparison and the original tag string.
+/// </remarks>
 public readonly struct LocaleId : IEquatable<LocaleId>
 {
     private LocaleId(ulong value, string tag)
@@ -57,6 +86,7 @@ public readonly struct LocaleId : IEquatable<LocaleId>
         Tag = tag;
     }
 
+    /// <summary>Gets the stable hash value of the locale tag.</summary>
     public ulong Value { get; }
 
     public string Tag { get; }

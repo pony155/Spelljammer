@@ -4,26 +4,62 @@ using System.Threading;
 
 namespace Spelljammer.Localization;
 
+/// <summary>
+/// Status codes returned by localization operations.
+/// </summary>
 public enum LocalizationStatus
 {
+    /// <summary>Operation completed successfully.</summary>
     Success,
+
+    /// <summary>Localization service has not been initialized.</summary>
     NotInitialized,
+
+    /// <summary>Localization service was already initialized.</summary>
     AlreadyInitialized,
+
+    /// <summary>Operation was called from the wrong thread.</summary>
     WrongThread,
+
+    /// <summary>Operation arguments are invalid.</summary>
     InvalidArgument,
+
+    /// <summary>Requested localization item was not found.</summary>
     ItemNotFound,
+
+    /// <summary>Localization data is corrupted or malformed.</summary>
     DataCorrupt,
+
+    /// <summary>Requested operation is not supported.</summary>
     NotSupported,
+
+    /// <summary>Insufficient resources (memory, cache space, etc.) to complete operation.</summary>
     OutOfResource,
+
+    /// <summary>Operation conflicts with existing state.</summary>
     Conflict
 }
 
+/// <summary>
+/// Determines how the localization service handles missing localization keys.
+/// </summary>
 public enum MissingKeyPolicy
 {
+    /// <summary>Return a "not found" indicator.</summary>
     ReturnNotFound,
+
+    /// <summary>Return a development marker (e.g., "[key.name]") to help identify missing strings during development.</summary>
     DevelopmentMarker
 }
 
+/// <summary>
+/// Configuration for the localization service initialization.
+/// </summary>
+/// <param name="SourceLocale">The default locale to use when strings are not available in the requested locale.</param>
+/// <param name="MissingKeyPolicy">How to handle missing localization keys.</param>
+/// <param name="RequiredNamespaces">Namespaces that must be preloaded (optional).</param>
+/// <param name="DiagnosticCapacity">Maximum number of diagnostic entries to retain.</param>
+/// <param name="MaximumFormatsPerFrame">Maximum number of string formatting operations per frame for performance.</param>
 public sealed record LocalizationConfig(
     string SourceLocale,
     MissingKeyPolicy MissingKeyPolicy = MissingKeyPolicy.DevelopmentMarker,
@@ -31,6 +67,16 @@ public sealed record LocalizationConfig(
     int DiagnosticCapacity = LocalizationLimits.MaximumDiagnostics,
     int MaximumFormatsPerFrame = LocalizationLimits.MaximumFormatsPerFrame);
 
+/// <summary>
+/// A localized message with full context including requested/resolved locales and text direction.
+/// </summary>
+/// <param name="Text">The localized text string.</param>
+/// <param name="SourceKey">The localization key that was requested.</param>
+/// <param name="RequestedLocale">The locale that was originally requested.</param>
+/// <param name="ResolvedLocale">The locale that was actually used (may differ due to fallbacks).</param>
+/// <param name="Direction">The text direction for this locale (LTR or RTL).</param>
+/// <param name="Generation">The generation/version of the localization data.</param>
+/// <param name="LanguageProfile">Language-specific profile with pluralization and formatting rules.</param>
 public sealed record LocalizedMessage(
     string Text,
     LocalizationKey SourceKey,
@@ -40,12 +86,21 @@ public sealed record LocalizedMessage(
     ulong Generation,
     LocalizationLanguageProfile LanguageProfile);
 
+/// <summary>
+/// Snapshot of a locale's current state and generation.
+/// </summary>
+/// <param name="IsPublished">Whether this locale's data has been published/finalized.</param>
+/// <param name="RequestedLocale">The locale ID.</param>
+/// <param name="Direction">The text direction for this locale.</param>
+/// <param name="Generation">The current generation/version number.</param>
 public sealed record LocaleSnapshot(
     bool IsPublished,
     LocaleId RequestedLocale,
     TextDirection Direction,
     ulong Generation);
 
+/// <summary>
+/// Diagnostic information about a localization operation for debugging and monitoring.</summary>
 public sealed record LocalizationDiagnostic(
     ulong Sequence,
     LocalizationStatus Status,
