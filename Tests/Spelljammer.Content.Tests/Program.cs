@@ -247,8 +247,9 @@ internal static class ContentContracts
         Equal(1, table.Levels[3].AbilityPoints, "The authored Ability Point reward was replaced by a code default.");
 
         Dictionary<string, byte[]> invalid = Clone(files);
-        ReplaceText(invalid, "Definitions/LevelProgressionTables/character-standard.json", "\"requiredExperience\":100",
-            "\"requiredExperience\":0");
+        ReplaceText(invalid, "Definitions/LevelProgressionTables/character-standard.json",
+            "{\"level\":2,\"requiredExperience\":100",
+            "{\"level\":2,\"requiredExperience\":0");
         ContentCompilationResult rejected = new GameContentCompiler().Compile([new MemoryPackSource(invalid, [])], GameVersion);
         Equal(ContentDiagnosticCodes.SemanticInvalid, rejected.Diagnostics.FirstOrDefault()?.Code ?? "<none>",
             "A non-increasing XP threshold was accepted.");

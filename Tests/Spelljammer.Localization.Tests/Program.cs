@@ -2,11 +2,11 @@ using System.Text;
 using Spelljammer.Localization;
 using Spelljammer.Tools.Localization;
 
-return await LocalizationTests.RunAsync();
+return LocalizationTests.Run();
 
 internal static class LocalizationTests
 {
-    public static async Task<int> RunAsync()
+    public static int Run()
     {
         StableIdentityRejectsInvalidNamesAndCollisions();
         CompilerIsStrictAndDeterministic();
@@ -16,7 +16,7 @@ internal static class LocalizationTests
         PinnedLocaleProfilesFormatWithoutHostCulture();
         CompilerReportsTranslationSchemaMismatch();
         PseudoLocalesAndCompletenessAreDeterministic();
-        await RuntimeRejectsNonOwnerThreadAsync();
+        RuntimeRejectsNonOwnerThread();
         Console.WriteLine("Localization Phase 1 and 2 tests passed.");
         return 0;
     }
@@ -261,12 +261,12 @@ internal static class LocalizationTests
         SequenceEqual(["ui.test.obsolete"], report.ObsoleteKeys, "Obsolete-key report is wrong.");
     }
 
-    private static async Task RuntimeRejectsNonOwnerThreadAsync()
+    private static void RuntimeRejectsNonOwnerThread()
     {
         LocalizationService service = new();
         Success(service.Initialize(new LocalizationConfig("en-US")), "Initialize failed.");
-        LocalizationStatus status = await Task.Run(() =>
-            service.StageLocale(LocaleId.Create("en-US"), [], out _));
+        LocalizationStatus status = Task.Run(() =>
+            service.StageLocale(LocaleId.Create("en-US"), [], out _)).GetAwaiter().GetResult();
         Equal(LocalizationStatus.WrongThread, status, "Non-owner thread accessed service lifecycle.");
         Success(service.Shutdown(), "Shutdown failed.");
     }

@@ -148,7 +148,8 @@ public static class CharacterTrainingSystem
             return Rejected(character, ActionRejectionCodes.ResourceInsufficient);
         }
 
-        ImmutableArray<FeatDefinition>.Builder featBuilder = ImmutableArray.CreateBuilder<FeatDefinition>();
+        ImmutableArray<FeatDefinition>.Builder featBuilder =
+            ImmutableArray.CreateBuilder<FeatDefinition>(project.GrantedFeatIds.Length);
         foreach (FeatId featId in project.GrantedFeatIds)
         {
             if (!catalog.TryGetFeat(featId, out FeatDefinition? feat) || feat!.TrainingProjectId != projectId)

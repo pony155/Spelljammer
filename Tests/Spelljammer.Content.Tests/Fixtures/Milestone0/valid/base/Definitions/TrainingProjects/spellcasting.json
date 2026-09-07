@@ -6,5 +6,10 @@
   "descriptionKey": "training.magic.spellcasting.description",
   "requiredSkillIds": ["skill.magic"],
   "workUnits": 100,
+  "progressCap": 100,
+  "facilityId": "facility.arcane-study",
+  "resourceId": "resource.training-supplies",
+  "resourceCost": 2,
+  "safetyId": "safety.supervised",
   "grantedFeatIds": ["feat.access.magic"]
 }

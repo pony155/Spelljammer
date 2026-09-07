@@ -179,7 +179,7 @@ public static class ShipPowerSystem
             modules.Add(module with { IsPowered = powered, CurrentShield = shield });
         }
 
-        return new PowerAllocationResult(ship with { Modules = [.. modules.OrderBy(value => value.InstanceId)] }, unpowered.MoveToImmutable());
+        return new PowerAllocationResult(ship with { Modules = [.. modules.OrderBy(value => value.InstanceId)] }, unpowered.ToImmutable());
     }
 }
 

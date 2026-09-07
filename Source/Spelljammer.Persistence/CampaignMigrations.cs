@@ -152,7 +152,7 @@ public static class CampaignMigrationService
             }
 
             byte[] bytes = CampaignSaveCodec.Encode(temporary, destination);
-            return new CampaignMigrationResult(temporary, bytes, SaveDiagnosticCode.None, applied.MoveToImmutable());
+            return new CampaignMigrationResult(temporary, bytes, SaveDiagnosticCode.None, applied.ToImmutable());
         }
         catch (Exception exception) when (exception is ArgumentException or InvalidOperationException or OverflowException)
         {

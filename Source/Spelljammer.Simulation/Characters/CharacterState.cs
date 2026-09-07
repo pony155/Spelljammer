@@ -248,7 +248,7 @@ public sealed class CharacterCapabilities
             throw new InvalidOperationException("Training grants exceed the character capability capacity.");
         }
 
-        return new CharacterCapabilities(Fingerprint, abilityValues, skillValues, feats, grants.MoveToImmutable());
+        return new CharacterCapabilities(Fingerprint, abilityValues, skillValues, feats, grants.ToImmutable());
     }
 
     internal CharacterCapabilities WithFeatGrant(FeatDefinition feat, ContentId sourceId)
@@ -275,7 +275,7 @@ public sealed class CharacterCapabilities
             abilityValues,
             skillValues,
             Feats.Add(feat.FeatId),
-            grants.MoveToImmutable());
+            grants.ToImmutable());
     }
 
     public CharacterCapabilities WithoutGrantSource(ContentId sourceId)
