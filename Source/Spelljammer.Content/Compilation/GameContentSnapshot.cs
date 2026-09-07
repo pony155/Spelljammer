@@ -6,8 +6,23 @@ using Spelljammer.Simulation.Content;
 
 namespace Spelljammer.Content.Compilation;
 
+/// <summary>
+/// Identifies a content pack by ID, version, and content revision number.
+/// </summary>
+/// <param name="Id">The unique identifier for this content pack.</param>
+/// <param name="Version">The semantic version of this content pack.</param>
+/// <param name="ContentRevision">The content revision number (incremented when definitions change).</param>
 public sealed record ContentPackIdentity(ContentId Id, SemanticVersion Version, int ContentRevision);
 
+/// <summary>
+/// A complete snapshot of all compiled game content definitions, organized by type.
+/// </summary>
+/// <remarks>
+/// This class represents the compiled state of content packs after validation and semantic analysis.
+/// All definitions are immutable and frozen for efficient readonly access.
+/// The snapshot includes provenance tracking (which pack each definition came from) and
+/// a canonical semantic content representation for versioning and integrity checking.
+/// </remarks>
 public sealed class GameContentSnapshot : ICharacterContentCatalog
 {
     private readonly FrozenDictionary<ContentId, ContentDefinition> definitionsById;
