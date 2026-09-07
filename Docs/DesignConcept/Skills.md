@@ -6,7 +6,7 @@ This document defines the planned classless skill, language, script, and lore
 systems. All 29 Skill definitions and their typed immutable content registry
 are implemented; character values, advancement, actions, languages, scripts,
 and lore state remain planned. Broad capability is defined in
-[`Attributes.md`](Attributes.md), while race, heritage, identity, background,
+[`Abilities.md`](Abilities.md), while race, heritage, identity, background,
 and Racial Perks are defined in [`Races.md`](Races.md). Spellcasting rules and the
 authored spell catalog are defined in [`Spells.md`](Spells.md), and psychic
 techniques are expanded in
@@ -152,15 +152,15 @@ definitions are specified in [`PsychicAbilities.md`](PsychicAbilities.md).
 
 ## Action resolution
 
-Skills do not have one permanently governing attribute. Each action selects the
-attribute appropriate to its method and context. The interface must show the
-selected attribute, skill, equipment, help, conditions, and difficulty before
+Skills do not have one permanently governing ability. Each action selects the
+ability appropriate to its method and context. The interface must show the
+selected ability, skill, equipment, help, conditions, and difficulty before
 or after resolution as appropriate.
 
 An action's capability is derived from:
 
 ```text
-relevant attribute + relevant skill + equipment + assistance
+relevant ability + relevant skill + equipment + assistance
     + situational modifiers + deterministic random result
 ```
 
@@ -176,7 +176,7 @@ must preserve enough information to reproduce the outcome.
   a resource and time cost.
 - High skill ranks require progressively more practice and may require a
   teacher, facility, discovery, or dangerous field experience.
-- Techniques can require skill thresholds, attributes, equipment, discoveries,
+- Techniques can require skill thresholds, abilities, equipment, discoveries,
   or circumstances—not class levels. Casting and psychic techniques also
   require their explicit access ID from a learned Feat or innate Racial Perk.
 - Practice awards are deterministic, capped per committed action, and included

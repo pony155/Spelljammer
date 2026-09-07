@@ -84,7 +84,7 @@ A psychic action resolves through explicit phases:
    resistance without exposing protected information.
 4. **Reserve strain:** reserve the user's attention, Psychic Strain capacity,
    time, and any implement or amplifier.
-5. **Resolve:** combine the contextual attribute, `skill.psionics`, equipment,
+5. **Resolve:** combine the contextual ability, `skill.psionics`, equipment,
    assistance, circumstances, and deterministic random result.
 6. **Commit:** publish the allowed impression or effect, strain, feedback,
    evidence, and events atomically.
@@ -94,9 +94,9 @@ A rejected invitation reveals only that contact was declined unless the target
 chooses otherwise. A failed intrusion cannot leak the private information it
 failed to reach.
 
-## Attributes and resolution
+## Abilities and resolution
 
-Psychic techniques are not permanently bound to one attribute:
+Psychic techniques are not permanently bound to one ability:
 
 - Intelligence interprets complex signals, memories, and psychic patterns.
 - Willpower establishes control, resists intrusion, sustains shields, and

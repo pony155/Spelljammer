@@ -27,7 +27,7 @@ rather than a replacement.
   cargo, combat, or voyage capability rather than simulate machinery in detail.
 - Support two viable upgrade paths—Arcane and Industrial—without making either
   a universal best choice.
-- Let crew attributes, skills, and assignments affect module operation
+- Let crew abilities, skills, and assignments affect module operation
   without creating classes or class-locked stations.
 - Make failures local, inspectable, and simple to repair or work around.
 - Keep definitions data-driven and use stable IDs for saves, scenarios,
@@ -327,7 +327,7 @@ not Disabled. There is no separate standby state, detailed connection damage,
 or cascading-fault simulation in the first playable game.
 
 Crew positions provide responsibility and authority, while duties describe the
-actual work performed at a station. Skills and contextual attributes determine
+actual work performed at a station. Skills and contextual abilities determine
 performance. A module may be operated by an unconventional crew member with
 visible penalties unless a physical, safety, or policy requirement prevents
 it. Automation can replace some labor but has explicit capacity and failure

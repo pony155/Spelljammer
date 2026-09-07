@@ -47,7 +47,7 @@ of each voyage. The ship gradually becomes a record of those choices.
   and encounters interact to create outcomes rather than follow a fixed plot.
 - **Arcane and industrial futures:** aether, diesel machinery, and atompunk
   power create distinct but compatible tools, economies, and risks.
-- **Classless characters:** attributes describe capability and independently
+- **Classless characters:** abilities describe capability and independently
   trained skills determine what a character can do; duties never lock future
   progression.
 - **Risk has an exit:** returning early with a small prize is a valid result.

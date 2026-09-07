@@ -14,7 +14,7 @@ relationships, schedules, and campaign persistence remain planned.
 - Support humans, elves, half-elves, dwarves, orcs, gnomes, goblins, Somnari,
   Veyr, Eidolons, Tharun, and future races without hard-coding content
   into simulation code.
-- Use classless progression: attributes describe capability, skills improve
+- Use classless progression: abilities describe capability, skills improve
   through use and training, and no class limits what a character may learn.
 - Give each race recognizable strengths, needs, and complications without
   prescribing personality, morality, intelligence, profession, or faction.
@@ -49,7 +49,7 @@ A persistent character is composed from independent, stable layers:
 | Race | human, elf, half-elf, dwarf, orc, gnome, goblin, Somnari, Veyr, Eidolon, Tharun | Body plan and baseline physiological rules |
 | Heritage | voidborn, deepforge, free-anchorage | Subrace, formative tradition, languages, customs, and starting knowledge |
 | Background | academy graduate, dockhand, caravan guard | Starting skill package and history, never a class |
-| Attributes | Strength, Agility, Perception, Toughness, Willpower, Intelligence | Broad capability shared by many actions |
+| Abilities | Strength, Agility, Perception, Toughness, Willpower, Intelligence | Broad capability shared by many actions |
 | Skills | piloting, engineering, merchant, negotiation, language and literacy | Learned competence that improves independently |
 | Racial Perks | Versatility, Aether Sense, Braced Stance | Racial feats granted by Race and Heritage |
 
@@ -216,7 +216,7 @@ Racial Perk, **Closework**, reduces penalties when manipulating
 compact mechanisms or working in confined stations. Their reach and unaided
 carrying capacity are limited, and shared equipment must be adjustable rather
 than assuming one body scale. Gnomes are not inherently inventive or
-scholarly; those qualities come from individual attributes, skills, and
+scholarly; those qualities come from individual abilities, skills, and
 heritage.
 
 Their homeworld's conductive mineral veins, high-altitude storms, and unstable
@@ -448,11 +448,11 @@ that are incompatible with the granting Race or Heritage.
 ## Classless capabilities
 
 Characters have no class, global character level, class skill, or class-locked
-ability. Attributes describe broad capability, while independently advancing
+ability. Abilities describe broad capability, while independently advancing
 skills describe learned competence. Backgrounds provide history without
 restricting future progression.
 
-See [Attributes.md](Attributes.md) for the attribute roster, contextual use,
+See [Abilities.md](Abilities.md) for the ability roster, contextual use,
 and modifier rules. See [Skills.md](Skills.md) for the skill catalog, action
 resolution, advancement, languages, scripts, and ancient lore.
 
@@ -464,7 +464,7 @@ must be deterministic:
 1. Select an allowed race and compatible heritage.
 2. Grant and validate the Race Perk and Heritage Perk.
 3. Generate age stage, body parameters, name seed, pronouns, and appearance.
-4. Allocate attributes, background skills, any documented pre-campaign
+4. Allocate abilities, background skills, any documented pre-campaign
    training Feats, and one or more personal aptitudes.
 5. Assign known language, script, and lore IDs from heritage and personal history.
 6. Add bounded beliefs and memories.
@@ -517,7 +517,7 @@ rules, unknown modifiers, and unbounded generation tables before publication.
 
 The first crew-enabled vertical slice should use eleven authored characters:
 one human, elf, half-elf, dwarf, orc, gnome, goblin, Somnari, Veyr, Eidolon,
-and Tharun. Each needs a race, heritage, background, attributes, skills, two
+and Tharun. Each needs a race, heritage, background, abilities, skills, two
 Racial Perks, and compatible quarters. The two Racial Perks are racial feats:
 one granted by Race and one by Heritage. The Elf must exercise innate
 magical access and the Somnari must exercise innate psychic access. The
@@ -527,7 +527,7 @@ either access Racial Perk must demonstrate earning an access Feat through
 documented training. Ship jobs and schedules are a separate future crew-system
 concern, not a component of race or heritage. The slice needs only four shared
 needs—rest, nutrition or equivalent reserve, safety, and belonging.
-Attribute, skill, language, script, ancient-lore, and encounter scope is defined
+Ability, skill, language, script, ancient-lore, and encounter scope is defined
 in the linked capability documents. See [`Battle.md`](Battle.md) for combat,
 injury, surrender, and tactical-layout rules.
 

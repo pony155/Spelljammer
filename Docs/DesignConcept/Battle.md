@@ -19,7 +19,7 @@ retreat remain valid before and during combat.
   locations instead of creating unrelated combat minigames.
 - Let ship layout, ruin structure, cover, atmosphere, gravity, visibility,
   hazards, and objectives matter as much as raw damage.
-- Make crew attributes, skills, equipment, positions, learned techniques,
+- Make crew abilities, skills, equipment, positions, learned techniques,
   access Feats, and Racial Perks produce understandable tactical options.
 - Connect ship-to-ship fire, module damage, boarding, internal defense, and
   disengagement without discarding consequences between scales.
@@ -183,7 +183,7 @@ reactions from one event.
 Combat uses the same contextual capability model as ordinary crew work:
 
 ```text
-relevant attribute + relevant skill + equipment + assistance
+relevant ability + relevant skill + equipment + assistance
 + technique and access + circumstances
 ```
 

@@ -9,7 +9,7 @@ Magic Missile and consensual Mindlink now provide the first complete
 supernatural execution paths; the wider catalogs remain planned.
 
 Product behavior is defined in
-[`../DesignConcept/Attributes.md`](../DesignConcept/Attributes.md),
+[`../DesignConcept/Abilities.md`](../DesignConcept/Abilities.md),
 [`../DesignConcept/Skills.md`](../DesignConcept/Skills.md),
 [`../DesignConcept/Races.md`](../DesignConcept/Races.md),
 [`../DesignConcept/Spells.md`](../DesignConcept/Spells.md), and

@@ -254,7 +254,7 @@ Move only Attribute and Skill lists into `Content/Packs/base`.
 - [x] **M2.1.2** Validate ID, revision, localization keys, minimum, maximum,
   default, and bounded tags.
 - [x] **M2.1.3** Add the seven base Attribute JSON files with the IDs and 1–10
-  range from `Attributes.md`.
+  range from `Abilities.md`.
 - [x] **M2.1.4** Add focused valid, missing-field, invalid-range, duplicate-tag,
   and capacity fixtures.
 

@@ -32,7 +32,7 @@ inventoried when their definition schemas enter roadmap scope.
 
 | Category | Explicit unique IDs | Primary product source |
 | --- | ---: | --- |
-| Attributes | 6 | [`Attributes.md`](../DesignConcept/Attributes.md) |
+| Abilities | 6 | [`Abilities.md`](../DesignConcept/Abilities.md) |
 | Skills | 29 | [`Skills.md`](../DesignConcept/Skills.md) |
 | Learned Feats | 2 | [`Skills.md`](../DesignConcept/Skills.md) |
 | Racial Perks | 22 | [`Races.md`](../DesignConcept/Races.md) |

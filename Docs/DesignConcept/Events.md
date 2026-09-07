@@ -27,7 +27,7 @@ boundaries are defined in [`GameSettings.md`](GameSettings.md).
   and campaign state.
 - Give the player meaningful choices such as investigate, assist, evade,
   negotiate, repair, exploit, conceal, or continue the voyage.
-- Allow Attributes, Skills, Racial Perks, Feats, equipment, ship modules, supplies,
+- Allow Abilities, Skills, Racial Perks, Feats, equipment, ship modules, supplies,
   and learned information to create additional approaches rather than one
   mandatory answer.
 - Persist injuries, damage, cargo, discoveries, obligations, witnesses,
@@ -129,7 +129,7 @@ Each choice declares:
 - required ship capability, module, item, position authority, Skill, Feat,
   Racial Perk, known language, script, spell, or psychic technique;
 - immediate costs, reservations, duration, exposure, and cancellation rules;
-- contextual Attribute and Skill approaches rather than a character class;
+- contextual Ability and Skill approaches rather than a character class;
 - deterministic outcome bands and the information the player may preview;
 - immediate effects, event-chain transitions, and delayed follow-ups; and
 - which actors, factions, witnesses, ships, routes, sites, and items retain the

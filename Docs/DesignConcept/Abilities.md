@@ -1,9 +1,9 @@
-# Character attributes
+# Character abilities
 
 ## Status
 
-This document defines the attribute model. The six definitions and their
-typed immutable content registry are implemented. Character attribute values,
+This document defines the ability model. The six definitions and their
+typed immutable content registry are implemented. Character ability values,
 generation, advancement, races, heritages, and complete character composition
 remain planned. Those character rules are defined in [`Races.md`](Races.md);
 learned capabilities and action resolution are defined in [`Skills.md`](Skills.md).
@@ -13,30 +13,30 @@ specified in
 
 ## Purpose
 
-Attributes express broad capability. They answer how a character approaches a
+Abilities express broad capability. They answer how a character approaches a
 task, while skills answer what the character has learned to do. Spelljammer has
 no character classes or global character level.
 
-The normal player-facing attribute range is 1–10. Permanent values change
+The normal player-facing ability range is 1–10. Permanent values change
 rarely. Injuries, needs, equipment, supernatural conditions, assistance, and
 the environment apply temporary modifiers without rewriting those permanent
 values.
 
-## Attribute roster
+## Ability roster
 
-| Attribute | Stable ID | Governs |
+| Ability | Stable ID | Governs |
 | --- | --- | --- |
-| Strength | `attribute.strength` | Physical force, lifting, carrying capacity, heavy weapons, and resisting forced movement |
-| Agility | `attribute.agility` | Coordination, balance, reflexes, precise manipulation, movement, and aim |
-| Perception | `attribute.perception` | Sensory awareness, spotting danger or details, tracking, ranged accuracy support, and noticing what others miss |
+| Strength | `attribute.strength` | Equipment weight limits, melee damage, melee accuracy |
+| Agility | `attribute.agility` | Turn meter speed, action points, and dodge rate |
+| Perception | `attribute.perception` | Overall awareness, detecting hidden passages and objects, spotting stealthed creatures and NPCs, and effectiveness with ranged weapons (enhances ranged weapon skills and accuracy) |
 | Toughness | `attribute.toughness` | Health, stamina, pain tolerance, physical recovery, and environmental resistance |
 | Willpower | `attribute.willpower` | Concentration, courage, self-control, and magical or psychic control and resistance |
 | Intelligence | `attribute.intelligence` | Observation, analysis, memory, diagnosis, planning, and technical learning |
 
 ## Contextual use
 
-Attributes are not permanently bound to skills. An action declares the
-attribute that matches its method and circumstances:
+Abilities are not permanently bound to skills. An action declares the
+ability that matches its method and circumstances:
 
 - Strength plus Engineering can force a warped drive housing into position.
 - Intelligence plus Engineering can diagnose why the housing failed.
@@ -55,15 +55,15 @@ attribute that matches its method and circumstances:
 - Perception plus Negotiation can read a bluff during contract terms.
 - Intelligence plus Ancient Lore can explain a discovery to a suspicious faction.
 
-The interface must identify the chosen attribute and explain why it applies.
+The interface must identify the chosen ability and explain why it applies.
 Alternative approaches should be available when fiction, equipment, and known
 techniques support them.
 
-## Race, heritage, and attributes
+## Race, heritage, and abilities
 
-Race may change physiological rules, while heritage may make an attribute
+Race may change physiological rules, while heritage may make an ability
 cheaper to use in a particular environment. Neither assigns Intelligence,
-morality, or a hard attribute ceiling. For example, a heritage may reduce the
+morality, or a hard ability ceiling. For example, a heritage may reduce the
 Toughness cost of high-gravity work without receiving a universal Toughness
 bonus.
 
@@ -73,7 +73,7 @@ and experience.
 
 ## Permanent and temporary change
 
-Permanent attributes may change through:
+Permanent abilities may change through:
 
 - prolonged focused training;
 - a major campaign milestone;
@@ -89,20 +89,20 @@ must show every applied source.
 
 ## Data and persistence
 
-Attribute definitions use stable canonical IDs and localized presentation keys.
+Ability definitions use stable canonical IDs and localized presentation keys.
 Persistent character state stores permanent values separately from active
-modifier records. Each modifier records a stable source ID, affected attribute,
+modifier records. Each modifier records a stable source ID, affected ability,
 amount, stacking rule, start tick, and bounded duration or removal condition.
 
 Character creation validates the allowed range and point budget before
 publication. Runtime changes produce an event describing the old value, new
 value, cause, and authoritative tick. Save migrations are required before
-changing a released attribute ID, scale, or meaning.
+changing a released ability ID, scale, or meaning.
 
 ## First playable scope
 
-The first crew-enabled slice should include all six attributes because they
-form a small stable foundation. It only needs to exercise the attributes used
+The first crew-enabled slice should include all six abilities because they
+form a small stable foundation. It only needs to exercise the abilities used
 by navigation, salvage, repair, cooking, medicine, and the first ancient-lore
-encounter. Attribute advancement can remain deferred; temporary modifiers and
-contextual attribute-plus-skill selection must be visible from the start.
+encounter. Ability advancement can remain deferred; temporary modifiers and
+contextual ability-plus-skill selection must be visible from the start.
