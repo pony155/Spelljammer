@@ -53,7 +53,7 @@ inventoried when their definition schemas enter roadmap scope.
 | Equipment | 11 | [`Equipments.md`](../DesignConcept/Equipments.md) |
 | Access gates | 2 | [`Skills.md`](../DesignConcept/Skills.md) |
 | Spells | 7 | [`Spells.md`](../DesignConcept/Spells.md) |
-| Psionics techniques | 4 | [`PsychicAbilities.md`](../DesignConcept/PsychicAbilities.md) |
+| Psionics techniques | 4 | [`Psionics.md.md`](../DesignConcept/Psionics.md.md) |
 | Combat contexts | 6 | [`Battle.md`](../DesignConcept/Battle.md) |
 | Travel events | 8 | [`Events.md`](../DesignConcept/Events.md) |
 | Travel-event choices | 3 | [`Events.md`](../DesignConcept/Events.md) |

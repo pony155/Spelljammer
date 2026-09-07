@@ -10,7 +10,7 @@ and lore state remain planned. Broad capability is defined in
 and Racial Perks are defined in [`Races.md`](Races.md). Spellcasting rules and the
 authored spell catalog are defined in [`Spells.md`](Spells.md), and psionics
 techniques are expanded in
-[`PsychicAbilities.md`](PsychicAbilities.md). Combat actions and tactical
+[`Psionics.md.md`](Psionics.md.md). Combat actions and tactical
 contexts are defined in [`Battle.md`](Battle.md).
 The planned data registry, training state, and action-eligibility implementation
 are specified in
@@ -148,7 +148,7 @@ Racial Perk supplies innate access to basic psionics contact, not free skill ran
 unrestricted mind reading. Failed or resisted psionics actions may create
 strain, distorted impressions, or detectable psionics feedback.
 Consent, resistance, Psionics Strain, information boundaries, and technique
-definitions are specified in [`PsychicAbilities.md`](PsychicAbilities.md).
+definitions are specified in [`Psionics.md.md`](Psionics.md.md).
 
 ## Action resolution
 

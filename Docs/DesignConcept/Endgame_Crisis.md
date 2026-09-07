@@ -207,7 +207,7 @@ victims remain people with affiliations, needs, and rights rather than becoming
 a disposable monster category.
 
 All contact uses the consent, resistance, information, and Psionics Strain rules
-in [`PsychicAbilities.md`](PsychicAbilities.md). The crisis cannot read private
+in [`Psionics.md.md`](Psionics.md.md). The crisis cannot read private
 state after a failed check, silently rewrite a playable character, or erase a
 player command. Coercive effects are Hostile, bounded, attributable, and
 counterable.

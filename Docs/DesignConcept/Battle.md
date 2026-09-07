@@ -477,7 +477,7 @@ can be interrupted or sustained across ticks.
 
 Psionics techniques require `access.psionics` and follow consent, resistance,
 privacy, information, and Psionics Strain rules in
-[`PsychicAbilities.md`](PsychicAbilities.md). A failed intrusion cannot reveal
+[`Psionics.md.md`](Psionics.md.md). A failed intrusion cannot reveal
 the information it failed to reach. Mental influence never silently replaces a
 player command.
 

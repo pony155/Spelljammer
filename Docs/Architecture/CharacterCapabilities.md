@@ -13,7 +13,7 @@ Product behavior is defined in
 [`../DesignConcept/Skills.md`](../DesignConcept/Skills.md),
 [`../DesignConcept/Races.md`](../DesignConcept/Races.md),
 [`../DesignConcept/Spells.md`](../DesignConcept/Spells.md), and
-[`../DesignConcept/PsychicAbilities.md`](../DesignConcept/PsychicAbilities.md).
+[`../DesignConcept/Psionics.md.md`](../DesignConcept/Psionics.md.md).
 
 ## Core decision
 

@@ -110,7 +110,7 @@ Implemented first-slice and planned personal weapons, armor, tools, and relics a
 Planned spellcasting rules,
 the authored spell catalog, and psionics systems are defined in
 [`Docs/DesignConcept/Spells.md`](Docs/DesignConcept/Spells.md), and
-[`Docs/DesignConcept/PsychicAbilities.md`](Docs/DesignConcept/PsychicAbilities.md).
+[`Docs/DesignConcept/Psionics.md.md`](Docs/DesignConcept/Psionics.md.md).
 Ship engagements, boarding, ruin expeditions, EVA fighting, injuries, and
 tactical resolution are defined in
 [`Docs/DesignConcept/Battle.md`](Docs/DesignConcept/Battle.md). First-slice and planned ship frames,
