@@ -40,7 +40,7 @@ Health, Stamina, Mana, Resolve, and Strain are numeric character resources,
 not statuses. A threshold crossing may apply an authored status such as Shaken
 or Psionic Overload, but the status records its own source and lifecycle while
 the resource remains in `CharacterResourceSet`. See
-[`CharacterResourceSystem.md`](CharacterResourceSystem.md).
+[`../Architecture/CharacterBattleStat.md`](../Architecture/CharacterBattleStat.md).
 
 ## Status categories
 

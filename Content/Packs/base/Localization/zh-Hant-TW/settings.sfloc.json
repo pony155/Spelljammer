@@ -115,6 +115,10 @@
       },
       "message": "無法載入設定（{code}）；目前使用安全的預設值。"
     },
+    "settings.status.audio-unavailable": {
+      "description": "音訊引擎無法套用音量設定時的警告。",
+      "message": "音訊輸出目前無法使用。下次啟動時會重新套用音量設定。"
+    },
     "settings.status.ready": {
       "description": "設定對話框的初始狀態。",
       "message": "變更會顯示於此，只有成功套用後才會儲存。"

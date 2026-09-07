@@ -67,9 +67,11 @@ remove decoration but not state, warnings, routes, or target distinctions.
 
 ### Audio
 
-Master, music, ambience, effects, interface, and voice channels have separate
-bounded volume controls. Output device, dynamic-range profile, mono output,
-subtitles, captions, and background-audio behavior are explicit options.
+The current profile exposes bounded Master, Music, and Effects controls. They
+drive SpriteForge's Master, Music, and Sound Effects buses when settings load
+and whenever Apply succeeds. The design target adds separate ambience,
+interface, and voice controls plus output device, dynamic-range profile, mono
+output, subtitles, captions, and background-audio behavior.
 
 Audio cues that communicate hazards, command readiness, damage, or dialogue
 also have a visual or textual equivalent. Muting a channel never changes event

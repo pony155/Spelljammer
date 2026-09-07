@@ -16,6 +16,8 @@ namespace Spelljammer;
 /// </remarks>
 public partial class App : Application
 {
+    private SpriteForgeAudioService? audio;
+
     /// <summary>
     /// Handles application startup initialization.
     /// </summary>
@@ -38,11 +40,19 @@ public partial class App : Application
 
         // Load localized UI strings based on the user's preferred language setting.
         GameText strings = GameText.Load(registry.Active.Language);
+        audio = SpriteForgeAudioService.Create(registry.Active);
 
-        MainMenuWindow window = new(registry, settingsPath, diagnostic, strings);
+        MainMenuWindow window = new(registry, settingsPath, diagnostic, strings, audio);
         MainWindow = window;
 
         ShutdownMode = ShutdownMode.OnMainWindowClose;
         window.Show();
+    }
+
+    protected override void OnExit(ExitEventArgs e)
+    {
+        audio?.Dispose();
+        audio = null;
+        base.OnExit(e);
     }
 }

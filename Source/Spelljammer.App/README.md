@@ -59,13 +59,14 @@ menu action constructs them.
 | `SpriteForgeCharacterCreationView.cs` | Full-window character-creation dossier on a 1600x900 logical canvas. SpriteForge owns its transactionally created modal tree, direct 11-captain roster, selected state, focus order/restoration, hit testing, pointer/keyboard actions, and tagged/clipped presentation. WPF draws the full-screen backdrop, large captain preview, localized lineage/heritage/Background details, summary, and explicit seed. Reroll replaces the draft seed, Escape/Back cancels, and Confirm emits a copied selection. |
 | `SpriteForgeMainMenuView.cs` | Current mouse-only main-menu surface. It loads the packaged `Background.png`, draws it edge-to-edge with aspect-preserving cover scaling, and uses a fixed 1280x720 logical UI canvas. Menu grouping and button fills are transparent, leaving localized New Game, Game Settings, and Quit Game labels, the bottom-right application version, and a pointer-hover outline. SpriteForge owns transactional retained elements, authoritative presentation/point mapping, pointer hit testing, input processing, and action generation; WPF realizes copied tagged/clipped solid commands, localized text, and the outline. The view does not forward keyboard navigation or activation, emits only stable top-level actions, keeps bounded element/action buffers, and releases its native UI context deterministically. |
 | `SpriteForgeSettingsView.cs` | Interactive settings surface and draft editor on a 900x650 logical canvas. It defines SpriteForge General, Audio, and Interface category pages; engine-anchored, flipping, clamped, outside-dismissible language/resolution popups; sliders; toggles; buttons; stable-key focus restoration; selected state; and accessibility roles/names. Native actions update an immutable draft profile or emit Apply/Cancel events; WPF draws copied tagged/clipped solid commands, value labels, focus outlines, and status messages. Reset reconstructs the native document from defaults. |
+| `SpriteForgeAudioService.cs` | WPF-owner-thread lifetime wrapper for SpriteForge audio. It creates the opaque audio instance from native defaults, applies Master/Music/Sound Effects gains from the active settings profile, pumps maintenance updates on the dispatcher, reports non-fatal availability failure, and destroys the instance at application exit. |
 | `EngineViewport.cs` | Retained expedition renderer host. It derives from `HwndHost`, creates a child Win32 window, checks SpriteForge rendering ABI v1, creates a renderer and an in-memory RGBA sprite sheet, submits bounded sprite draws, and advances a four-frame animation with a WPF render-priority timer. It owns and destroys the native texture, renderer, and child window. It is only used by the inactive `MainWindow`. |
 
 ### `Interop/`
 
 | File | Responsibility |
 | --- | --- |
-| `SpriteForgeNative.cs` | Sole low-level SpriteForge P/Invoke boundary for this application. It mirrors the single current managed-UI ABI: revision-checked mutations, explicit focus, richer elements and state flags, tagged/clipped presentation, action copies, and authoritative presentation/point mapping, alongside the renderer calls used by the retained expedition viewport. No deleted UI entry point or compatibility query remains. Its static initializer verifies every used managed UI structure size before the first native call. Ownership stays with the calling view: renderer and UI handles must be destroyed on their owner thread, copied arrays are bounded, and no native pointer enters game or save state. |
+| `SpriteForgeNative.cs` | Sole low-level SpriteForge P/Invoke boundary for this application. It mirrors the current managed UI and audio ABIs alongside the renderer calls used by the retained expedition viewport. Its static initializer verifies every used managed structure size before the first native call. Ownership stays with the calling adapter: renderer, UI, and audio handles are destroyed on their owner thread, copied arrays are bounded, and no native pointer enters game or save state. |
 
 ## Runtime and ownership boundaries
 
@@ -76,6 +77,7 @@ menu action constructs them.
 | Raster/text realization | WPF drawing in the two SpriteForge view adapters |
 | Localized menu/settings text | `GameText` over `Spelljammer.Localization` |
 | Active settings and durable publication | `Spelljammer.Settings` through `GameSettingsRegistry` |
+| Native audio lifetime and volume buses | SpriteForge through `SpriteForgeAudioService` |
 | Authoritative expedition state | `Spelljammer.Simulation`, currently hosted only by inactive prototype code |
 | Native sprite rendering | SpriteForge through `EngineViewport`, currently inactive |
 

@@ -13,6 +13,7 @@ internal sealed class MainMenuWindow : Window
     private readonly GameSettingsRegistry settings;
     private readonly string settingsPath;
     private readonly GameText strings;
+    private readonly SpriteForgeAudioService audio;
     private readonly Grid root;
     private readonly SpriteForgeMainMenuView menuView;
     private GameSettingsDialog? settingsDialog;
@@ -23,11 +24,13 @@ internal sealed class MainMenuWindow : Window
         GameSettingsRegistry settings,
         string settingsPath,
         GameSettingsDiagnostic startupDiagnostic,
-        GameText strings)
+        GameText strings,
+        SpriteForgeAudioService audio)
     {
         this.settings = settings;
         this.settingsPath = settingsPath;
         this.strings = strings;
+        this.audio = audio;
         Title = strings.Get("menu.window-title");
         Width = 1280;
         Height = 720;
@@ -55,6 +58,10 @@ internal sealed class MainMenuWindow : Window
             menuView.SetStatus(strings.Diagnostic(
                 "settings.status.load-failed",
                 GameSettingsDiagnostics.Stable(startupDiagnostic)), isError: true);
+        }
+        else if (!audio.IsAvailable)
+        {
+            menuView.SetStatus(strings.Get("settings.status.audio-unavailable"), isError: true);
         }
     }
 
@@ -125,7 +132,10 @@ internal sealed class MainMenuWindow : Window
         Title = strings.Get("menu.window-title");
         menuView.RefreshLanguage();
         ApplyResolution(settings.Active.Resolution);
-        menuView.SetStatus(strings.Get("settings.status.saved"), isError: false);
+        bool audioApplied = audio.Apply(settings.Active);
+        menuView.SetStatus(
+            strings.Get(audioApplied ? "settings.status.saved" : "settings.status.audio-unavailable"),
+            isError: !audioApplied);
         menuView.Focus();
     }
 

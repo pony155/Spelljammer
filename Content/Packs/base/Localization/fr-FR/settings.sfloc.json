@@ -115,6 +115,10 @@
       },
       "message": "Impossible de charger les paramètres ({code}) ; les valeurs sûres sont actives."
     },
+    "settings.status.audio-unavailable": {
+      "description": "Avertissement lorsque le moteur audio ne peut pas appliquer les volumes.",
+      "message": "La sortie audio est indisponible. Les volumes seront réappliqués au prochain lancement."
+    },
     "settings.status.ready": {
       "description": "État initial de la fenêtre des paramètres.",
       "message": "Les modifications sont prévisualisées ici et enregistrées uniquement après l’application."

@@ -15,15 +15,22 @@ sliders, toggles, buttons, and typed action queue to SpriteForge UI. The game
 maps copied stable actions to a draft profile and publishes that draft only
 after durable persistence succeeds.
 
-The integration consumes the single current SpriteForge managed-UI contract
-from `Engine/Public/SpriteForgeUIInterop.h`. The engine intentionally provides
-no legacy entry points or compatibility version query, so the public header,
-native DLL, and managed structures must come from the same SpriteForge build.
-The ABI remains generic; no Spelljammer setting name or rule is defined in the
-engine. Native calls stay on the WPF owner thread. UTF-8 accessibility names
-are copied during a revision-checked transactional commit, and actions,
-element snapshots, and tagged presentation records are copied into
-caller-owned bounded arrays.
+The integration consumes the current SpriteForge managed UI and audio
+contracts from `Engine/Public/SpriteForgeUIInterop.h` and
+`Engine/Public/SpriteForgeAudioInterop.h`. The engine intentionally provides
+no legacy entry points, so the public headers, native DLL, and managed
+structures must come from the same SpriteForge build. The ABIs remain generic;
+no Spelljammer setting name or rule is defined in the engine. Native UI and
+audio calls stay on the WPF owner thread. UTF-8 accessibility names are copied
+during a revision-checked transactional commit, while the audio instance is an
+opaque app-owned handle destroyed during application exit.
+
+At startup, `SpriteForgeAudioService` creates an audio instance from the engine
+defaults and converts bounded integer percentages to linear gains. Master maps
+to the Master bus, music maps to Music, and effects maps to Sound Effects. A
+dispatcher timer calls the owner-thread update entry point. Successfully saved
+settings are applied with a short gain ramp; an unavailable device or ABI is
+non-fatal and produces a localized warning while preserving the saved profile.
 
 ## Profile and file contract
 
@@ -93,8 +100,9 @@ change the monitor mode or renderer resolution.
 
 The local profile is not stored in a campaign, content lock, semantic
 fingerprint, replay, or simulation state. Reduced motion changes only the
-presentation timer. Audio, subtitle, screen-shake, and interface-scale values
-are retained now, but their live consumers await those presentation systems.
+presentation timer. Master, music, and effects volumes now drive SpriteForge
+audio buses. Subtitle, screen-shake, and interface-scale values are retained,
+but their remaining live consumers await those presentation systems.
 
 Campaign-affecting settings remain authoritative save work. They require an
 explicit campaign schema revision, stable IDs and resolved values, validation
@@ -107,6 +115,8 @@ local preference document.
 codec determinism, schema-1 migration, stable language/resolution validation,
 invalid-input fallback, transactional publication, replacement failure,
 recovery, and exact cleanup. SpriteForge's
-`UIInteropTests.cpp` compiles the current ABI, transactional mutations,
+`UIInteropTests.cpp` compiles the current UI ABI, transactional mutations,
 anchored/nested modal behavior, copied layout/presentation, and failed-batch
-atomicity. CI or the user owns executable test runs under repository policy.
+atomicity. SpriteForge's `AudioInteropTests.cpp` owns native default-config,
+argument-validation, ownership, and output-clearing contracts. CI or the user
+owns executable test runs under repository policy.

@@ -15,6 +15,7 @@ public partial class MainWindow : Window
     private readonly GameSettingsRegistry settings;
     private readonly string settingsPath;
     private readonly GameText settingsStrings;
+    private readonly SpriteForgeAudioService audio;
     private ExpeditionState expedition;
     private GameSettingsDialog? settingsDialog;
     private ulong nextSeed = 0xc0ffeeUL;
@@ -23,11 +24,13 @@ public partial class MainWindow : Window
         GameSettingsRegistry settings,
         string settingsPath,
         GameSettingsDiagnostic startupDiagnostic,
-        GameText settingsStrings)
+        GameText settingsStrings,
+        SpriteForgeAudioService audio)
     {
         this.settings = settings;
         this.settingsPath = settingsPath;
         this.settingsStrings = settingsStrings;
+        this.audio = audio;
         InitializeComponent();
         SettingsButton.Content = settingsStrings.Get("settings.button.open");
         expedition = simulation.Create(nextSeed);
@@ -212,7 +215,9 @@ public partial class MainWindow : Window
         settingsStrings.SetLanguage(settings.Active.Language);
         SettingsButton.Content = settingsStrings.Get("settings.button.open");
         ApplySettings(settings.Active);
-        EventLabel.Text = settingsStrings.Get("settings.status.saved");
+        EventLabel.Text = settingsStrings.Get(audio.Apply(settings.Active)
+            ? "settings.status.saved"
+            : "settings.status.audio-unavailable");
     }
 
     private void SettingsDialog_Cancelled(object? sender, EventArgs e) => CloseSettingsDialog();

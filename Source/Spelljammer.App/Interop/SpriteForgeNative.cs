@@ -18,6 +18,32 @@ internal enum EngineStatus
     SkipFrame = -20,
 }
 
+internal enum EngineAudioBus : uint
+{
+    Master,
+    Music,
+    SoundEffects,
+    Ambience,
+    UserInterface,
+}
+
+[StructLayout(LayoutKind.Sequential)]
+internal struct EngineAudioConfig
+{
+    internal uint PreferredSampleRate;
+    internal uint PreferredBufferFrames;
+    internal uint MaximumClips;
+    internal uint MaximumVoices;
+    internal uint MaximumMixedVoices;
+    internal uint CommandCapacity;
+    internal uint StreamBufferFrames;
+    internal uint StreamLowWaterFrames;
+    internal uint StreamHighWaterFrames;
+    internal ulong MaximumResidentBytes;
+    internal ulong MaximumStreamBufferBytes;
+    internal uint EnableVoiceStealing;
+}
+
 [StructLayout(LayoutKind.Sequential)]
 internal struct EngineCamera2D
 {
@@ -501,6 +527,7 @@ internal static class SpriteForgeNative
 
     static SpriteForgeNative()
     {
+        VerifyLayout<EngineAudioConfig>(64);
         VerifyLayout<EngineUiDocumentDescription>(120);
         VerifyLayout<EngineUiElementDescription>(384);
         VerifyLayout<EngineUiMutation>(520);
@@ -519,7 +546,7 @@ internal static class SpriteForgeNative
         if (actual != expected)
         {
             throw new TypeLoadException(
-                $"SpriteForge UI interop layout '{typeof(T).Name}' is {actual} bytes; expected {expected}.");
+                $"SpriteForge interop layout '{typeof(T).Name}' is {actual} bytes; expected {expected}.");
         }
     }
 
@@ -558,6 +585,27 @@ internal static class SpriteForgeNative
         in EngineCamera2D camera,
         [In] EngineSpriteDraw[] draws,
         uint drawCount);
+
+    [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern EngineStatus SpriteForge_GetDefaultAudioConfig(out EngineAudioConfig config);
+
+    [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern EngineStatus SpriteForge_CreateAudio(
+        in EngineAudioConfig config,
+        out nint audio);
+
+    [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern void SpriteForge_DestroyAudio(nint audio);
+
+    [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern EngineStatus SpriteForge_AudioUpdate(nint audio);
+
+    [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern EngineStatus SpriteForge_AudioSetBusGain(
+        nint audio,
+        EngineAudioBus bus,
+        float gain,
+        float rampSeconds);
 
     [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
     internal static extern EngineStatus SpriteForge_CreateUIContext(

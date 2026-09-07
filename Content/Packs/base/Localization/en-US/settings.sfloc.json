@@ -115,6 +115,10 @@
       },
       "message": "Settings could not be loaded ({code}); safe defaults are active."
     },
+    "settings.status.audio-unavailable": {
+      "description": "Warning shown when the audio engine cannot apply volume settings.",
+      "message": "Audio output is unavailable. Volume settings will be applied again next launch."
+    },
     "settings.status.ready": {
       "description": "Initial settings dialog status.",
       "message": "Changes are previewed here and saved only when Apply succeeds."

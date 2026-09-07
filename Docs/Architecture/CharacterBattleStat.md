@@ -1,884 +1,496 @@
-# Battle System Design
+# Character Battle Statistics and Resources
 
-## 1. Overview
+## Purpose and implementation status
 
-The combat system is designed for a single-player tactical sandbox game with squad-based encounters similar in structure to *Battle Brothers*.
+This document is the authoritative design and architecture contract for
+personal-combat statistics, character resources, Turn Meter, and Action
+Points. It combines the former battle-stat and character-resource documents so
+that combat formulas cannot drift away from the resource economy they consume.
 
-The system should support:
+The simulation currently implements:
 
-- Classless character builds
-- Melee, ranged, thrown, energy, and psionic combat
-- Distinct physical and mental defense layers
-- Tactical positioning and equipment choices
-- Character differentiation through Attributes, Skills, equipment, traits, and species
-- Future expansion into wounds, morale, psionic powers, environmental hazards, and shipboard combat
+- the five-resource `CharacterResourceSet`;
+- data-driven `CharacterTurnState`, Turn Meter, and Action Points;
+- stamina-based Turn Meter modifiers;
+- per-action AP costs;
+- encounter recovery and Health damage; and
+- save round-tripping for character and encounter-local resource state.
 
-The core design principle is:
+The scenario-selected profile at
+`Content/Packs/base/Definitions/CharacterResourceProfiles/standard.json` owns
+base values, thresholds, stamina speed bands, recovery, and personal-action AP
+costs. `VoyageWorld` must not contain fallback combat-economy numbers.
 
-> **Attributes represent innate capability. Skills represent trained proficiency. Equipment determines how those capabilities are converted into combat performance.**
+Threshold-driven status application, authored Resolve attacks, psionic
+overload outcomes, activity-sensitive recovery, attribute-derived Turn Meter
+gain, final damage formulas, and final HUD/timeline presentation remain
+planned. The current simulation exposes threshold and percentage queries but
+does not assign one universal status or overload consequence.
 
-The authoritative five-resource ownership and data contract are defined in
-[`../Concept/CharacterResourceSystem.md`](../Concept/CharacterResourceSystem.md). Health,
-Stamina, Mana, Resolve, and Strain are independent of Attributes and Skills.
+## Design principles
 
----
+Characters are classless combinations of Attributes, Skills, equipment,
+Feats, species, and current state:
 
-# 2. Combat Layers
+> Attributes represent innate capability. Skills represent trained
+> proficiency. Equipment determines how those capabilities become combat
+> performance. Resources determine how long that performance can be sustained.
 
-Combat is divided into two major defensive axes:
+Every statistic must answer a different tactical question. In particular:
+
+- Turn Meter determines **when** a character acts.
+- Action Points determine **how much** the character can do while active.
+- Health, Stamina, Mana, Resolve, and Strain determine **how long** the
+  character can sustain different pressures or actions.
+- Armor, Evasion, Willpower, and optional Psi Shield modify attack resolution;
+  they are not spendable resources.
+
+All persistent identities, costs, thresholds, gains, decay, recovery, and
+modifiers are data-driven. Values used below are illustrative balance examples,
+not hard-coded rules.
+
+## Combat layers
 
 ```text
-Physical Combat
-Attack Skill
-    ↓
-Accuracy / Defense
-    ↓
-Armor
-    ↓
-Health
-    ↓
-Wounds / Death
+Physical attack
+    -> attack Skill versus Evasion
+    -> Armor mitigation and penetration
+    -> Health damage and physical statuses
 
-Psionic Combat
-Psionic Skill
-    ↓
-Willpower / Psi Defense
-    ↓
-Resolve
-    ↓
-Mental Effects / Mental Break
+Mental or psionic attack
+    -> Psionics versus Psi Shield and Willpower
+    -> Resolve damage and mental statuses
+
+Activation economy
+    -> Turn Meter determines when the actor activates
+    -> Action Points limit actions during that activation
+    -> Stamina, Mana, or Strain constrain repeated specialized actions
 ```
 
-Physical and psionic attacks should therefore feel mechanically different.
+Psionics must not behave as magic with a renamed damage type. It primarily
+interacts with Resolve, Willpower, Strain, control, positioning, morale, and
+enemy-specific mental rules.
 
-A Mind Blast should not simply behave like a fireball that deals a different damage type.
+## Character resources
 
----
-
-# 3. Core Character Combat Stats
-
-## 3.1 Health
-
-**Health** represents physical survivability.
+Health, Stamina, Mana, and Resolve are conventional resources:
 
 ```text
-Health: 84 / 100
+0 <= CurrentValue <= MaxValue
 ```
 
-Health is reduced by physical damage that penetrates or bypasses armor.
+They normally begin an encounter at their configured maximum. Strain uses the
+same bounded representation but has inverse semantics: it begins at zero and
+accumulates toward `MaxStrain`.
 
-At low Health, characters may suffer:
+Resources remain separate from Attributes and Skills so that maximum values,
+recovery, costs, damage, accumulation, decay, and modifiers can evolve
+independently.
 
-- Injury penalties
-- Bleeding
-- Reduced movement
-- Reduced accuracy
-- Knockdown
-- Unconsciousness
-- Death
+### Health
 
-Health should generally recover slowly outside combat compared with Resolve.
+Health represents physical injury and survivability. Melee, firearms, energy
+weapons, explosions, hazards, and explicitly physical supernatural effects may
+damage it after mitigation or penetration rules resolve.
 
----
+Health reaching zero enters authored incapacitation or death handling. It does
+not imply automatic death. Rescue, stabilization, capture, retreat, and death
+remain explicit outcomes owned by encounter and status rules.
 
-## 3.2 Armor
+Health does not regenerate during ordinary combat unless an ability, item,
+Feat, equipment effect, or status explicitly restores it. It is always clamped
+and never becomes negative.
 
-**Armor** represents protection against physical attacks.
+### Stamina
 
-Armor may come from:
+Stamina represents physical exertion across multiple activations. It does not
+replace AP: AP limits the current activation, while Stamina limits repeated
+sprinting, heavy attacks, defensive maneuvers, demanding movement, and other
+physical techniques.
 
-- Body armor
-- Helmets
-- Shields
-- Natural armor
-- Magical protection
-- Vehicle or environmental cover
+Basic actions should generally remain usable at low Stamina. For example, a
+basic shot may cost AP without Stamina, while a heavy strike may consume both.
+This prevents exhaustion from making a character completely unable to act.
 
-Armor does not necessarily function as additional Health.
+Stamina recovers naturally according to the selected profile. Future recovery
+may consider current activity, Attributes, armor weight, equipment, statuses,
+Feats, and injuries.
 
-Preferred model:
+Low Stamina may reduce Turn Meter gain through authored percentage bands. The
+standard profile defines those bands and their multipliers; code must not
+embed assumptions such as a particular threshold or penalty. Exhausted
+characters can still act, but usually act less frequently.
+
+### Mana
+
+Mana is magical energy. A magical active Feat normally requires AP plus a
+data-defined Mana cost. It is unavailable when either cost cannot be paid.
+
+Mana and Psionics are separate systems. A psionic active Feat does not consume
+Mana unless its definition explicitly declares a cross-resource cost. Mana
+recovery is generally slower or more restricted than Stamina recovery and may
+come from rest, consumables, equipment, magical environments, Feats, or other
+authored effects.
+
+### Resolve
+
+Resolve is short-term mental resilience under fear, coercion, trauma, and
+hostile mental or psionic pressure. It is primarily defensive and is not the
+normal activation currency for psionic Feats.
+
+Authored Resolve bands may represent states such as Stable, Shaken,
+Vulnerable, and Mental Break. Crossing a threshold does not itself force one
+universal result. The triggering action or status definition chooses whether
+the outcome is panic, confusion, stun, retreat, susceptibility to domination,
+or another bounded effect.
+
+Resolve-related statuses may modify Turn Meter or AP, but those consequences
+belong to the status system. Resolve recovery may consider Willpower,
+leadership, nearby allies, rest, Feats, and current statuses.
+
+Resolve is distinct from morale. Resolve is immediate numeric capacity;
+morale is an inspectable social or psychological condition with causes and
+choices. It is also distinct from optional campaign-level Sanity.
+
+### Strain
+
+Strain measures psionic exertion and overload risk:
 
 ```text
-Incoming Damage
-    ↓
-Armor Mitigation / Penetration
-    ↓
-Health Damage
+0 <= Strain <= MaxStrain
+Default Strain = 0
 ```
 
-Weapons may have different:
+A psionic active Feat normally costs AP and generates Strain rather than
+spending Resolve. More powerful effects generally generate more Strain, while
+decay may depend on Attributes, Feats, equipment, rest, mental status, and
+current Resolve.
 
-- Armor Damage
-- Armor Penetration
-- Health Damage
-- Critical behavior
+Authored percentage bands may represent Normal, Strained, Critical, and
+Overload states. Possible consequences include reduced Resolve recovery,
+accuracy or effectiveness penalties, backlash risk, reduced Turn Meter gain,
+Resolve damage, interruption, confusion, or temporary loss of psionic access.
+The exact consequence belongs to the triggering definition or applied status.
 
-Example:
+Maximum Strain must not automatically kill or permanently disable a character.
+The player may deliberately accept a configured overload risk.
+
+## Turn economy
+
+### Turn Meter
+
+Turn Meter is encounter timing state, not a conventional character resource.
+It advances toward a profile-defined threshold. Reaching that threshold makes
+the character eligible for activation; ending the activation resets or
+reduces the meter according to the selected scheduling model.
+
+Turn Meter gain may be modified by a speed-oriented Attribute, Stamina bands,
+injuries, armor, statuses, haste or slow effects, equipment, and psionic
+effects. Stable ordering and fixed simulation ticks determine ties and meter
+advancement.
+
+Do not let one Attribute strongly increase both Turn Meter gain and maximum AP.
+That would multiply activation frequency by actions per activation and make
+the two systems redundant.
+
+### Action Points
+
+At activation start, `CurrentAP` is restored to the configured `MaxAP`. Actions
+consume authored AP costs and are rejected before mutation when insufficient
+AP or another required resource is available. AP never becomes negative.
+
+Unless an authored effect says otherwise, unused AP is discarded at activation
+end. Maximum-AP modifiers should be uncommon, bounded, and source-owned.
+Activation frequency belongs primarily to Turn Meter; actions per activation
+belong to AP.
+
+The default activation sequence is:
 
 ```text
-Boarding Axe
-
-Damage:             20–30
-Armor Damage:       120%
-Armor Penetration:  35%
+Turn Meter reaches its threshold
+    -> character becomes active
+    -> CurrentAP is initialized
+    -> actions validate and spend their declared costs
+    -> player or AI ends the activation
+    -> unused AP is discarded
+    -> Turn Meter begins advancing again
 ```
 
-This allows weapons to fill distinct tactical roles.
+### Reactions
 
----
+Overwatch, opportunity attacks, counterattacks, intercepts, and defensive
+blocks do not require a separate Reaction Point resource. The normal action
+pays AP to create a bounded reaction state; the reaction may then trigger
+before the character's next activation. A definition may explicitly choose a
+different model later.
 
-## 3.3 Evasion
+## Defensive battle statistics
 
-**Evasion** represents the ability to avoid an incoming physical attack.
+### Armor
 
-Possible contributors:
-
-- Dexterity / Agility
-- Movement
-- Cover
-- Shield
-- Status effects
-- Equipment weight
-- Traits
-
-Evasion should primarily interact with attack accuracy rather than directly reducing damage.
-
-Example:
+Armor protects against physical attacks and may come from worn equipment,
+shields, natural protection, magical effects, vehicles, or cover. It is not
+automatically extra Health.
 
 ```text
-Hit Chance =
-Base Accuracy
-+ Attacker Skill
-+ Situational Modifiers
-- Target Evasion
+Incoming physical damage
+    -> Armor mitigation and penetration
+    -> Health damage
 ```
 
-Minimum and maximum hit chances may be capped for balance.
+Weapons may declare different base damage, Armor damage, penetration, critical
+behavior, and status effects so that equipment changes tactical behavior
+rather than only damage per second.
 
-Example:
+### Evasion
+
+Evasion is the ability to avoid a physical attack. Contributors may include
+Agility, movement, cover, shields, equipment weight, statuses, and Feats.
+Evasion primarily modifies hit resolution rather than damage:
 
 ```text
-Minimum Hit Chance: 5%
-Maximum Hit Chance: 95%
+Hit chance = reviewed base formula
+           + attacker Skill
+           + situational modifiers
+           - target Evasion
 ```
 
----
+Minimum and maximum hit chances, if used, are data-owned bounds.
 
-# 4. Mental and Psionic Combat Stats
+### Willpower
 
-## 4.1 Resolve
-
-**Resolve** represents short-term mental stability during combat.
-
-Resolve is the mental equivalent of combat endurance, but it should not simply function as a second Health bar.
-
-Example:
+Willpower resists mental and psionic attacks. It is a defensive statistic, not
+a spendable pool:
 
 ```text
-Resolve: 76 / 100
+Physical defense: attack Skill versus Evasion
+Mental defense:   Psionics versus Willpower
 ```
 
-Resolve can be reduced by:
+A successful mental attack may then damage Resolve, apply an authored status,
+interrupt an action, or trigger another declared effect. Willpower may be
+derived from Attributes, Background, species, Feats, psionic training,
+equipment, and current statuses.
 
-- Mind Blast
-- Psionic Scream
-- Fear
-- Horrific creatures
-- Ally death
-- Psionic domination attempts
-- Certain magical effects
-- Severe wounds
-- Isolation or environmental effects
+### Psi Shield
 
-Suggested thresholds:
+Psi Shield is an optional specialized defense supplied by rare equipment,
+artifacts, implants, species capabilities, magic, or active Feats. Not every
+character has it. A configured resolution may process Psi Shield before
+Willpower, Resolve damage, and mental effects.
+
+### Sanity
+
+Sanity is an optional future campaign statistic for long-term psychological
+change caused by isolation, loss, cosmic hazards, parasites, forbidden
+artifacts, or repeated psionic exposure. It is not required by the initial
+combat model:
 
 ```text
-100–76  Stable
-75–51   Shaken
-50–26   Disturbed
-25–1    Breaking
-0       Mental Break
+Resolve = short-term encounter pressure
+Sanity  = long-term campaign condition
 ```
 
-Example penalties:
+Persistent consequences should be authored statuses or Feats with explicit
+causes and recovery, not invisible permanent mutations.
 
-### Shaken
+## Attributes, Skills, and weapon scaling
 
-- Small Accuracy penalty
-- Small Willpower penalty
-
-### Disturbed
-
-- Accuracy penalty
-- Reduced initiative
-- Increased susceptibility to Fear and Psionics
-
-### Breaking
-
-- Severe combat penalties
-- Increased chance of panic
-- Increased chance of losing actions
-
-### Mental Break
-
-Possible results:
-
-- Panic
-- Flee
-- Stun
-- Catatonia
-- Berserk
-- Temporary Mind Control
-- Collapse
-
-The exact result may depend on the attack, character traits, species, and current conditions.
-
-Resolve should recover significantly faster than Health.
-
----
-
-# 5. Willpower
-
-**Willpower** represents resistance to mental and psionic attacks.
-
-Willpower is a defensive stat, not a resource.
-
-Conceptually:
+Attributes and Skills must produce different builds:
 
 ```text
-Physical Defense:
-Attack Skill vs Evasion
-
-Mental Defense:
-Psionic Skill vs Willpower
-```
-
-Example:
-
-```text
-Mind Blast Power: 65
-Target Willpower: 50
-```
-
-A successful psionic attack can then:
-
-- Damage Resolve
-- Apply mental status effects
-- Interrupt actions
-- Trigger special effects
-
-Willpower may be influenced by:
-
-- Base Attributes
-- Background
-- Species
-- Traits
-- Psionic training
-- Equipment
-- Current Resolve state
-
----
-
-# 6. Psi Shield
-
-**Psi Shield** is an optional specialized defense against psionic effects.
-
-Unlike Willpower, Psi Shield should primarily come from rare or specialized sources:
-
-- Psionic equipment
-- Magical artifacts
-- Psionic species
-- Active powers
-- Defensive implants
-- Arcane technology
-
-Not every character should naturally possess Psi Shield.
-
-Example:
-
-```text
-Astral Circlet
-
-Psi Shield:              +35
-Willpower:               +10
-Mind Control Resistance: +20%
-```
-
-Possible psionic resolution:
-
-```text
-Incoming Psionic Attack
-    ↓
-Psi Shield
-    ↓
-Willpower Check
-    ↓
-Resolve Damage
-    ↓
-Mental Status Effect
-```
-
-Psi Shield can therefore serve as the mental equivalent of specialized armor.
-
----
-
-# 7. Sanity
-
-**Sanity** is an optional campaign-level statistic.
-
-Sanity represents long-term psychological stability rather than immediate combat morale.
-
-```text
-Resolve = short-term combat state
-Sanity  = long-term psychological condition
-```
-
-Sanity may be affected by:
-
-- Cosmic horror
-- Aberrations
-- Psionic parasites
-- Prolonged isolation
-- Exposure to the Astral Void
-- Crew deaths
-- Forbidden artifacts
-- Failed psionic encounters
-
-Low Sanity may produce persistent traits.
-
-Examples:
-
-```text
-Nightmares
-Paranoia
-Void Whispers
-Phobia: Aberrations
-Psionic Sensitivity
-```
-
-Traits do not have to be purely negative.
-
-Example:
-
-```text
-Void-Touched
-
-Sanity Recovery:      -20%
-Psionic Resistance:   +15%
-Psionic Detection:    +1
-```
-
-Sanity is not required for the initial combat implementation and may be added later.
-
----
-
-# 8. Attributes and Combat Skills
-
-Attributes and Skills should not simply duplicate one another.
-
-The intended relationship is:
-
-```text
-Attributes = natural physical / mental capability
+Attributes = natural physical or mental capability
 Skills     = trained proficiency
-Weapons    = determine scaling and tactical role
+Weapons    = scaling, requirements, and tactical role
 ```
 
----
-
-# 9. Strength and Melee Weapons
-
-Strength and Melee Weapons should affect combat independently.
-
-Do not use:
+For melee combat, Strength should influence damage, penetration, carrying or
+weapon requirements, while Melee Weapons primarily influences accuracy,
+criticals, and access to special active Feats. Skill may make a smaller damage
+contribution without becoming an indirect multiplier for every Strength
+effect.
 
 ```text
-Strength
-    ↓
-Melee Weapons
-    ↓
-Damage
+Final melee damage = reviewed weapon formula
+                   x Strength modifier
+                   x Skill modifier
+                   x critical modifier
+                   x target mitigation
 ```
 
-This makes Strength indirectly control too many combat outcomes and reduces build diversity.
+All coefficients and bounds come from data. Heavy hammers may scale strongly
+with Strength, rapiers with Melee Weapons, and balanced weapons with both. This
+supports strong but inaccurate deckhands, precise duelists, and trained
+all-round marines without requiring character classes.
 
-Preferred design:
+Initial or planned combat Skills include Melee Weapons, Firearms, Energy
+Weapons, Throwing, and Psionics. Heavy Weapons, Arcane Weapons, Ship Weapons,
+or Unarmed may be added only when the split creates meaningful choices. Weapon
+specialization should normally use Feats, familiarity, Background bonuses, or
+equipment requirements rather than fragmenting every weapon family into a
+separate Skill.
+
+Throwing governs accuracy, effective range, scatter, and placement for
+grenades, knives, bombs, alchemical weapons, and magical charges. Strength may
+separately affect the range of heavy thrown objects.
+
+## Psionic attack model
+
+Psionic actions emphasize disruption and control. Examples include:
+
+- Mind Blast: Psionics versus Willpower, Resolve damage, Daze, or interruption.
+- Psionic Scream: area Resolve pressure and Fear against vulnerable targets.
+- Dominate: a resisted, temporary control effect gated by an authored Resolve
+  threshold or a significant attacker advantage.
+- Mental Barrier: temporary Psi Shield or Willpower support.
+- Psionic Lance: focused Resolve damage with optional physical interaction for
+  specifically authored creatures.
+
+Enemy definitions declare exceptional behavior. Constructs may ignore Fear or
+ordinary mind control; a hive mind may resist control but remain vulnerable to
+disruption; an aberration may resist or retaliate against failed attacks.
+
+## Costs and cross-system interactions
+
+Every action declares costs and resource effects through content data. Action
+implementations use shared primitives and must not embed bespoke resource
+logic. Typical patterns are:
 
 ```text
-Strength ─────────────→ Damage / Penetration / Weapon Requirements
-
-Melee Weapons ────────→ Accuracy / Criticals / Special Active Feats
-        │
-        └─────────────→ Small Damage Contribution
+Basic physical action:       AP
+Demanding physical action:   AP + Stamina
+Magical action:              AP + Mana
+Psionic action:              AP + Strain gain
+Hostile mental action:       attack resolution + Resolve damage/status
 ```
 
-Interpretation:
+Cross-resource actions are permitted when explicitly authored, but should be
+exceptions. Validation checks all costs before publishing mutation so a failed
+action cannot spend AP while leaving another required resource unchanged.
 
-> **Strength determines how hard a character can hit.**
+## Runtime ownership and shared operations
 
-> **Melee Weapons determines how effectively the character knows how to fight.**
+`CharacterResourceSet` owns the five long-duration values.
+`CharacterTurnState` owns encounter timing and AP. They are separate immutable
+states: AP is not stored as Stamina, and Turn Meter is not a conventional
+resource.
 
----
+Permanent and temporary modifiers retain stable source IDs so equipment,
+Feats, injuries, and statuses can add and remove their own effects without
+rewriting base values. Conventional resources support current, maximum, base
+maximum, recovery, and source-owned modifiers. Strain additionally exposes
+decay and threshold state; turn state exposes meter threshold, gain modifier,
+current AP, and maximum AP.
 
-# 10. Melee Damage Formula
+Shared resource operations cover spending, restoration, damage, percentage
+queries, clamping, Strain generation and reduction, and threshold queries.
+The implemented turn API includes `AddTurnMeter`, `ResetTurnMeter`,
+`CanActivate`, `BeginActivation`, `EndActivation`,
+`CanSpendActionPoints`, `SpendActionPoints`, `RestoreActionPoints`, and
+`GetActionPointCost`.
 
-Suggested conceptual formula:
+Abilities, AI, items, statuses, equipment, and hazards call these shared
+operations rather than duplicating arithmetic.
+
+## Bounds, validation, and persistence
+
+All resource and turn values are clamped to authored bounds:
 
 ```text
-Final Damage =
-Weapon Base Damage
-× Strength Modifier
-× Skill Modifier
-× Critical Modifier
-× Target Mitigation
+Health, Stamina, Mana, Resolve: 0 .. corresponding maximum
+Strain:                         0 .. MaxStrain
+Turn Meter:                     0 .. configured threshold
+CurrentAP:                      0 .. MaxAP
 ```
 
-Skill should generally contribute less raw damage than Strength.
-
-Example:
-
-```text
-Boarding Axe
-Base Damage: 20–30
-STR Scaling: 0.8
-```
-
-Character:
-
-```text
-Strength:       15
-Melee Weapons:  60
-```
-
-Example bonuses:
-
-```text
-Strength Bonus:      +30%
-Melee Skill Bonus:   +10%
-```
-
-Exact numbers should be determined through balance testing.
-
----
-
-# 11. Weapon Scaling
-
-Different melee weapons should scale differently with Attributes and Skills.
-
-Example:
-
-| Weapon | Strength Scaling | Melee Skill Scaling | Role |
-|---|---:|---:|---|
-| Great Hammer | Very High | Low | Heavy armor breaker |
-| Boarding Axe | High | Medium | General heavy melee |
-| Longsword | Medium | Medium | Balanced |
-| Rapier | Low | Very High | Precision |
-| Dagger | Low | High | Critical / armor gaps |
-| Power Axe | High | Low–Medium | Heavy energy melee |
-| Arcane Blade | Low–Medium | High | Skill-based magical weapon |
-
-This creates viable archetypes without requiring character classes.
-
-Examples:
-
-| Build | STR | Melee | Combat Identity |
-|---|---:|---:|---|
-| Strong Deckhand | High | Low | Inaccurate but devastating |
-| Duelist | Low | Very High | Accurate and technical |
-| Veteran Marine | Medium | High | Reliable all-round fighter |
-| Heavy Boarder | Very High | Medium | Heavy weapons and armor |
-| Blade Master | Medium | Very High | Precision and special attacks |
-
----
-
-# 12. Combat Skills
-
-Current or planned weapon skills may include:
-
-```text
-Melee Weapons
-Firearms
-Energy Weapons
-Throwing
-Psionics
-```
-
-Potential future skills:
-
-```text
-Heavy Weapons
-Arcane Weapons
-Ship Weapons
-Unarmed
-```
-
-Avoid excessive fragmentation unless the additional skill creates meaningful build choices.
-
-For example, melee weapons do not initially need separate Sword, Axe, Spear, and Hammer skills.
-
-Weapon specialization can instead come from:
-
-- Traits
-- Perks
-- Weapon familiarity
-- Background bonuses
-- Equipment requirements
-
----
-
-# 13. Throwing
-
-**Throwing** governs thrown combat weapons.
-
-Examples:
-
-- Grenades
-- Throwing knives
-- Bombs
-- Alchemical weapons
-- Magical charges
-
-Throwing may influence:
-
-- Accuracy
-- Maximum effective range
-- Scatter
-- Critical placement
-- Grenade landing precision
-
-Strength may separately influence the maximum throwing range of heavy objects.
-
-Example:
-
-```text
-Throwing Skill → Accuracy
-Strength       → Maximum Range
-```
-
-This preserves the distinction between physical ability and technical proficiency.
-
----
-
-# 14. Psionic Attacks
-
-Psionic abilities should focus heavily on control, disruption, and mental pressure rather than functioning only as direct damage spells.
-
-Examples:
-
-## Mind Blast
-
-```text
-Target: Single / Cone
-Attack: Psionics vs Willpower
-Effect:
-- Resolve Damage
-- Chance to Daze
-- Interrupt
-```
-
-## Psionic Scream
-
-```text
-Target: Area
-Effect:
-- Moderate Resolve Damage
-- Fear
-- Higher effect against low-Resolve targets
-```
-
-## Dominate
-
-```text
-Target: Single
-Attack: Psionics vs Willpower
-Requirement:
-- Target below Resolve threshold OR
-- Significant attacker advantage
-Effect:
-- Temporary Mind Control
-```
-
-## Mental Barrier
-
-```text
-Target: Self / Ally
-Effect:
-- Temporary Psi Shield
-- Increased Willpower
-```
-
-## Psionic Lance
-
-```text
-Target: Single
-Effect:
-- High Resolve Damage
-- Possible direct Health damage against certain creatures
-```
-
-Some enemies may interact differently with psionics.
-
-Examples:
-
-```text
-Construct:
-Immune to Fear
-Immune to conventional Mind Control
-
-Hive Mind Creature:
-High Willpower
-Vulnerable to psionic disruption
-
-Aberration:
-High Psionic Resistance
-May retaliate against failed mental attacks
-```
-
----
-
-# 15. Status Effects
-
-Physical statuses may include:
-
-```text
-Bleeding
-Burning
-Poisoned
-Stunned
-Knocked Down
-Crippled
-Suppressed
-Blinded
-```
-
-Mental statuses may include:
-
-```text
-Shaken
-Afraid
-Dazed
-Confused
-Panicked
-Berserk
-Dominated
-Catatonic
-```
-
-Status effects should be used to create tactical consequences beyond raw damage.
-
----
-
-# 16. Suggested Character Combat Panel
-
-Example:
-
-```text
-PHYSICAL
-
-Health             84 / 100
-Armor              42
-Evasion             18%
-
-MENTAL
-
-Resolve             76 / 100
-Willpower           55
-Psi Shield          20
-
-OFFENSE
-
-Melee Weapons       64
-Firearms            42
-Energy Weapons      20
-Throwing            38
-Psionics            15
-```
-
-The UI should avoid displaying unnecessary derived values unless they are important for player decisions.
-
-Detailed derived statistics can appear in tooltips or weapon panels.
-
----
-
-# 17. Design Rules
-
-## Rule 1 — Avoid Redundant Stats
-
-Every statistic must answer a different tactical question.
-
-Example:
-
-```text
-Strength      → How hard can I hit?
-Melee Weapons → How well can I fight?
-Armor         → How much physical protection do I have?
-Health        → How much physical punishment can I survive?
-Willpower     → How difficult am I to mentally attack?
-Resolve       → How close am I to psychological collapse?
-```
-
----
-
-## Rule 2 — Do Not Make Psionics Reskinned Magic Damage
-
-Psionics should interact with:
-
-- Resolve
-- Willpower
-- Mental statuses
-- Positioning
-- Crowd control
-- Morale
-- Special enemy biology
-
-This makes psionic characters tactically distinct from conventional damage dealers.
-
----
-
-## Rule 3 — Attributes and Skills Must Produce Different Builds
-
-A character with:
-
-```text
-STR 18
-Melee 35
-```
-
-must feel significantly different from:
-
-```text
-STR 10
-Melee 80
-```
-
-even if their average damage output is similar.
-
----
-
-## Rule 4 — Equipment Should Change Combat Behavior
-
-Weapons should not differ only by DPS.
-
-Weapons can vary through:
-
-- Damage
-- Accuracy
-- Armor penetration
-- Armor damage
-- Reach
-- AP cost
-- Strength scaling
-- Skill scaling
-- Critical chance
-- Status effects
-- Special attacks
-- Ammunition
-- Energy cost
-
----
-
-## Rule 5 — Keep the Core System Small
-
-Initial implementation should focus on:
-
-```text
-Health
-Stamina
-Mana
-Resolve
-Strain
-Armor
-Evasion
-Willpower
-
-Strength
-Melee Weapons
-Firearms
-Energy Weapons
-Throwing
-Psionics
-```
-
-Optional systems such as Sanity, Psi Shield complexity, permanent wounds, and advanced weapon specialization can be introduced later.
-
----
-
-# 18. Recommended Initial Combat Model
-
-For the first playable combat implementation:
-
-```text
-PHYSICAL
-
-Attack Accuracy
-    ↓
-Evasion
-    ↓
-Armor
-    ↓
-Health
-
-
-PSIONIC
-
-Psionic Accuracy / Power
-    ↓
-Willpower
-    ↓
-Resolve
-    ↓
-Mental Status Effects
-```
-
-Core statistics:
-
-```text
-Health
-Stamina
-Mana
-Resolve
-Strain
-Armor
-Evasion
-Willpower
-Strength
-Melee Weapons
-Firearms
-Energy Weapons
-Throwing
-Psionics
-```
-
-This provides enough mechanical depth for meaningful tactical combat while keeping the system manageable for a solo-developed sandbox game.
-
----
-
-# 19. Future Expansion
-
-Potential future additions:
-
-- Morale and crew-wide panic
-- Permanent injuries
-- Limb damage
-- Shield systems
-- Magical resistance
-- Elemental resistances
-- Psionic schools
-- Psionic backlash
-- Weapon perks
-- Weapon familiarity
-- Suppression
-- Cover
-- Overwatch
-- Opportunity attacks
-- deeper fatigue conditions beyond Stamina
-- Initiative
-- Action Points
-- Shipboard environmental hazards
-- Zero-gravity combat
-- Vacuum exposure
-- Boarding combat
-- Creature-specific mental rules
-- Sanity and long-term trauma
-
-These systems should only be added when they create meaningful tactical decisions rather than additional bookkeeping.
+Definitions are validated before publication. Invalid maxima, thresholds,
+recovery values, action costs, speed bands, unknown IDs, duplicate modifier
+sources, and unbounded collections are rejected with stable diagnostics.
+
+Campaign saves persist base/current/max resource values, modifier sources,
+profile identity and revision, and encounter-local turn state at documented
+commit boundaries. Loading validates schema, profile fingerprints, IDs,
+bounds, and source ownership before replacing working state. Released contract
+changes require migration rather than silent rerolls or fallback numbers.
+
+Random outcomes use explicitly owned seeded streams. Fixed simulation ticks,
+stable IDs, and documented command ordering ensure rendering cadence and UI
+timing cannot change combat results.
+
+## Status integration
+
+Resources are numeric state, not statuses. A threshold crossing may request an
+authored status such as Shaken, Critical Strain, or Psionic Overload, but that
+status owns its own definition, source, duration, stacking, and removal rule.
+See [`../Concept/Status.md`](../Concept/Status.md).
+
+Physical statuses may include Bleeding, Burning, Poisoned, Stunned, Knocked
+Down, Crippled, Suppressed, or Blinded. Mental statuses may include Shaken,
+Afraid, Dazed, Confused, Panicked, Berserk, Dominated, or Catatonic. These
+create tactical consequences beyond raw damage without silently rewriting
+permanent Attributes, Skills, or Feats.
+
+## Presentation
+
+Do not display every value as an identical bar:
+
+- Health, Stamina, Mana, Resolve, and Strain belong in character status.
+- Turn Meter belongs in a timeline, turn-order display, or activation queue.
+- AP is prominent for the active character.
+- Armor, Evasion, Willpower, Psi Shield, and relevant offense Skills belong in
+  a compact combat panel or contextual detail view.
+
+Mana may be hidden or de-emphasized for characters without magical access.
+Strain may be hidden or de-emphasized for characters without psionic access.
+Resolve remains relevant to all characters. Strain presentation communicates
+accumulating danger and names the current authored band so players never need
+to calculate threshold percentages.
+
+Derived statistics appear only when they affect a current decision; detailed
+formulas and source breakdowns belong in tooltips or inspection panels.
+
+## Non-redundancy rules
+
+Keep these meanings stable across combat, AI, content, equipment, statuses,
+UI, balancing, and progression:
+
+| Value | Tactical question |
+| --- | --- |
+| Health | How physically injured is this character? |
+| Stamina | How physically exhausted is this character? |
+| Mana | How much magical energy can this character expend? |
+| Resolve | How close is this character's mind to breaking? |
+| Strain | How hard is this character pushing psionic capability? |
+| Turn Meter | When does this character act again? |
+| Action Points | How much can this character do this activation? |
+| Armor | How much physical harm is mitigated? |
+| Evasion | How difficult is this character to hit physically? |
+| Willpower | How difficult is this character to affect mentally? |
+
+Do not treat AP as Stamina, Mana as Strain, Resolve as psionic Mana, or Turn
+Meter and AP as two versions of Speed. Weapons should differ through accuracy,
+penetration, reach, costs, scaling, statuses, ammunition, and special actions,
+not only damage output.
+
+## Initial scope and future expansion
+
+The first tactical combat slice should concentrate on the implemented five
+resources and turn economy plus Armor, Evasion, Willpower, Strength, Melee
+Weapons, Firearms, Energy Weapons, Throwing, and Psionics. It should exercise
+physical and mental attack paths, resource validation, incapacitation,
+encounter cleanup, and deterministic save/load restoration.
+
+Possible later additions include morale and crew-wide panic, permanent
+injuries, limb damage, cover, suppression, advanced reactions, specialized
+shields and resistances, psionic schools and backlash, weapon familiarity,
+zero-gravity and vacuum combat, boarding hazards, creature-specific mental
+rules, and long-term Sanity. Add them only when they create meaningful tactical
+decisions rather than bookkeeping.
+
+## Verification ownership
+
+CI-owned and user-run tests should cover resource bounds, threshold queries,
+cost rollback, Turn Meter ordering, AP activation lifecycle, modifier source
+removal, recovery, incapacitation, encounter cleanup, save round-tripping,
+invalid profiles, and content migration. Test runners remain user-owned under
+repository policy.
