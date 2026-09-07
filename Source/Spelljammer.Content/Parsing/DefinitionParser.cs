@@ -17,11 +17,12 @@ internal static class DefinitionParser
         {
             [DefinitionKind.Ability] = new(["minimum", "maximum", "defaultValue", "tags"], []),
             [DefinitionKind.Skill] = new(["minimum", "maximum", "progressionCurveId", "actionTags"], []),
+            [DefinitionKind.LevelProgressionTable] = new(["levels"], []),
             [DefinitionKind.Access] = new(["tags"], []),
             [DefinitionKind.Background] = new(["compatibleRaceIds", "abilityBonusIds", "focusSkillIds"], []),
             [DefinitionKind.Character] = new(
                 ["raceId", "heritageId", "backgroundId", "scenarioIds", "positionId", "languageIds", "scriptIds", "equipmentIds", "focusSkillIds", "resourceIds"], []),
-            [DefinitionKind.Scenario] = new(["maximumRosterSize"], []),
+            [DefinitionKind.Scenario] = new(["maximumRosterSize"], ["levelProgressionTableId"]),
             [DefinitionKind.Feat] = new(
                 ["activation", "grantedAccessIds"],
                 ["activeKind", "trainingProjectId", "compatibleRaceIds", "requiredAccessIds", "grantedFeatIds", "effectIds",
@@ -53,6 +54,7 @@ internal static class DefinitionParser
         {
             ["Abilities"] = DefinitionKind.Ability,
             ["Skills"] = DefinitionKind.Skill,
+            ["LevelProgressionTables"] = DefinitionKind.LevelProgressionTable,
             ["Access"] = DefinitionKind.Access,
             ["Backgrounds"] = DefinitionKind.Background,
             ["Characters"] = DefinitionKind.Character,
@@ -124,6 +126,7 @@ internal static class DefinitionParser
         Dictionary<string, int> integers = new(StringComparer.Ordinal);
         Dictionary<string, string> strings = new(StringComparer.Ordinal);
         Dictionary<string, ImmutableArray<string>> arrays = new(StringComparer.Ordinal);
+        ImmutableArray<LevelProgressionEntry> levelProgressionEntries = [];
         foreach (string field in kindFields)
         {
             if (!root.TryGetProperty(field, out JsonElement value))
@@ -132,7 +135,14 @@ internal static class DefinitionParser
                 continue;
             }
 
-            if (value.ValueKind == JsonValueKind.Number)
+            if (kind == DefinitionKind.LevelProgressionTable && field == "levels")
+            {
+                if (!TryParseLevelProgressionEntries(value, packId, relativePath, idText, diagnostics, out levelProgressionEntries))
+                {
+                    return null;
+                }
+            }
+            else if (value.ValueKind == JsonValueKind.Number)
             {
                 if (!value.TryGetInt32(out int number))
                 {
@@ -222,6 +232,60 @@ internal static class DefinitionParser
                 [.. arrays["actionTags"].Select(value => new ContentId(value))])
             : null;
         return new SourceDefinition(kind, id, 1, revision, nameKey, descriptionKey, packId, relativePath,
-            integers, strings, arrays, ability, skill);
+            integers, strings, arrays, ability, skill, levelProgressionEntries);
+    }
+
+    private static bool TryParseLevelProgressionEntries(
+        JsonElement value,
+        string packId,
+        string relativePath,
+        string definitionId,
+        DiagnosticSink diagnostics,
+        out ImmutableArray<LevelProgressionEntry> entries)
+    {
+        entries = [];
+        if (value.ValueKind != JsonValueKind.Array)
+        {
+            diagnostics.Add(ContentDiagnosticCodes.JsonInvalid, packId, relativePath, definitionId, "/levels");
+            return false;
+        }
+
+        string[] fields =
+        [
+            "level", "requiredExperience", "maximumHealthIncrease", "maximumManaIncrease", "maximumStaminaIncrease",
+            "abilityPoints", "skillPoints", "featPoints"
+        ];
+        HashSet<string> allowed = new(fields, StringComparer.Ordinal);
+        ImmutableArray<LevelProgressionEntry>.Builder builder = ImmutableArray.CreateBuilder<LevelProgressionEntry>();
+        int index = 0;
+        foreach (JsonElement item in value.EnumerateArray())
+        {
+            string path = $"/levels/{index}";
+            if (item.ValueKind != JsonValueKind.Object ||
+                !SourceValidation.ValidateProperties(item, allowed, fields, diagnostics, packId, relativePath))
+            {
+                diagnostics.Add(ContentDiagnosticCodes.JsonInvalid, packId, relativePath, definitionId, path);
+                return false;
+            }
+
+            int[] numbers = new int[fields.Length];
+            for (int fieldIndex = 0; fieldIndex < fields.Length; fieldIndex++)
+            {
+                JsonElement property = item.GetProperty(fields[fieldIndex]);
+                if (property.ValueKind != JsonValueKind.Number || !property.TryGetInt32(out numbers[fieldIndex]))
+                {
+                    diagnostics.Add(ContentDiagnosticCodes.ValueOutOfRange, packId, relativePath, definitionId,
+                        $"{path}/{fields[fieldIndex]}");
+                    return false;
+                }
+            }
+
+            builder.Add(new LevelProgressionEntry(
+                numbers[0], numbers[1], numbers[2], numbers[3], numbers[4], numbers[5], numbers[6], numbers[7]));
+            index++;
+        }
+
+        entries = builder.ToImmutable();
+        return true;
     }
 }

@@ -154,7 +154,7 @@ static void WriteJson(ContentCompilationResult result)
 static void WriteReportText(RegistryInspectionSnapshot report)
 {
     Console.WriteLine($"fingerprint {report.Fingerprint}");
-    Console.WriteLine($"counts packs={report.PackCount} definitions={report.DefinitionCount} abilities={report.AbilityCount} skills={report.SkillCount}");
+    Console.WriteLine($"counts packs={report.PackCount} definitions={report.DefinitionCount} abilities={report.AbilityCount} skills={report.SkillCount} level-progression-tables={report.LevelProgressionTableCount}");
     foreach (RegistryInspectionEntry entry in report.Entries)
     {
         Console.WriteLine($"{entry.Kind} {entry.Index} {entry.Id} {entry.PackId} revision={entry.Revision}");
@@ -170,6 +170,7 @@ static void WriteReportJson(RegistryInspectionSnapshot report)
     writer.WriteNumber("definitionCount", report.DefinitionCount);
     writer.WriteNumber("abilityCount", report.AbilityCount);
     writer.WriteNumber("skillCount", report.SkillCount);
+    writer.WriteNumber("levelProgressionTableCount", report.LevelProgressionTableCount);
     writer.WriteStartArray("entries");
     foreach (RegistryInspectionEntry entry in report.Entries)
     {

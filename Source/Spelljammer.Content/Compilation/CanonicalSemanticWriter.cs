@@ -70,6 +70,9 @@ internal static class CanonicalSemanticWriter
                 properties["minimum"] = output => output.Append(value.Minimum);
                 properties["progressionCurveId"] = output => WriteString(output, value.ProgressionCurveId.ToString());
                 break;
+            case LevelProgressionTableDefinition value:
+                properties["levels"] = output => WriteLevelProgressionEntries(output, value.Levels);
+                break;
             case AccessDefinition value:
                 properties["tags"] = output => WriteStrings(output, value.Tags);
                 break;
@@ -92,6 +95,11 @@ internal static class CanonicalSemanticWriter
                 break;
             case ScenarioDefinition value:
                 properties["maximumRosterSize"] = output => output.Append(value.MaximumRosterSize);
+                if (value.LevelProgressionTableId is LevelProgressionTableId progressionTableId)
+                {
+                    properties["levelProgressionTableId"] = output => WriteString(output, progressionTableId.ToString());
+                }
+
                 break;
             case FeatDefinition value:
                 properties["activation"] = output => WriteString(output, value.Activation == FeatActivation.Active ? "active" : "passive");
@@ -277,15 +285,16 @@ internal static class CanonicalSemanticWriter
         HeritageDefinition => 6,
         RaceDefinition => 7,
         SkillDefinition => 8,
-        TrainingProjectDefinition => 9,
-        EquipmentDefinition => 10,
-        BoardCellDefinition => 11,
-        ZoneLinkDefinition => 12,
-        PersonalBoardDefinition => 13,
-        EncounterDefinition => 14,
-        ShipFrameDefinition => 15,
-        ShipModuleDefinition => 16,
-        ShipWeaponConfigurationDefinition => 17,
+        LevelProgressionTableDefinition => 9,
+        TrainingProjectDefinition => 10,
+        EquipmentDefinition => 11,
+        BoardCellDefinition => 12,
+        ZoneLinkDefinition => 13,
+        PersonalBoardDefinition => 14,
+        EncounterDefinition => 15,
+        ShipFrameDefinition => 16,
+        ShipModuleDefinition => 17,
+        ShipWeaponConfigurationDefinition => 18,
         _ => throw new ArgumentOutOfRangeException(nameof(definition)),
     };
 
@@ -309,6 +318,34 @@ internal static class CanonicalSemanticWriter
 
     private static void WriteIds(StringBuilder builder, IEnumerable<ContentId> ids) =>
         WriteStrings(builder, ids.Select(id => id.ToString()));
+
+    private static void WriteLevelProgressionEntries(
+        StringBuilder builder,
+        IEnumerable<LevelProgressionEntry> entries)
+    {
+        builder.Append('[');
+        bool first = true;
+        foreach (LevelProgressionEntry entry in entries)
+        {
+            if (!first)
+            {
+                builder.Append(',');
+            }
+
+            first = false;
+            builder.Append("{\"abilityPoints\":").Append(entry.AbilityPoints)
+                .Append(",\"featPoints\":").Append(entry.FeatPoints)
+                .Append(",\"level\":").Append(entry.Level)
+                .Append(",\"maximumHealthIncrease\":").Append(entry.MaximumHealthIncrease)
+                .Append(",\"maximumManaIncrease\":").Append(entry.MaximumManaIncrease)
+                .Append(",\"maximumStaminaIncrease\":").Append(entry.MaximumStaminaIncrease)
+                .Append(",\"requiredExperience\":").Append(entry.RequiredExperience)
+                .Append(",\"skillPoints\":").Append(entry.SkillPoints)
+                .Append('}');
+        }
+
+        builder.Append(']');
+    }
 
     private static void WriteString(StringBuilder builder, string value)
     {

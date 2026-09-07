@@ -47,6 +47,31 @@ public sealed record SkillDefinition(
     ImmutableArray<ContentId> ActionTags)
     : ContentDefinition(SkillId.Value, SchemaVersion, Revision, NameKey, DescriptionKey);
 
+/// <summary>Defines the threshold and rewards granted when a character reaches one level.</summary>
+public sealed record LevelProgressionEntry(
+    int Level,
+    int RequiredExperience,
+    int MaximumHealthIncrease,
+    int MaximumManaIncrease,
+    int MaximumStaminaIncrease,
+    int AbilityPoints,
+    int SkillPoints,
+    int FeatPoints);
+
+/// <summary>Defines every level threshold and level-up reward for one character progression model.</summary>
+public sealed record LevelProgressionTableDefinition(
+    LevelProgressionTableId LevelProgressionTableId,
+    int SchemaVersion,
+    int Revision,
+    string NameKey,
+    string DescriptionKey,
+    ImmutableArray<LevelProgressionEntry> Levels)
+    : ContentDefinition(LevelProgressionTableId.Value, SchemaVersion, Revision, NameKey, DescriptionKey)
+{
+    /// <summary>The highest level authored by this table.</summary>
+    public int MaximumLevel => Levels.Length;
+}
+
 /// <summary>
 /// Defines an access privilege or ability category that characters can be granted.
 /// </summary>
@@ -195,7 +220,8 @@ public sealed record ScenarioDefinition(
     int Revision,
     string NameKey,
     string DescriptionKey,
-    int MaximumRosterSize)
+    int MaximumRosterSize,
+    LevelProgressionTableId? LevelProgressionTableId)
     : ContentDefinition(ScenarioId.Value, SchemaVersion, Revision, NameKey, DescriptionKey);
 
 public sealed record EquipmentDefinition(

@@ -33,6 +33,7 @@ public sealed class GameContentSnapshot : ICharacterContentCatalog
         ImmutableArray<ContentPackIdentity> packs,
         ImmutableArray<AbilityDefinition> abilities,
         ImmutableArray<SkillDefinition> skills,
+        ImmutableArray<LevelProgressionTableDefinition> levelProgressionTables,
         ImmutableArray<AccessDefinition> access,
         ImmutableArray<BackgroundDefinition> backgrounds,
         ImmutableArray<CharacterDefinition> characters,
@@ -56,6 +57,7 @@ public sealed class GameContentSnapshot : ICharacterContentCatalog
         Packs = packs;
         Abilities = abilities;
         Skills = skills;
+        LevelProgressionTables = levelProgressionTables;
         Access = access;
         Backgrounds = backgrounds;
         Characters = characters;
@@ -77,6 +79,8 @@ public sealed class GameContentSnapshot : ICharacterContentCatalog
             fingerprint, abilities, definition => definition.AbilityId);
         SkillRegistry = new TypedDefinitionRegistry<SkillId, SkillDefinition>(
             fingerprint, skills, definition => definition.SkillId);
+        LevelProgressionTableRegistry = new TypedDefinitionRegistry<LevelProgressionTableId, LevelProgressionTableDefinition>(
+            fingerprint, levelProgressionTables, definition => definition.LevelProgressionTableId);
         AccessRegistry = new TypedDefinitionRegistry<AccessId, AccessDefinition>(fingerprint, access, definition => definition.AccessId);
         BackgroundRegistry = new TypedDefinitionRegistry<BackgroundId, BackgroundDefinition>(fingerprint, backgrounds, definition => definition.BackgroundId);
         CharacterRegistry = new TypedDefinitionRegistry<CharacterId, CharacterDefinition>(fingerprint, characters, definition => definition.CharacterId);
@@ -96,6 +100,7 @@ public sealed class GameContentSnapshot : ICharacterContentCatalog
 
         definitionsById = abilities.Cast<ContentDefinition>()
             .Concat(skills)
+            .Concat(levelProgressionTables)
             .Concat(access)
             .Concat(backgrounds)
             .Concat(characters)
@@ -120,6 +125,7 @@ public sealed class GameContentSnapshot : ICharacterContentCatalog
     public ImmutableArray<ContentPackIdentity> Packs { get; }
     public ImmutableArray<AbilityDefinition> Abilities { get; }
     public ImmutableArray<SkillDefinition> Skills { get; }
+    public ImmutableArray<LevelProgressionTableDefinition> LevelProgressionTables { get; }
     public ImmutableArray<AccessDefinition> Access { get; }
     public ImmutableArray<BackgroundDefinition> Backgrounds { get; }
     public ImmutableArray<CharacterDefinition> Characters { get; }
@@ -139,6 +145,7 @@ public sealed class GameContentSnapshot : ICharacterContentCatalog
     public ImmutableArray<byte> CanonicalSemanticContent { get; }
     public TypedDefinitionRegistry<AbilityId, AbilityDefinition> AbilityRegistry { get; }
     public TypedDefinitionRegistry<SkillId, SkillDefinition> SkillRegistry { get; }
+    public TypedDefinitionRegistry<LevelProgressionTableId, LevelProgressionTableDefinition> LevelProgressionTableRegistry { get; }
     public TypedDefinitionRegistry<AccessId, AccessDefinition> AccessRegistry { get; }
     public TypedDefinitionRegistry<BackgroundId, BackgroundDefinition> BackgroundRegistry { get; }
     public TypedDefinitionRegistry<CharacterId, CharacterDefinition> CharacterRegistry { get; }
@@ -161,6 +168,10 @@ public sealed class GameContentSnapshot : ICharacterContentCatalog
 
     public bool TryGetSkill(SkillId id, out SkillDefinition? definition, out int index) =>
         TryGetIndexed(SkillRegistry, id, out definition, out index);
+
+    public bool TryGetLevelProgressionTable(
+        LevelProgressionTableId id,
+        out LevelProgressionTableDefinition? definition) => LevelProgressionTableRegistry.TryGet(id, out definition);
 
     public bool TryGetAccess(AccessId id, out AccessDefinition? definition) => AccessRegistry.TryGet(id, out definition);
     public bool TryGetBackground(BackgroundId id, out BackgroundDefinition? definition) => BackgroundRegistry.TryGet(id, out definition);
@@ -188,6 +199,7 @@ public sealed class GameContentSnapshot : ICharacterContentCatalog
         List<RegistryInspectionEntry> entries = [];
         AddEntries(entries, "Ability", Abilities, definition => definition.Id);
         AddEntries(entries, "Skill", Skills, definition => definition.Id);
+        AddEntries(entries, "LevelProgressionTable", LevelProgressionTables, definition => definition.Id);
         AddEntries(entries, "Access", Access, definition => definition.Id);
         AddEntries(entries, "Background", Backgrounds, definition => definition.Id);
         AddEntries(entries, "Character", Characters, definition => definition.Id);
@@ -210,6 +222,7 @@ public sealed class GameContentSnapshot : ICharacterContentCatalog
             definitionsById.Count,
             Abilities.Length,
             Skills.Length,
+            LevelProgressionTables.Length,
             [.. entries.OrderBy(entry => entry.Kind, StringComparer.Ordinal).ThenBy(entry => entry.Id, StringComparer.Ordinal)]);
     }
 

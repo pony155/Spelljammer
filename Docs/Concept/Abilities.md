@@ -15,7 +15,8 @@ specified in
 
 Abilities express broad capability. They answer how a character approaches a
 task, while skills answer what the character has learned to do. Spelljammer has
-no character classes or global character level.
+no character classes. Character level supplies data-driven advancement budgets
+without deciding which capabilities a character must learn.
 
 The normal player-facing ability range is 1–10. Permanent values change
 rarely. Injuries, needs, equipment, supernatural conditions, assistance, and

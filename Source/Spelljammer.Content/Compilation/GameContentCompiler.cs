@@ -580,6 +580,14 @@ public sealed class GameContentCompiler
                     CheckPrimitive(definition, definition.Strings["progressionCurveId"], "/progressionCurveId", diagnostics);
                     CheckPrimitives(definition, definition.Arrays["actionTags"], "/actionTags", diagnostics);
                     break;
+                case DefinitionKind.Scenario:
+                    if (definition.Strings.TryGetValue("levelProgressionTableId", out string? levelProgressionTableId))
+                    {
+                        CheckReference(definition, levelProgressionTableId, DefinitionKind.LevelProgressionTable, byId,
+                            "/levelProgressionTableId", diagnostics);
+                    }
+
+                    break;
                 case DefinitionKind.Feat:
                     if (definition.Strings.TryGetValue("trainingProjectId", out string? trainingProjectId))
                     {
@@ -711,6 +719,9 @@ public sealed class GameContentCompiler
                     break;
                 case DefinitionKind.Skill:
                     ValidateSkill(definition, diagnostics);
+                    break;
+                case DefinitionKind.LevelProgressionTable:
+                    ValidateLevelProgressionTable(definition, diagnostics);
                     break;
                 case DefinitionKind.Feat:
                     ValidateFeat(definition, diagnostics);
@@ -896,6 +907,10 @@ public sealed class GameContentCompiler
     {
         ImmutableArray<AbilityDefinition> abilities = [.. sources.Where(value => value.Kind == DefinitionKind.Ability).OrderBy(value => value.Id).Select(CompileAbility)];
         ImmutableArray<SkillDefinition> skills = [.. sources.Where(value => value.Kind == DefinitionKind.Skill).OrderBy(value => value.Id).Select(CompileSkill)];
+        ImmutableArray<LevelProgressionTableDefinition> levelProgressionTables = [.. sources
+            .Where(value => value.Kind == DefinitionKind.LevelProgressionTable)
+            .OrderBy(value => value.Id)
+            .Select(CompileLevelProgressionTable)];
         ImmutableArray<AccessDefinition> access = [.. sources.Where(value => value.Kind == DefinitionKind.Access).OrderBy(value => value.Id).Select(CompileAccess)];
         ImmutableArray<BackgroundDefinition> backgrounds = [.. sources.Where(value => value.Kind == DefinitionKind.Background).OrderBy(value => value.Id).Select(CompileBackground)];
         ImmutableArray<CharacterDefinition> characters = [.. sources.Where(value => value.Kind == DefinitionKind.Character).OrderBy(value => value.Id).Select(CompileCharacter)];
@@ -914,12 +929,12 @@ public sealed class GameContentCompiler
         ImmutableArray<ShipWeaponConfigurationDefinition> shipWeapons = [.. sources.Where(value => value.Kind == DefinitionKind.ShipWeaponConfiguration).OrderBy(value => value.Id).Select(CompileShipWeapon)];
         ImmutableArray<ContentPackIdentity> identities = [.. packs.Select(pack => new ContentPackIdentity(
             pack.Manifest.Id, pack.Manifest.Version, pack.Manifest.ContentRevision))];
-        ContentDefinition[] all = [.. abilities, .. skills, .. access, .. backgrounds, .. characters, .. scenarios, .. feats, .. heritages, .. races, .. training, .. equipment, .. boardCells, .. zoneLinks, .. personalBoards, .. encounters, .. shipFrames, .. shipModules, .. shipWeapons];
+        ContentDefinition[] all = [.. abilities, .. skills, .. levelProgressionTables, .. access, .. backgrounds, .. characters, .. scenarios, .. feats, .. heritages, .. races, .. training, .. equipment, .. boardCells, .. zoneLinks, .. personalBoards, .. encounters, .. shipFrames, .. shipModules, .. shipWeapons];
         (byte[] canonicalBytes, ContentFingerprint fingerprint) = CanonicalSemanticWriter.Write(identities, all);
         Dictionary<ContentId, ContentId> provenance = sources.ToDictionary(
             source => source.Id,
             source => new ContentId(source.PackId));
-        GameContentSnapshot snapshot = new(fingerprint, identities, abilities, skills, access, backgrounds, characters, scenarios, feats, heritages, races, training,
+        GameContentSnapshot snapshot = new(fingerprint, identities, abilities, skills, levelProgressionTables, access, backgrounds, characters, scenarios, feats, heritages, races, training,
             equipment, boardCells, zoneLinks, personalBoards, encounters, shipFrames, shipModules, shipWeapons,
             [.. canonicalBytes], provenance);
         return new ContentCompilationResult(snapshot, diagnostics.ToImmutable(), null);
@@ -934,6 +949,10 @@ public sealed class GameContentCompiler
         new SkillId(value.Id), 1, value.Revision, value.NameKey, value.DescriptionKey,
         (byte)value.Skill!.Minimum, (byte)value.Skill.Maximum, value.Skill.ProgressionCurveId,
         [.. value.Skill.ActionTags.Order()]);
+
+    private static LevelProgressionTableDefinition CompileLevelProgressionTable(SourceDefinition value) => new(
+        new LevelProgressionTableId(value.Id), 1, value.Revision, value.NameKey, value.DescriptionKey,
+        value.LevelProgressionEntries);
 
     private static AccessDefinition CompileAccess(SourceDefinition value) => new(
         new AccessId(value.Id), 1, value.Revision, value.NameKey, value.DescriptionKey, Sort(value.Arrays["tags"]));
@@ -958,7 +977,10 @@ public sealed class GameContentCompiler
 
     private static ScenarioDefinition CompileScenario(SourceDefinition value) => new(
         new ScenarioId(value.Id), 1, value.Revision, value.NameKey, value.DescriptionKey,
-        value.Integers["maximumRosterSize"]);
+        value.Integers["maximumRosterSize"],
+        value.Strings.TryGetValue("levelProgressionTableId", out string? progressionTableId)
+            ? new LevelProgressionTableId(progressionTableId)
+            : null);
 
     private static FeatDefinition CompileFeat(SourceDefinition value) => new(
         new FeatId(value.Id), 1, value.Revision, value.NameKey, value.DescriptionKey,
@@ -1095,6 +1117,37 @@ public sealed class GameContentCompiler
         if (!storageValid || !baseRangeValid)
         {
             OutOfRange(definition, "/minimum", diagnostics);
+        }
+    }
+
+    private static void ValidateLevelProgressionTable(SourceDefinition definition, DiagnosticSink diagnostics)
+    {
+        ImmutableArray<LevelProgressionEntry> entries = definition.LevelProgressionEntries;
+        if (entries.IsEmpty)
+        {
+            diagnostics.Add(ContentDiagnosticCodes.SemanticInvalid, definition.PackId, definition.RelativePath,
+                definition.Id.ToString(), "/levels");
+            return;
+        }
+
+        int previousExperience = -1;
+        for (int index = 0; index < entries.Length; index++)
+        {
+            LevelProgressionEntry entry = entries[index];
+            string path = $"/levels/{index}";
+            bool invalidLevel = entry.Level != index + 1;
+            bool invalidExperience = index == 0
+                ? entry.RequiredExperience != 0
+                : entry.RequiredExperience <= previousExperience;
+            bool invalidReward = entry.MaximumHealthIncrease < 0 || entry.MaximumManaIncrease < 0 || entry.MaximumStaminaIncrease < 0 ||
+                entry.AbilityPoints < 0 || entry.SkillPoints < 0 || entry.FeatPoints < 0;
+            if (invalidLevel || invalidExperience || invalidReward)
+            {
+                diagnostics.Add(ContentDiagnosticCodes.SemanticInvalid, definition.PackId, definition.RelativePath,
+                    definition.Id.ToString(), path);
+            }
+
+            previousExperience = entry.RequiredExperience;
         }
     }
 
@@ -1394,6 +1447,7 @@ public sealed class GameContentCompiler
     {
         DefinitionKind.Ability => "ability.",
         DefinitionKind.Skill => "skill.",
+        DefinitionKind.LevelProgressionTable => "level-progression.",
         DefinitionKind.Access => "access.",
         DefinitionKind.Background => "background.",
         DefinitionKind.Character => "character.",

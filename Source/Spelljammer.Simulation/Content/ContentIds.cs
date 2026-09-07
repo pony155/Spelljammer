@@ -205,6 +205,19 @@ public readonly record struct SkillId : IComparable<SkillId>
     public static bool TryParse(string? value, out SkillId id) => TypedContentId.TryParse(value, "skill.", out id);
 }
 
+/// <summary>Identifies a data-driven character level progression table.</summary>
+public readonly record struct LevelProgressionTableId : IComparable<LevelProgressionTableId>
+{
+    public LevelProgressionTableId(ContentId value) => Value = TypedContentId.RequirePrefix(value, "level-progression.");
+    public LevelProgressionTableId(string value) : this(new ContentId(value)) { }
+    public ContentId Value { get; }
+    public bool IsValid => Value.IsValid;
+    public int CompareTo(LevelProgressionTableId other) => Value.CompareTo(other.Value);
+    public override string ToString() => Value.ToString();
+    public static bool TryParse(string? value, out LevelProgressionTableId id) =>
+        TypedContentId.TryParse(value, "level-progression.", out id);
+}
+
 /// <summary>
 /// A strongly-typed identifier for an access privilege or ability category.
 /// </summary>

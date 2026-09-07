@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "locale": "en-US",
+  "namespace": "level-progression",
+  "fallbacks": [],
+  "textDirection": "ltr",
+  "messages": {
+    "level-progression.character.standard.name": {
+      "description": "Character level progression table display name.",
+      "message": "Standard Character Progression"
+    },
+    "level-progression.character.standard.description": {
+      "description": "Character level progression table summary.",
+      "message": "Twenty data-driven character levels with authored experience thresholds and advancement rewards."
+    }
+  }
+}

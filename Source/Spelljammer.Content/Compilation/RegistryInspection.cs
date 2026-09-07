@@ -16,4 +16,5 @@ public sealed record RegistryInspectionSnapshot(
     int DefinitionCount,
     int AbilityCount,
     int SkillCount,
+    int LevelProgressionTableCount,
     ImmutableArray<RegistryInspectionEntry> Entries);

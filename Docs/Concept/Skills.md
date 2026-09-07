@@ -165,6 +165,11 @@ documented partial state or fails according to its definition; it never grants
 an undocumented rank. Racial and Heritage Feats are granted separately and do
 not count as skill ranks.
 
+Character levels may grant unspent Skill Points according to the scenario's
+level progression table. The table determines the quantity; C# contains no
+per-level default. Spending those points still obeys Skill bounds and any
+authored training or access requirements.
+
 ## First playable scope
 
 The first crew-enabled voyage should exercise a focused subset:

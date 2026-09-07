@@ -447,10 +447,11 @@ that are incompatible with the granting Race or Heritage.
 
 ## Classless capabilities
 
-Characters have no class, global character level, class skill, or class-locked
-ability. Abilities describe broad capability, while independently advancing
-skills describe learned competence. Backgrounds provide history without
-restricting future progression.
+Characters have no class, class skill, or class-locked ability. Character level
+controls the pace of data-driven rewards without restricting build choices.
+Abilities describe broad capability, while independently advancing skills
+describe learned competence. Backgrounds provide history without restricting
+future progression.
 
 See [Abilities.md](Abilities.md) for the ability roster, contextual use,
 and modifier rules. See [Skills.md](Skills.md) for the skill catalog, action

@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Collections.Immutable;
 using Spelljammer.Content;
 using Spelljammer.Content.Compilation;
+using Spelljammer.Content.Diagnostics;
 using Spelljammer.Content.Manifests;
 using Spelljammer.Content.Sources;
 using Spelljammer.Simulation.Characters;
@@ -24,6 +25,7 @@ internal static class ContentContracts
         EveryFrozenDiagnosticCaseIsRecognized();
         FailedReplacementPreservesPublishedSnapshot();
         BaseAbilitysAndSkillsAreTypedAndIndexed();
+        LevelProgressionTablesAreDataDriven();
         Milestone2InvalidCasesAreRecognized();
         AdditiveSkillIsDynamicAndReversible();
         CharacterDefinitionsRejectInvalidGraphs();
@@ -227,6 +229,28 @@ internal static class ContentContracts
             Equal(expected, result.Diagnostics.FirstOrDefault()?.Code ?? "<none>",
                 $"Wrong M2 diagnostic for '{testCase.GetProperty("id").GetString()}'.");
         }
+    }
+
+    private static void LevelProgressionTablesAreDataDriven()
+    {
+        Dictionary<string, byte[]> files = ReadFiles(Path.Combine(Milestone2Root, "base"));
+        ContentCompilationResult result = new GameContentCompiler().Compile([new MemoryPackSource(files, [])], GameVersion);
+        True(result.Succeeded, Primary(result));
+        GameContentSnapshot snapshot = result.Snapshot!;
+        Equal(1, snapshot.LevelProgressionTableRegistry.Count, "The progression table was not published.");
+        True(snapshot.TryGetLevelProgressionTable(new LevelProgressionTableId("level-progression.character.standard"),
+            out LevelProgressionTableDefinition? table), "Typed progression lookup failed.");
+        Equal(20, table!.MaximumLevel, "Maximum level was not derived from authored rows.");
+        Equal(100, table.Levels[1].RequiredExperience, "The authored XP threshold was replaced by a code default.");
+        Equal(3, table.Levels[1].MaximumHealthIncrease, "The authored Health reward was replaced by a code default.");
+        Equal(1, table.Levels[3].AbilityPoints, "The authored Ability Point reward was replaced by a code default.");
+
+        Dictionary<string, byte[]> invalid = Clone(files);
+        ReplaceText(invalid, "Definitions/LevelProgressionTables/character-standard.json", "\"requiredExperience\":100",
+            "\"requiredExperience\":0");
+        ContentCompilationResult rejected = new GameContentCompiler().Compile([new MemoryPackSource(invalid, [])], GameVersion);
+        Equal(ContentDiagnosticCodes.SemanticInvalid, rejected.Diagnostics.FirstOrDefault()?.Code ?? "<none>",
+            "A non-increasing XP threshold was accepted.");
     }
 
     private static void AdditiveSkillIsDynamicAndReversible()
