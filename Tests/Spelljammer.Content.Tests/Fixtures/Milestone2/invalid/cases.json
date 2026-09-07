@@ -2,22 +2,22 @@
   "schemaVersion": 1,
   "cases": [
     {
-      "id": "attribute-required-field",
-      "writeText": [{"path":"Definitions/Attributes/agility.json","text":"{\"schemaVersion\":1,\"revision\":1,\"id\":\"attribute.agility\",\"nameKey\":\"attribute.agility.name\",\"descriptionKey\":\"attribute.agility.description\",\"minimum\":1,\"maximum\":10,\"tags\":[]}"}],
+      "id": "ability-required-field",
+      "writeText": [{"path":"Definitions/Abilities/agility.json","text":"{\"schemaVersion\":1,\"revision\":1,\"id\":\"ability.agility\",\"nameKey\":\"ability.agility.name\",\"descriptionKey\":\"ability.agility.description\",\"minimum\":1,\"maximum\":10,\"tags\":[]}"}],
       "expectedPrimaryDiagnostic": "CONTENT_REQUIRED_PROPERTY_MISSING"
     },
     {
-      "id": "attribute-invalid-range",
-      "writeText": [{"path":"Definitions/Attributes/agility.json","text":"{\"schemaVersion\":1,\"revision\":1,\"id\":\"attribute.agility\",\"nameKey\":\"attribute.agility.name\",\"descriptionKey\":\"attribute.agility.description\",\"minimum\":1,\"maximum\":10,\"defaultValue\":11,\"tags\":[]}"}],
+      "id": "ability-invalid-range",
+      "writeText": [{"path":"Definitions/Abilities/agility.json","text":"{\"schemaVersion\":1,\"revision\":1,\"id\":\"ability.agility\",\"nameKey\":\"ability.agility.name\",\"descriptionKey\":\"ability.agility.description\",\"minimum\":1,\"maximum\":10,\"defaultValue\":11,\"tags\":[]}"}],
       "expectedPrimaryDiagnostic": "CONTENT_VALUE_OUT_OF_RANGE"
     },
     {
-      "id": "attribute-duplicate-tag",
-      "writeText": [{"path":"Definitions/Attributes/agility.json","text":"{\"schemaVersion\":1,\"revision\":1,\"id\":\"attribute.agility\",\"nameKey\":\"attribute.agility.name\",\"descriptionKey\":\"attribute.agility.description\",\"minimum\":1,\"maximum\":10,\"defaultValue\":5,\"tags\":[\"physical\",\"physical\"]}"}],
+      "id": "ability-duplicate-tag",
+      "writeText": [{"path":"Definitions/Abilities/agility.json","text":"{\"schemaVersion\":1,\"revision\":1,\"id\":\"ability.agility\",\"nameKey\":\"ability.agility.name\",\"descriptionKey\":\"ability.agility.description\",\"minimum\":1,\"maximum\":10,\"defaultValue\":5,\"tags\":[\"physical\",\"physical\"]}"}],
       "expectedPrimaryDiagnostic": "CONTENT_COLLECTION_DUPLICATE"
     },
     {
-      "id": "attribute-tag-capacity",
+      "id": "ability-tag-capacity",
       "limitOverrides": {"tagsPerDefinition": 1},
       "expectedPrimaryDiagnostic": "CONTENT_LIMIT_EXCEEDED"
     },

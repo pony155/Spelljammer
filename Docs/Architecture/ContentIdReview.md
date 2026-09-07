@@ -34,7 +34,7 @@ second 152-row table that could drift from the canonical inventory.
 
 | Inventory group | Count | Ownership | Earliest registry | Delivery note |
 | --- | ---: | --- | --- | --- |
-| Attributes | 7 | Base-owned | M2 | All seven are required base definitions |
+| Abilities | 7 | Base-owned | M2 | All seven are required base definitions |
 | Skills | 29 | Base-owned | M2 | All 29 are required base definitions |
 | Racial Perks | 22 | Base-owned | M3 | Eleven Race and eleven first-slice Heritage grants are implemented |
 | Races | 11 | Base-owned | M3 | All eleven base definitions are implemented |
@@ -48,14 +48,14 @@ second 152-row table that could drift from the canonical inventory.
 | Character languages | 9 | Base-owned | M3 | First-roster knowledge IDs |
 | Character scripts | 7 | Base-owned | M3 | First-roster script knowledge IDs |
 | Crew support requirements | 19 | Base-owned | M3 | Care, environment, nutrition/reserve, quarters, and rest gates |
-| Character resources | 5 | Base-owned | M3/M4 | Bounded stores including Focus and Psychic Strain |
+| Character resources | 5 | Base-owned | M3/M4 | Bounded stores including Focus and Psionics Strain |
 | Scenarios | 1 | Base-owned | M3 | `scenario.first-voyage` |
 | Character action primitives | 5 | Base-owned | M3 | Standard check, Soul Anchor action/context, and bounded Race effects |
 | Equipment | 11 | Base-owned | M5 | Five encounter items are implemented; six catalog candidates remain deferred |
 | Learned Feats | 2 | Base-owned | M4 | Both are required access paths |
 | Access gates | 2 | Base-owned | M4 | Both are required access definitions |
 | Spells | 7 | Base-owned | M4 | Magic Missile is implemented; six remain catalog candidates |
-| Psychic techniques | 4 | Base-owned | M4 | Mindlink is implemented; three remain catalog candidates |
+| Psionics techniques | 4 | Base-owned | M4 | Mindlink is implemented; three remain catalog candidates |
 | Combat contexts | 6 | Base-owned | M5 | Ruin is implemented; boarding, ship, and three later contexts remain primitive IDs |
 | Travel events | 8 | Base-owned | M8 | Four first-voyage events and four deferred events |
 | Travel-event choices | 3 | Base-owned | M8 | All three belong to the first Coolant Leak event |
@@ -184,8 +184,8 @@ The following similar forms are intentional:
 | Forms | Decision |
 | --- | --- |
 | `skill.magic`, `feat.access.magic`, `access.magic` | Separate competence, learned grant source, and effective capability gate |
-| `skill.psionics`, `feat.access.psionics`, `access.psionics` | Same three-layer distinction for psychic use |
-| `spell.*` and `psychic.*` techniques | Preserve established domains; document kind validates the more specific prefix |
+| `skill.psionics`, `feat.access.psionics`, `access.psionics` | Same three-layer distinction for psionics use |
+| `spell.*` and `psionics.*` techniques | Preserve established domains; document kind validates the more specific prefix |
 | `perk.race.*` and `perk.heritage.*` | Preserve grant provenance in identity |
 | `crisis.<family>`, `crisis.phase.*`, and nested resolution IDs | Preserve separate family, phase, and resolution definition kinds |
 | Hyphenated names such as `half-elf` and `nuclear-thermal-drive` | Hyphens are canonical within one segment; underscores are forbidden |

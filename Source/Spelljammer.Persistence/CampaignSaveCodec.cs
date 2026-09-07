@@ -487,7 +487,7 @@ public static class CampaignSaveCodec
             PositionId = character.PositionId.ToString(),
             Capabilities = new CapabilityDto
             {
-                Attributes = [.. snapshot.Attributes.Select(value => new AttributeValueDto { Id = value.Id.ToString(), Value = value.Value })],
+                Abilities = [.. snapshot.Abilities.Select(value => new AttributeValueDto { Id = value.Id.ToString(), Value = value.Value })],
                 Skills = [.. snapshot.Skills.Select(value => new SkillValueDto { Id = value.Id.ToString(), Value = value.Value, Practice = value.Practice })],
                 FeatIds = [.. snapshot.Feats.Select(value => value.ToString())],
                 PerkIds = [.. snapshot.Perks.Select(value => value.ToString())],
@@ -703,16 +703,16 @@ public static class CampaignSaveCodec
         GameContentSnapshot content,
         bool addCompatibleDefinitions)
     {
-        RequireCount(value.Capabilities.Attributes.Length, CampaignSaveLimits.MaximumCollectionEntries);
+        RequireCount(value.Capabilities.Abilities.Length, CampaignSaveLimits.MaximumCollectionEntries);
         RequireCount(value.Capabilities.Skills.Length, CampaignSaveLimits.MaximumCollectionEntries);
         RequireCount(value.Capabilities.GrantSources.Length, CharacterCapabilities.MaximumSetEntries);
-        ImmutableArray<AttributeValueSnapshot> attributes =
-            [.. value.Capabilities.Attributes.Select(item => new AttributeValueSnapshot(new AttributeId(item.Id), item.Value))];
+        ImmutableArray<AttributeValueSnapshot> abilities =
+            [.. value.Capabilities.Abilities.Select(item => new AttributeValueSnapshot(new AttributeId(item.Id), item.Value))];
         ImmutableArray<SkillValueSnapshot> skills =
             [.. value.Capabilities.Skills.Select(item => new SkillValueSnapshot(new SkillId(item.Id), item.Value, item.Practice))];
         if (addCompatibleDefinitions)
         {
-            attributes = [.. content.Attributes.Select(definition => attributes
+            abilities = [.. content.Abilities.Select(definition => abilities
                 .FirstOrDefault(item => item.Id == definition.AttributeId) ??
                 new AttributeValueSnapshot(definition.AttributeId, (short)definition.DefaultValue))];
             skills = [.. content.Skills.Select(definition => skills
@@ -722,7 +722,7 @@ public static class CampaignSaveCodec
 
         CharacterCapabilitySnapshot snapshot = new(
             content.Fingerprint,
-            attributes,
+            abilities,
             skills,
             [.. ParseIds(value.Capabilities.FeatIds, CharacterCapabilities.MaximumSetEntries).Select(id => new FeatId(id))],
             [.. ParseIds(value.Capabilities.PerkIds, CharacterCapabilities.MaximumSetEntries).Select(id => new PerkId(id))],

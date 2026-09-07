@@ -41,14 +41,14 @@ internal static class ContentContracts
 
     private static void StableIdsAreValidatedAndOrdinal()
     {
-        True(ContentId.TryParse("attribute.strength", out ContentId valid), "A valid ID was rejected.");
-        False(ContentId.TryParse("Attribute.Strength", out _), "A culture-sensitive ID was accepted.");
+        True(ContentId.TryParse("ability.strength", out ContentId valid), "A valid ID was rejected.");
+        False(ContentId.TryParse("Ability.Strength", out _), "A culture-sensitive ID was accepted.");
         False(default(ContentId).IsValid, "The default ID became valid.");
         string maximum = "domain." + new string('a', 120);
         Equal(ContentId.MaximumLength, maximum.Length, "Maximum-length fixture is wrong.");
         True(ContentId.TryParse(maximum, out _), "A maximum-length ID was rejected.");
         False(ContentId.TryParse(maximum + "a", out _), "An oversized ID was accepted.");
-        True(valid.CompareTo(new ContentId("attribute.toughness")) < 0, "ID comparison was not ordinal.");
+        True(valid.CompareTo(new ContentId("ability.toughness")) < 0, "ID comparison was not ordinal.");
     }
 
     private static void Milestone5EncounterAndShipContentIsLinked()
@@ -182,13 +182,13 @@ internal static class ContentContracts
         Equal(
             expectedFingerprints.RootElement.GetProperty("baseSha256").GetString()!,
             snapshot.Fingerprint.ToString(),
-            "The base Attribute and Skill fingerprint changed.");
-        Equal(6, snapshot.AttributeRegistry.Count, "The base Attribute roster is incomplete.");
+            "The base Ability and Skill fingerprint changed.");
+        Equal(6, snapshot.AttributeRegistry.Count, "The base Ability roster is incomplete.");
         Equal(29, snapshot.SkillRegistry.Count, "The base Skill roster is incomplete.");
         string[] expectedAttributes =
         [
-            "attribute.agility", "attribute.intelligence", "attribute.perception",
-            "attribute.strength", "attribute.toughness", "attribute.willpower",
+            "ability.agility", "ability.intelligence", "ability.perception",
+            "ability.strength", "ability.toughness", "ability.willpower",
         ];
         string[] expectedSkills =
         [
@@ -199,8 +199,8 @@ internal static class ContentContracts
             "skill.merchant", "skill.negotiation", "skill.piloting", "skill.psionics", "skill.rigging",
             "skill.salvage", "skill.sensors", "skill.stealth", "skill.xenology",
         ];
-        Equal(string.Join('|', expectedAttributes), string.Join('|', snapshot.Attributes.Select(value => value.Id)),
-            "Attribute iteration is incomplete or nondeterministic.");
+        Equal(string.Join('|', expectedAttributes), string.Join('|', snapshot.Abilities.Select(value => value.Id)),
+            "Ability iteration is incomplete or nondeterministic.");
         Equal(string.Join('|', expectedSkills), string.Join('|', snapshot.Skills.Select(value => value.Id)),
             "Skill iteration is incomplete or nondeterministic.");
 
@@ -322,14 +322,14 @@ internal static class ContentContracts
             Describe(first.Roster, snapshot),
             Describe(second.Roster!, snapshot),
             "An identical content fingerprint and seed produced a different roster.");
-        Equal(snapshot.Attributes.Length, first.Roster.AttributeColumns.Length, "Roster Attribute columns are not registry-driven.");
+        Equal(snapshot.Abilities.Length, first.Roster.AttributeColumns.Length, "Roster Ability columns are not registry-driven.");
         Equal(snapshot.Skills.Length, first.Roster.SkillColumns.Length, "Roster Skill columns are not registry-driven.");
         CharacterRosterDisplay display = RosterInspection.Project(
             first.Roster,
             snapshot,
             key => "[" + key + "]",
             ActionRejectionCodes.EquipmentRequired);
-        Equal(snapshot.Attributes.Length, display.Characters[0].Attributes.Length, "Roster display fixed its Attribute columns.");
+        Equal(snapshot.Abilities.Length, display.Characters[0].Abilities.Length, "Roster display fixed its Ability columns.");
         Equal("[command.equipment-required]", display.DisabledReason!, "Disabled reason did not pass through localization.");
 
         RosterCreationResult unsupported = CharacterCreator.CreateRoster(
@@ -428,7 +428,7 @@ internal static class ContentContracts
     {
         (GameContentSnapshot snapshot, RosterSnapshot roster) = BaseRoster();
         Equal(1, snapshot.SpellRegistry.Count, "The first-playable Spell registry is incomplete.");
-        Equal(1, snapshot.PsychicTechniqueRegistry.Count, "The first-playable psychic registry is incomplete.");
+        Equal(1, snapshot.PsychicTechniqueRegistry.Count, "The first-playable psionics registry is incomplete.");
         SpellId spellId = new("spell.spirit.magic-missile");
         CharacterState human = roster.Characters.Single(value => value.RaceId == new RaceId("race.human"));
         CharacterState target = roster.Characters.Single(value => value.RaceId == new RaceId("race.orc"));
@@ -483,7 +483,7 @@ internal static class ContentContracts
     private static void MindlinkRequiresKnowledgeConsentAndStrain()
     {
         (GameContentSnapshot snapshot, RosterSnapshot roster) = BaseRoster();
-        PsychicTechniqueId mindlinkId = new("psychic.contact.mindlink");
+        PsychicTechniqueId mindlinkId = new("psionics.contact.mindlink");
         CharacterState somnari = roster.Characters.Single(value => value.RaceId == new RaceId("race.somnari"));
         CharacterState human = roster.Characters.Single(value => value.RaceId == new RaceId("race.human"));
         True(somnari.Capabilities.Access.Contains(new AccessId("access.psionics")), "Mindwake omitted innate psionic access.");
@@ -498,17 +498,17 @@ internal static class ContentContracts
         Equal(0, declined.Actor.Evidence.Length, "Rejected Mindlink leaked protected evidence.");
         MindlinkResult accepted = MindlinkSystem.Respond(invited.Link!, human.Id, true);
         MindlinkResult reserved = MindlinkSystem.Reserve(accepted.Link!);
-        Equal(0, reserved.Actor.Resources[new ResourceId("resource.psychic-strain")], "Mindlink reservation mutated published Strain.");
+        Equal(0, reserved.Actor.Resources[new ResourceId("resource.psionics-strain")], "Mindlink reservation mutated published Strain.");
         MindlinkResult active = MindlinkSystem.Commit(reserved.Link!);
         MindlinkResult replay = MindlinkSystem.Commit(reserved.Link!);
-        Equal(active.Actor.Resources[new ResourceId("resource.psychic-strain")], replay.Actor.Resources[new ResourceId("resource.psychic-strain")],
+        Equal(active.Actor.Resources[new ResourceId("resource.psionics-strain")], replay.Actor.Resources[new ResourceId("resource.psionics-strain")],
             "Mindlink replay changed deterministic strain publication.");
-        Equal(4, active.Actor.Resources[new ResourceId("resource.psychic-strain")], "Mindlink charged the wrong initial Strain.");
+        Equal(4, active.Actor.Resources[new ResourceId("resource.psionics-strain")], "Mindlink charged the wrong initial Strain.");
         True(active.Actor.Evidence.Any(value => value.SourceId == mindlinkId.Value), "Mindlink commit omitted observable evidence.");
-        True(active.Actor.ActiveEffects.Any(value => value.ScopeId == new ContentId("psychic.scope.deliberate-message")),
+        True(active.Actor.ActiveEffects.Any(value => value.ScopeId == new ContentId("psionics.scope.deliberate-message")),
             "Mindlink exposed a broader information scope.");
         MindlinkResult sustained = MindlinkSystem.Sustain(active.Actor, active.Link!, 12);
-        Equal(5, sustained.Actor.Resources[new ResourceId("resource.psychic-strain")], "Mindlink sustain charged the wrong Strain.");
+        Equal(5, sustained.Actor.Resources[new ResourceId("resource.psionics-strain")], "Mindlink sustain charged the wrong Strain.");
         MindlinkResult revoked = MindlinkSystem.Revoke(sustained.Actor, sustained.Link!, human.Id);
         False(revoked.Actor.ActiveEffects.Any(value => value.SourceId == mindlinkId.Value), "Revoked Mindlink retained its active channel.");
 
@@ -595,7 +595,7 @@ internal static class ContentContracts
     private static string Describe(RosterSnapshot roster, GameContentSnapshot snapshot) => string.Join(
         ';',
         roster.Characters.Select(character =>
-            character.Id + ":" + string.Join(',', character.Capabilities.Snapshot(snapshot).Attributes.Select(value => value.Value))));
+            character.Id + ":" + string.Join(',', character.Capabilities.Snapshot(snapshot).Abilities.Select(value => value.Value))));
 
     private static Dictionary<string, byte[]> Clone(Dictionary<string, byte[]> source) =>
         source.ToDictionary(pair => pair.Key, pair => pair.Value.ToArray(), StringComparer.Ordinal);

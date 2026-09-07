@@ -4,7 +4,7 @@ These fixtures freeze the source and fingerprint contracts before the content
 loader is implemented. They are test input, not proof that runtime loading is
 available.
 
-`valid/base` is the smallest complete base pack that exercises an Attribute,
+`valid/base` is the smallest complete base pack that exercises an Ability,
 Skill, Access gate, training project, learned Feat, Race, and Racial Perk.
 All content references resolve. Runtime primitive IDs used by the Skill are the
 version 1 built-ins listed in `ContentContractsV1.md`.

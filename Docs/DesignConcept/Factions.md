@@ -66,7 +66,7 @@ state.
 | Stable ID | Persistent identity independent from localized names |
 | Organization | Council, league, fleet, guild, compact, court, company, or other governance form |
 | Doctrines | Public priorities and decision-making biases, not moral alignment |
-| Policies | Default laws for docking, trade, salvage, weapons, magic, psychic contact, and conduct |
+| Policies | Default laws for docking, trade, salvage, weapons, magic, psionics contact, and conduct |
 | Economy | Desired resources, exports, shortages, services, and market behavior |
 | Capabilities | Typical fleets, stations, ship modules, knowledge, and technology preferences |
 | Communication | Official languages, scripts, signals, and diplomatic protocols |
@@ -100,7 +100,7 @@ Each can contain characters of any compatible race or heritage.
 | Meridian Foundry League | `faction.meridian-foundry-league` | Dieselpunk industry, atompunk development, shipbuilding, reactor fuel, and technical contracts | Demands inspections, patent recognition, reliable supply, and responsibility for contamination |
 | Lumenwake Covenant | `faction.lumenwake-covenant` | Arcane navigation, aether research, wards, enchantment, and preservation of dangerous sites | Restricts unstable magic, unlicensed relic removal, and reckless disturbance of aether routes |
 | Horizon Salvagers' Union | `faction.horizon-salvagers-union` | Wreck recovery, rescue, claim registration, auctions, and hazardous-site expertise | Treats claim jumping, concealed finds, and abandoned crews as serious offenses |
-| Quiet Chorus Assembly | `faction.quiet-chorus-assembly` | Psychic communication, mediation, couriers, mental medicine, and privacy law | Requires consent for psychic contact and aggressively investigates coercive intrusion |
+| Quiet Chorus Assembly | `faction.quiet-chorus-assembly` | Psionics communication, mediation, couriers, mental medicine, and privacy law | Requires consent for psionics contact and aggressively investigates coercive intrusion |
 | Pilgrim Garden Fleet | `faction.pilgrim-garden-fleet` | Food, seed banks, living habitats, medicine, and restoration of damaged worlds | Enforces quarantine and resists trade that threatens protected ecologies |
 
 No faction has a universal racial composition, permanent diplomatic role, or
@@ -135,7 +135,7 @@ them.
 
 A faction reacts only to information it possesses. An action can become known
 through witnesses, sensors, official reports, captured records, trade gossip,
-psychic communication, or player confession. Reports store source, confidence,
+psionics communication, or player confession. Reports store source, confidence,
 subject, location, observation tick, and transmission state.
 
 News propagates through bounded communication routes and takes time unless an
@@ -185,7 +185,7 @@ records identify claims, controllers, enforcement reach, disputes, and the
 source and confidence of the player's knowledge.
 
 Relevant laws may govern docking, tariffs, salvage, relic removal, weapons,
-reactor fuel, aether use, enchantment, psychic contact, medical stores,
+reactor fuel, aether use, enchantment, psionics contact, medical stores,
 quarantine, prisoners, and environmental protection. The interface
 shows applicable known rules before the player commits an action when their
 crew could reasonably know them.
@@ -224,7 +224,7 @@ Possible goals include:
 - acquire food, fuel, reactor material, Aether resonators, ships, or knowledge;
 - protect a settlement, convoy, ruin, ecology, or allied faction;
 - enforce a claim, embargo, quarantine, warrant, or treaty;
-- investigate a disappearance, psychic intrusion, relic, or anomaly;
+- investigate a disappearance, psionics intrusion, relic, or anomaly;
 - repair a station, recover a wreck, escort civilians, or evacuate a hazard;
 - expand influence, negotiate access, or undermine a rival; and
 - survive a war, succession crisis, disaster, or internal split.

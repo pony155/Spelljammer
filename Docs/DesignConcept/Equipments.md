@@ -64,7 +64,7 @@ found items as cargo, but must equip them to use their active effect.
 | Medical equipment | medkit, trauma injector, diagnostic wand | Stabilize, treat, or diagnose within Medicine rules |
 | Arcane equipment | focus, wand, grimoire, enchanted tool | Spell support, Aether use, or a bounded magical action |
 | Industrial equipment | breaching charge, sensor kit, power cell, radiation suit | Engineering, combat, or environmental support |
-| Relics | ancient key, psychic lens, star compass | A unique authored action with clear limits |
+| Relics | ancient key, psionics lens, star compass | A unique authored action with clear limits |
 
 ## Technology and magic
 
@@ -82,7 +82,7 @@ maintenance. Laser and plasma weapons use a displayed charge cost and their
 declared damage type; they do not need ammunition caliber, cooling, or recoil
 statistics.
 
-An item never grants unrestricted spellcasting, psychic influence, or immunity
+An item never grants unrestricted spellcasting, psionics influence, or immunity
 to all hazards. A casting focus helps an authorized caster; it does not replace
 Spellcasting Training or an innate Racial Perk. A weapon's technology path does
 not make it automatically stronger than the other path.

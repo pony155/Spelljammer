@@ -17,7 +17,7 @@ public sealed class GameContentCompiler
         "effect.recovery.soul-anchor",
         "effect.tracking.observed-trail",
         "resource.focus",
-        "resource.psychic-strain",
+        "resource.psionics-strain",
         "resource.training-supplies",
         "facility.arcane-study",
         "facility.quiet-sanctum",
@@ -25,10 +25,10 @@ public sealed class GameContentCompiler
         "range.far",
         "range.near",
         "contact.invited",
-        "psychic.discipline.contact",
-        "psychic.scope.deliberate-message",
+        "psionics.discipline.contact",
+        "psionics.scope.deliberate-message",
         "effect.spirit.magic-missile-impact",
-        "effect.psychic.shared-channel",
+        "effect.psionics.shared-channel",
         "equipment-slot.main-hand",
         "equipment-slot.off-hand",
         "equipment-slot.body",
@@ -585,7 +585,7 @@ public sealed class GameContentCompiler
                     break;
                 case DefinitionKind.Background:
                     CheckReferences(definition, definition.Arrays["compatibleRaceIds"], DefinitionKind.Race, byId, "/compatibleRaceIds", diagnostics);
-                    CheckReferences(definition, definition.Arrays["attributeBonusIds"], DefinitionKind.Attribute, byId, "/attributeBonusIds", diagnostics);
+                    CheckReferences(definition, definition.Arrays["attributeBonusIds"], DefinitionKind.Ability, byId, "/attributeBonusIds", diagnostics);
                     CheckReferences(definition, definition.Arrays["focusSkillIds"], DefinitionKind.Skill, byId, "/focusSkillIds", diagnostics);
                     break;
                 case DefinitionKind.Character:
@@ -715,7 +715,7 @@ public sealed class GameContentCompiler
 
             switch (definition.Kind)
             {
-                case DefinitionKind.Attribute:
+                case DefinitionKind.Ability:
                     ValidateAttribute(definition, diagnostics);
                     break;
                 case DefinitionKind.Skill:
@@ -920,7 +920,7 @@ public sealed class GameContentCompiler
         IReadOnlyList<SourceDefinition> sources,
         DiagnosticSink diagnostics)
     {
-        ImmutableArray<AttributeDefinition> attributes = [.. sources.Where(value => value.Kind == DefinitionKind.Attribute).OrderBy(value => value.Id).Select(CompileAttribute)];
+        ImmutableArray<AttributeDefinition> abilities = [.. sources.Where(value => value.Kind == DefinitionKind.Ability).OrderBy(value => value.Id).Select(CompileAttribute)];
         ImmutableArray<SkillDefinition> skills = [.. sources.Where(value => value.Kind == DefinitionKind.Skill).OrderBy(value => value.Id).Select(CompileSkill)];
         ImmutableArray<AccessDefinition> access = [.. sources.Where(value => value.Kind == DefinitionKind.Access).OrderBy(value => value.Id).Select(CompileAccess)];
         ImmutableArray<BackgroundDefinition> backgrounds = [.. sources.Where(value => value.Kind == DefinitionKind.Background).OrderBy(value => value.Id).Select(CompileBackground)];
@@ -943,12 +943,12 @@ public sealed class GameContentCompiler
         ImmutableArray<ShipWeaponConfigurationDefinition> shipWeapons = [.. sources.Where(value => value.Kind == DefinitionKind.ShipWeaponConfiguration).OrderBy(value => value.Id).Select(CompileShipWeapon)];
         ImmutableArray<ContentPackIdentity> identities = [.. packs.Select(pack => new ContentPackIdentity(
             pack.Manifest.Id, pack.Manifest.Version, pack.Manifest.ContentRevision))];
-        ContentDefinition[] all = [.. attributes, .. skills, .. access, .. backgrounds, .. characters, .. feats, .. heritages, .. perks, .. races, .. spells, .. psychicTechniques, .. techniques, .. training, .. equipment, .. boardCells, .. zoneLinks, .. personalBoards, .. encounters, .. shipFrames, .. shipModules, .. shipWeapons];
+        ContentDefinition[] all = [.. abilities, .. skills, .. access, .. backgrounds, .. characters, .. feats, .. heritages, .. perks, .. races, .. spells, .. psychicTechniques, .. techniques, .. training, .. equipment, .. boardCells, .. zoneLinks, .. personalBoards, .. encounters, .. shipFrames, .. shipModules, .. shipWeapons];
         (byte[] canonicalBytes, ContentFingerprint fingerprint) = CanonicalSemanticWriter.Write(identities, all);
         Dictionary<ContentId, ContentId> provenance = sources.ToDictionary(
             source => source.Id,
             source => new ContentId(source.PackId));
-        GameContentSnapshot snapshot = new(fingerprint, identities, attributes, skills, access, backgrounds, characters, feats, heritages, perks, races, spells, psychicTechniques, techniques, training,
+        GameContentSnapshot snapshot = new(fingerprint, identities, abilities, skills, access, backgrounds, characters, feats, heritages, perks, races, spells, psychicTechniques, techniques, training,
             equipment, boardCells, zoneLinks, personalBoards, encounters, shipFrames, shipModules, shipWeapons,
             [.. canonicalBytes], provenance);
         return new ContentCompilationResult(snapshot, diagnostics.ToImmutable(), null);
@@ -956,8 +956,8 @@ public sealed class GameContentCompiler
 
     private static AttributeDefinition CompileAttribute(SourceDefinition value) => new(
         new AttributeId(value.Id), 1, value.Revision, value.NameKey, value.DescriptionKey,
-        (short)value.Attribute!.Minimum, (short)value.Attribute.Maximum, (short)value.Attribute.DefaultValue,
-        Sort(value.Attribute.Tags));
+        (short)value.Ability!.Minimum, (short)value.Ability.Maximum, (short)value.Ability.DefaultValue,
+        Sort(value.Ability.Tags));
 
     private static SkillDefinition CompileSkill(SourceDefinition value) => new(
         new SkillId(value.Id), 1, value.Revision, value.NameKey, value.DescriptionKey,
@@ -1100,7 +1100,7 @@ public sealed class GameContentCompiler
 
     private static void ValidateAttribute(SourceDefinition definition, DiagnosticSink diagnostics)
     {
-        AttributeSourceDto source = definition.Attribute!;
+        AttributeSourceDto source = definition.Ability!;
         int minimum = source.Minimum;
         int maximum = source.Maximum;
         int defaultValue = source.DefaultValue;
@@ -1379,7 +1379,7 @@ public sealed class GameContentCompiler
 
     private static string Prefix(DefinitionKind kind) => kind switch
     {
-        DefinitionKind.Attribute => "attribute.",
+        DefinitionKind.Ability => "ability.",
         DefinitionKind.Skill => "skill.",
         DefinitionKind.Access => "access.",
         DefinitionKind.Background => "background.",
@@ -1389,7 +1389,7 @@ public sealed class GameContentCompiler
         DefinitionKind.Perk => "perk.",
         DefinitionKind.Race => "race.",
         DefinitionKind.Spell => "spell.",
-        DefinitionKind.PsychicTechnique => "psychic.",
+        DefinitionKind.PsychicTechnique => "psionics.",
         DefinitionKind.Technique => "technique.",
         DefinitionKind.TrainingProject => "training.",
         DefinitionKind.Equipment => "equipment.",

@@ -54,7 +54,7 @@ public static class RaceCapabilities
                 new TechniqueId("technique.recovery.soul-reconstitution"),
                 new SkillId("skill.enchantment"),
                 0,
-                new AttributeId("attribute.willpower"),
+                new AttributeId("ability.willpower"),
                 1,
                 new ContentId("equipment.soul-anchor.portable"),
                 new ContentId("context.recovery.safe-anchor")),

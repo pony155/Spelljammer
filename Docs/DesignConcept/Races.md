@@ -261,11 +261,11 @@ knowledge is a lasting source of leverage and friction within the alliance.
 
 ### Somnari
 
-Somnari are a psychic race whose nervous systems resonate with nearby thought.
-Their Racial Perk, **Mindwake**, lets them sense active psychic effects and
+Somnari are a psionics race whose nervous systems resonate with nearby thought.
+Their Racial Perk, **Mindwake**, lets them sense active psionics effects and
 initiate a consensual short-range mindlink without a spell or device. Mindwake
 grants innate `access.psionics`, not mastery: the Psionics skill governs
-control, clarity, range, and learned techniques. Psychic storms, crowded minds,
+control, clarity, range, and learned techniques. Psionics storms, crowded minds,
 and repeated use cause strain, and Mindwake never reveals private thoughts
 without an explicit effect and a consent or resistance check.
 
@@ -273,7 +273,7 @@ See [`PsychicAbilities.md`](PsychicAbilities.md) for contact, consent,
 resistance, strain, and information rules.
 
 Somnari breathe, eat, and rest normally, but their sleep includes a vivid dream
-phase needed to recover psychic strain. They are not inherently wiser, calmer,
+phase needed to recover psionics strain. They are not inherently wiser, calmer,
 more truthful, or more intelligent than other races.
 
 On their storm-wreathed homeworld, early Somnari repeatedly dreamed of the same
@@ -283,13 +283,13 @@ described real places beyond their world. The dreams were neither Aether magic
 nor infallible prophecy, but a motive to build their first voyages toward
 otherwise unreachable signals. Modern Somnari communities are prominent in
 rescue work, memory archives, trauma care, and anomaly research, while other
-states remain wary of what psychic contact might reveal.
+states remain wary of what psionics contact might reveal.
 
 | Heritage | Stable ID | Heritage Perk | Cost |
 | --- | --- | --- | --- |
-| Chorusborn | `heritage.somnari.chorusborn` | Maintains a consensual mindlink among several nearby participants | Crowds and overlapping psychic signals accumulate strain faster |
-| Veilward | `heritage.somnari.veilward` | Shields themself or an assisted ally against psychic intrusion | Dropping the shield to receive beneficial contact takes focus and time |
-| Farwhisper | `heritage.somnari.farwhisper` | Detects directed psychic signals and emotional distress at extended range | Aether storms and ancient sites can create misleading psychic echoes |
+| Chorusborn | `heritage.somnari.chorusborn` | Maintains a consensual mindlink among several nearby participants | Crowds and overlapping psionics signals accumulate strain faster |
+| Veilward | `heritage.somnari.veilward` | Shields themself or an assisted ally against psionics intrusion | Dropping the shield to receive beneficial contact takes focus and time |
+| Farwhisper | `heritage.somnari.farwhisper` | Detects directed psionics signals and emotional distress at extended range | Aether storms and ancient sites can create misleading psionics echoes |
 
 ### Veyr
 
@@ -520,7 +520,7 @@ one human, elf, half-elf, dwarf, orc, gnome, goblin, Somnari, Veyr, Eidolon,
 and Tharun. Each needs a race, heritage, background, abilities, skills, two
 Racial Perks, and compatible quarters. The two Racial Perks are racial feats:
 one granted by Race and one by Heritage. The Elf must exercise innate
-magical access and the Somnari must exercise innate psychic access. The
+magical access and the Somnari must exercise innate psionics access. The
 Eidolon's anchor logistics and the Tharun's evidence-bounded tracking must
 each change at least one voyage decision. At least one character without
 either access Racial Perk must demonstrate earning an access Feat through

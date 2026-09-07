@@ -154,7 +154,7 @@ static void WriteJson(ContentCompilationResult result)
 static void WriteReportText(RegistryInspectionSnapshot report)
 {
     Console.WriteLine($"fingerprint {report.Fingerprint}");
-    Console.WriteLine($"counts packs={report.PackCount} definitions={report.DefinitionCount} attributes={report.AttributeCount} skills={report.SkillCount}");
+    Console.WriteLine($"counts packs={report.PackCount} definitions={report.DefinitionCount} abilities={report.AttributeCount} skills={report.SkillCount}");
     foreach (RegistryInspectionEntry entry in report.Entries)
     {
         Console.WriteLine($"{entry.Kind} {entry.Index} {entry.Id} {entry.PackId} revision={entry.Revision}");

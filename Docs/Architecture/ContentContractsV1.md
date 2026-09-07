@@ -35,7 +35,7 @@ Code MUST NOT apply case folding, locale collation, path normalization, or
 Unicode normalization to an ID.
 
 The first segment identifies a broad content domain. A definition schema also
-declares its exact kind, because domains such as `psychic` and `crisis` contain
+declares its exact kind, because domains such as `psionics` and `crisis` contain
 families, phases, techniques, and resolutions with more specific prefix rules.
 
 ## Ownership and namespaces
@@ -140,7 +140,7 @@ Initial semantic fields are:
 
 | Kind | Required semantic fields |
 | --- | --- |
-| Attribute | `minimum`, `maximum`, `defaultValue`, `tags` |
+| Ability | `minimum`, `maximum`, `defaultValue`, `tags` |
 | Skill | `minimum`, `maximum`, `progressionCurveId`, `actionTags` |
 | Access | `tags` |
 | Background | `compatibleRaceIds`, `attributeBonusIds`, `focusSkillIds` |
@@ -150,7 +150,7 @@ Initial semantic fields are:
 | Perk | `compatibleRaceIds`, `grantedAccessIds`, `grantedTechniqueIds`; optional `grantedPerkIds`, `effectIds` |
 | Race | `grantedPerkIds`; optional `requiredSupportIds` |
 | Spell | `requiredAccessId`, `skillId`, `focusResourceId`, `focusCost`, `rangeId`, `castTimeTicks`, `cooldownTicks`, `targetTags`, `effectIds` |
-| Psychic Technique | `requiredAccessId`, `skillId`, `resistanceSkillId`, `strainResourceId`, `strainCost`, `sustainCostPerTick`, `contactModeId`, `rangeId`, `informationScopeId`, `disciplineIds`, `targetTags`, `effectIds` |
+| Psionics Technique | `requiredAccessId`, `skillId`, `resistanceSkillId`, `strainResourceId`, `strainCost`, `sustainCostPerTick`, `contactModeId`, `rangeId`, `informationScopeId`, `disciplineIds`, `targetTags`, `effectIds` |
 | Technique | `requiredAccessIds`, `grantedPerkIds` |
 | Training Project | `requiredSkillIds`, `workUnits`, `progressCap`, `facilityId`, `resourceId`, `resourceCost`, `safetyId`, `grantedFeatIds`, `grantedTechniqueIds` |
 | Equipment | `slotId`, `initialStateId`, `resourceId`, `resourceCapacity`, `actionIds`, `effectIds` |
@@ -167,7 +167,7 @@ root:
 
 | Directory | Kind | Required ID prefix |
 | --- | --- | --- |
-| `Attributes` | `Attribute` | `attribute.` |
+| `Abilities` | `Ability` | `ability.` |
 | `Skills` | `Skill` | `skill.` |
 | `Access` | `Access` | `access.` |
 | `Backgrounds` | `Background` | `background.` |
@@ -177,7 +177,7 @@ root:
 | `Perks` | `Perk` | `perk.` |
 | `Races` | `Race` | `race.` |
 | `Spells` | `Spell` | `spell.` |
-| `PsychicTechniques` | `PsychicTechnique` | `psychic.` |
+| `PsychicTechniques` | `PsychicTechnique` | `psionics.` |
 | `Techniques` | `Technique` | `technique.` |
 | `TrainingProjects` | `TrainingProject` | `training.` |
 | `Equipment` | `Equipment` | `equipment.` |
@@ -221,11 +221,11 @@ a Feat, and `compatibleRaceIds` are nonempty; other reference sets may be
 empty. A training project must grant at least one Feat or
 known technique. `workUnits` is an integer from 1 through 1,000,000 inclusive,
 `progressCap` is at least `workUnits`, Spell Focus costs are positive, and
-psychic strain costs remain within the runtime's 0–100 meter.
+psionics strain costs remain within the runtime's 0–100 meter.
 
-Base Attribute definitions use an exact 1–10 value range. Their default must be
+Base Ability definitions use an exact 1–10 value range. Their default must be
 inside that range. Base Skill definitions use an exact 0–100 range. General
-version 1 storage supports signed 16-bit Attribute bounds and unsigned-byte
+version 1 storage supports signed 16-bit Ability bounds and unsigned-byte
 Skill bounds, but changing the base ranges is a semantic contract change.
 
 ## Version responsibilities
@@ -271,7 +271,7 @@ canonical byte contract is named `spelljammer-semantic-v1`:
 - UTF-8 without BOM and exactly one final LF;
 - no insignificant whitespace;
 - object properties sorted by bytewise ordinal property name;
-- definition kinds use the canonical order Access, Attribute, Background,
+- definition kinds use the canonical order Access, Ability, Background,
   Character, Feat, Heritage, Race, Skill, Perk, Technique, Training Project,
   Equipment, Board Cell, Zone Link, Personal Board, Encounter, Ship Frame,
   Ship Module, and Ship Weapon Configuration, with definitions sorted by
@@ -330,7 +330,7 @@ command.target-illegal
 command.access-required
 command.technique-unknown
 command.skill-required
-command.attribute-required
+command.ability-required
 command.equipment-required
 command.context-required
 command.resource-insufficient

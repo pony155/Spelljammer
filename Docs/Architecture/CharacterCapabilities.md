@@ -3,7 +3,7 @@
 ## Status
 
 Milestone 4 implements the data and runtime contracts in this document for
-Attributes, Skills, learned Feats, Racial Perks, access grants, techniques,
+Abilities, Skills, learned Feats, Racial Perks, access grants, techniques,
 character creation, eligibility, practice, training, and roster inspection.
 Magic Missile and consensual Mindlink now provide the first complete
 supernatural execution paths; the wider catalogs remain planned.
@@ -17,8 +17,8 @@ Product behavior is defined in
 
 ## Core decision
 
-Source code implements generic attribute, skill, grant, training, and action
-machinery. The six base Attributes and base Skill list are content, not enum
+Source code implements generic ability, skill, grant, training, and action
+machinery. The six base Abilities and base Skill list are content, not enum
 members or fixed properties on `CharacterState`.
 
 Avoid:
@@ -52,7 +52,7 @@ construction so malformed IDs cannot travel through the simulation.
 
 | Concern | Immutable definition | Persistent state |
 | --- | --- | --- |
-| Attribute | ID, keys, bounds, tags, generation rule | Value by Attribute ID |
+| Ability | ID, keys, bounds, tags, generation rule | Value by Ability ID |
 | Skill | ID, keys, range, progression curve, action tags | Value and bounded practice by Skill ID |
 | Feat | ID, keys, training project, grants | Learned Feat IDs and provenance |
 | Perk | ID, keys, Race/Heritage compatibility, grants | Perk IDs granted by Race and Heritage |
@@ -68,15 +68,15 @@ The authoritative envelope, fields, ranges, and reference behavior are frozen
 in [`ContentContractsV1.md`](ContentContractsV1.md). The examples below follow
 that contract.
 
-An Attribute document resembles:
+An Ability document resembles:
 
 ```json
 {
   "schemaVersion": 1,
   "revision": 1,
-  "id": "attribute.strength",
-  "nameKey": "attribute.strength.name",
-  "descriptionKey": "attribute.strength.description",
+  "id": "ability.strength",
+  "nameKey": "ability.strength.name",
+  "descriptionKey": "ability.strength.description",
   "minimum": 1,
   "maximum": 10,
   "defaultValue": 5,
@@ -104,8 +104,8 @@ A Skill document resembles:
 }
 ```
 
-Skills do not own one permanent governing Attribute. Each action definition
-declares allowed Attribute approaches, its recommended approach, Skill,
+Skills do not own one permanent governing Ability. Each action definition
+declares allowed Ability approaches, its recommended approach, Skill,
 technique, equipment, target, cost, and circumstance requirements.
 
 ## Feats, Perks, and access
@@ -174,7 +174,7 @@ cross a save, command-log, mod, or public serialization boundary.
 
 Persistent stable ID/value pairs are translated to indices only after the exact
 compatible snapshot is selected. Unknown IDs, duplicates, out-of-range values,
-missing required Attributes, and incompatible Perks reject validation or
+missing required Abilities, and incompatible Perks reject validation or
 enter an explicit migration.
 
 ## Character state
@@ -212,8 +212,8 @@ Eligibility is separate from outcome resolution. A command checks:
 1. actor exists, is controllable, and can act;
 2. action and target definitions exist;
 3. required access IDs have valid grant sources;
-4. the required Spell, psychic ability, or other technique is known;
-5. Attribute and Skill prerequisites pass;
+4. the required Spell, psionics ability, or other technique is known;
+5. Ability and Skill prerequisites pass;
 6. equipment, resources, position, range, consent, and environment pass;
 7. bounded costs can be reserved atomically; and
 8. success and failure both have declared commit and rollback behavior.
@@ -221,7 +221,7 @@ Eligibility is separate from outcome resolution. A command checks:
 Rejection returns a stable code and safe structured arguments. It consumes
 nothing and cannot reveal protected target information.
 
-After eligibility, `CapabilityResolver` combines the selected Attribute,
+After eligibility, `CapabilityResolver` combines the selected Ability,
 Skill, equipment, assistance, technique, circumstances, and owned deterministic
 random stream. The committed event records the stable IDs and numeric modifiers
 needed to explain and replay the result.
@@ -272,9 +272,9 @@ Serialized capabilities use stable IDs:
 {
   "raceId": "race.elf",
   "heritageId": "heritage.elf.dawnweave",
-  "attributes": {
-    "attribute.strength": 6,
-    "attribute.agility": 9
+  "abilities": {
+    "ability.strength": 6,
+    "ability.agility": 9
   },
   "skills": {
     "skill.magic": 27,
@@ -305,7 +305,7 @@ separately and iterates registry definitions instead of assuming fixed
 Strength or Engineering properties.
 
 `RosterInspection` is the initial headless presentation adapter. It iterates
-the active Attribute and Skill registries and accepts a localization resolver,
+the active Ability and Skill registries and accepts a localization resolver,
 including for disabled-action codes; it never mutates character state or binds
 fixed capability properties.
 
@@ -319,13 +319,13 @@ Definitions reject invalid bounds, defaults outside range, unknown progression
 or effect IDs, invalid grants, missing compatibility, grant cycles, and
 technique requirements that cannot be satisfied.
 
-Characters reject missing Attributes, unknown state IDs, duplicate Feats or
+Characters reject missing Abilities, unknown state IDs, duplicate Feats or
 Perks, incompatible racial grants, out-of-range values, access without
 provenance, unbounded training, and known techniques beyond capacity.
 
 CI-owned tests cover:
 
-- adding an Attribute or Skill without new enum members or state fields;
+- adding an Ability or Skill without new enum members or state fields;
 - deterministic indices and action results;
 - trained and innate sources granting the same access independently;
 - removal of one source while another valid source remains;
@@ -334,7 +334,7 @@ CI-owned tests cover:
 - save round-trip through stable IDs; and
 - invalid content preserving the previous registry and character.
 
-Adding arbitrary Attributes is an advanced public mod feature because all
+Adding arbitrary Abilities is an advanced public mod feature because all
 generation, action, formula, and UI consumers must already be generic. Storage
 and registries support it from the beginning even if the first public release
 temporarily restricts that content kind.

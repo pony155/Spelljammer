@@ -99,7 +99,7 @@ declare recoil or require a Gunner, crew station, or Gunnery Skill check.
 Energy-shield modules declare exactly three combat statistics: maximum Shield
 Value, Recharge Rate per fixed tick, and Energy Consumption Rate per fixed
 tick. An Energy Shield is distinct from a Ward Projector: shields intercept
-ordinary ship attacks, while wards counter declared magical, psychic, and
+ordinary ship attacks, while wards counter declared magical, psionics, and
 environmental effects.
 Propulsion modules declare Speed and Energy Consumption. Power modules declare
 Energy Output or Storage. Prow modules declare one special effect such as Ram
@@ -259,13 +259,13 @@ installed instances commit together or the original ship remains unchanged.
 | --- | --- | --- | --- |
 | Reinforced Plating | `module.defense.reinforced-plating` | Adds Armor Value by using armor slots | Engineering |
 | Energy Shield | `module.defense.energy-shield` | Uses power or aether to provide a whole-ship Shield Value that absorbs damage and replenishes at its Recharge Rate | No dedicated Skill or crew position requirement |
-| Ward Projector | `module.defense.ward-projector` | Sustains a bounded defense against magical, psychic, or environmental threats | Magic, Psionics, or Enchantment; Warden |
+| Ward Projector | `module.defense.ward-projector` | Sustains a bounded defense against magical, psionics, or environmental threats | Magic, Psionics, or Enchantment; Warden |
 | Prow Ram | `module.prow.ram` | Reinforces a compatible prow for deliberate collision attacks while transmitting impact risk into the frame | Piloting or Engineering; Pilot |
 | Ship Figurehead | `module.prow.figurehead` | Provides a customizable prow fitting that can host declared enchantments, wards, sensors, or command effects | Crafting or Enchantment; Artificer |
 | Deck Battery | `module.weapon.deck-battery` | Mounts one configured Aether Energy, Diesel Shell, or Atomic Shell Cannon with declared damage, rate of fire, range, reload, damage type and area, armor penetration, arc, and resource path | No Skill or crew position requirement |
 | Boarding Lock | `module.contact.boarding-lock` | Controls docking, boarding, quarantine seals, and ship-to-ship access | Engineering or Defense; Master-at-Arms |
 | Signal Lantern | `module.contact.signal-lantern` | Sends identification, negotiation, warning, and distress signals | Language and Literacy or Negotiation; Envoy |
-| Psychic Resonator | `module.contact.psychic-resonator` | Amplifies permitted mindlinks and detects nearby psychic signaling | Psionics; Mindwarden or Envoy |
+| Psionics Resonator | `module.contact.psionics-resonator` | Amplifies permitted mindlinks and detects nearby psionics signaling | Psionics; Mindwarden or Envoy |
 
 The catalog is a design vocabulary, not a promise that every module belongs in
 the first playable voyage. New definitions should create new system

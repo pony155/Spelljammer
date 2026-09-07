@@ -52,7 +52,7 @@
     "skill.piloting.name": {"description":"Skill display name.","message":"Piloting"},
     "skill.piloting.description": {"description":"Skill summary.","message":"Control ship maneuvers, docking, evasion, approaches, and disengagement."},
     "skill.psionics.name": {"description":"Skill display name.","message":"Psionics"},
-    "skill.psionics.description": {"description":"Skill summary.","message":"Understand psychic theory and control known techniques with explicit access."},
+    "skill.psionics.description": {"description":"Skill summary.","message":"Understand psionics theory and control known techniques with explicit access."},
     "skill.rigging.name": {"description":"Skill display name.","message":"Rigging"},
     "skill.rigging.description": {"description":"Skill summary.","message":"Deploy sails, tethers, lines, fittings, and load-bearing arrangements."},
     "skill.salvage.name": {"description":"Skill display name.","message":"Salvage"},

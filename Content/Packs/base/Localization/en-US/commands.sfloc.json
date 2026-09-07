@@ -37,9 +37,9 @@
       "description": "Disabled action reason.",
       "message": "The required skill is too low."
     },
-    "command.attribute-required": {
+    "command.ability-required": {
       "description": "Disabled action reason.",
-      "message": "The required attribute is too low."
+      "message": "The required ability is too low."
     },
     "command.equipment-required": {
       "description": "Disabled action reason.",
@@ -94,11 +94,11 @@
       "message": "Only a channeled spell can be interrupted."
     },
     "command.consent-required": {
-      "description": "Psychic contact rejection reason.",
-      "message": "The target must accept this psychic contact first."
+      "description": "Psionics contact rejection reason.",
+      "message": "The target must accept this psionics contact first."
     },
     "command.consent-owner-required": {
-      "description": "Psychic consent rejection reason.",
+      "description": "Psionics consent rejection reason.",
       "message": "Only the consenting target can revoke this link."
     }
   }

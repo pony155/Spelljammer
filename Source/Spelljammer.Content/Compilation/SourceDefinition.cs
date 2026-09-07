@@ -5,7 +5,7 @@ namespace Spelljammer.Content.Compilation;
 
 internal enum DefinitionKind : byte
 {
-    Attribute,
+    Ability,
     Skill,
     Access,
     Background,
@@ -40,7 +40,7 @@ internal sealed record SourceDefinition(
     IReadOnlyDictionary<string, int> Integers,
     IReadOnlyDictionary<string, string> Strings,
     IReadOnlyDictionary<string, ImmutableArray<string>> Arrays,
-    AttributeSourceDto? Attribute,
+    AttributeSourceDto? Ability,
     SkillSourceDto? Skill);
 
 internal sealed record AttributeSourceDto(

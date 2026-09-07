@@ -96,12 +96,12 @@ public sealed record CrewSupportProfile(
 /// A snapshot of a complete roster of characters at a point in time.
 /// </summary>
 /// <remarks>
-/// The roster includes all characters, and cached attribute/skill definition arrays for efficient lookup.
+/// The roster includes all characters, and cached ability/skill definition arrays for efficient lookup.
 /// </remarks>
 /// <param name="ContentFingerprint">The content version this roster is based on.</param>
 /// <param name="ScenarioId">The scenario all characters are participating in.</param>
 /// <param name="Characters">The array of all characters in the roster.</param>
-/// <param name="AttributeColumns">Cached attribute definitions for column indexing.</param>
+/// <param name="AttributeColumns">Cached ability definitions for column indexing.</param>
 /// <param name="SkillColumns">Cached skill definitions for column indexing.</param>
 public sealed record RosterSnapshot(
     ContentFingerprint ContentFingerprint,
@@ -194,8 +194,8 @@ public static class CharacterCreator
         }
 
         OwnedRandom random = new(DeriveSeed(request));
-        ImmutableArray<short>.Builder attributes = ImmutableArray.CreateBuilder<short>(catalog.Attributes.Length);
-        foreach (AttributeDefinition definition in catalog.Attributes)
+        ImmutableArray<short>.Builder abilities = ImmutableArray.CreateBuilder<short>(catalog.Abilities.Length);
+        foreach (AttributeDefinition definition in catalog.Abilities)
         {
             int value = definition.DefaultValue + random.NextInclusive(-1, 1);
             if (background.AttributeBonusIds.Contains(definition.AttributeId))
@@ -203,7 +203,7 @@ public static class CharacterCreator
                 value++;
             }
 
-            attributes.Add((short)Math.Clamp(value, definition.Minimum, definition.Maximum));
+            abilities.Add((short)Math.Clamp(value, definition.Minimum, definition.Maximum));
         }
 
         ImmutableHashSet<SkillId> focusSkills = background.FocusSkillIds.Union(template.FocusSkillIds).ToImmutableHashSet();
@@ -235,7 +235,7 @@ public static class CharacterCreator
 
         CharacterCapabilities capabilities = new(
             catalog.Fingerprint,
-            attributes.MoveToImmutable(),
+            abilities.MoveToImmutable(),
             skills.MoveToImmutable(),
             ImmutableArray.CreateRange(Enumerable.Repeat((ushort)0, catalog.Skills.Length)),
             ImmutableHashSet<FeatId>.Empty,
@@ -243,7 +243,7 @@ public static class CharacterCreator
             grants.Techniques,
             grants.Sources);
         ImmutableDictionary<ResourceId, int> resources = template.ResourceIds
-            .ToImmutableDictionary(id => id, id => id == new ResourceId("resource.psychic-strain") ? 0 : 10);
+            .ToImmutableDictionary(id => id, id => id == new ResourceId("resource.psionics-strain") ? 0 : 10);
 
         CharacterState published = new(
             template.CharacterId,
@@ -305,7 +305,7 @@ public static class CharacterCreator
         }
 
         return new RosterCreationResult(
-            new RosterSnapshot(fingerprint, scenarioId, characters.MoveToImmutable(), catalog.Attributes, catalog.Skills),
+            new RosterSnapshot(fingerprint, scenarioId, characters.MoveToImmutable(), catalog.Abilities, catalog.Skills),
             CharacterCreationFailure.None,
             null);
     }
@@ -430,7 +430,7 @@ public static class CharacterCreator
                 return true;
             }
 
-            if (id.Value.ToString().StartsWith("psychic.", StringComparison.Ordinal) &&
+            if (id.Value.ToString().StartsWith("psionics.", StringComparison.Ordinal) &&
                 catalog.TryGetPsychicTechnique(new PsychicTechniqueId(id.Value), out _))
             {
                 grantedPerks = [];

@@ -1,49 +1,49 @@
-# Psychic abilities
+# Psionics abilities
 
 ## Status
 
-Mindlink, Psychic Strain, explicit invitation and consent, bounded deliberate-
+Mindlink, Psionics Strain, explicit invitation and consent, bounded deliberate-
 message scope, learning, innate Mindwake provenance, sustain, and release are
-implemented as a headless character slice. Other psychic techniques, hazards,
+implemented as a headless character slice. Other psionics techniques, hazards,
 and visual encounter integration remain planned.
 
 ## Core boundary
 
-Psychic abilities use directed awareness and mental focus to sense, contact,
+Psionics abilities use directed awareness and mental focus to sense, contact,
 project, shield, or exert force. They do not use aetheric spell patterns.
 
 | System | Primary medium | Typical use |
 | --- | --- | --- |
-| Psionics | Minds, attention, perception, and psychic strain | Mindlinks, emotional impressions, shielding, remote sense, and psychokinesis |
+| Psionics | Minds, attention, perception, and psionics strain | Mindlinks, emotional impressions, shielding, remote sense, and psychokinesis |
 | Magic | Aether, learned spells, reagents, and focus | Active supernatural effects on characters, objects, environments, and energy |
 | Enchantment | Prepared targets, bindings, and persistent charge | Lasting supernatural effects on equipment, modules, and locations |
 
 An effect uses its authored system even when the fiction appears similar. A
-psychic impression is not a divination spell, a telekinetic push is not a
+psionics impression is not a divination spell, a telekinetic push is not a
 Vectoring spell, and a mind shield is not automatically an aetheric ward.
 Explicit hybrid techniques may interact with both systems.
 
 ## Classless access
 
-Any character may improve `skill.psionics`, study psychic theory, and pursue
-training. There is no psychic class, global character level, or race-locked
+Any character may improve `skill.psionics`, study psionics theory, and pursue
+training. There is no psionics class, global character level, or race-locked
 skill ceiling. Active use nevertheless requires `access.psionics`.
 
 Most characters earn access by completing Psionic Training and receiving
 `feat.access.psionics`. A mentor, school, authenticated instructional record,
-or safe psychic facility can support that bounded training project. An unusual
-experience or psychic implement may begin or modify training, but cannot
+or safe psionics facility can support that bounded training project. An unusual
+experience or psionics implement may begin or modify training, but cannot
 silently bypass it.
 
 A Race or Heritage Racial Perk may instead grant `access.psionics` innately. The
-Somnari Race Perk **Mindwake** does so and also grants basic psychic sensing
+Somnari Race Perk **Mindwake** does so and also grants basic psionics sensing
 and a consensual short-range mindlink. It grants neither free Psionics ranks
 nor unrestricted access to another mind.
 
 Each technique is learned separately and stored by stable ID. Psionics skill
-measures control and practice; it does not automatically reveal every psychic
+measures control and practice; it does not automatically reveal every psionics
 ability. Access, technique knowledge, and competence are validated separately;
-a high skill rating, crew position, or psychic implement is never sufficient
+a high skill rating, crew position, or psionics implement is never sufficient
 without a learned Feat or explicit innate Racial Perk.
 
 ## Consent and mental privacy
@@ -57,7 +57,7 @@ text. Every technique declares one contact mode:
 | Invited | Resolves only after the target has knowingly accepted the specific contact |
 | Permitted | Uses a current bounded permission such as an active crew mindlink policy |
 | Resistible | May target without permission but always gives the target an explicit resistance action |
-| Hostile | Is treated as psychic intrusion even if it fails and can trigger witnesses, Alarm, law, or combat |
+| Hostile | Is treated as psionics intrusion even if it fails and can trigger witnesses, Alarm, law, or combat |
 
 Consent specifies participants, allowed technique tags, information scope,
 duration, and revocation rule. Consent to receive a warning does not grant
@@ -72,9 +72,9 @@ unlimited consent.
 NPCs follow the same contact, resistance, evidence, and consequence rules as
 player characters.
 
-## Psychic contact sequence
+## Psionics contact sequence
 
-A psychic action resolves through explicit phases:
+A psionics action resolves through explicit phases:
 
 1. **Declare:** choose the known technique, target, intended information or
    effect, contact mode, and bounded parameters.
@@ -82,7 +82,7 @@ A psychic action resolves through explicit phases:
    environmental noise, and target identity.
 3. **Request or resist:** obtain required consent or resolve the target's
    resistance without exposing protected information.
-4. **Reserve strain:** reserve the user's attention, Psychic Strain capacity,
+4. **Reserve strain:** reserve the user's attention, Psionics Strain capacity,
    time, and any implement or amplifier.
 5. **Resolve:** combine the contextual ability, `skill.psionics`, equipment,
    assistance, circumstances, and deterministic random result.
@@ -96,13 +96,13 @@ failed to reach.
 
 ## Abilities and resolution
 
-Psychic techniques are not permanently bound to one ability:
+Psionics techniques are not permanently bound to one ability:
 
-- Intelligence interprets complex signals, memories, and psychic patterns.
+- Intelligence interprets complex signals, memories, and psionics patterns.
 - Willpower establishes control, resists intrusion, sustains shields, and
   projects emotion, identity, intent, or a coherent mental voice.
 - Agility coordinates psychokinesis with precise movement.
-- Toughness endures feedback, strain, or a hostile psychic environment.
+- Toughness endures feedback, strain, or a hostile psionics environment.
 - Perception applies only when a technique explicitly permits sensing a
   faint signal, subtle opening, or narrow escape route.
 
@@ -111,9 +111,9 @@ Psionics, Insight, or a suitable defense. The UI shows known participants,
 approaches, modifiers, uncertainty, and results without disclosing secrets the
 observer has not earned.
 
-## Psychic Strain
+## Psionics Strain
 
-Psychic Strain is a temporary bounded resource from 0 through 100. Using or
+Psionics Strain is a temporary bounded resource from 0 through 100. Using or
 sustaining a technique adds strain after reservation. Environmental noise,
 injury, poor rest, interference, and repeated contact can increase its cost.
 
@@ -136,26 +136,26 @@ used to farm skill progression while recovering.
 
 ## Ability disciplines
 
-Disciplines organize psychic techniques for learning and counterplay. They are
+Disciplines organize psionics techniques for learning and counterplay. They are
 not classes.
 
 | Discipline | Stable ID | Scope |
 | --- | --- | --- |
-| Contact | `psychic.discipline.contact` | Identity exchange, directed thoughts, mindlinks, and psychic signaling |
-| Empathy | `psychic.discipline.empathy` | Emotional impressions, distress detection, calming, and emotional projection |
-| Shielding | `psychic.discipline.shielding` | Detecting, resisting, masking, and interrupting psychic contact |
-| Projection | `psychic.discipline.projection` | Sending images, sounds, concepts, dreams, or deliberate false impressions |
-| Memory | `psychic.discipline.memory` | Guided recall, consensual sharing, provenance, and protection of memories |
-| Far-sense | `psychic.discipline.far-sense` | Remote awareness through a known person, place, object, or signal anchor |
-| Psychokinesis | `psychic.discipline.psychokinesis` | Bounded force, movement, restraint, and manipulation without physical contact |
+| Contact | `psionics.discipline.contact` | Identity exchange, directed thoughts, mindlinks, and psionics signaling |
+| Empathy | `psionics.discipline.empathy` | Emotional impressions, distress detection, calming, and emotional projection |
+| Shielding | `psionics.discipline.shielding` | Detecting, resisting, masking, and interrupting psionics contact |
+| Projection | `psionics.discipline.projection` | Sending images, sounds, concepts, dreams, or deliberate false impressions |
+| Memory | `psionics.discipline.memory` | Guided recall, consensual sharing, provenance, and protection of memories |
+| Far-sense | `psionics.discipline.far-sense` | Remote awareness through a known person, place, object, or signal anchor |
+| Psychokinesis | `psionics.discipline.psychokinesis` | Bounded force, movement, restraint, and manipulation without physical contact |
 
 One technique may carry several discipline tags. A Contact-Empathy technique
 might transmit an urgent feeling without words; a Shielding-Projection
-technique might create a decoy psychic signature.
+technique might create a decoy psionics signature.
 
 ## Information rules
 
-Psychic information is bounded evidence, not direct access to simulation truth:
+Psionics information is bounded evidence, not direct access to simulation truth:
 
 - Emotion reveals an impression, not objective motive, guilt, or truth.
 - Surface contact transmits only the authored information scope of the
@@ -166,13 +166,13 @@ Psychic information is bounded evidence, not direct access to simulation truth:
   evidence.
 - Far-sense requires an anchor and returns limited observations with range,
   noise, and uncertainty.
-- Psychic contact does not automatically translate language or explain ancient
+- Psionics contact does not automatically translate language or explain ancient
   cultural context.
 - A failed or resisted technique never reveals the protected answer through UI
   text, logs, or probability previews.
 
 Language and Literacy can structure complex shared communication. Insight can
-interpret behavior and uncertainty. Ancient Lore can contextualize old psychic
+interpret behavior and uncertainty. Ancient Lore can contextualize old psionics
 records or echoes. None becomes redundant.
 
 Deliberate deception can transmit a false impression, but it creates authored
@@ -181,7 +181,7 @@ detector.
 
 ## Influence and agency
 
-Psychic influence may create bounded distraction, calm, fear, urgency,
+Psionics influence may create bounded distraction, calm, fear, urgency,
 confusion, or attention shifts. It cannot permanently rewrite personality,
 silently change faction loyalty, force suicide, erase player commands, or turn
 another character into unrestricted property.
@@ -205,11 +205,11 @@ combine Agility with Psionics.
 
 ## Range, amplification, and communication
 
-Unaided contact is local. Distance tiers, blockers, psychic noise, and target
+Unaided contact is local. Distance tiers, blockers, psionics noise, and target
 familiarity are explicit technique data. A personal ability does not provide
 instant galaxy-wide communication.
 
-Prepared anchors, paired objects, trained relays, a Psychic Resonator, or an
+Prepared anchors, paired objects, trained relays, a Psionics Resonator, or an
 Arcane ship network can extend range. An Industrial ship can support the same
 equipment through an isolated source or converter. Amplification increases
 capacity but also power demand, detectable signature, interference, and
@@ -222,12 +222,12 @@ Psionics does not bypass the political knowledge rules in
 
 ## Hazards and counterplay
 
-Psychic hazards include crowded signals, hostile intrusion, dream contagion,
+Psionics hazards include crowded signals, hostile intrusion, dream contagion,
 ancient echoes, predatory lures, feedback loops, memory fragments, and aether
 storms that couple magic to thought.
 
 Counterplay includes mental shields, breaking range, ending consent, sensory
-grounding, psychic silence, decoy signatures, protective equipment, trained
+grounding, psionics silence, decoy signatures, protective equipment, trained
 assistance, Ward Projectors, and interrupting an amplifier. Every defense
 declares whether it blocks detection, content, influence, projection,
 psychokinesis, or feedback.
@@ -238,7 +238,7 @@ hazard must explicitly declare both system tags.
 ## Learning and discovery
 
 Techniques may be learned from mentors, schools, faction training, guided
-practice, psychic implements, shared memories, ancient records, or survivable
+practice, psionics implements, shared memories, ancient records, or survivable
 contact with an anomaly. The source defines consent, language, script, lore,
 facility, time, and safety requirements.
 
@@ -247,7 +247,7 @@ complete them in either order, but cannot initiate the technique until both
 `access.psionics` and its known-technique ID are present. An innate Racial Perk
 replaces only the access project unless it explicitly grants a named technique.
 
-Receiving a psychic impression does not automatically teach the technique that
+Receiving a psionics impression does not automatically teach the technique that
 produced it. Learning is a deterministic project, and unsafe instruction can
 add strain or uncertainty without granting partial hidden abilities.
 
@@ -257,27 +257,27 @@ technique collection.
 
 ## Data and persistence
 
-An authored psychic technique resembles:
+An authored psionics technique resembles:
 
 ```json
 {
   "schemaVersion": 1,
-  "id": "psychic.contact.mindlink",
-  "nameKey": "psychic.technique.contact.mindlink.name",
+  "id": "psionics.contact.mindlink",
+  "nameKey": "psionics.technique.contact.mindlink.name",
   "skillId": "skill.psionics",
   "requiredAccessId": "access.psionics",
-  "disciplineIds": ["psychic.discipline.contact"],
+  "disciplineIds": ["psionics.discipline.contact"],
   "contactMode": "invited",
   "rangeId": "range.near",
   "targetTags": ["character"],
   "strainCost": 4,
   "sustainCostPerTick": 1,
-  "informationScopeId": "psychic.scope.deliberate-message",
-  "effectIds": ["effect.psychic.shared-channel"]
+  "informationScopeId": "psionics.scope.deliberate-message",
+  "effectIds": ["effect.psionics.shared-channel"]
 }
 ```
 
-Persistent state stores known technique IDs, Psychic Strain, active learning
+Persistent state stores known technique IDs, Psionics Strain, active learning
 projects, permissions, links, shields, effects, and bounded memory-impression
 records. An active effect records source technique, user, targets, consent or
 resistance result, start tick, duration, sustain source, information scope, and
@@ -296,12 +296,12 @@ The first crew encounter milestone needs four techniques:
 
 | Technique | Stable ID | Purpose |
 | --- | --- | --- |
-| Mindlink | `psychic.contact.mindlink` | Exchange deliberate messages through an invited short-range link |
-| Echo Sense | `psychic.empathy.echo-sense` | Detect nearby psychic activity or distress without reading thoughts |
-| Quiet Mind | `psychic.shielding.quiet-mind` | Resist or mask one category of psychic contact |
-| Kinetic Nudge | `psychic.psychokinesis.kinetic-nudge` | Move one small nearby unattended object |
+| Mindlink | `psionics.contact.mindlink` | Exchange deliberate messages through an invited short-range link |
+| Echo Sense | `psionics.empathy.echo-sense` | Detect nearby psionics activity or distress without reading thoughts |
+| Quiet Mind | `psionics.shielding.quiet-mind` | Resist or mask one category of psionics contact |
+| Kinetic Nudge | `psionics.psychokinesis.kinetic-nudge` | Move one small nearby unattended object |
 
-Mindwake gives a Somnari innate psychic access, Mindlink, and basic psychic
+Mindwake gives a Somnari innate psionics access, Mindlink, and basic psionics
 detection. Other characters need Psionic Training plus the learned Mindlink
 technique; the remaining techniques require learning for everyone unless an
 explicit Racial Perk says otherwise. The slice exercises one trained access path,

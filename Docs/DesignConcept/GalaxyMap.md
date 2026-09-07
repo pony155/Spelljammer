@@ -144,7 +144,7 @@ Possible content includes:
 - ports, free anchorages, faction stations, monasteries, shipyards, and markets;
 - wrecks, derelicts, battle debris, salvage claims, and distress signals;
 - ancient ruins, sealed vaults, abandoned gates, and script-bearing artifacts;
-- aether storms, radiation zones, psychic echoes, gravity shear, and predators;
+- aether storms, radiation zones, psionics echoes, gravity shear, and predators;
   and
 - authored unique systems placed through explicit eligibility constraints.
 

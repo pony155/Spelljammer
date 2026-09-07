@@ -31,7 +31,7 @@ public sealed class GameContentSnapshot : ICharacterContentCatalog
     internal GameContentSnapshot(
         ContentFingerprint fingerprint,
         ImmutableArray<ContentPackIdentity> packs,
-        ImmutableArray<AttributeDefinition> attributes,
+        ImmutableArray<AttributeDefinition> abilities,
         ImmutableArray<SkillDefinition> skills,
         ImmutableArray<AccessDefinition> access,
         ImmutableArray<BackgroundDefinition> backgrounds,
@@ -57,7 +57,7 @@ public sealed class GameContentSnapshot : ICharacterContentCatalog
     {
         Fingerprint = fingerprint;
         Packs = packs;
-        Attributes = attributes;
+        Abilities = abilities;
         Skills = skills;
         Access = access;
         Backgrounds = backgrounds;
@@ -80,7 +80,7 @@ public sealed class GameContentSnapshot : ICharacterContentCatalog
         ShipWeaponConfigurations = shipWeaponConfigurations;
         CanonicalSemanticContent = canonicalSemanticContent;
         AttributeRegistry = new TypedDefinitionRegistry<AttributeId, AttributeDefinition>(
-            fingerprint, attributes, definition => definition.AttributeId);
+            fingerprint, abilities, definition => definition.AttributeId);
         SkillRegistry = new TypedDefinitionRegistry<SkillId, SkillDefinition>(
             fingerprint, skills, definition => definition.SkillId);
         AccessRegistry = new TypedDefinitionRegistry<AccessId, AccessDefinition>(fingerprint, access, definition => definition.AccessId);
@@ -103,7 +103,7 @@ public sealed class GameContentSnapshot : ICharacterContentCatalog
         ShipModuleRegistry = new TypedDefinitionRegistry<ModuleId, ShipModuleDefinition>(fingerprint, shipModules, definition => definition.ModuleId);
         ShipWeaponConfigurationRegistry = new TypedDefinitionRegistry<ShipWeaponConfigurationId, ShipWeaponConfigurationDefinition>(fingerprint, shipWeaponConfigurations, definition => definition.ShipWeaponConfigurationId);
 
-        definitionsById = attributes.Cast<ContentDefinition>()
+        definitionsById = abilities.Cast<ContentDefinition>()
             .Concat(skills)
             .Concat(access)
             .Concat(backgrounds)
@@ -130,7 +130,7 @@ public sealed class GameContentSnapshot : ICharacterContentCatalog
 
     public ContentFingerprint Fingerprint { get; }
     public ImmutableArray<ContentPackIdentity> Packs { get; }
-    public ImmutableArray<AttributeDefinition> Attributes { get; }
+    public ImmutableArray<AttributeDefinition> Abilities { get; }
     public ImmutableArray<SkillDefinition> Skills { get; }
     public ImmutableArray<AccessDefinition> Access { get; }
     public ImmutableArray<BackgroundDefinition> Backgrounds { get; }
@@ -208,7 +208,7 @@ public sealed class GameContentSnapshot : ICharacterContentCatalog
     public RegistryInspectionSnapshot Inspect()
     {
         List<RegistryInspectionEntry> entries = [];
-        AddEntries(entries, "Attribute", Attributes, definition => definition.Id);
+        AddEntries(entries, "Ability", Abilities, definition => definition.Id);
         AddEntries(entries, "Skill", Skills, definition => definition.Id);
         AddEntries(entries, "Access", Access, definition => definition.Id);
         AddEntries(entries, "Background", Backgrounds, definition => definition.Id);
@@ -233,7 +233,7 @@ public sealed class GameContentSnapshot : ICharacterContentCatalog
             Fingerprint,
             Packs.Length,
             definitionsById.Count,
-            Attributes.Length,
+            Abilities.Length,
             Skills.Length,
             [.. entries.OrderBy(entry => entry.Kind, StringComparer.Ordinal).ThenBy(entry => entry.Id, StringComparer.Ordinal)]);
     }

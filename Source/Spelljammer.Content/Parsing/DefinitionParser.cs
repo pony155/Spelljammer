@@ -15,7 +15,7 @@ internal static class DefinitionParser
     private static readonly IReadOnlyDictionary<DefinitionKind, KindSchema> KindSchemas =
         new Dictionary<DefinitionKind, KindSchema>
         {
-            [DefinitionKind.Attribute] = new(["minimum", "maximum", "defaultValue", "tags"], []),
+            [DefinitionKind.Ability] = new(["minimum", "maximum", "defaultValue", "tags"], []),
             [DefinitionKind.Skill] = new(["minimum", "maximum", "progressionCurveId", "actionTags"], []),
             [DefinitionKind.Access] = new(["tags"], []),
             [DefinitionKind.Background] = new(["compatibleRaceIds", "attributeBonusIds", "focusSkillIds"], []),
@@ -51,7 +51,7 @@ internal static class DefinitionParser
     private static readonly IReadOnlyDictionary<string, DefinitionKind> Directories =
         new Dictionary<string, DefinitionKind>(StringComparer.Ordinal)
         {
-            ["Attributes"] = DefinitionKind.Attribute,
+            ["Abilities"] = DefinitionKind.Ability,
             ["Skills"] = DefinitionKind.Skill,
             ["Access"] = DefinitionKind.Access,
             ["Backgrounds"] = DefinitionKind.Background,
@@ -207,7 +207,7 @@ internal static class DefinitionParser
             }
         }
 
-        AttributeSourceDto? attribute = kind == DefinitionKind.Attribute
+        AttributeSourceDto? ability = kind == DefinitionKind.Ability
             ? new AttributeSourceDto(
                 integers["minimum"],
                 integers["maximum"],
@@ -222,6 +222,6 @@ internal static class DefinitionParser
                 [.. arrays["actionTags"].Select(value => new ContentId(value))])
             : null;
         return new SourceDefinition(kind, id, 1, revision, nameKey, descriptionKey, packId, relativePath,
-            integers, strings, arrays, attribute, skill);
+            integers, strings, arrays, ability, skill);
     }
 }

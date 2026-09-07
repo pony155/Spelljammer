@@ -35,8 +35,8 @@ public static class ActionRejectionCodes
     /// <summary>The actor's skill level is too low to perform this action.</summary>
     public const string SkillRequired = "command.skill-required";
 
-    /// <summary>The actor's attribute value is too low to perform this action.</summary>
-    public const string AttributeRequired = "command.attribute-required";
+    /// <summary>The actor's ability value is too low to perform this action.</summary>
+    public const string AttributeRequired = "command.ability-required";
 
     /// <summary>The actor does not have the required equipment to perform this action.</summary>
     public const string EquipmentRequired = "command.equipment-required";
@@ -55,15 +55,15 @@ public static class ActionRejectionCodes
 /// Defines the requirements a character must meet to perform an action.
 /// </summary>
 /// <remarks>
-/// Action requirements include optional access privilege and technique checks, mandatory skill and attribute minimums,
+/// Action requirements include optional access privilege and technique checks, mandatory skill and ability minimums,
 /// and optional equipment and context requirements.
 /// </remarks>
 /// <param name="AccessId">The access privilege required to perform this action, if any.</param>
 /// <param name="TechniqueId">The technique/spell/power required, if any (for technique-based actions).</param>
 /// <param name="SkillId">The skill that governs success for this action.</param>
 /// <param name="MinimumSkill">The minimum skill level required to attempt this action.</param>
-/// <param name="AttributeId">The attribute that provides the base modifier for this action.</param>
-/// <param name="MinimumAttribute">The minimum attribute value required to attempt this action.</param>
+/// <param name="AttributeId">The ability that provides the base modifier for this action.</param>
+/// <param name="MinimumAttribute">The minimum ability value required to attempt this action.</param>
 /// <param name="EquipmentId">The equipment that must be equipped to perform this action, if any.</param>
 /// <param name="ContextId">A context requirement (e.g., must be in water, must be outdoors), if any.</param>
 public sealed record ActionRequirement(
@@ -161,13 +161,13 @@ public sealed record ActionRequest(
 /// </summary>
 /// <remarks>
 /// This record is produced during action eligibility checking and contains the character state snapshot
-/// before the action executes, reserved resources, and resolved attribute/skill values.
+/// before the action executes, reserved resources, and resolved ability/skill values.
 /// </remarks>
 /// <param name="OriginalState">The character state before the action is executed.</param>
 /// <param name="Definition">The action definition being performed.</param>
 /// <param name="Request">The original action request.</param>
 /// <param name="ReservedResources">Resources that will be consumed if the action executes.</param>
-/// <param name="AttributeValue">The resolved attribute value used as base modifier for this action.</param>
+/// <param name="AttributeValue">The resolved ability value used as base modifier for this action.</param>
 /// <param name="SkillValue">The resolved skill value for this action.</param>
 public sealed record ActionReservation(
     CharacterState OriginalState,
@@ -296,8 +296,8 @@ public static class CharacterActionSystem
             return Rejected(ActionRejectionCodes.SkillRequired, requirement.SkillId.Value);
         }
 
-        if (!actor.Capabilities.TryGetAttribute(requirement.AttributeId, catalog, out short attribute, out _) ||
-            attribute < requirement.MinimumAttribute)
+        if (!actor.Capabilities.TryGetAttribute(requirement.AttributeId, catalog, out short ability, out _) ||
+            ability < requirement.MinimumAttribute)
         {
             return Rejected(ActionRejectionCodes.AttributeRequired, requirement.AttributeId.Value);
         }
@@ -325,7 +325,7 @@ public static class CharacterActionSystem
         }
 
         return new ActionEligibilityResult(
-            new ActionReservation(actor, definition, request, reserved.ToImmutable(), attribute, skill),
+            new ActionReservation(actor, definition, request, reserved.ToImmutable(), ability, skill),
             ActionRejectionCodes.None,
             null);
     }

@@ -7,7 +7,7 @@ namespace Spelljammer.Simulation.Characters;
 /// Represents all computed abilities, skills, and capabilities of a character.
 /// </summary>
 /// <remarks>
-/// This class encapsulates the character's attributes, skills with practice tracking, feats, perks, and techniques.
+/// This class encapsulates the character's abilities, skills with practice tracking, feats, perks, and techniques.
 /// All data is immutable and validated against content definitions using fingerprints to ensure consistency.
 /// Skills track both mastery level and practice points separately.
 /// </remarks>
@@ -88,7 +88,7 @@ public sealed class CharacterCapabilities
         .ToImmutableHashSet();
 
     /// <summary>
-    /// Gets the immutable set of techniques this character can use (includes spells and psychic powers).
+    /// Gets the immutable set of techniques this character can use (includes spells and psionics powers).
     /// </summary>
     public ImmutableHashSet<TechniqueId> Techniques { get; }
 
@@ -101,10 +101,10 @@ public sealed class CharacterCapabilities
         .ToImmutableHashSet();
 
     /// <summary>
-    /// Gets the subset of techniques that are psychic powers this character knows.
+    /// Gets the subset of techniques that are psionics powers this character knows.
     /// </summary>
     public ImmutableHashSet<PsychicTechniqueId> KnownPsychicTechniqueIds => Techniques
-        .Where(value => value.Value.ToString().StartsWith("psychic.", StringComparison.Ordinal))
+        .Where(value => value.Value.ToString().StartsWith("psionics.", StringComparison.Ordinal))
         .Select(value => new PsychicTechniqueId(value.Value))
         .ToImmutableHashSet();
 
@@ -114,16 +114,16 @@ public sealed class CharacterCapabilities
     public ImmutableArray<CapabilityGrant> GrantSources { get; }
 
     /// <summary>
-    /// Attempts to retrieve an attribute value for this character using the given catalog.
+    /// Attempts to retrieve an ability value for this character using the given catalog.
     /// </summary>
     /// <remarks>
     /// The catalog must match this character's fingerprint; if it doesn't, the lookup fails with ContentMismatch.
     /// </remarks>
-    /// <param name="id">The attribute ID to look up.</param>
+    /// <param name="id">The ability ID to look up.</param>
     /// <param name="catalog">The content catalog to validate against.</param>
-    /// <param name="value">When successful, contains the attribute value; otherwise, zero.</param>
+    /// <param name="value">When successful, contains the ability value; otherwise, zero.</param>
     /// <param name="failure">A code indicating why the lookup failed, if it failed.</param>
-    /// <returns>True if the attribute was found and retrieved; otherwise, false.</returns>
+    /// <returns>True if the ability was found and retrieved; otherwise, false.</returns>
     public bool TryGetAttribute(
         AttributeId id,
         ICharacterContentCatalog catalog,
@@ -187,16 +187,16 @@ public sealed class CharacterCapabilities
 
     public CharacterCapabilitySnapshot Snapshot(ICharacterContentCatalog catalog)
     {
-        if (catalog.Fingerprint != Fingerprint || catalog.Attributes.Length != attributeValues.Length ||
+        if (catalog.Fingerprint != Fingerprint || catalog.Abilities.Length != attributeValues.Length ||
             catalog.Skills.Length != skillValues.Length)
         {
             throw new InvalidOperationException("The capability state does not belong to this content catalog.");
         }
 
-        ImmutableArray<AttributeValueSnapshot>.Builder attributes = ImmutableArray.CreateBuilder<AttributeValueSnapshot>(attributeValues.Length);
+        ImmutableArray<AttributeValueSnapshot>.Builder abilities = ImmutableArray.CreateBuilder<AttributeValueSnapshot>(attributeValues.Length);
         for (int index = 0; index < attributeValues.Length; index++)
         {
-            attributes.Add(new AttributeValueSnapshot(catalog.Attributes[index].AttributeId, attributeValues[index]));
+            abilities.Add(new AttributeValueSnapshot(catalog.Abilities[index].AttributeId, attributeValues[index]));
         }
 
         ImmutableArray<SkillValueSnapshot>.Builder skills = ImmutableArray.CreateBuilder<SkillValueSnapshot>(skillValues.Length);
@@ -207,7 +207,7 @@ public sealed class CharacterCapabilities
 
         return new CharacterCapabilitySnapshot(
             Fingerprint,
-            attributes.MoveToImmutable(),
+            abilities.MoveToImmutable(),
             skills.MoveToImmutable(),
             [.. Feats.Order()],
             [.. Perks.Order()],
@@ -221,27 +221,27 @@ public sealed class CharacterCapabilities
     {
         ArgumentNullException.ThrowIfNull(snapshot);
         ArgumentNullException.ThrowIfNull(catalog);
-        if (snapshot.Fingerprint != catalog.Fingerprint || snapshot.Attributes.Length != catalog.Attributes.Length ||
+        if (snapshot.Fingerprint != catalog.Fingerprint || snapshot.Abilities.Length != catalog.Abilities.Length ||
             snapshot.Skills.Length != catalog.Skills.Length || snapshot.Feats.Length > MaximumSetEntries ||
             snapshot.Perks.Length > MaximumSetEntries || snapshot.Techniques.Length > MaximumSetEntries ||
             snapshot.GrantSources.Length > MaximumSetEntries || snapshot.PracticeKeys.Length > MaximumPracticeKeys ||
-            snapshot.Attributes.Select(value => value.Id).Distinct().Count() != snapshot.Attributes.Length ||
+            snapshot.Abilities.Select(value => value.Id).Distinct().Count() != snapshot.Abilities.Length ||
             snapshot.Skills.Select(value => value.Id).Distinct().Count() != snapshot.Skills.Length ||
             snapshot.PracticeKeys.Distinct().Count() != snapshot.PracticeKeys.Length)
         {
             throw new InvalidOperationException("Character capability snapshot is incompatible or exceeds capacity.");
         }
 
-        ImmutableArray<short>.Builder attributes = ImmutableArray.CreateBuilder<short>(catalog.Attributes.Length);
-        foreach (AttributeDefinition definition in catalog.Attributes)
+        ImmutableArray<short>.Builder abilities = ImmutableArray.CreateBuilder<short>(catalog.Abilities.Length);
+        foreach (AttributeDefinition definition in catalog.Abilities)
         {
-            AttributeValueSnapshot? value = snapshot.Attributes.SingleOrDefault(candidate => candidate.Id == definition.AttributeId);
+            AttributeValueSnapshot? value = snapshot.Abilities.SingleOrDefault(candidate => candidate.Id == definition.AttributeId);
             if (value is null || value.Value < definition.Minimum || value.Value > definition.Maximum)
             {
-                throw new InvalidOperationException("Character Attribute state is invalid.");
+                throw new InvalidOperationException("Character Ability state is invalid.");
             }
 
-            attributes.Add(value.Value);
+            abilities.Add(value.Value);
         }
 
         ImmutableArray<byte>.Builder skills = ImmutableArray.CreateBuilder<byte>(catalog.Skills.Length);
@@ -268,7 +268,7 @@ public sealed class CharacterCapabilities
 
         return new CharacterCapabilities(
             snapshot.Fingerprint,
-            attributes.MoveToImmutable(),
+            abilities.MoveToImmutable(),
             skills.MoveToImmutable(),
             practice.MoveToImmutable(),
             snapshot.Feats.ToImmutableHashSet(),
@@ -281,7 +281,7 @@ public sealed class CharacterCapabilities
     private static bool TechniqueExists(TechniqueId id, ICharacterContentCatalog catalog) =>
         id.Value.ToString().StartsWith("spell.", StringComparison.Ordinal)
             ? catalog.TryGetSpell(new SpellId(id.Value), out _)
-            : id.Value.ToString().StartsWith("psychic.", StringComparison.Ordinal)
+            : id.Value.ToString().StartsWith("psionics.", StringComparison.Ordinal)
                 ? catalog.TryGetPsychicTechnique(new PsychicTechniqueId(id.Value), out _)
                 : catalog.TryGetTechnique(id, out _);
 

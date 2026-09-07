@@ -26,12 +26,12 @@ values.
 
 | Ability | Stable ID | Governs |
 | --- | --- | --- |
-| Strength | `attribute.strength` | Equipment weight limits, melee damage, melee accuracy |
-| Agility | `attribute.agility` | Turn meter speed, action points, and dodge rate |
-| Perception | `attribute.perception` | Overall awareness, detecting hidden passages and objects, spotting stealthed creatures and NPCs, and effectiveness with ranged weapons (enhances ranged weapon skills and accuracy) |
-| Toughness | `attribute.toughness` | Health, stamina, pain tolerance, physical recovery, and environmental resistance |
-| Willpower | `attribute.willpower` | Concentration, courage, self-control, and magical or psychic control and resistance |
-| Intelligence | `attribute.intelligence` | Observation, analysis, memory, diagnosis, planning, and technical learning |
+| Strength | `ability.strength` | Melee damage and hit chance, carry capacity, and weapon/armor weight requirements |
+| Agility | `ability.agility` | Turn meter speed, action points, and dodge rate |
+| Perception | `ability.perception` | Overall awareness, detecting hidden passages and objects, spotting stealthed creatures and NPCs, ranged weapon hit chance, and psionics |
+| Toughness | `ability.toughness` | Overall health, physical defense, and resistance to physical effects |
+| Willpower | `ability.willpower` | Effectiveness with psionics and magic, resistance to mental effects, and psi point/mana regeneration |
+| Intelligence | `ability.intelligence` | Diagnosis and technical analysis, knowledge and lore recall, and effectiveness with enchantment and magic |
 
 ## Contextual use
 
@@ -47,8 +47,8 @@ ability that matches its method and circumstances:
 - Agility plus Archery can make a difficult shot.
 - Willpower plus Magic can guide an enchanted arrow.
 - Intelligence plus Enchantment can inscribe a stable magical binding.
-- Intelligence plus Psionics can interpret an unfamiliar psychic signal.
-- Willpower plus Psionics can maintain a shield against psychic intrusion.
+- Intelligence plus Psionics can interpret an unfamiliar psionics signal.
+- Willpower plus Psionics can maintain a shield against psionics intrusion.
 - Perception plus Psionics can sense a faint emotion through a mindlink.
 - Perception plus Salvage can expose a rare find on a careful sweep.
 - Intelligence plus Merchant can recognize manipulated market records.

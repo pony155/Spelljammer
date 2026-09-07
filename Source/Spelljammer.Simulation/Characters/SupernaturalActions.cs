@@ -387,7 +387,7 @@ public static class MindlinkSystem
                 long.MaxValue,
                 link.Definition.InformationScopeId))];
         ObservableCapabilityEvidence evidence = new(
-            new ContentId("evidence.psychic.mindlink"),
+            new ContentId("evidence.psionics.mindlink"),
             link.Definition.PsychicTechniqueId.Value,
             link.OriginalActor.Id,
             link.TargetId,

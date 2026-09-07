@@ -6,11 +6,11 @@ This document specifies the gameplay content pipeline. The Milestone 1
 foundation is implemented: explicit-root discovery, strict source validation,
 deterministic ordering, immutable candidate compilation, semantic
 fingerprinting, transactional publication, and offline validation are
-available. Milestone 2 adds the production base Attribute and Skill catalogs,
+available. Milestone 2 adds the production base Ability and Skill catalogs,
 typed dense registries, default-locale validation, and registry inspection.
 Milestone 3 adds strict Character, Background, Heritage, and Technique kinds,
 grant-graph validation, the base race roster, and the simulation catalog
-boundary. Milestone 4 adds Spell and psychic-technique kinds, expanded training
+boundary. Milestone 4 adds Spell and psionics-technique kinds, expanded training
 projects, and their fingerprint-scoped registries. The current WPF expedition
 behavior remains unchanged. Milestone 5 adds linked equipment, personal-board,
 encounter, ship-frame, ship-module, and ship-weapon-configuration kinds plus
@@ -23,7 +23,7 @@ spells, items, ships, encounters, factions, and crises.
 ## Decisions
 
 - Hard-code the definition machinery and safe rule primitives, not lists such
-  as `attribute.strength` or `skill.engineering`.
+  as `ability.strength` or `skill.engineering`.
 - Treat the base game as the first content pack. Mods use the same schemas and
   validation path as first-party data.
 - Author strict UTF-8 JSON in versioned schemas. Arbitrary executable scripts
@@ -75,7 +75,7 @@ Content/
     base/
       manifest.json
       Definitions/
-        Attributes/
+        Abilities/
         Access/
         Backgrounds/
         Characters/
@@ -143,7 +143,7 @@ ambiguous ownership are errors.
 Established core IDs remain valid:
 
 ```text
-attribute.strength
+ability.strength
 skill.engineering
 feat.access.magic
 perk.race.elf.aether-sense
@@ -211,7 +211,7 @@ The conceptual runtime boundary is:
 public sealed class GameContentSnapshot
 {
     public required ContentFingerprint Fingerprint { get; init; }
-    public required ImmutableArray<AttributeDefinition> Attributes { get; init; }
+    public required ImmutableArray<AttributeDefinition> Abilities { get; init; }
     public required ImmutableArray<SkillDefinition> Skills { get; init; }
     public required ImmutableArray<FeatDefinition> Feats { get; init; }
     public required ImmutableArray<PerkDefinition> Perks { get; init; }

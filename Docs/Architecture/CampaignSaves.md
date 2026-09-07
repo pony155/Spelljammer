@@ -62,7 +62,7 @@ list stable pack and definition IDs, never display names.
 `Compatible` requires an explicit source-to-destination fingerprint rule.
 During reconstruction, definitions are looked up by stable ID and current
 dense indices are rebuilt from the selected snapshot. A compatible destination
-may add Attributes or Skills; only those new entries receive their authored
+may add Abilities or Skills; only those new entries receive their authored
 default or minimum. Unknown saved definitions remain fatal.
 
 The temporary candidate is checked for content identity, collection bounds,

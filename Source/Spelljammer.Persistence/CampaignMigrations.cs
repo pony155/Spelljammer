@@ -193,7 +193,7 @@ public static class CampaignMigrationService
             CharacterCapabilitySnapshot rebound = old with
             {
                 Fingerprint = newContent.Fingerprint,
-                Attributes = [.. newContent.Attributes.Select(definition => old.Attributes
+                Abilities = [.. newContent.Abilities.Select(definition => old.Abilities
                     .FirstOrDefault(value => value.Id == definition.AttributeId) ??
                     new AttributeValueSnapshot(definition.AttributeId, (short)definition.DefaultValue))],
                 Skills = [.. newContent.Skills.Select(definition => old.Skills

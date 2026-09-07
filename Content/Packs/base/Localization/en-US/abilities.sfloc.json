@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "locale": "en-US",
+  "namespace": "ability",
+  "fallbacks": [],
+  "textDirection": "ltr",
+  "messages": {
+    "ability.agility.name": {"description":"Ability display name.","message":"Agility"},
+    "ability.agility.description": {"description":"Ability summary.","message":"Coordination, balance, reflexes, precise movement, and aim."},
+    "ability.intelligence.name": {"description":"Ability display name.","message":"Intelligence"},
+    "ability.intelligence.description": {"description":"Ability summary.","message":"Observation, analysis, memory, diagnosis, planning, and technical learning."},
+    "ability.perception.name": {"description":"Ability display name.","message":"Perception"},
+    "ability.perception.description": {"description":"Ability summary.","message":"Sensory awareness, spotting danger or details, tracking, ranged accuracy support, and noticing what others miss."},
+    "ability.strength.name": {"description":"Ability display name.","message":"Strength"},
+    "ability.strength.description": {"description":"Ability summary.","message":"Physical force, lifting, carrying, heavy weapons, and resisting forced movement."},
+    "ability.toughness.name": {"description":"Ability display name.","message":"Toughness"},
+    "ability.toughness.description": {"description":"Ability summary.","message":"Health, stamina, pain tolerance, recovery, and environmental resistance."},
+    "ability.willpower.name": {"description":"Ability display name.","message":"Willpower"},
+    "ability.willpower.description": {"description":"Ability summary.","message":"Concentration, courage, self-control, and supernatural control or resistance."}
+  }
+}

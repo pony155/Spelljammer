@@ -6,7 +6,7 @@ namespace Spelljammer.Simulation.Characters;
 public interface ICharacterContentCatalog
 {
     ContentFingerprint Fingerprint { get; }
-    ImmutableArray<AttributeDefinition> Attributes { get; }
+    ImmutableArray<AttributeDefinition> Abilities { get; }
     ImmutableArray<SkillDefinition> Skills { get; }
     ImmutableArray<CharacterDefinition> Characters { get; }
     ImmutableArray<SpellDefinition> Spells { get; }
@@ -70,7 +70,7 @@ public sealed record SkillValueSnapshot(SkillId Id, byte Value, ushort Practice)
 
 public sealed record CharacterCapabilitySnapshot(
     ContentFingerprint Fingerprint,
-    ImmutableArray<AttributeValueSnapshot> Attributes,
+    ImmutableArray<AttributeValueSnapshot> Abilities,
     ImmutableArray<SkillValueSnapshot> Skills,
     ImmutableArray<FeatId> Feats,
     ImmutableArray<PerkId> Perks,

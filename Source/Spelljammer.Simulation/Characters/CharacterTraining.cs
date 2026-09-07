@@ -164,7 +164,7 @@ public static class CharacterTrainingSystem
         {
             bool known = techniqueId.Value.ToString().StartsWith("spell.", StringComparison.Ordinal)
                 ? catalog.TryGetSpell(new SpellId(techniqueId.Value), out _)
-                : techniqueId.Value.ToString().StartsWith("psychic.", StringComparison.Ordinal)
+                : techniqueId.Value.ToString().StartsWith("psionics.", StringComparison.Ordinal)
                     ? catalog.TryGetPsychicTechnique(new PsychicTechniqueId(techniqueId.Value), out _)
                     : catalog.TryGetTechnique(techniqueId, out _);
             if (!known)

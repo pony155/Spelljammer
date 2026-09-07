@@ -19,13 +19,13 @@ The first mod release supports local declarative packs that add validated:
 
 - Races, Heritage, Perks, learned Feats, and Backgrounds;
 - Skills after every consumer supports a dynamic Skill registry;
-- spells, psychic abilities, combat techniques, recipes, and enchantments;
+- spells, psionics abilities, combat techniques, recipes, and enchantments;
 - items, weapons, armor, ship frames, and ship modules;
 - travel events, encounters, ruin rooms, galaxy sites, factions, and crises;
   and
 - localization entries and presentation assets within declared limits.
 
-Adding or removing Attributes, patching base definitions, executable behavior,
+Adding or removing Abilities, patching base definitions, executable behavior,
 custom native modules, custom WPF controls, network downloads, and live
 mid-campaign reload are later capabilities. Version 1 rejects them explicitly.
 

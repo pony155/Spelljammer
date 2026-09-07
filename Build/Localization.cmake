@@ -147,8 +147,8 @@ add_custom_target(SpelljammerLocalizationCatalogs
         -p:Platform=AnyCPU
         --no-build
         -- compile
-        ${SPELLJAMMER_ROOT}/Content/Packs/base/Localization/en-US/attributes.sfloc.json
-        ${CMAKE_CURRENT_BINARY_DIR}/Localization/en-US/attributes.sfloc
+        ${SPELLJAMMER_ROOT}/Content/Packs/base/Localization/en-US/abilities.sfloc.json
+        ${CMAKE_CURRENT_BINARY_DIR}/Localization/en-US/abilities.sfloc
     COMMAND ${CMAKE_COMMAND} -E env DOTNET_CLI_TELEMETRY_OPTOUT=1
         ${SPELLJAMMER_DOTNET_EXECUTABLE} run
         --project ${SPELLJAMMER_ROOT}/Tools/Spelljammer.Localization.Compiler/Spelljammer.Localization.Compiler.csproj
@@ -219,8 +219,8 @@ add_custom_target(SpelljammerLocalizationCatalogs
         -p:Platform=AnyCPU
         --no-build
         -- compile
-        ${SPELLJAMMER_ROOT}/Content/Packs/base/Localization/en-US/psychic-techniques.sfloc.json
-        ${CMAKE_CURRENT_BINARY_DIR}/Localization/en-US/psychic-techniques.sfloc
+        ${SPELLJAMMER_ROOT}/Content/Packs/base/Localization/en-US/psionics-techniques.sfloc.json
+        ${CMAKE_CURRENT_BINARY_DIR}/Localization/en-US/psionics-techniques.sfloc
     COMMAND ${CMAKE_COMMAND} -E env DOTNET_CLI_TELEMETRY_OPTOUT=1
         ${SPELLJAMMER_DOTNET_EXECUTABLE} run
         --project ${SPELLJAMMER_ROOT}/Tools/Spelljammer.Localization.Compiler/Spelljammer.Localization.Compiler.csproj
@@ -345,7 +345,7 @@ add_custom_target(SpelljammerLocalizationCatalogs
         ${CMAKE_CURRENT_BINARY_DIR}/Localization/en-US/trainings.sfloc
         ${CMAKE_CURRENT_BINARY_DIR}/Localization/en-US/techniques.sfloc
         ${CMAKE_CURRENT_BINARY_DIR}/Localization/en-US/spells.sfloc
-        ${CMAKE_CURRENT_BINARY_DIR}/Localization/en-US/psychic-techniques.sfloc
+        ${CMAKE_CURRENT_BINARY_DIR}/Localization/en-US/psionics-techniques.sfloc
         ${CMAKE_CURRENT_BINARY_DIR}/Localization/en-US/races.sfloc
         ${CMAKE_CURRENT_BINARY_DIR}/Localization/en-US/heritages.sfloc
         ${CMAKE_CURRENT_BINARY_DIR}/Localization/en-US/perks.sfloc
@@ -361,7 +361,7 @@ add_custom_target(SpelljammerLocalizationCatalogs
         ${CMAKE_CURRENT_BINARY_DIR}/Localization/zh-Hant-TW/settings.sfloc
         ${CMAKE_CURRENT_BINARY_DIR}/Localization/zh-Hant-TW/creation.sfloc
         ${CMAKE_CURRENT_BINARY_DIR}/Localization/en-US/content-pack.sfloc
-        ${CMAKE_CURRENT_BINARY_DIR}/Localization/en-US/attributes.sfloc
+        ${CMAKE_CURRENT_BINARY_DIR}/Localization/en-US/abilities.sfloc
         ${CMAKE_CURRENT_BINARY_DIR}/Localization/en-US/skills.sfloc
         ${CMAKE_CURRENT_BINARY_DIR}/Localization/en-US/characters.sfloc
         ${CMAKE_CURRENT_BINARY_DIR}/Localization/en-US/equipment.sfloc

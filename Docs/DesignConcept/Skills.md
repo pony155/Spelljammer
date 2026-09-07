@@ -8,7 +8,7 @@ are implemented; character values, advancement, actions, languages, scripts,
 and lore state remain planned. Broad capability is defined in
 [`Abilities.md`](Abilities.md), while race, heritage, identity, background,
 and Racial Perks are defined in [`Races.md`](Races.md). Spellcasting rules and the
-authored spell catalog are defined in [`Spells.md`](Spells.md), and psychic
+authored spell catalog are defined in [`Spells.md`](Spells.md), and psionics
 techniques are expanded in
 [`PsychicAbilities.md`](PsychicAbilities.md). Combat actions and tactical
 contexts are defined in [`Battle.md`](Battle.md).
@@ -42,7 +42,7 @@ and control but does not grant permission to perform supernatural actions.
 | Learned Feat | Stable ID | Grants |
 | --- | --- | --- |
 | Spellcasting Training | `feat.access.magic` | `access.magic`, allowing the character to cast known spells |
-| Psionic Training | `feat.access.psionics` | `access.psionics`, allowing the character to use known psychic techniques |
+| Psionic Training | `feat.access.psionics` | `access.psionics`, allowing the character to use known psionics techniques |
 
 A character earns an access Feat by completing a validated training project.
 The project declares a mentor or instructional source, minimum skills,
@@ -60,13 +60,13 @@ Access, knowledge, and competence are separate checks:
 
 1. the character has the required access ID from a learned Feat or racial
    Racial Perk;
-2. the character knows the specific spell or psychic technique; and
+2. the character knows the specific spell or psionics technique; and
 3. the character meets its skill, resource, target, equipment, and contextual
    requirements.
 
 Without access, a character can study theory, identify evidence, assist an
 authorized practitioner, and make allowed knowledge checks, but cannot cast a
-spell or initiate a psychic technique. A focus item, spellbook, psychic
+spell or initiate a psionics technique. A focus item, spellbook, psionics
 implement, or high skill rating never bypasses the access gate.
 
 ## Skill catalog
@@ -98,7 +98,7 @@ care, and discovery:
 | Gunnery | `skill.gunnery` | Operates personal firearms and manually controlled mounted weapons. Ship cannons use their module statistics and ship targeting state without a Gunnery requirement. |
 | Defense | `skill.defense` | Covers active guarding, shields, parries, protective positioning, and learned defensive techniques. |
 | Magic | `skill.magic` | Measures spell theory and control. Active casting requires `access.magic` plus a known spell; individual spells are techniques or discoveries, not classes. |
-| Psionics | `skill.psionics` | Measures psychic theory and control. Active techniques require `access.psionics`; every effect defines its target, range, consent or resistance rule, and strain cost. |
+| Psionics | `skill.psionics` | Measures psionics theory and control. Active techniques require `access.psionics`; every effect defines its target, range, consent or resistance rule, and strain cost. |
 | Enchantment | `skill.enchantment` | Designs, binds, identifies, maintains, and removes persistent magical effects on equipment, ship fittings, and locations. |
 | Melee | `skill.melee` | Covers unarmed combat and hand-held weapons. Weapon tags and learned techniques create differences without separate weapon classes. |
 | Archery | `skill.archery` | Covers bows, crossbows, unusual string weapons, ammunition choice, and aimed physical projectiles. Personal firearms use Gunnery; ship cannon commands require neither Skill. |
@@ -143,11 +143,11 @@ class restriction. The short casting flow, visible spell values, and
 counterplay are specified in [`Spells.md`](Spells.md).
 
 Every character may pursue Psionic Training, but only a character with
-`access.psionics` may initiate a known psychic technique. The Somnari Mindwake
-Racial Perk supplies innate access to basic psychic contact, not free skill ranks or
-unrestricted mind reading. Failed or resisted psychic actions may create
-strain, distorted impressions, or detectable psychic feedback.
-Consent, resistance, Psychic Strain, information boundaries, and technique
+`access.psionics` may initiate a known psionics technique. The Somnari Mindwake
+Racial Perk supplies innate access to basic psionics contact, not free skill ranks or
+unrestricted mind reading. Failed or resisted psionics actions may create
+strain, distorted impressions, or detectable psionics feedback.
+Consent, resistance, Psionics Strain, information boundaries, and technique
 definitions are specified in [`PsychicAbilities.md`](PsychicAbilities.md).
 
 ## Action resolution
@@ -177,7 +177,7 @@ must preserve enough information to reproduce the outcome.
 - High skill ranks require progressively more practice and may require a
   teacher, facility, discovery, or dangerous field experience.
 - Techniques can require skill thresholds, abilities, equipment, discoveries,
-  or circumstances—not class levels. Casting and psychic techniques also
+  or circumstances—not class levels. Casting and psionics techniques also
   require their explicit access ID from a learned Feat or innate Racial Perk.
 - Practice awards are deterministic, capped per committed action, and included
   in the authoritative command result.
@@ -254,7 +254,7 @@ Reading an unfamiliar discovery proceeds through explicit stages:
 Language and Literacy drives identification, transliteration, translation,
 speaking, reading, and writing. Ancient Lore drives context and authentication.
 Intelligence can notice patterns in damaged or hidden marks and reconstruct
-missing text, while Willpower can read magical or psychic impressions. A single
+missing text, while Willpower can read magical or psionics impressions. A single
 check may combine several characters, tools, or ship facilities while
 preserving who contributed each result.
 
@@ -312,7 +312,7 @@ The first crew slice initially exercises Piloting, Astrogation, Engineering,
 Salvage, Medicine, Cooking, Command, Merchant, Negotiation, and Language and
 Literacy. The first encounter milestone adds Magic, Psionics, Enchantment,
 Melee, Archery, Alchemy, and Crafting with both trained and innate access paths,
-at least one usable spell, psychic technique, enchantment design, melee
+at least one usable spell, psionics technique, enchantment design, melee
 technique, ranged technique, alchemical recipe, and enchanted crafted item.
 
 That milestone also includes one ancient ruin inscription. At least two crew

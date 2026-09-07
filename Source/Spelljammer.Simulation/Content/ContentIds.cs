@@ -144,23 +144,23 @@ public readonly record struct ContentId : IComparable<ContentId>
 }
 
 /// <summary>
-/// A strongly-typed identifier for a character attribute (e.g., Strength, Dexterity).
+/// A strongly-typed identifier for a character ability (e.g., Strength, Dexterity).
 /// </summary>
 /// <remarks>
-/// Attribute IDs must have the "attribute." prefix. They are used to reference base character attributes
+/// Ability IDs must have the "ability." prefix. They are used to reference base character abilities
 /// that affect skills, saving throws, and other mechanics.
 /// </remarks>
 public readonly record struct AttributeId : IComparable<AttributeId>
 {
     /// <summary>
-    /// Initializes an attribute ID from a content ID that must begin with "attribute.".
+    /// Initializes an ability ID from a content ID that must begin with "ability.".
     /// </summary>
-    /// <param name="value">A content ID with the "attribute." prefix.</param>
+    /// <param name="value">A content ID with the "ability." prefix.</param>
     /// <exception cref="ArgumentException">Thrown if the content ID does not have the required prefix.</exception>
-    public AttributeId(ContentId value) => Value = TypedContentId.RequirePrefix(value, "attribute.");
+    public AttributeId(ContentId value) => Value = TypedContentId.RequirePrefix(value, "ability.");
 
     /// <summary>
-    /// Initializes an attribute ID from a string (which must be a valid content ID with the "attribute." prefix).
+    /// Initializes an ability ID from a string (which must be a valid content ID with the "ability." prefix).
     /// </summary>
     public AttributeId(string value) : this(new ContentId(value)) { }
 
@@ -170,24 +170,24 @@ public readonly record struct AttributeId : IComparable<AttributeId>
     public ContentId Value { get; }
 
     /// <summary>
-    /// Gets a value indicating whether this attribute ID is valid.
+    /// Gets a value indicating whether this ability ID is valid.
     /// </summary>
     public bool IsValid => Value.IsValid;
 
     /// <summary>
-    /// Compares this attribute ID with another using ordinal content ID comparison.
+    /// Compares this ability ID with another using ordinal content ID comparison.
     /// </summary>
     public int CompareTo(AttributeId other) => Value.CompareTo(other.Value);
 
     /// <summary>
-    /// Returns the string representation of this attribute ID.
+    /// Returns the string representation of this ability ID.
     /// </summary>
     public override string ToString() => Value.ToString();
 
     /// <summary>
-    /// Attempts to parse a string into an attribute ID without throwing exceptions.
+    /// Attempts to parse a string into an ability ID without throwing exceptions.
     /// </summary>
-    public static bool TryParse(string? value, out AttributeId id) => TypedContentId.TryParse(value, "attribute.", out id);
+    public static bool TryParse(string? value, out AttributeId id) => TypedContentId.TryParse(value, "ability.", out id);
 }
 
 /// <summary>
@@ -304,14 +304,14 @@ public readonly record struct TrainingProjectId : IComparable<TrainingProjectId>
     public static bool TryParse(string? value, out TrainingProjectId id) => TypedContentId.TryParse(value, "training.", out id);
 }
 
-/// <summary>A strongly-typed identifier for any technique (combat ability, spell, or psychic power).</summary>
-/// <remarks>This is a union type that accepts technique., spell., or psychic. prefixes.</remarks>
+/// <summary>A strongly-typed identifier for any technique (combat ability, spell, or psionics power).</summary>
+/// <remarks>This is a union type that accepts technique., spell., or psionics. prefixes.</remarks>
 public readonly record struct TechniqueId : IComparable<TechniqueId>
 {
-    /// <summary>Initializes a technique ID from a content ID with technique, spell, or psychic prefix.</summary>
+    /// <summary>Initializes a technique ID from a content ID with technique, spell, or psionics prefix.</summary>
     public TechniqueId(ContentId value) => Value = HasTechniquePrefix(value)
         ? value
-        : throw new ArgumentException("Technique ID must use the technique, spell, or psychic domain.", nameof(value));
+        : throw new ArgumentException("Technique ID must use the technique, spell, or psionics domain.", nameof(value));
     public TechniqueId(string value) : this(new ContentId(value)) { }
     public ContentId Value { get; }
     public bool IsValid => Value.IsValid;
@@ -332,7 +332,7 @@ public readonly record struct TechniqueId : IComparable<TechniqueId>
     private static bool HasTechniquePrefix(ContentId value) => value.IsValid &&
         (value.ToString().StartsWith("technique.", StringComparison.Ordinal) ||
          value.ToString().StartsWith("spell.", StringComparison.Ordinal) ||
-         value.ToString().StartsWith("psychic.", StringComparison.Ordinal));
+         value.ToString().StartsWith("psionics.", StringComparison.Ordinal));
 }
 
 /// <summary>A strongly-typed identifier for a magical spell.</summary>
@@ -347,16 +347,16 @@ public readonly record struct SpellId : IComparable<SpellId>
     public static bool TryParse(string? value, out SpellId id) => TypedContentId.TryParse(value, "spell.", out id);
 }
 
-/// <summary>A strongly-typed identifier for a psychic technique.</summary>
+/// <summary>A strongly-typed identifier for a psionics technique.</summary>
 public readonly record struct PsychicTechniqueId : IComparable<PsychicTechniqueId>
 {
-    public PsychicTechniqueId(ContentId value) => Value = TypedContentId.RequirePrefix(value, "psychic.");
+    public PsychicTechniqueId(ContentId value) => Value = TypedContentId.RequirePrefix(value, "psionics.");
     public PsychicTechniqueId(string value) : this(new ContentId(value)) { }
     public ContentId Value { get; }
     public bool IsValid => Value.IsValid;
     public int CompareTo(PsychicTechniqueId other) => Value.CompareTo(other.Value);
     public override string ToString() => Value.ToString();
-    public static bool TryParse(string? value, out PsychicTechniqueId id) => TypedContentId.TryParse(value, "psychic.", out id);
+    public static bool TryParse(string? value, out PsychicTechniqueId id) => TypedContentId.TryParse(value, "psionics.", out id);
 }
 
 /// <summary>A strongly-typed identifier for an adventure scenario.</summary>
@@ -664,7 +664,7 @@ file static class TypedContentId
     /// Validates that a content ID has the required prefix, throwing if not.
     /// </summary>
     /// <param name="value">The content ID to validate.</param>
-    /// <param name="prefix">The required prefix (e.g., "attribute.").</param>
+    /// <param name="prefix">The required prefix (e.g., "ability.").</param>
     /// <returns>The validated content ID.</returns>
     /// <exception cref="ArgumentException">Thrown if the ID does not have the required prefix.</exception>
     public static ContentId RequirePrefix(ContentId value, string prefix) =>

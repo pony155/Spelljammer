@@ -25,7 +25,7 @@ retreat remain valid before and during combat.
   disengagement without discarding consequences between scales.
 - Support Arcane, Industrial, and hybrid equipment without making one path the
   mandatory combat build.
-- Make injury, ammunition, Focus, Psychic Strain, damaged modules, lost cargo,
+- Make injury, ammunition, Focus, Psionics Strain, damaged modules, lost cargo,
   prisoners, witnesses, and faction consequences persist after battle.
 - Keep surrender, rescue, capture, escape, delay, and partial success as real
   outcomes; eliminating every opponent is not the default objective.
@@ -161,14 +161,14 @@ Actions use explicit phases:
 1. **Declare:** select actor, action, target, route, equipment, and parameters.
 2. **Validate:** check knowledge, range, access, resources, friendly fire, and
    current command authority.
-3. **Reserve:** reserve ammunition, charge, Focus, Stamina, Psychic Strain
+3. **Reserve:** reserve ammunition, charge, Focus, Stamina, Psionics Strain
    capacity, stations, and required items.
 4. **Prepare:** spend wind-up time, aim, move, speak, cast, reload, or operate a
    station.
 5. **Commit:** resolve the action and publish its effects atomically.
 6. **Recover:** apply recovery time, sustain costs, exposure, and cooldown.
 
-Ship movement, weapon fire, spells, psychic techniques, repairs, medical
+Ship movement, weapon fire, spells, psionics techniques, repairs, medical
 actions, personal plans, and environmental changes can overlap on the fixed
 timeline. Equal-tick conflicts use documented priority categories and stable
 actor IDs as final tie-breakers, never UI order or thread completion timing.
@@ -262,7 +262,7 @@ Combat begins from encounter knowledge rather than omniscient team vision.
 Each actor can have Unknown, Detected, Located, Identified, and Assessed
 knowledge states with source, confidence, and last observation tick.
 
-Sensors, sight, sound, aether traces, psychic signals, tracks, damage, and
+Sensors, sight, sound, aether traces, psionics signals, tracks, damage, and
 faction reports reveal different facts. Stealth changes evidence and detection;
 it does not make an actor absent from authoritative collision or hazard rules.
 
@@ -295,7 +295,7 @@ The tactical state tracks:
 
 Crew act through stations while the ship clock runs. A Pilot maneuvers,
 Engineer reroutes power or performs damage control, Ship Mage operates Arcane
-effects, Mindwarden handles psychic threats, and Captain sets objectives and
+effects, Mindwarden handles psionics threats, and Captain sets objectives and
 priorities. The player directly orders installed ship cannons; firing does not
 require a Gunner position or Gunnery Skill check. Other station orders still
 need any declared operator, preparation, resources, and recovery time.
@@ -335,7 +335,7 @@ is raised and receives its full Energy Consumption Rate, each fixed tick adds
 its Recharge Rate up to the maximum Shield Value. Those are its only combat
 statistics. Lowering a shield stops both consumption and replenishment and
 never repairs armor. Ward Projectors resolve only their declared magical,
-psychic, or environmental effects and do not silently substitute for an Energy
+psionics, or environmental effects and do not silently substitute for an Energy
 Shield.
 
 A ram requires a compatible installed prow module, a legal collision course,
@@ -390,7 +390,7 @@ A ruin board may contain:
   survivors;
 - dormant defenses triggered by movement, sound, aether, heat, identity, or an
   incorrectly translated command;
-- vacuum, unstable gravity, radiation, spores, psychic echoes, shifting
+- vacuum, unstable gravity, radiation, spores, psionics echoes, shifting
   passages, collapsing floors, or failing life support;
 - control stations that can be understood through Engineering, Magic,
   Psionics, Language and Literacy, or Ancient Lore; and
@@ -420,7 +420,7 @@ because they left the local battle graph.
 
 Projectile recoil, hull penetration, suit puncture, and loose equipment use
 explicit tags. Magic and Psionics still require their access Feats or innate
-Racial Perks and do not ignore vacuum, range, line of effect, or Psychic Strain.
+Racial Perks and do not ignore vacuum, range, line of effect, or Psionics Strain.
 
 ## Settlement and surface conflicts
 
@@ -475,8 +475,8 @@ A character cannot cast because combat started. Spellcasting requires
 simple cast flow in [`Spells.md`](Spells.md). Only channeled or ritual spells
 can be interrupted or sustained across ticks.
 
-Psychic techniques require `access.psionics` and follow consent, resistance,
-privacy, information, and Psychic Strain rules in
+Psionics techniques require `access.psionics` and follow consent, resistance,
+privacy, information, and Psionics Strain rules in
 [`PsychicAbilities.md`](PsychicAbilities.md). A failed intrusion cannot reveal
 the information it failed to reach. Mental influence never silently replaces a
 player command.
@@ -491,7 +491,7 @@ targeting, and failure behavior.
 Characters do not rely on a large undifferentiated health pool. Harm resolves
 through bounded severity bands such as superficial, wounded, critical, and
 incapacitated, with authored injury tags for bleeding, fracture, burn, poison,
-vacuum exposure, psychic shock, and similar consequences.
+vacuum exposure, psionics shock, and similar consequences.
 
 Armor, cover, wards, resistance, and Toughness can reduce or redirect harm when
 their tags apply. Toughness improves endurance and survival; it does not make a
@@ -551,7 +551,7 @@ terminal conditions commit. The cleanup phase records:
 - surviving, injured, incapacitated, dead, missing, captured, and rescued
   characters;
 - ship, module, equipment, cargo, ruin, and environmental damage;
-- ammunition, charge, Focus, Stamina, Psychic Strain, medicine, fuel, and time
+- ammunition, charge, Focus, Stamina, Psionics Strain, medicine, fuel, and time
   spent;
 - recovered items, registered salvage, contraband, prisoners, and evidence;
 - witnesses, reports, law violations, agreements, standing, and Alarm changes;
@@ -650,10 +650,10 @@ The first battle milestone should contain two connected encounters:
    environmental hazard, one hostile group, one ancient defense, one
    non-combat solution, and an extraction objective.
 
-The same crew, equipment, ammunition, injuries, spell resources, Psychic
+The same crew, equipment, ammunition, injuries, spell resources, Psionics
 Strain, ship damage, knowledge, and faction consequences persist between the
 two. The slice includes one melee action, one ranged action, one defensive
-reaction, one spell or psychic technique with valid access, one medical
+reaction, one spell or psionics technique with valid access, one medical
 stabilization, one surrender or retreat, and one damaged object the player
 wanted to preserve.
 

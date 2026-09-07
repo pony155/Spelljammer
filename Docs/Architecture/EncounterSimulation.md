@@ -53,7 +53,7 @@ bounded deterministic breadth-first search.
 
 Each actor has an independent Turn Meter and Action Point budget. Ready order
 is player team first and then stable Actor ID. The first slice supports
-movement, defense, reserved reactions, melee, ranged, Spell, psychic,
+movement, defense, reserved reactions, melee, ranged, Spell, psionics,
 Engineering, Medicine, interaction, surrender, and retreat. Cleanup retains
 injuries, prisoners, exploration changes, and damaged desired objects.
 

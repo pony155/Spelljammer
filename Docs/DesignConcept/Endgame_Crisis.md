@@ -25,7 +25,7 @@ Campaign-setting ownership and persistence are defined in
   acceptable solutions without assigning permanent good or evil roles.
 - Make local losses, partial containment, retreat, adaptation, and negotiated
   survival playable outcomes.
-- Preserve player and character agency during psychic, political, and magical
+- Preserve player and character agency during psionics, political, and magical
   threats.
 - Use explicit seeds, stable IDs, bounded work, and inspectable events so the
   same state and commands reproduce the same crisis outcome.
@@ -58,7 +58,7 @@ Eligibility uses a bounded campaign-maturity summary that can include:
 - the number of Charted regions and restored or exploited landmarks;
 - faction logistical capacity, wars, alliances, and unresolved warnings;
 - player ship capability, known routes, reserves, and home-anchorage services;
-- accumulated aether, psychic, ecological, or industrial instability;
+- accumulated aether, psionics, ecological, or industrial instability;
 - authenticated Ancient Lore discoveries and completed precursor events; and
 - scenario-specific minimum and maximum campaign ages.
 
@@ -200,13 +200,13 @@ cargo, crews, converters, markets, and mixed-technology ports.
 
 ### The Unbidden Chorus
 
-A repeating psychic structure emerges from old relays and dream records. It
+A repeating psionics structure emerges from old relays and dream records. It
 offers effortless communication, shared calm, and relief from isolation before
 pressuring linked minds to surrender privacy and independent choice. Hosts and
 victims remain people with affiliations, needs, and rights rather than becoming
 a disposable monster category.
 
-All contact uses the consent, resistance, information, and Psychic Strain rules
+All contact uses the consent, resistance, information, and Psionics Strain rules
 in [`PsychicAbilities.md`](PsychicAbilities.md). The crisis cannot read private
 state after a failed check, silently rewrite a playable character, or erase a
 player command. Coercive effects are Hostile, bounded, attributable, and
@@ -221,7 +221,7 @@ Possible final resolutions include:
 - evacuate signal-dense regions and let the pattern decay without new hosts.
 
 Psionics, Language and Literacy, Medicine, Negotiation, Ancient Lore, and
-signal Engineering provide different evidence and solutions. Psychic-capable
+signal Engineering provide different evidence and solutions. Psionics-capable
 races receive neither automatic guilt nor automatic immunity.
 
 ### The Cinder Crown
@@ -377,7 +377,7 @@ for the actors involved rather than collective racial guilt.
 
 Crisis knowledge follows the same separation as galaxy and faction knowledge.
 The authoritative state is not automatically visible to the player. Evidence
-can come from surveys, survivors, intercepted traffic, psychic impressions,
+can come from surveys, survivors, intercepted traffic, psionics impressions,
 ancient texts, markets, faction reports, or direct encounters.
 
 Every conclusion records source, confidence, age, and scope. Contradictory
@@ -385,7 +385,7 @@ reports remain visible until resolved. Ancient Lore supplies context, while
 Language and Literacy determines whether scripts and terminology can be read;
 neither skill turns uncertain evidence into guaranteed truth.
 
-Warnings move through faction couriers, relays, treaties, and psychic channels.
+Warnings move through faction couriers, relays, treaties, and psionics channels.
 They have dispatch and delivery ticks, interception risk, and credibility. A
 faction cannot react to an outbreak it has not observed or been told about.
 
@@ -531,7 +531,7 @@ Content loading rejects:
 - phase transitions without warnings, causes, or transaction boundaries;
 - unbounded spawning, recursive front creation, circular required objectives,
   and unlimited history growth;
-- psychic effects that bypass consent, resistance, privacy, or player agency;
+- psionics effects that bypass consent, resistance, privacy, or player agency;
 - route mutations that can leave traveling ships without a defined result;
 - invasion fronts without a legal entry route, logistics budget, sensing rules,
   or bounded reinforcement source;

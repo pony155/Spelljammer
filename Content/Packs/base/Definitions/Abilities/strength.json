@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
   "revision": 1,
-  "id": "attribute.strength",
-  "nameKey": "attribute.strength.name",
-  "descriptionKey": "attribute.strength.description",
+  "id": "ability.strength",
+  "nameKey": "ability.strength.name",
+  "descriptionKey": "ability.strength.description",
   "minimum": 1,
   "maximum": 10,
   "defaultValue": 5,

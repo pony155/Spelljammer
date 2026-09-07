@@ -172,7 +172,7 @@ public static class CampaignValidator
             Add(character.HeritageId.Value);
             Add(character.BackgroundId.Value);
             CharacterCapabilitySnapshot capabilities = character.Capabilities.Snapshot(content);
-            foreach (ContentId id in capabilities.Attributes.Select(value => value.Id.Value)
+            foreach (ContentId id in capabilities.Abilities.Select(value => value.Id.Value)
                          .Concat(capabilities.Skills.Select(value => value.Id.Value))
                          .Concat(capabilities.Feats.Select(value => value.Value))
                          .Concat(capabilities.Perks.Select(value => value.Value))

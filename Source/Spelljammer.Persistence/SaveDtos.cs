@@ -121,7 +121,7 @@ internal sealed class CharacterDto
 
 internal sealed class CapabilityDto
 {
-    public AttributeValueDto[] Attributes { get; set; } = [];
+    public AttributeValueDto[] Abilities { get; set; } = [];
     public SkillValueDto[] Skills { get; set; } = [];
     public string[] FeatIds { get; set; } = [];
     public string[] PerkIds { get; set; } = [];

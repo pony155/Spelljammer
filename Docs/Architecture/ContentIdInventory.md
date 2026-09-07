@@ -17,14 +17,14 @@ All design-concept Markdown files were scanned as UTF-8 for the requested
 definition families. Candidate strings were deduplicated and then reviewed to
 separate gameplay IDs from localization keys and adjacent definition kinds.
 
-Included categories are Attributes, Skills, learned Feats, racial or Heritage
-Racial Perks, Access gates, Spells, psychic techniques, combat contexts, travel
+Included categories are Abilities, Skills, learned Feats, racial or Heritage
+Racial Perks, Access gates, Spells, psionics techniques, combat contexts, travel
 events and their explicit choices, ship modules, ship weapon configurations,
 factions, and crises. Event choice, crisis phase, and crisis resolution IDs are
 retained in separate tables because they are explicit content references.
 
 Excluded strings include localized keys ending in `.name` or `.description`,
-formula and effect IDs, psychic discipline IDs, psychic information-scope IDs,
+formula and effect IDs, psionics discipline IDs, psionics information-scope IDs,
 range IDs, progression IDs, and illustrative third-party mod IDs. Those can be
 inventoried when their definition schemas enter roadmap scope.
 
@@ -53,7 +53,7 @@ inventoried when their definition schemas enter roadmap scope.
 | Equipment | 11 | [`Equipments.md`](../DesignConcept/Equipments.md) |
 | Access gates | 2 | [`Skills.md`](../DesignConcept/Skills.md) |
 | Spells | 7 | [`Spells.md`](../DesignConcept/Spells.md) |
-| Psychic techniques | 4 | [`PsychicAbilities.md`](../DesignConcept/PsychicAbilities.md) |
+| Psionics techniques | 4 | [`PsychicAbilities.md`](../DesignConcept/PsychicAbilities.md) |
 | Combat contexts | 6 | [`Battle.md`](../DesignConcept/Battle.md) |
 | Travel events | 8 | [`Events.md`](../DesignConcept/Events.md) |
 | Travel-event choices | 3 | [`Events.md`](../DesignConcept/Events.md) |
@@ -65,16 +65,16 @@ inventoried when their definition schemas enter roadmap scope.
 | Crisis resolutions | 3 | [`Endgame_Crisis.md`](../DesignConcept/Endgame_Crisis.md) |
 | **Total** | **269** | |
 
-## Attributes
+## Abilities
 
 | Display label | Stable ID |
 | --- | --- |
-| Agility | `attribute.agility` |
-| Intelligence | `attribute.intelligence` |
-| Perception | `attribute.perception` |
-| Strength | `attribute.strength` |
-| Toughness | `attribute.toughness` |
-| Willpower | `attribute.willpower` |
+| Agility | `ability.agility` |
+| Intelligence | `ability.intelligence` |
+| Perception | `ability.perception` |
+| Strength | `ability.strength` |
+| Toughness | `ability.toughness` |
+| Willpower | `ability.willpower` |
 
 ## Skills
 
@@ -203,7 +203,7 @@ script.somnari
 script.tharun
 script.veyr
 resource.focus
-resource.psychic-strain
+resource.psionics-strain
 resource.resonance
 resource.stamina
 resource.training-supplies
@@ -220,9 +220,9 @@ range.far
 range.near
 contact.invited
 effect.spirit.magic-missile-impact
-effect.psychic.shared-channel
+effect.psionics.shared-channel
 evidence.spell.cast
-evidence.psychic.mindlink
+evidence.psionics.mindlink
 ```
 
 The bounded Soul Anchor action uses these reviewed simulation primitives:
@@ -306,7 +306,7 @@ Both sets remain stable until their dedicated registries are introduced.
 | Capability | Stable ID |
 | --- | --- |
 | Magical access | `access.magic` |
-| Psychic access | `access.psionics` |
+| Psionics access | `access.psionics` |
 
 ## Spells
 
@@ -327,18 +327,18 @@ Both sets remain stable until their dedicated registries are introduced.
 | Magic Missile Storm | `spell.spirit.magic-missile-storm` |
 | Phantasmal Image | `spell.spirit.phantasmal-image` |
 
-## Psychic techniques
+## Psionics techniques
 
 | Display label | Stable ID |
 | --- | --- |
-| Mindlink | `psychic.contact.mindlink` |
-| Echo Sense | `psychic.empathy.echo-sense` |
-| Kinetic Nudge | `psychic.psychokinesis.kinetic-nudge` |
-| Quiet Mind | `psychic.shielding.quiet-mind` |
+| Mindlink | `psionics.contact.mindlink` |
+| Echo Sense | `psionics.empathy.echo-sense` |
+| Kinetic Nudge | `psionics.psychokinesis.kinetic-nudge` |
+| Quiet Mind | `psionics.shielding.quiet-mind` |
 
-`psychic.discipline.*` strings organize techniques and
-`psychic.scope.deliberate-message` limits information. They are adjacent
-definition kinds and are not counted as psychic technique IDs.
+`psionics.discipline.*` strings organize techniques and
+`psionics.scope.deliberate-message` limits information. They are adjacent
+definition kinds and are not counted as psionics technique IDs.
 
 ## Combat contexts
 
@@ -379,7 +379,7 @@ definition kinds and are not counted as psychic technique IDs.
 | Cargo Hold | `module.cargo.hold` |
 | Helm | `module.command.helm` |
 | Boarding Lock | `module.contact.boarding-lock` |
-| Psychic Resonator | `module.contact.psychic-resonator` |
+| Psionics Resonator | `module.contact.psionics-resonator` |
 | Signal Lantern | `module.contact.signal-lantern` |
 | Energy Shield | `module.defense.energy-shield` |
 | Reinforced Plating | `module.defense.reinforced-plating` |

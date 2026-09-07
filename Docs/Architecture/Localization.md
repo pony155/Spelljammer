@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Phases 1 and 2 plus M2 base Attribute/Skill catalogs implemented; application UI wiring and the full production workflow remain planned |
+| Status | Phases 1 and 2 plus M2 base Ability/Skill catalogs implemented; application UI wiring and the full production workflow remain planned |
 | Scope | Game text catalogs, locale selection, message formatting, language profiles, subtitles, and translation workflow |
 | Owner | Spelljammer with game-owned offline tooling |
 | Runtime language | C# gameplay/application layer with copy-only Engine boundaries |
@@ -80,7 +80,7 @@ The first implementation will not provide:
   arbitrary ICU MessageFormat compatibility.
 - Runtime parsing of translator source files.
 - Automatic grammatical inflection of arbitrary names. The game supplies
-  explicit grammatical attributes or a fully authored alternative message.
+  explicit grammatical abilities or a fully authored alternative message.
 - Implicit lookup through the operating system's current culture, collation,
   installed fonts, regional calendar, or timezone.
 - Translating player-authored names, save names, usernames, or chat. Those are

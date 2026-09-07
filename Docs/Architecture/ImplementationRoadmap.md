@@ -43,11 +43,11 @@ Stable IDs and definition interfaces
   ↓
 Manifest parsing, validation, and immutable content registry
   ↓
-Base Attribute and Skill data
+Base Ability and Skill data
   ↓
 Character creation, state, actions, and training
   ↓
-Feat/Perk access, Spells, and Psychic abilities
+Feat/Perk access, Spells, and Psionics abilities
   ↓
 Ship modules, encounters, and Battle
   ↓
@@ -102,8 +102,8 @@ added explicitly to `Spelljammer.slnx`.
 
 ### Phase M0.1: inventory existing identities
 
-- [x] **M0.1.1** Extract every current Attribute, Skill, Feat, Perk, Access,
-  Spell, psychic-technique, combat-context, ship-module, faction, crisis,
+- [x] **M0.1.1** Extract every current Ability, Skill, Feat, Perk, Access,
+  Spell, psionics-technique, combat-context, ship-module, faction, crisis,
   authored travel-event, and event-choice ID from `Docs/DesignConcept` into the
   reviewed
   [`ContentIdInventory.md`](ContentIdInventory.md).
@@ -134,7 +134,7 @@ added explicitly to `Spelljammer.slnx`.
 ### Phase M0.4: freeze fixtures and fingerprints
 
 - [x] **M0.4.1** Author the smallest valid base manifest and one valid document
-  for Attribute, Skill, Feat, Perk, and Access references.
+  for Ability, Skill, Feat, Perk, and Access references.
 - [x] **M0.4.2** Author one focused invalid fixture for every initial diagnostic.
 - [x] **M0.4.3** Define canonical semantic bytes and expected fixture hashes.
 - [x] **M0.4.4** Review all version 1 decisions before loader code begins.
@@ -143,7 +143,7 @@ Deliverables:
 
 - approve ID grammar, definition revision rules, manifest schema, UTF-8
   handling, pack ordering, duplicate policy, and initial limits;
-- confirm exact integer ranges for base Attributes and Skills;
+- confirm exact integer ranges for base Abilities and Skills;
 - assign stable diagnostic and command-rejection codes;
 - define canonical semantic fingerprint serialization; and
 - create minimal valid and invalid JSON fixtures.
@@ -155,7 +155,7 @@ Exit criteria:
   [`Modding.md`](Modding.md) contain no unresolved decision needed by the first
   loader;
 - IDs match current product documents; and
-- fixtures cover an Attribute, Skill, Feat, Perk, and their references.
+- fixtures cover an Ability, Skill, Feat, Perk, and their references.
 
 ## Milestone 1: content foundation
 
@@ -243,17 +243,17 @@ and rollback after publication failure.
 Exit criterion: repeated compilation produces equivalent canonical semantic
 content and the same fingerprint.
 
-## Milestone 2: base Attributes and Skills
+## Milestone 2: base Abilities and Skills
 
-Move only Attribute and Skill lists into `Content/Packs/base`.
+Move only Ability and Skill lists into `Content/Packs/base`.
 
-### Phase M2.1: define Attribute documents
+### Phase M2.1: define Ability documents
 
 - [x] **M2.1.1** Create source DTO, immutable definition, validator, and
-  diagnostic codes for Attributes.
+  diagnostic codes for Abilities.
 - [x] **M2.1.2** Validate ID, revision, localization keys, minimum, maximum,
   default, and bounded tags.
-- [x] **M2.1.3** Add the seven base Attribute JSON files with the IDs and 1–10
+- [x] **M2.1.3** Add the seven base Ability JSON files with the IDs and 1–10
   range from `Abilities.md`.
 - [x] **M2.1.4** Add focused valid, missing-field, invalid-range, duplicate-tag,
   and capacity fixtures.
@@ -271,7 +271,7 @@ Move only Attribute and Skill lists into `Content/Packs/base`.
 
 ### Phase M2.3: compile typed registries
 
-- [x] **M2.3.1** Link Attribute and Skill references through typed IDs.
+- [x] **M2.3.1** Link Ability and Skill references through typed IDs.
 - [x] **M2.3.2** Sort stable IDs and assign fingerprint-scoped dense indices.
 - [x] **M2.3.3** Expose immutable lookup by typed ID and deterministic iteration.
 - [x] **M2.3.4** Reject use of a dense index with a different registry
@@ -300,14 +300,14 @@ Move only Attribute and Skill lists into `Content/Packs/base`.
 Deliverables:
 
 - source schemas and compiled registries;
-- seven base Attribute definitions with existing IDs;
+- seven base Ability definitions with existing IDs;
 - initial Skill definitions with existing IDs;
 - deterministic dense indices scoped to the fingerprint;
 - default-localization-key validation; and
 - registry inspection through a diagnostic report or temporary view.
 
 Do not remove prototype `SectorKind` or expedition constants here. Do not add a
-switch over known Attribute or Skill IDs to the new implementation.
+switch over known Ability or Skill IDs to the new implementation.
 
 Exit criterion: a fixture mod can add a non-core Skill and generic registry,
 iteration, diagnostics, and UI projection see it without a source change.
@@ -329,7 +329,7 @@ prototype; `RosterInspection` is the localization-ready inspection adapter.
 
 ### Phase M3.2: implement generic capability storage
 
-- [x] **M3.2.1** Add bounded immutable Attribute and Skill value storage indexed
+- [x] **M3.2.1** Add bounded immutable Ability and Skill value storage indexed
   by the compiled registry.
 - [x] **M3.2.2** Add bounded Feat, Perk, Technique, and grant-source sets.
 - [x] **M3.2.3** Implement typed lookup that returns explicit missing-definition
@@ -340,7 +340,7 @@ prototype; `RosterInspection` is the localization-ready inspection adapter.
 
 - [x] **M3.3.1** Define a typed creation request containing content fingerprint,
   scenario, definition IDs, and explicit seed.
-- [x] **M3.3.2** Allocate Attribute and Skill values through bounded authored
+- [x] **M3.3.2** Allocate Ability and Skill values through bounded authored
   rules and owned random streams.
 - [x] **M3.3.3** Grant Race and Heritage Perks with provenance.
 - [x] **M3.3.4** Validate the complete character before assigning its stable ID
@@ -350,7 +350,7 @@ prototype; `RosterInspection` is the localization-ready inspection adapter.
 
 - [x] **M3.4.1** Define minimal Action, Requirement, Cost, Target, and stable
   Rejection contracts.
-- [x] **M3.4.2** Check actor, definition, grant, technique, Skill, Attribute,
+- [x] **M3.4.2** Check actor, definition, grant, technique, Skill, Ability,
   equipment, context, and resource requirements in a fixed order.
 - [x] **M3.4.3** Reserve costs without mutating published state.
 - [x] **M3.4.4** Prove rejection consumes nothing and exposes no protected
@@ -369,7 +369,7 @@ prototype; `RosterInspection` is the localization-ready inspection adapter.
 
 - [x] **M3.6.1** Add bounded practice awards and anti-trivial-repetition rules.
 - [x] **M3.6.2** Add deterministic advancement threshold processing.
-- [x] **M3.6.3** Expose a roster snapshot that iterates dynamic Attribute and
+- [x] **M3.6.3** Expose a roster snapshot that iterates dynamic Ability and
   Skill registries.
 - [x] **M3.6.4** Render localized values and disabled-action reasons without
   direct mutation or fixed-property binding.
@@ -382,7 +382,7 @@ prototype; `RosterInspection` is the localization-ready inspection adapter.
   for each Race; defer additional Heritage rows until their Perk IDs are
   explicitly inventoried.
 - [x] **M3.7.3** Author one deterministic first-slice character per Race with
-  attributes, skills, background, position, language, script, and equipment.
+  abilities, skills, background, position, language, script, and equipment.
 - [x] **M3.7.4** Validate mixed-race quarters, equipment, care, nutrition or
   reserve, rest, and environmental compatibility before roster publication.
 - [x] **M3.7.5** Prove Soul Anchor recovery requires its anchor and resources,
@@ -391,7 +391,7 @@ prototype; `RosterInspection` is the localization-ready inspection adapter.
 
 Deliverables:
 
-- character, Race, Heritage, Background, Attribute, Skill, Feat, Perk,
+- character, Race, Heritage, Background, Ability, Skill, Feat, Perk,
   Access, and Technique ID types;
 - immutable definition and character-state snapshots;
 - data-authored Race, Heritage, Background, Perk, and training definitions;
@@ -441,7 +441,7 @@ reveal unobserved information.
 
 ### Phase M4.4: implement known-content collections
 
-- [x] **M4.4.1** Add bounded Spell and psychic-technique definition registries.
+- [x] **M4.4.1** Add bounded Spell and psionics-technique definition registries.
 - [x] **M4.4.2** Add character-known ID sets and learning-project state.
 - [x] **M4.4.3** Validate required access, Skill, target, resource, consent, and
   resistance references.
@@ -458,14 +458,14 @@ reveal unobserved information.
 - [x] **M4.5.4** Cover no-access, unknown-Spell, insufficient-resource,
   interruption, success, and deterministic replay cases.
 
-### Phase M4.6: implement one psychic technique
+### Phase M4.6: implement one psionics technique
 
 - [x] **M4.6.1** Author Mindlink with access, knowledge, consent, range, strain,
   sustain, and information-scope rules.
 - [x] **M4.6.2** Implement invitation, acceptance or rejection, reservation,
   commit, sustain, revocation, and release.
 - [x] **M4.6.3** Ensure failed or rejected contact reveals no protected data.
-- [x] **M4.6.4** Cover trained and innate users, Psychic Strain, resistance,
+- [x] **M4.6.4** Cover trained and innate users, Psionics Strain, resistance,
   evidence, and replay.
 
 Deliverables:
@@ -473,10 +473,10 @@ Deliverables:
 - `feat.access.magic` grants `access.magic` only after completed training;
 - `feat.access.psionics` grants `access.psionics` only after completed training;
 - Elf Aether Sense supplies innate magical access;
-- Somnari Mindwake supplies innate psychic access and named abilities;
-- bounded known Spell and psychic-technique collections;
+- Somnari Mindwake supplies innate psionics access and named abilities;
+- bounded known Spell and psionics-technique collections;
 - commands reject active use without both access and knowledge; and
-- one Spell and psychic technique reserve, resolve, publish evidence, and roll
+- one Spell and psionics technique reserve, resolve, publish evidence, and roll
   back atomically.
 
 Exit criterion: trained and innate access produce the same permission through
@@ -574,7 +574,7 @@ individual Turn Meters, and Action Points without global rounds.
 - [x] **M5.6.1** Author a six-zone derelict or ruin with one hazard, hostile
   group, ancient defense, non-combat solution, and extraction objective.
 - [x] **M5.6.2** Add a bounded hex board and four active crew with individual
-  Turn Meters, AP budgets, movement, melee, ranged, defense, Spell or psychic,
+  Turn Meters, AP budgets, movement, melee, ranged, defense, Spell or psionics,
   Engineering, and Medicine actions.
 - [x] **M5.6.3** Add injury, incapacitation, stabilization, surrender, prisoner,
   retreat, and cleanup rules.
@@ -958,7 +958,7 @@ Report engine, game, content-tool, and CI-owned test status separately.
 | Mod order changes outcomes | Dependency graph, ordinal tie-breaks, and semantic fingerprint |
 | Content executes unsafe behavior | Declarative data and allowlisted formula/effect primitives |
 | Saves lose objects after changes | Exact lock, reference scan, and explicit migrations |
-| Dynamic Attributes break UI | Registry iteration, generic stat blocks, phased public support |
+| Dynamic Abilities break UI | Registry iteration, generic stat blocks, phased public support |
 | Loader failure publishes partial state | Candidate registry and validate-before-publish transaction |
 | Scope delays the playable voyage | Move one content family at a time and retain the prototype |
 

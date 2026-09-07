@@ -127,7 +127,7 @@ Each choice declares:
 - facts required for the choice to be visible and facts required for it to be
   enabled;
 - required ship capability, module, item, position authority, Skill, Feat,
-  Racial Perk, known language, script, spell, or psychic technique;
+  Racial Perk, known language, script, spell, or psionics technique;
 - immediate costs, reservations, duration, exposure, and cancellation rules;
 - contextual Ability and Skill approaches rather than a character class;
 - deterministic outcome bands and the information the player may preview;
@@ -271,7 +271,7 @@ Content validation rejects:
 
 - duplicate or invalid Event and choice IDs;
 - missing localization, condition, check, effect, encounter, faction, route,
-  item, module, Skill, Feat, Racial Perk, spell, or psychic references;
+  item, module, Skill, Feat, Racial Perk, spell, or psionics references;
 - negative or excessive weights, costs, delays, cooldowns, or occurrence counts;
 - events with no reachable resolution or no safe response when one is required;
 - choice costs without atomic reservation and rollback rules;

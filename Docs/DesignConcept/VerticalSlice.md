@@ -19,7 +19,7 @@
   resource and failure rules
 - [ ] Data-authored race, heritage, and character definitions
 - [ ] Classless crew abilities, core skills, needs, injuries, positions, and inspectable duties
-- [ ] Trained and innate Magic/Psionics access, authored spell and psychic
+- [ ] Trained and innate Magic/Psionics access, authored spell and psionics
   technique catalogs, enchantment, melee, archery, alchemy, and crafting
   content definitions
 - [ ] Language and Literacy skill, race-associated scripts, and ancient-lore

@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
   "revision": 1,
-  "id": "attribute.agility",
-  "nameKey": "attribute.agility.name",
-  "descriptionKey": "attribute.agility.description",
+  "id": "ability.agility",
+  "nameKey": "ability.agility.name",
+  "descriptionKey": "ability.agility.description",
   "minimum": 1,
   "maximum": 10,
   "defaultValue": 5,

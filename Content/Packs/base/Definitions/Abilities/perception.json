@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
   "revision": 1,
-  "id": "attribute.perception",
-  "nameKey": "attribute.perception.name",
-  "descriptionKey": "attribute.perception.description",
+  "id": "ability.perception",
+  "nameKey": "ability.perception.name",
+  "descriptionKey": "ability.perception.description",
   "minimum": 1,
   "maximum": 10,
   "defaultValue": 5,

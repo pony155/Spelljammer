@@ -13,7 +13,7 @@ public sealed record CharacterRosterDisplayRow(
     string Heritage,
     string Background,
     string PositionId,
-    ImmutableArray<CapabilityDisplayValue> Attributes,
+    ImmutableArray<CapabilityDisplayValue> Abilities,
     ImmutableArray<CapabilityDisplayValue> Skills);
 
 public sealed record CharacterRosterDisplay(
@@ -56,8 +56,8 @@ public static class RosterInspection
                 localize(heritage!.NameKey),
                 localize(background!.NameKey),
                 character.PositionId.ToString(),
-                [.. values.Attributes.Select((value, index) => new CapabilityDisplayValue(
-                    value.Id.Value, localize(content.Attributes[index].NameKey), value.Value))],
+                [.. values.Abilities.Select((value, index) => new CapabilityDisplayValue(
+                    value.Id.Value, localize(content.Abilities[index].NameKey), value.Value))],
                 [.. values.Skills.Select((value, index) => new CapabilityDisplayValue(
                     value.Id.Value, localize(content.Skills[index].NameKey), value.Value, value.Practice))]));
         }

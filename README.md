@@ -43,8 +43,8 @@ Implemented foundations include:
 - a bounded gameplay-content foundation with validated stable IDs, strict JSON
   pack loading, deterministic dependency ordering, immutable snapshots,
   canonical SHA-256 fingerprints, transactional publication, and production
-  registries for seven Attributes, 29 Skills, the first character slice, one
-  Spell, and one psychic technique;
+  registries for seven Abilities, 29 Skills, the first character slice, one
+  Spell, and one psionics technique;
 - deterministic immutable character creation for eleven races, bounded
   capability/grant storage, action eligibility and resolution, Skill practice,
   Feat training, mixed-crew support validation, and localization-ready roster
@@ -84,7 +84,7 @@ Implemented foundations include:
   strange environments, and shortcuts one decision at a time.
 - **Systems tell the story:** crew needs, ship failures, weather, pursuit,
   resources, and encounters combine without a prescribed plot.
-- **Characters remain classless:** attributes shape broad capability while
+- **Characters remain classless:** abilities shape broad capability while
   skills improve independently through use, instruction, and experience.
 - **Retreat is a decision:** a modest return keeps a campaign alive; greed can
   strand a run in the void.
@@ -102,13 +102,13 @@ defined in [`Docs/DesignConcept/History.md`](Docs/DesignConcept/History.md). The
 crew races, heritages, physiology, and character-generation boundaries are
 defined in [`Docs/DesignConcept/Races.md`](Docs/DesignConcept/Races.md). The
 classless capability model is split into
-[`Docs/DesignConcept/Attributes.md`](Docs/DesignConcept/Attributes.md) and
+[`Docs/DesignConcept/Abilities.md`](Docs/DesignConcept/Abilities.md) and
 [`Docs/DesignConcept/Skills.md`](Docs/DesignConcept/Skills.md); Perk and Racial
 Perk rules are defined in [`Docs/DesignConcept/Perks.md`](Docs/DesignConcept/Perks.md).
 Implemented first-slice and planned personal weapons, armor, tools, and relics are defined in
 [`Docs/DesignConcept/Equipments.md`](Docs/DesignConcept/Equipments.md).
 Planned spellcasting rules,
-the authored spell catalog, and psychic systems are defined in
+the authored spell catalog, and psionics systems are defined in
 [`Docs/DesignConcept/Spells.md`](Docs/DesignConcept/Spells.md), and
 [`Docs/DesignConcept/PsychicAbilities.md`](Docs/DesignConcept/PsychicAbilities.md).
 Ship engagements, boarding, ruin expeditions, EVA fighting, injuries, and

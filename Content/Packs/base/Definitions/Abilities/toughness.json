@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
   "revision": 1,
-  "id": "attribute.toughness",
-  "nameKey": "attribute.toughness.name",
-  "descriptionKey": "attribute.toughness.description",
+  "id": "ability.toughness",
+  "nameKey": "ability.toughness.name",
+  "descriptionKey": "ability.toughness.description",
   "minimum": 1,
   "maximum": 10,
   "defaultValue": 5,

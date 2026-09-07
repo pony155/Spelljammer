@@ -18,7 +18,7 @@ namespace Spelljammer.Simulation.Content;
 public abstract record ContentDefinition(ContentId Id, int SchemaVersion, int Revision, string NameKey, string DescriptionKey);
 
 /// <summary>
-/// Defines a character attribute (Strength, Dexterity, etc.) with its range and default value.
+/// Defines a character ability (Strength, Dexterity, etc.) with its range and default value.
 /// </summary>
 public sealed record AttributeDefinition(
     AttributeId AttributeId,
@@ -135,7 +135,7 @@ public sealed record HeritageDefinition(
     : ContentDefinition(HeritageId.Value, SchemaVersion, Revision, NameKey, DescriptionKey);
 
 /// <summary>
-/// Defines a character background (origin story) with skill bonuses and attribute increases.
+/// Defines a character background (origin story) with skill bonuses and ability increases.
 /// </summary>
 public sealed record BackgroundDefinition(
     BackgroundId BackgroundId,

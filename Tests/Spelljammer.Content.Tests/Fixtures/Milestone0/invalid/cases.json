@@ -209,8 +209,8 @@
       "id": "definition-id-duplicate",
       "writeText": [
         {
-          "path": "Definitions/Attributes/second-strength.json",
-          "text": "{\"schemaVersion\":1,\"revision\":1,\"id\":\"attribute.strength\",\"nameKey\":\"attribute.strength.name\",\"descriptionKey\":\"attribute.strength.description\",\"minimum\":1,\"maximum\":10,\"defaultValue\":5,\"tags\":[]}"
+          "path": "Definitions/Abilities/second-strength.json",
+          "text": "{\"schemaVersion\":1,\"revision\":1,\"id\":\"ability.strength\",\"nameKey\":\"ability.strength.name\",\"descriptionKey\":\"ability.strength.description\",\"minimum\":1,\"maximum\":10,\"defaultValue\":5,\"tags\":[]}"
         }
       ],
       "expectedPrimaryDiagnostic": "CONTENT_DEFINITION_ID_DUPLICATE"
@@ -229,8 +229,8 @@
       "id": "kind-mismatch",
       "writeText": [
         {
-          "path": "Definitions/Attributes/agility.json",
-          "text": "{\"schemaVersion\":1,\"revision\":1,\"id\":\"skill.agility\",\"nameKey\":\"attribute.agility.name\",\"descriptionKey\":\"attribute.agility.description\",\"minimum\":1,\"maximum\":10,\"defaultValue\":5,\"tags\":[]}"
+          "path": "Definitions/Abilities/agility.json",
+          "text": "{\"schemaVersion\":1,\"revision\":1,\"id\":\"skill.agility\",\"nameKey\":\"ability.agility.name\",\"descriptionKey\":\"ability.agility.description\",\"minimum\":1,\"maximum\":10,\"defaultValue\":5,\"tags\":[]}"
         }
       ],
       "expectedPrimaryDiagnostic": "CONTENT_KIND_MISMATCH"
@@ -239,8 +239,8 @@
       "id": "value-out-of-range",
       "writeText": [
         {
-          "path": "Definitions/Attributes/strength.json",
-          "text": "{\"schemaVersion\":1,\"revision\":1,\"id\":\"attribute.strength\",\"nameKey\":\"attribute.strength.name\",\"descriptionKey\":\"attribute.strength.description\",\"minimum\":1,\"maximum\":10,\"defaultValue\":11,\"tags\":[\"physical\",\"force\"]}"
+          "path": "Definitions/Abilities/strength.json",
+          "text": "{\"schemaVersion\":1,\"revision\":1,\"id\":\"ability.strength\",\"nameKey\":\"ability.strength.name\",\"descriptionKey\":\"ability.strength.description\",\"minimum\":1,\"maximum\":10,\"defaultValue\":11,\"tags\":[\"physical\",\"force\"]}"
         }
       ],
       "expectedPrimaryDiagnostic": "CONTENT_VALUE_OUT_OF_RANGE"
@@ -249,8 +249,8 @@
       "id": "collection-duplicate",
       "writeText": [
         {
-          "path": "Definitions/Attributes/strength.json",
-          "text": "{\"schemaVersion\":1,\"revision\":1,\"id\":\"attribute.strength\",\"nameKey\":\"attribute.strength.name\",\"descriptionKey\":\"attribute.strength.description\",\"minimum\":1,\"maximum\":10,\"defaultValue\":5,\"tags\":[\"physical\",\"physical\"]}"
+          "path": "Definitions/Abilities/strength.json",
+          "text": "{\"schemaVersion\":1,\"revision\":1,\"id\":\"ability.strength\",\"nameKey\":\"ability.strength.name\",\"descriptionKey\":\"ability.strength.description\",\"minimum\":1,\"maximum\":10,\"defaultValue\":5,\"tags\":[\"physical\",\"physical\"]}"
         }
       ],
       "expectedPrimaryDiagnostic": "CONTENT_COLLECTION_DUPLICATE"

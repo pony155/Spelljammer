@@ -1,7 +1,7 @@
 # Milestone 2 content fixtures
 
 The current production `Content/Packs/base` directory supplies the valid base
-fixture; Milestone 2 assertions select its Attribute and Skill registries while
+fixture; Milestone 2 assertions select its Ability and Skill registries while
 Milestone 3 and 4 assertions also exercise its character and supernatural
 content. `invalid/cases.json`
 applies focused virtual replacements and reduced limits to that base pack.
