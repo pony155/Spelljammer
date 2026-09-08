@@ -10,6 +10,12 @@ using AmmunitionDefinition = Spelljammer.Simulation.Items.AmmunitionDefinition;
 
 namespace Spelljammer.Content.Compilation;
 
+/// <summary>
+/// Serializes compiled semantic content into canonical bytes and computes its fingerprint.
+/// </summary>
+/// <remarks>
+/// Code flow: Packs and definitions are ordered by canonical kind and ID, invariant values are emitted with stable escaping and field order, and SHA-256 identifies the exact gameplay semantics.
+/// </remarks>
 internal static class CanonicalSemanticWriter
 {
     public static (byte[] Bytes, ContentFingerprint Fingerprint) Write(

@@ -3,6 +3,12 @@ using Spelljammer.Simulation.Content;
 
 namespace Spelljammer.Content.Compilation;
 
+/// <summary>
+/// Defines the normalized intermediate representation shared by content parsing and compilation.
+/// </summary>
+/// <remarks>
+/// Code flow: Definition parsing stores validated common and kind-specific source data, linking resolves referenced IDs, and typed compilation converts the intermediate records into simulation definitions.
+/// </remarks>
 internal enum DefinitionKind : byte
 {
     WorldTime,

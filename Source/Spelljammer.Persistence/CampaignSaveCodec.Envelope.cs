@@ -15,6 +15,12 @@ using Spelljammer.Simulation.Effects;
 
 namespace Spelljammer.Persistence;
 
+/// <summary>
+/// Reads, writes, checksums, compresses, and preflights the campaign save envelope.
+/// </summary>
+/// <remarks>
+/// Code flow: Writes serialize metadata and payload into bounded sections with checksums; reads validate the header and integrity before decompression, compatibility preflight, and domain mapping.
+/// </remarks>
 public static partial class CampaignSaveCodec
 {
     public static SaveDiagnosticCode ValidateEnvelope(ReadOnlyMemory<byte> bytes) =>

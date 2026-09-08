@@ -4,6 +4,12 @@ using Spelljammer.Simulation.World;
 
 namespace Spelljammer.Simulation.Ships;
 
+/// <summary>
+/// Validates and applies module installation changes to a ship loadout.
+/// </summary>
+/// <remarks>
+/// Code flow: A requested module and slot are resolved through the content catalog, compatibility and capacity rules are checked, and an accepted request returns a replacement ship.
+/// </remarks>
 public sealed record ShipLoadoutResult(ShipState? Ship, string RejectionCode)
 {
     public bool Accepted => Ship is not null;

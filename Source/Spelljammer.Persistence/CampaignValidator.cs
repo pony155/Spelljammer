@@ -23,6 +23,8 @@ namespace Spelljammer.Persistence;
 /// - Commands are properly sorted by execution order
 /// - All character references are valid and unique
 /// - All equipment and scenario references exist in content
+/// Code flow: A decoded or migrated candidate is traversed against the active content snapshot, the first invariant
+/// failure returns a stable diagnostic and optional missing ID, and only a fully valid campaign may be published.
 /// </remarks>
 public static class CampaignValidator
 {

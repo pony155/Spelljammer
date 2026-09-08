@@ -13,6 +13,8 @@ namespace Spelljammer.Simulation.Characters;
 /// <remarks>
 /// The request specifies all character creation choices: race, heritage, background, and scenario.
 /// The content fingerprint ensures the request matches the available game content.
+/// Code flow: The request resolves and validates every selected definition, deterministic derivation builds the
+/// initial capabilities, resources, equipment, and progression state, and success returns one complete character.
 /// </remarks>
 /// <param name="ContentFingerprint">The fingerprint of the content being used for creation.</param>
 /// <param name="ScenarioId">The starting scenario for the new character.</param>

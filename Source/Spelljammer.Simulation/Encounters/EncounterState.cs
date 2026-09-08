@@ -6,6 +6,12 @@ using Spelljammer.Simulation.Items;
 
 namespace Spelljammer.Simulation.Encounters;
 
+/// <summary>
+/// Defines encounter-owned battle units, objectives, and personal encounter state.
+/// </summary>
+/// <remarks>
+/// Code flow: Persistent characters are projected into units, combat replaces unit and status state during the encounter, and explicit post-battle projection commits durable character changes.
+/// </remarks>
 public sealed record BattleUnitState(
     BattleUnitId Id,
     TeamId TeamId,

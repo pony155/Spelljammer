@@ -8,6 +8,12 @@ using Spelljammer.Settings;
 
 namespace Spelljammer;
 
+/// <summary>
+/// Hosts the application's main menu and coordinates navigation to top-level screens.
+/// </summary>
+/// <remarks>
+/// Code flow: Localized menu commands arrive from the native view, open the requested WPF screen, and return control to the menu when that screen closes.
+/// </remarks>
 internal sealed class MainMenuWindow : Window
 {
     private readonly GameSettingsRegistry settings;

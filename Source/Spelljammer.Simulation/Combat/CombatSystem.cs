@@ -7,6 +7,9 @@ using Spelljammer.Simulation.World;
 namespace Spelljammer.Simulation.Combat;
 
 /// <summary>Stable rejection codes owned by character-combat orchestration.</summary>
+/// <remarks>
+/// Code flow: The coordinator resolves an action definition and specialized action system, delegates deterministic resolution without owning unit state, validates returned identities, and publishes one encounter-level result.
+/// </remarks>
 public static class CombatRejectionCodes
 {
     public const string None = ActionRejectionCodes.None;

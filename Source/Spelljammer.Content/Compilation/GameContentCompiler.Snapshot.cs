@@ -15,6 +15,12 @@ using AmmunitionDefinition = Spelljammer.Simulation.Items.AmmunitionDefinition;
 
 namespace Spelljammer.Content.Compilation;
 
+/// <summary>
+/// Assembles validated source definitions into the immutable game-content snapshot.
+/// </summary>
+/// <remarks>
+/// Code flow: Definitions are grouped and compiled by kind, typed registries and aggregate catalogs are created, canonical bytes produce fingerprints, and the completed snapshot enters the result.
+/// </remarks>
 public sealed partial class GameContentCompiler
 {
     private ContentCompilationResult CompileSnapshot(

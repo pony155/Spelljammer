@@ -6,6 +6,12 @@ using Spelljammer.Simulation.Content;
 
 namespace Spelljammer.Content.Parsing;
 
+/// <summary>
+/// Parses authored gameplay JSON into normalized source definitions by content kind.
+/// </summary>
+/// <remarks>
+/// Code flow: A definition discriminator selects its schema, common and kind-specific fields are validated under bounds, and a normalized intermediate definition enters linking and compilation.
+/// </remarks>
 internal static class DefinitionParser
 {
     private static readonly string[] CommonRequired = ["schemaVersion", "revision", "id", "nameKey", "descriptionKey"];

@@ -7,6 +7,9 @@ using Spelljammer.Simulation.Items;
 namespace Spelljammer.Simulation.Combat;
 
 /// <summary>Definitions consumed by character action, weapon, status, and effect resolution.</summary>
+/// <remarks>
+/// Code flow: Compiled content implements the aggregate combat lookup boundary, the coordinator and action systems resolve stable typed definitions, and missing definitions reject resolution before state changes.
+/// </remarks>
 public interface ICombatContentCatalog : ICharacterStateCatalog
 {
     ImmutableArray<EquipmentDefinition> Equipment { get; }

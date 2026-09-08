@@ -4,6 +4,12 @@ using Spelljammer.Simulation.Ships;
 
 namespace Spelljammer.Simulation.World;
 
+/// <summary>
+/// Advances the authoritative world through a bounded number of fixed simulation ticks.
+/// </summary>
+/// <remarks>
+/// Code flow: Each tick drains due commands and scheduled actions in stable order, advances ships, opponents, encounters, and campaign time, then emits a new snapshot.
+/// </remarks>
 public sealed partial record World
 {
     public WorldAdvanceResult Advance(

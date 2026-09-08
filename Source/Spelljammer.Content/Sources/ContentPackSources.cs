@@ -1,5 +1,11 @@
 namespace Spelljammer.Content.Sources;
 
+/// <summary>
+/// Defines bounded access to authored content-pack files from directory-backed sources.
+/// </summary>
+/// <remarks>
+/// Code flow: The compiler enumerates normalized relative paths, reads each file through explicit byte limits, and converts source or path failures into structured content diagnostics.
+/// </remarks>
 public interface IContentPackSource
 {
     IReadOnlyList<string> EnumerateFiles();

@@ -6,6 +6,12 @@ using Spelljammer.Settings;
 
 namespace Spelljammer;
 
+/// <summary>
+/// Hosts the in-game settings surface and applies validated user preferences.
+/// </summary>
+/// <remarks>
+/// Code flow: The dialog loads the published settings profile, receives edits from the native view, validates and persists accepted changes, then refreshes dependent services.
+/// </remarks>
 internal sealed class GameSettingsDialog : Grid, IDisposable
 {
     private readonly GameSettingsRegistry registry;

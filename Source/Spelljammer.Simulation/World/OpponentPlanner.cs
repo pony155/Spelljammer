@@ -3,6 +3,12 @@ using Spelljammer.Simulation.Ships;
 
 namespace Spelljammer.Simulation.World;
 
+/// <summary>
+/// Selects a bounded deterministic command for a non-player ship.
+/// </summary>
+/// <remarks>
+/// Code flow: The planner inspects contacts and weapon readiness, chooses fire or intercept behavior, and returns a normally queued world command for the current tick.
+/// </remarks>
 public static class OpponentPlanner
 {
     public const int MaximumCandidates = 8;

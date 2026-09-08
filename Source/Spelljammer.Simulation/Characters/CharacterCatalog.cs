@@ -6,6 +6,9 @@ using Spelljammer.Simulation.Items;
 namespace Spelljammer.Simulation.Characters;
 
 /// <summary>Definitions needed by character creation, capability lookup, progression, and recruitment.</summary>
+/// <remarks>
+/// Code flow: Compiled content implements the catalog, character systems resolve stable IDs and typed definitions through it, and a shared fingerprint prevents cross-content state mutation.
+/// </remarks>
 public interface ICharacterDefinitionCatalog : IContentCatalogIdentity
 {
     ImmutableArray<AbilityDefinition> Abilities { get; }

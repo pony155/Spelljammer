@@ -2,6 +2,12 @@ using Spelljammer.Simulation.Content;
 
 namespace Spelljammer.Simulation.World;
 
+/// <summary>
+/// Defines authoritative world commands, their stable ordering fields, and enqueue results.
+/// </summary>
+/// <remarks>
+/// Code flow: Callers submit a command for a target tick, the world validates and sorts it by deterministic keys, and the appropriate commit path resolves it.
+/// </remarks>
 public enum WorldCommandKind : byte
 {
     Scan,

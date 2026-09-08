@@ -2,6 +2,12 @@ using System.Runtime.InteropServices;
 
 namespace Spelljammer.Interop;
 
+/// <summary>
+/// Declares the managed representation of the versioned SpriteForge native ABI.
+/// </summary>
+/// <remarks>
+/// Code flow: Managed hosts marshal bounded blittable requests into native functions, inspect returned status values, and copy snapshots or commands back into managed presentation code.
+/// </remarks>
 internal enum EngineStatus
 {
     Success = 0,

@@ -4,6 +4,12 @@ using Spelljammer.Simulation.Effects;
 
 namespace Spelljammer.Simulation.Items;
 
+/// <summary>
+/// Defines non-weapon, non-armor equipment and the passive effects it grants.
+/// </summary>
+/// <remarks>
+/// Code flow: Content compilation links equipment slots and effect applications, the item catalog publishes the definition, and equipped gear contributes those effects to its owner.
+/// </remarks>
 public sealed record GearDefinition(
     ContentId Id,
     int SchemaVersion,

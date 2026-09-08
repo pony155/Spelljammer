@@ -8,6 +8,9 @@ namespace Spelljammer.Simulation.Characters;
 /// <summary>
 /// Localization keys for reasons an action might be rejected during validation.
 /// </summary>
+/// <remarks>
+/// Code flow: An action request resolves actor and definition data, validates targeting, restrictions, resources, and action points, then commits effects and returns replacement state or a stable rejection code.
+/// </remarks>
 public static class ActionRejectionCodes
 {
     /// <summary>Action was accepted without issue.</summary>

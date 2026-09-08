@@ -15,6 +15,12 @@ using AmmunitionDefinition = Spelljammer.Simulation.Items.AmmunitionDefinition;
 
 namespace Spelljammer.Content.Compilation;
 
+/// <summary>
+/// Coordinates the complete deterministic gameplay-content compilation pipeline.
+/// </summary>
+/// <remarks>
+/// Code flow: Pack sources are loaded and ordered, definitions and default locale keys are parsed, linking and validation run, and success produces one fingerprinted immutable snapshot.
+/// </remarks>
 public sealed partial class GameContentCompiler
 {
     private static readonly HashSet<string> RuntimePrimitives = new(StringComparer.Ordinal)

@@ -7,6 +7,9 @@ using Spelljammer.Simulation.World;
 namespace Spelljammer.Simulation.Content;
 
 /// <summary>Stable content identity shared by all authoritative catalog views.</summary>
+/// <remarks>
+/// Code flow: Content compilation produces specialized immutable catalogs with one fingerprint, aggregate consumers receive the combined interface, and simulation lookups resolve stable IDs through focused views.
+/// </remarks>
 public interface IContentCatalogIdentity
 {
     ContentFingerprint Fingerprint { get; }

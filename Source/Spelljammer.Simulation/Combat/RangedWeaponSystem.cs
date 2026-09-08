@@ -7,6 +7,9 @@ using Spelljammer.Simulation.Effects;
 namespace Spelljammer.Simulation.Combat;
 
 /// <summary>Per-instance ranged weapon state, separate from immutable content rules.</summary>
+/// <remarks>
+/// Code flow: Attack requests validate equipment, range, resources, heat, durability, and ammunition before deterministic shots apply effects; reload atomically consumes an inventory stack entry and updates the magazine.
+/// </remarks>
 public sealed record RangedWeaponState(
     RangedWeaponId WeaponId,
     int CurrentDurability,

@@ -4,6 +4,12 @@ using Spelljammer.Simulation.World;
 
 namespace Spelljammer.Simulation.Ships;
 
+/// <summary>
+/// Defines immutable ship, module, contact, and resource state used by world simulation.
+/// </summary>
+/// <remarks>
+/// Code flow: Content-backed ship state enters world commands, specialized systems return validated replacement modules or resources, and the world publishes the committed ship snapshot.
+/// </remarks>
 public enum ModuleCondition : byte
 {
     Intact,

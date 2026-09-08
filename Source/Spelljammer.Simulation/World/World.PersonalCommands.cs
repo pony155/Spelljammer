@@ -6,6 +6,12 @@ using Spelljammer.Simulation.Encounters;
 
 namespace Spelljammer.Simulation.World;
 
+/// <summary>
+/// Implements personal-combat command commitment for active encounters.
+/// </summary>
+/// <remarks>
+/// Code flow: A queued personal command resolves its encounter units, invokes the configured combat resolver, replaces accepted encounter state, and records the outcome.
+/// </remarks>
 public sealed partial record World
 {
     private World CommitPersonal(

@@ -5,6 +5,12 @@ using Spelljammer.Simulation.Ships;
 
 namespace Spelljammer.Simulation.World;
 
+/// <summary>
+/// Owns the immutable authoritative state for the deterministic Spelljammer simulation.
+/// </summary>
+/// <remarks>
+/// Code flow: Content-backed state is created and validated, commands enter bounded queues, fixed-tick advancement returns replacement world values, and snapshots expose committed state.
+/// </remarks>
 public sealed partial record World(
     ulong Seed,
     ContentFingerprint ContentFingerprint,

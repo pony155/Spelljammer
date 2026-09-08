@@ -25,6 +25,8 @@ namespace Spelljammer.Persistence;
 /// - Payload section: compressed campaign state JSON
 ///
 /// All sections are validated against size limits and integrity checksums.
+/// Code flow: Saving maps state to DTOs and wraps checksummed bounded sections; loading validates and preflights the
+/// envelope, migrates when permitted, reconstructs domain state, and validates it before returning success.
 /// </remarks>
 public static partial class CampaignSaveCodec
 {

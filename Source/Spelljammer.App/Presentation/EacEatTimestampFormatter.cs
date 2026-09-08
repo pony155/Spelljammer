@@ -5,6 +5,9 @@ using Spelljammer.Simulation.World;
 namespace Spelljammer.Presentation;
 
 /// <summary>Formats an authoritative world date as localized EAC and EAT presentation text.</summary>
+/// <remarks>
+/// Code flow: A simulation tick is converted through the active time-scale and calendar definitions, then its date and 24-hour time fields are formatted with localized labels.
+/// </remarks>
 internal sealed class EacEatTimestampFormatter
 {
     private static readonly LocalizationKey EraLabelKey = LocalizationKey.Create("calendar.era.eac.label");

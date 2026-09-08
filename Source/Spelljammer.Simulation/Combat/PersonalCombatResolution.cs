@@ -7,6 +7,9 @@ namespace Spelljammer.Simulation.Combat;
 /// <summary>
 /// Immutable input supplied to the personal-combat authority when a scheduled combat command commits.
 /// </summary>
+/// <remarks>
+/// Code flow: World command commitment builds a context from encounter-owned units, the selected action system returns one atomic resolution, and the world validates and installs the replacement units and statuses.
+/// </remarks>
 public sealed record PersonalCombatContext(
     WorldCommand Command,
     PersonalEncounterState Encounter,

@@ -14,6 +14,12 @@ using Spelljammer.Simulation.Effects;
 
 namespace Spelljammer.Persistence;
 
+/// <summary>
+/// Converts and evaluates the content lock embedded in each campaign save.
+/// </summary>
+/// <remarks>
+/// Code flow: Saved pack identities, versions, fingerprints, and required IDs are parsed, compared with the active content snapshot, and classified as exact, migratable, compatible, or incompatible.
+/// </remarks>
 public static partial class CampaignSaveCodec
 {
     private static ContentPreflightResult FailedPreflight(SaveDiagnosticCode diagnostic) => new(

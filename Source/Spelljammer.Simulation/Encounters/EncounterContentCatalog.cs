@@ -4,6 +4,9 @@ using Spelljammer.Simulation.Content;
 namespace Spelljammer.Simulation.Encounters;
 
 /// <summary>Definitions used to construct and validate character encounter boards.</summary>
+/// <remarks>
+/// Code flow: Compiled content implements this lookup boundary, encounter setup resolves board and cell definitions, and missing links or incompatible identities prevent board publication.
+/// </remarks>
 public interface IEncounterContentCatalog : IContentCatalogIdentity
 {
     ImmutableArray<BoardCellDefinition> BoardCells { get; }

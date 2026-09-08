@@ -4,6 +4,12 @@ using Spelljammer.Simulation.Content;
 
 namespace Spelljammer.Persistence;
 
+/// <summary>
+/// Applies explicit structural migrations between campaign save schema versions.
+/// </summary>
+/// <remarks>
+/// Code flow: Envelope decoding identifies the source schema, a registered JSON transformation renames or reshapes fields, and the current-schema payload proceeds to normal DTO decoding and validation.
+/// </remarks>
 internal static class CampaignSaveSchemaMigrations
 {
     public static readonly ContentId BattleUnitsMigrationId = new("migration.save.v13-battle-units");

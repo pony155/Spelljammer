@@ -3,6 +3,12 @@ using System.Text;
 
 namespace Spelljammer.Localization;
 
+/// <summary>
+/// Executes compiled localization messages using typed arguments and pinned locale rules.
+/// </summary>
+/// <remarks>
+/// Code flow: The formatter walks message opcodes, resolves arguments and selection branches, applies locale-aware number formatting, and appends bounded output text.
+/// </remarks>
 internal static class MessageFormatter
 {
     public static LocalizationStatus Format(

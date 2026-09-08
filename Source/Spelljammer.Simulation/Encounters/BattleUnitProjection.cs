@@ -8,6 +8,9 @@ namespace Spelljammer.Simulation.Encounters;
 /// Creates an encounter-scoped battle unit from a persistent character and
 /// commits the battle-owned state back at an explicit transaction boundary.
 /// </summary>
+/// <remarks>
+/// Code flow: Encounter creation copies combat-relevant character state into a new unit ID, combat mutates only unit state, and post-battle commit validates identity before replacing durable character fields.
+/// </remarks>
 public static class BattleUnitProjection
 {
     public static BattleUnitState Project(

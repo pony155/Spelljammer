@@ -13,6 +13,8 @@ namespace Spelljammer.Presentation;
 /// This class loads embedded localization artifacts for all supported languages
 /// (English, French, Traditional Chinese) organized by UI sections and calendar presentation.
 /// The localization service handles string lookup, fallbacks, and formatting.
+/// Code flow: Embedded artifacts are loaded into a catalog generation, the settings language selects a locale,
+/// and UI callers resolve stable keys with fallback and typed formatting through this facade.
 /// </remarks>
 internal sealed class GameText
 {

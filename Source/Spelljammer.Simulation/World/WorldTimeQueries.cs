@@ -2,6 +2,12 @@ using Spelljammer.Simulation.Content;
 
 namespace Spelljammer.Simulation.World;
 
+/// <summary>
+/// Projects authoritative elapsed campaign time into calendar date and time values.
+/// </summary>
+/// <remarks>
+/// Code flow: Elapsed world seconds are divided by data-driven calendar units, resolved to a month and weekday, and returned as presentation-neutral date fields.
+/// </remarks>
 public sealed record WorldDateTime(
     long Year,
     int Month,

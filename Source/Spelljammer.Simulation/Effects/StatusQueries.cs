@@ -3,6 +3,12 @@ using Spelljammer.Simulation.Content;
 
 namespace Spelljammer.Simulation.Effects;
 
+/// <summary>
+/// Aggregates active status restrictions, AI rules, and modifiers for simulation consumers.
+/// </summary>
+/// <remarks>
+/// Code flow: Queries join active instances with their definitions, filter rules by target or action, sort results deterministically, and expose immutable derived values without mutating status state.
+/// </remarks>
 public sealed record ActiveStatusRestriction(
     StatusInstanceId InstanceId,
     StatusRestrictionType Type,

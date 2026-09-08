@@ -8,6 +8,9 @@ namespace Spelljammer.Presentation;
 /// Owns the SpriteForge audio instance on the WPF dispatcher thread and applies
 /// presentation-only game settings to its buses.
 /// </summary>
+/// <remarks>
+/// Code flow: Validated game volume settings are converted to normalized engine values and sent to the native master, music, and effects audio buses for the service lifetime.
+/// </remarks>
 internal sealed class SpriteForgeAudioService : IDisposable
 {
     private const float SettingsRampSeconds = 0.05f;

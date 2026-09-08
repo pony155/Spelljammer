@@ -3,6 +3,12 @@ using Spelljammer.Simulation.Content;
 
 namespace Spelljammer.Simulation.Ships;
 
+/// <summary>
+/// Allocates finite ship power across installed modules in deterministic priority order.
+/// </summary>
+/// <remarks>
+/// Code flow: The system totals available generation, orders consumers by stable priority and ID, marks affordable modules powered, and returns the replacement ship plus rejected module IDs.
+/// </remarks>
 public sealed record PowerAllocationResult(ShipState Ship, ImmutableArray<ContentId> UnpoweredModuleIds);
 
 public static class ShipPowerSystem

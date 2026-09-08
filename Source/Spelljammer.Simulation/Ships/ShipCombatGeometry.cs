@@ -2,6 +2,12 @@ using Spelljammer.Simulation.World;
 
 namespace Spelljammer.Simulation.Ships;
 
+/// <summary>
+/// Provides deterministic range bands and firing geometry for ship combat.
+/// </summary>
+/// <remarks>
+/// Code flow: Fixed-point positions and headings are compared, distance and firing arcs are classified, and command resolution consumes the resulting range and solution flags.
+/// </remarks>
 public enum ShipRange : byte
 {
     Contact,

@@ -11,6 +11,8 @@ namespace Spelljammer.Simulation.Characters;
 /// <remarks>
 /// This class encapsulates the character's abilities, skills, and passive or active Feats.
 /// All data is immutable and validated against content definitions using fingerprints to ensure consistency.
+/// Code flow: Character creation builds capabilities from linked definitions and grants, gameplay systems return
+/// replacement character state, and battle projection copies only combat-owned fields across encounter boundaries.
 /// </remarks>
 public sealed class CharacterCapabilities
 {

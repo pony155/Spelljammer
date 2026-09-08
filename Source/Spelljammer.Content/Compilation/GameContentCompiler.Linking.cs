@@ -15,6 +15,12 @@ using AmmunitionDefinition = Spelljammer.Simulation.Items.AmmunitionDefinition;
 
 namespace Spelljammer.Content.Compilation;
 
+/// <summary>
+/// Resolves cross-definition references and validates compatible content kinds.
+/// </summary>
+/// <remarks>
+/// Code flow: Definitions are indexed by stable ID, each reference is resolved in deterministic order, missing or mismatched targets add diagnostics, and only fully linked sources proceed.
+/// </remarks>
 public sealed partial class GameContentCompiler
 {
     private bool Link(IReadOnlyList<SourceDefinition> definitions, DiagnosticSink diagnostics)

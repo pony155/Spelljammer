@@ -4,6 +4,12 @@ using Spelljammer.Simulation.Ships;
 
 namespace Spelljammer.Simulation.World;
 
+/// <summary>
+/// Implements ship-command commitment for the authoritative world state.
+/// </summary>
+/// <remarks>
+/// Code flow: A queued ship command resolves its actor and target, reserves required resources, delegates movement or combat rules, and appends the resulting world event.
+/// </remarks>
 public sealed partial record World
 {
     private World CommitShip(WorldCommand command, ResourceId? reservedResource, int reservedAmount)

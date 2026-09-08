@@ -5,6 +5,12 @@ using Spelljammer.Simulation.Effects;
 
 namespace Spelljammer.Simulation.Combat;
 
+/// <summary>
+/// Provides shared deterministic rolls, effect application, and resource helpers for combat systems.
+/// </summary>
+/// <remarks>
+/// Code flow: Specialized action systems pass seeds, sequences, definitions, and target resources into these primitives, which return bounded values and replacement state without hidden randomness.
+/// </remarks>
 internal readonly record struct ImmediateEffectAmount(EffectId EffectId, int Amount);
 
 /// <summary>Shared deterministic primitives used by otherwise independent personal-action systems.</summary>

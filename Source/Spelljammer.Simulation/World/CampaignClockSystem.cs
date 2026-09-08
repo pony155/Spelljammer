@@ -1,6 +1,9 @@
 namespace Spelljammer.Simulation.World;
 
 /// <summary>Deterministically advances persistent campaign time without floating-point arithmetic.</summary>
+/// <remarks>
+/// Code flow: Simulation ticks are multiplied by the data-driven time-scale ratio, fractional seconds remain in state, and whole seconds advance the persistent campaign clock.
+/// </remarks>
 public static class CampaignClockSystem
 {
     public static CampaignClockState Advance(

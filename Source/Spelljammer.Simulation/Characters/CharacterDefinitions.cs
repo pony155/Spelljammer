@@ -4,6 +4,12 @@ using Spelljammer.Simulation.Effects;
 
 namespace Spelljammer.Simulation.Characters;
 
+/// <summary>
+/// Defines data-driven character abilities, skills, resources, feats, training, races, and scenarios.
+/// </summary>
+/// <remarks>
+/// Code flow: Content compilation validates and links these immutable definitions, catalogs index them by stable ID, and creation, progression, combat, and training resolve them at runtime.
+/// </remarks>
 public sealed record AbilityDefinition(
     AbilityId AbilityId,
     int SchemaVersion,

@@ -15,6 +15,12 @@ using AmmunitionDefinition = Spelljammer.Simulation.Items.AmmunitionDefinition;
 
 namespace Spelljammer.Content.Compilation;
 
+/// <summary>
+/// Implements global and cross-definition validation for the content compiler.
+/// </summary>
+/// <remarks>
+/// Code flow: Normalized definitions are indexed and visited in stable order, shared and kind-specific invariants append diagnostics, and any error prevents later snapshot publication.
+/// </remarks>
 public sealed partial class GameContentCompiler
 {
     private bool Validate(IReadOnlyList<SourceDefinition> definitions, DiagnosticSink diagnostics)

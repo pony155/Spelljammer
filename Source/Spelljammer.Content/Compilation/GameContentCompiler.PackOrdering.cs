@@ -15,6 +15,12 @@ using AmmunitionDefinition = Spelljammer.Simulation.Items.AmmunitionDefinition;
 
 namespace Spelljammer.Content.Compilation;
 
+/// <summary>
+/// Validates content-pack compatibility and computes deterministic dependency order.
+/// </summary>
+/// <remarks>
+/// Code flow: Manifests become a bounded dependency graph, required versions and optional load-after edges are checked, and stable topological ordering yields the pack sequence or cycle diagnostics.
+/// </remarks>
 public sealed partial class GameContentCompiler
 {
     private ImmutableArray<CandidatePack> OrderPacks(

@@ -3,6 +3,12 @@ using Spelljammer.Simulation.Content;
 
 namespace Spelljammer.Simulation.Encounters;
 
+/// <summary>
+/// Applies non-attack encounter transitions such as surrender, capture, and objective completion.
+/// </summary>
+/// <remarks>
+/// Code flow: A requested transition resolves the target unit or objective, validates its current state, and returns a replacement encounter with the accepted lifecycle change.
+/// </remarks>
 public static class EncounterLifecycle
 {
     public static PersonalEncounterState TakePrisoner(PersonalEncounterState encounter, BattleUnitId unitId)

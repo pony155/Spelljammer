@@ -3,6 +3,12 @@ using Spelljammer.Simulation.Content;
 
 namespace Spelljammer.Simulation.Effects;
 
+/// <summary>
+/// Defines data-driven status categories, durations, stacking, modifiers, restrictions, and AI rules.
+/// </summary>
+/// <remarks>
+/// Code flow: Content compilation validates authored status data, catalogs index definitions by stable ID, and status systems resolve the rules when applying or querying instances.
+/// </remarks>
 public enum StatusCategory : byte
 {
     Mental,

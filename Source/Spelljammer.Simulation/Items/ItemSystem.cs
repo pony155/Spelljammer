@@ -6,6 +6,9 @@ using Spelljammer.Simulation.Content;
 namespace Spelljammer.Simulation.Items;
 
 /// <summary>Atomic item, inventory, and equipment-loadout mutations.</summary>
+/// <remarks>
+/// Code flow: Each request validates IDs, definitions, capacity, quantities, and slot compatibility before returning one replacement item-system state or an unchanged rejected result.
+/// </remarks>
 public static class ItemSystem
 {
     public static ItemSystemResult Create(ItemSystemState candidate, IItemDefinitionCatalog catalog)

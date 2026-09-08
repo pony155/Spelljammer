@@ -3,6 +3,12 @@ using Spelljammer.Simulation.Content;
 
 namespace Spelljammer.Simulation.Encounters;
 
+/// <summary>
+/// Defines data-driven tactical cells, zone links, boards, and encounter layouts.
+/// </summary>
+/// <remarks>
+/// Code flow: Content compilation validates and links stable geometry IDs, the encounter catalog publishes definitions, and board creation materializes bounded cells and connections.
+/// </remarks>
 public sealed record BoardCellDefinition(
     CellId CellId,
     int SchemaVersion,

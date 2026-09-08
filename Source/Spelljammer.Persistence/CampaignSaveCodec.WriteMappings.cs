@@ -16,6 +16,12 @@ using Spelljammer.Simulation.Effects;
 
 namespace Spelljammer.Persistence;
 
+/// <summary>
+/// Maps authoritative campaign domain state into deterministic save transfer objects.
+/// </summary>
+/// <remarks>
+/// Code flow: Campaign aggregates are traversed in stable order, typed IDs and immutable collections become DTO fields, and the envelope codec serializes the resulting payload.
+/// </remarks>
 public static partial class CampaignSaveCodec
 {
     private static CampaignPayloadDto ToDto(CampaignState campaign, GameContentSnapshot content) => new()

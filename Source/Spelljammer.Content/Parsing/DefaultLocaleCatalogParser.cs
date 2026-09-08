@@ -3,6 +3,12 @@ using Spelljammer.Content.Diagnostics;
 
 namespace Spelljammer.Content.Parsing;
 
+/// <summary>
+/// Reads stable localization keys from each pack's required default-locale catalog.
+/// </summary>
+/// <remarks>
+/// Code flow: Strict JSON parsing validates the catalog identity and bounded key set, normalized keys are collected, and the compiler verifies that every referenced presentation key exists.
+/// </remarks>
 internal static class DefaultLocaleCatalogParser
 {
     public const string DefaultLocale = "en-US";

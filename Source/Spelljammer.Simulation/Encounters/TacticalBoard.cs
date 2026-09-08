@@ -3,6 +3,12 @@ using Spelljammer.Simulation.Content;
 
 namespace Spelljammer.Simulation.Encounters;
 
+/// <summary>
+/// Defines the immutable tactical board and validates bounded occupancy, movement, and paths.
+/// </summary>
+/// <remarks>
+/// Code flow: Board definitions create indexed cells and links, unit placement is validated against capacity, and movement or path queries return replacement occupancy or an explicit rejection.
+/// </remarks>
 public sealed record BoardValidationResult(TacticalBoard? Board, string RejectionCode)
 {
     public bool Accepted => Board is not null;

@@ -4,6 +4,12 @@ using Spelljammer.Simulation.Encounters;
 
 namespace Spelljammer.Simulation.World;
 
+/// <summary>
+/// Implements world-command admission, ordering, and shared rejection behavior.
+/// </summary>
+/// <remarks>
+/// Code flow: Incoming commands are checked against tick and capacity rules, inserted in deterministic order, and later dispatched by advancement to a specialized commit path.
+/// </remarks>
 public sealed partial record World
 {
     public WorldCommandResult Enqueue(WorldCommand command)

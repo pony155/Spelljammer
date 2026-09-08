@@ -3,6 +3,12 @@ using Spelljammer.Simulation.Content;
 
 namespace Spelljammer.Simulation.Effects;
 
+/// <summary>
+/// Applies, stacks, refreshes, expires, and removes bounded status instances.
+/// </summary>
+/// <remarks>
+/// Code flow: A request resolves its status definition, validates target limits and stack policy, produces pending effects, and atomically returns replacement status state or a rejection.
+/// </remarks>
 public sealed record StatusSystemLimits(
     int MaximumInstancesPerTarget,
     int MaximumDuration,

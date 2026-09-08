@@ -7,6 +7,8 @@ namespace Spelljammer.Content;
 /// These limits protect against resource exhaustion, prevent pathological JSON parsing,
 /// and enforce reasonable content pack structures. All limits have version 1 defaults
 /// that represent production constraints.
+/// Code flow: Every source read, parse, graph operation, registry build, and snapshot assembly checks these values
+/// before allocating or publishing, producing explicit diagnostics when a bound is exceeded.
 /// </remarks>
 public sealed record ContentLimits
 {

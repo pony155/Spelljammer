@@ -15,6 +15,9 @@ namespace Spelljammer.Content.Compilation;
 /// <summary>
 /// Identifies a content pack by ID, version, and content revision number.
 /// </summary>
+/// <remarks>
+/// Code flow: Successful compilation assembles ordered pack identities and typed registries, computes canonical fingerprints, and publishes the resulting immutable snapshot to simulation and persistence consumers.
+/// </remarks>
 /// <param name="Id">The unique identifier for this content pack.</param>
 /// <param name="Version">The semantic version of this content pack.</param>
 /// <param name="ContentRevision">The content revision number (incremented when definitions change).</param>

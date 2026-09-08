@@ -1,6 +1,9 @@
 namespace Spelljammer.Storage;
 
 /// <summary>Minimal file-system boundary required by transactional local-file stores.</summary>
+/// <remarks>
+/// Code flow: A caller stages bytes, validates the staged payload, atomically replaces the primary file, and uses the backup path to recover from interrupted or corrupt writes.
+/// </remarks>
 public interface IAtomicFileSystem
 {
     bool Exists(string path);

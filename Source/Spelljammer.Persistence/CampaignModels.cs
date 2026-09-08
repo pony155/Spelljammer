@@ -15,6 +15,8 @@ namespace Spelljammer.Persistence;
 /// </summary>
 /// <remarks>
 /// These version numbers are used to track format compatibility and enable migrations when save formats change.
+/// Code flow: Save writing records these versions and immutable campaign contracts, preflight compares them with the
+/// active runtime and content, and registries publish only accepted replacement campaign state.
 /// </remarks>
 public static class CampaignSaveVersions
 {

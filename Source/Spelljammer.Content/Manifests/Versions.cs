@@ -2,6 +2,12 @@ using System.Globalization;
 
 namespace Spelljammer.Content.Manifests;
 
+/// <summary>
+/// Defines canonical semantic versions and inclusive version ranges for content compatibility.
+/// </summary>
+/// <remarks>
+/// Code flow: Manifest strings parse into validated numeric versions, pack ordering compares dependency and game ranges, and persistence retains the selected versions in its content lock.
+/// </remarks>
 public readonly record struct SemanticVersion(int Major, int Minor, int Patch) : IComparable<SemanticVersion>
 {
     public int CompareTo(SemanticVersion other)

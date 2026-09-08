@@ -12,6 +12,12 @@ using Spelljammer.Simulation.Effects;
 
 namespace Spelljammer.Persistence;
 
+/// <summary>
+/// Maps decoded campaign transfer objects back into authoritative domain state.
+/// </summary>
+/// <remarks>
+/// Code flow: DTO collections are bounded and parsed into typed identities, referenced content is resolved, immutable state is reconstructed, and campaign validation runs before publication.
+/// </remarks>
 public static partial class CampaignSaveCodec
 {
     private static CampaignState FromDto(

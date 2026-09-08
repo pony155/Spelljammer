@@ -3,6 +3,12 @@ using System.Text;
 
 namespace Spelljammer.Localization;
 
+/// <summary>
+/// Provides the pinned locale rules used by deterministic number and plural formatting.
+/// </summary>
+/// <remarks>
+/// Code flow: A locale ID selects an immutable number profile, numeric operands are classified into plural categories, and formatters consume the selected separators and rules.
+/// </remarks>
 internal enum PluralCategory : byte
 {
     Zero,

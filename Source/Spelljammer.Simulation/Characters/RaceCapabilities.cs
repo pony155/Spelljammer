@@ -7,6 +7,9 @@ namespace Spelljammer.Simulation.Characters;
 /// <summary>
 /// Represents evidence of a route observed by a character with a confidence level.
 /// </summary>
+/// <remarks>
+/// Code flow: Observations enter bounded racial sensing rules, deterministic interpretation combines matching evidence, and resulting trails or reactions are returned as immutable capability outcomes.
+/// </remarks>
 /// <param name="RouteId">The ID of the route being tracked.</param>
 /// <param name="EvidenceId">The type of evidence observed (footprints, scent, magical traces, etc.).</param>
 /// <param name="Confidence">The confidence level in this evidence (0-255).</param>

@@ -4,6 +4,9 @@ using Spelljammer.Storage;
 namespace Spelljammer.Persistence;
 
 /// <summary>Campaign-save specialization of the shared transactional file-system boundary.</summary>
+/// <remarks>
+/// Code flow: Save bytes are encoded and staged, staged content is validated before atomic replacement, and reads choose the primary or recoverable backup before publishing a campaign.
+/// </remarks>
 public interface ICampaignSaveFileSystem : IAtomicFileSystem;
 
 /// <summary>Physical campaign-save file system retained as a compatibility-friendly construction type.</summary>

@@ -8,6 +8,8 @@ namespace Spelljammer.Localization;
 /// <remarks>
 /// Keys must follow canonical naming rules (lowercase, dot-separated namespaces).
 /// The key maintains both a stable hash for fast comparison and the original string name.
+/// Code flow: Catalog loading validates names and derives stable hashes, registries reject collisions, and runtime
+/// lookup compares the identity before fallback and formatting.
 /// </remarks>
 public readonly struct LocalizationKey : IEquatable<LocalizationKey>
 {

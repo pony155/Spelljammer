@@ -4,6 +4,9 @@ using Spelljammer.Simulation.Content;
 namespace Spelljammer.Simulation.World;
 
 /// <summary>Data-driven fixed-tick cadence and catch-up policy for an authoritative world.</summary>
+/// <remarks>
+/// Code flow: Compiled timing definitions configure world creation, advancement clamps requested catch-up work, and snapshots retain the same timing identity.
+/// </remarks>
 public sealed record WorldTimeDefinition(
     WorldTimeId WorldTimeId,
     int SchemaVersion,

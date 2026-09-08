@@ -4,6 +4,12 @@ using Spelljammer.Simulation.Content;
 
 namespace Spelljammer.Simulation.Items;
 
+/// <summary>
+/// Defines the shared item taxonomy, base definition contract, and immutable item catalog.
+/// </summary>
+/// <remarks>
+/// Code flow: Content definitions are validated and indexed by stable ID, item operations resolve their category and stack limits through the catalog, and incompatible kinds are rejected.
+/// </remarks>
 public enum ItemCategory : byte
 {
     Equipment,

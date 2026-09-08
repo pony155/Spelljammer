@@ -10,6 +10,8 @@ namespace Spelljammer.Settings;
 /// This codec handles both current-version settings and legacy version 1 settings, automatically migrating
 /// old settings to the current schema when needed. The codec also validates settings before and after
 /// serialization to ensure integrity and prevent corruption.
+/// Code flow: UTF-8 JSON is shape-checked and migrated into the current profile, then validated before publication;
+/// writes validate first and emit a deterministic current-schema document.
 /// </remarks>
 public static class GameSettingsCodec
 {

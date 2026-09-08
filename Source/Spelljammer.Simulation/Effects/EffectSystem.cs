@@ -7,6 +7,12 @@ using Spelljammer.Simulation.Content;
 
 namespace Spelljammer.Simulation.Effects;
 
+/// <summary>
+/// Resolves ordered effect applications into deterministic resource, damage, status, and event outcomes.
+/// </summary>
+/// <remarks>
+/// Code flow: A seeded request derives stable invocation IDs, validates and orders applications, applies payloads to a working target state, and publishes all results as one resolution.
+/// </remarks>
 public readonly record struct EffectInvocationId(Guid Value) : IComparable<EffectInvocationId>
 {
     public bool IsValid => Value != Guid.Empty;

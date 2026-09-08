@@ -3,6 +3,12 @@ using System.Text;
 
 namespace Spelljammer.Content.Diagnostics;
 
+/// <summary>
+/// Defines stable content diagnostic codes, locations, arguments, severities, and collection behavior.
+/// </summary>
+/// <remarks>
+/// Code flow: Parsing, ordering, linking, validation, and compilation append structured diagnostics to one sink, which sorts them deterministically and blocks snapshot publication when errors exist.
+/// </remarks>
 public static class ContentDiagnosticCodes
 {
     public const string ManifestMissing = "CONTENT_MANIFEST_MISSING";

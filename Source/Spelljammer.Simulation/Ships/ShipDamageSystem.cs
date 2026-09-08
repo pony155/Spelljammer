@@ -3,6 +3,12 @@ using Spelljammer.Simulation.Content;
 
 namespace Spelljammer.Simulation.Ships;
 
+/// <summary>
+/// Resolves incoming damage against ship defenses and module condition.
+/// </summary>
+/// <remarks>
+/// Code flow: Damage is validated and reduced by applicable defenses, deterministic targeting selects affected state, and the system returns a replacement ship with an observable damage event.
+/// </remarks>
 public sealed record ShipDamageEvent(
     ShipId TargetId,
     int Incoming,

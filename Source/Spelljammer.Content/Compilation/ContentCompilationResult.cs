@@ -10,6 +10,8 @@ namespace Spelljammer.Content.Compilation;
 /// Compilation succeeds when all packs load, parse, and validate without errors.
 /// Compilation may succeed with warnings (diagnostics) but a valid snapshot.
 /// Compilation fails if there are parsing errors or IO failures.
+/// Code flow: Compiler stages accumulate deterministic diagnostics and an optional I/O failure, snapshot assembly
+/// supplies the value on success, and registries publish only a result whose success contract is satisfied.
 /// </remarks>
 /// <param name="Snapshot">The compiled content snapshot if compilation succeeded; null if it failed.</param>
 /// <param name="Diagnostics">Array of diagnostic messages (warnings, errors, info) from compilation.</param>

@@ -15,6 +15,12 @@ using AmmunitionDefinition = Spelljammer.Simulation.Items.AmmunitionDefinition;
 
 namespace Spelljammer.Content.Compilation;
 
+/// <summary>
+/// Loads pack files and parses definition sources for the content compiler.
+/// </summary>
+/// <remarks>
+/// Code flow: Ordered pack roots enumerate normalized files, bounded reads feed strict parsers, source definitions accumulate in deterministic order, and I/O failures stop processing explicitly.
+/// </remarks>
 public sealed partial class GameContentCompiler
 {
     private List<SourceDefinition> ParseDefinitions(

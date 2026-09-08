@@ -3,6 +3,12 @@ using Spelljammer.Simulation.Content;
 
 namespace Spelljammer.Simulation.World;
 
+/// <summary>
+/// Defines data-driven calendar months and the calendar used to project campaign time.
+/// </summary>
+/// <remarks>
+/// Code flow: Content supplies ordered month lengths and labels, validation derives year length, and time queries walk the months to produce a display date.
+/// </remarks>
 public sealed record CalendarMonthDefinition(
     CalendarMonthId CalendarMonthId,
     string NameKey,

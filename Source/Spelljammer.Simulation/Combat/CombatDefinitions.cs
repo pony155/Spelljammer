@@ -4,6 +4,12 @@ using Spelljammer.Simulation.Effects;
 
 namespace Spelljammer.Simulation.Combat;
 
+/// <summary>
+/// Defines data-driven melee and ranged weapon classifications and action contracts.
+/// </summary>
+/// <remarks>
+/// Code flow: Content compilation creates and links action definitions, weapon definitions reference them by stable ID, and weapon systems consume their costs, ranges, timings, and effects.
+/// </remarks>
 public enum MeleeWeaponFamily : byte
 {
     Blade,

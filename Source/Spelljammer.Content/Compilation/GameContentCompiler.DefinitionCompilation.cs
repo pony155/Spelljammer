@@ -15,6 +15,12 @@ using AmmunitionDefinition = Spelljammer.Simulation.Items.AmmunitionDefinition;
 
 namespace Spelljammer.Content.Compilation;
 
+/// <summary>
+/// Converts normalized source definitions into immutable simulation definition types.
+/// </summary>
+/// <remarks>
+/// Code flow: Validated source fields and linked IDs are mapped by kind, strongly typed records are constructed in canonical order, and snapshot assembly places them in typed registries.
+/// </remarks>
 public sealed partial class GameContentCompiler
 {
     private static WorldTimeDefinition CompileWorldTime(SourceDefinition value) => new(

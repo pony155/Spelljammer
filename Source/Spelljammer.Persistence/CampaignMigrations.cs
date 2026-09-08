@@ -8,6 +8,12 @@ using Spelljammer.Simulation.World;
 
 namespace Spelljammer.Persistence;
 
+/// <summary>
+/// Defines content-fingerprint migrations for already decoded campaign state.
+/// </summary>
+/// <remarks>
+/// Code flow: Preflight selects a deterministic chain from source to destination fingerprint, each migration validates its input and returns replacement state, and the final campaign is revalidated.
+/// </remarks>
 public interface ICampaignMigration
 {
     ContentId Id { get; }

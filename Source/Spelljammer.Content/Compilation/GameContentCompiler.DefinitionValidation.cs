@@ -15,6 +15,12 @@ using AmmunitionDefinition = Spelljammer.Simulation.Items.AmmunitionDefinition;
 
 namespace Spelljammer.Content.Compilation;
 
+/// <summary>
+/// Implements kind-specific numeric, collection, and semantic validation for definitions.
+/// </summary>
+/// <remarks>
+/// Code flow: The validation pipeline dispatches each normalized definition by kind, specialized checks enforce authored bounds and invariants, and violations become stable diagnostics.
+/// </remarks>
 public sealed partial class GameContentCompiler
 {
     private static void ValidateAbility(SourceDefinition definition, DiagnosticSink diagnostics)

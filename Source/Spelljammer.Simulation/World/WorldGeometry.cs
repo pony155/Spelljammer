@@ -1,6 +1,9 @@
 namespace Spelljammer.Simulation.World;
 
 /// <summary>A deterministic fixed-point scalar used by authoritative world geometry.</summary>
+/// <remarks>
+/// Code flow: Raw scaled integers form vectors, geometry operations remain integer-based, and world or combat systems consume the resulting deterministic distances and positions.
+/// </remarks>
 public readonly record struct FixedScalar : IComparable<FixedScalar>
 {
     public const long Scale = 1_000;

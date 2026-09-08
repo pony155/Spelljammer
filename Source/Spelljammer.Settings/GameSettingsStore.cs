@@ -3,6 +3,9 @@ using Spelljammer.Storage;
 namespace Spelljammer.Settings;
 
 /// <summary>Settings specialization of the shared transactional file-system boundary.</summary>
+/// <remarks>
+/// Code flow: Settings bytes are loaded through the atomic store, decoded and validated, published to the registry, and persisted through staged replacement with recovery support.
+/// </remarks>
 public interface IGameSettingsFileSystem : IAtomicFileSystem;
 
 /// <summary>Physical settings file system retained as a compatibility-friendly construction type.</summary>

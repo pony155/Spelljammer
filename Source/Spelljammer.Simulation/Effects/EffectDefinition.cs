@@ -3,6 +3,12 @@ using Spelljammer.Simulation.Content;
 
 namespace Spelljammer.Simulation.Effects;
 
+/// <summary>
+/// Defines effect kinds, typed payloads, target selection, timing, and authored effect applications.
+/// </summary>
+/// <remarks>
+/// Code flow: Content links each application to an immutable effect definition, action systems select targets and timing, and the effect system dispatches the typed payload.
+/// </remarks>
 public enum EffectType : byte
 {
     HealHealth,

@@ -1,5 +1,11 @@
 namespace Spelljammer.Localization;
 
+/// <summary>
+/// Defines localization values, typed formatting arguments, schemas, and language profiles.
+/// </summary>
+/// <remarks>
+/// Code flow: Catalog metadata declares argument contracts, callers construct matching typed values, and the localization service validates them before formatting.
+/// </remarks>
 public enum LocalizationValueKind : byte
 {
     Integer,

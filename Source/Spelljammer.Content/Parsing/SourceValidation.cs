@@ -5,6 +5,12 @@ using Spelljammer.Simulation.Content;
 
 namespace Spelljammer.Content.Parsing;
 
+/// <summary>
+/// Provides reusable field, identifier, collection, and shape validation for authored content.
+/// </summary>
+/// <remarks>
+/// Code flow: Parsers pass JSON elements and schema expectations into these helpers, invalid input appends a location-aware diagnostic, and only normalized validated values enter source definitions.
+/// </remarks>
 internal static class SourceValidation
 {
     public static bool ValidateProperties(

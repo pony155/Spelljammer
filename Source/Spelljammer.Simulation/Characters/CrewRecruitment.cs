@@ -6,6 +6,9 @@ namespace Spelljammer.Simulation.Characters;
 /// <summary>
 /// The protagonist and NPCs currently travelling as one active crew.
 /// </summary>
+/// <remarks>
+/// Code flow: Recruitment resolves a candidate against the active scenario and content fingerprint, validates duplicate and data-driven roster capacity rules, and returns a replacement roster or explicit failure.
+/// </remarks>
 public sealed record CrewRoster(
     ContentFingerprint ContentFingerprint,
     ScenarioId ScenarioId,

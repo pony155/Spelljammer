@@ -5,6 +5,12 @@ using System.Text;
 
 namespace Spelljammer.Localization;
 
+/// <summary>
+/// Represents validated immutable localization catalogs and their serialized artifact format.
+/// </summary>
+/// <remarks>
+/// Code flow: Authored entries are validated and compiled into lookup records, encoded or decoded as bounded artifacts, and published for locale fallback and message formatting.
+/// </remarks>
 public enum TextDirection : byte
 {
     LeftToRight = 0,

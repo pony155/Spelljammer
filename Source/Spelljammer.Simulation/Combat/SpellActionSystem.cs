@@ -5,6 +5,12 @@ using Spelljammer.Simulation.Effects;
 
 namespace Spelljammer.Simulation.Combat;
 
+/// <summary>
+/// Resolves multi-phase spell actions, resource reservation, interruption, and authored effects.
+/// </summary>
+/// <remarks>
+/// Code flow: A spell is declared and previewed, costs are reserved, preparation may be interrupted, and successful resolution applies ordered effects before committing replacement actor and target state.
+/// </remarks>
 public enum SpellActionPhase : byte
 {
     Declared,

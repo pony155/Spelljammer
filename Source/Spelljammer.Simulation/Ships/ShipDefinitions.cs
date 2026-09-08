@@ -3,6 +3,12 @@ using Spelljammer.Simulation.Content;
 
 namespace Spelljammer.Simulation.Ships;
 
+/// <summary>
+/// Defines data-driven ship frames, modules, slots, resources, and related capabilities.
+/// </summary>
+/// <remarks>
+/// Code flow: Content compilation creates immutable definitions, catalogs index them by stable ID, and ship creation and subsystem rules resolve those definitions during simulation.
+/// </remarks>
 public sealed record ShipFrameDefinition(
     ShipFrameId ShipFrameId,
     int SchemaVersion,

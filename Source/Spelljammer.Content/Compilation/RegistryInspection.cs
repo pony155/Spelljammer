@@ -3,6 +3,12 @@ using Spelljammer.Simulation.Content;
 
 namespace Spelljammer.Content.Compilation;
 
+/// <summary>
+/// Defines deterministic diagnostic views of a compiled content registry.
+/// </summary>
+/// <remarks>
+/// Code flow: Typed registries are enumerated in canonical kind and ID order, entries are projected with pack and index metadata, and callers receive an immutable inspection snapshot.
+/// </remarks>
 public sealed record RegistryInspectionEntry(
     string Kind,
     string Id,

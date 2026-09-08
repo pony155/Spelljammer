@@ -7,6 +7,9 @@ using Spelljammer.Simulation.Effects;
 namespace Spelljammer.Simulation.Combat;
 
 /// <summary>Mutable-per-instance condition for a weapon whose rules remain content-owned.</summary>
+/// <remarks>
+/// Code flow: Attack requests validate equipment, reach, resources, durability, and target legality, reserve costs, perform deterministic rolls, apply ordered effects, and return one atomic result.
+/// </remarks>
 public sealed record MeleeWeaponState(
     MeleeWeaponId WeaponId,
     int CurrentDurability,

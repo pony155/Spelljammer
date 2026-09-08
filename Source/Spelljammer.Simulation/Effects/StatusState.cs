@@ -3,6 +3,12 @@ using Spelljammer.Simulation.Content;
 
 namespace Spelljammer.Simulation.Effects;
 
+/// <summary>
+/// Defines stable status identities, targets, active instances, and immutable status collections.
+/// </summary>
+/// <remarks>
+/// Code flow: Status application derives an instance ID and stores definition-backed duration, stack, potency, source, and target data that queries and tick processing consume.
+/// </remarks>
 public readonly record struct StatusInstanceId(Guid Value) : IComparable<StatusInstanceId>
 {
     public bool IsValid => Value != Guid.Empty;

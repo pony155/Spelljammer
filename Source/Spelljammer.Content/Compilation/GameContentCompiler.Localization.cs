@@ -15,6 +15,12 @@ using AmmunitionDefinition = Spelljammer.Simulation.Items.AmmunitionDefinition;
 
 namespace Spelljammer.Content.Compilation;
 
+/// <summary>
+/// Validates default-locale coverage for compiled gameplay definitions.
+/// </summary>
+/// <remarks>
+/// Code flow: Ordered packs contribute bounded default-locale keys, duplicate and missing entries produce diagnostics, and every definition's name and description keys must resolve before publication.
+/// </remarks>
 public sealed partial class GameContentCompiler
 {
     private bool ValidateDefaultLocalization(

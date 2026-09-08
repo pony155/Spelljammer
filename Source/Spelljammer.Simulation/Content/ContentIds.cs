@@ -11,6 +11,8 @@ namespace Spelljammer.Simulation.Content;
 /// Content IDs follow a strict canonical grammar: lowercase letters and digits separated by dots and hyphens,
 /// with at least 3 characters and at most 127 characters. The format is: namespace.type-variant or similar.
 /// This ensures IDs are human-readable, deterministic, and safe for serialization.
+/// Code flow: Authored names are validated and normalized into typed IDs, passed through catalogs and state,
+/// and compared or serialized without using localized text or runtime object references.
 /// </remarks>
 public readonly record struct ContentId : IComparable<ContentId>
 {

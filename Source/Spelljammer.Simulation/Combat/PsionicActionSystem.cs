@@ -5,6 +5,12 @@ using Spelljammer.Simulation.Effects;
 
 namespace Spelljammer.Simulation.Combat;
 
+/// <summary>
+/// Resolves consent-based psionic mindlinks and their resource-backed lifecycle.
+/// </summary>
+/// <remarks>
+/// Code flow: A link is invited and accepted or rejected, activation reserves resources and applies effects, and revoke or release restores the appropriate immutable character states.
+/// </remarks>
 public enum MindlinkPhase : byte
 {
     Invited,

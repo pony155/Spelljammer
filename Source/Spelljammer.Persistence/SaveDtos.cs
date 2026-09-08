@@ -1,5 +1,11 @@
 namespace Spelljammer.Persistence;
 
+/// <summary>
+/// Defines the bounded JSON transfer objects used inside campaign save envelopes.
+/// </summary>
+/// <remarks>
+/// Code flow: Write mappings project authoritative domain state into DTOs, JSON serialization stores them in the save envelope, and read mappings reconstruct validated domain values.
+/// </remarks>
 internal sealed class SavePreflightDto
 {
     public string Discriminator { get; set; } = string.Empty;
