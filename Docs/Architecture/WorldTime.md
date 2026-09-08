@@ -105,7 +105,7 @@ semantic content fingerprint.
 
 ## Persistence
 
-Campaign save schema 12 stores elapsed campaign seconds, the fractional
+Campaign save schema 13 stores elapsed campaign seconds, the fractional
 remainder, `CalendarId`, and `TimeScaleId`. Loading resolves the referenced
 definitions from the content-locked snapshot. Campaign validation rejects
 missing, stale, mismatched, or structurally invalid clock definitions.

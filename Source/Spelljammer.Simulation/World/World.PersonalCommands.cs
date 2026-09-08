@@ -12,23 +12,23 @@ public sealed partial record World
         WorldCommand command,
         IPersonalCombatResolver? personalCombatResolver)
     {
-        if (PersonalEncounter is null || !ActorIdFrom(command.IssuerId, out ActorId actorId) ||
-            !PersonalEncounter.Actors.TryGetValue(actorId, out PersonalActorState? actor) ||
+        if (PersonalEncounter is null || !BattleUnitIdFrom(command.IssuerId, out BattleUnitId unitId) ||
+            !PersonalEncounter.Units.TryGetValue(unitId, out BattleUnitState? actor) ||
             actor.ActionPoints <= 0 || actor.IsIncapacitated)
         {
             return AddEvent(command, false, 0, "command.actor-not-ready");
         }
 
         PersonalEncounterState encounter = PersonalEncounter;
-        PersonalActorState updated = actor;
+        BattleUnitState updated = actor;
         int eventAmount = command.Amount;
         if (command.Kind == WorldCommandKind.PersonalEndActivation)
         {
             updated = updated with { Turn = updated.Turn.EndActivation() };
-            encounter = encounter with { Actors = encounter.Actors.SetItem(actorId, updated) };
-            ImmutableArray<ActorId> remaining = ReadyActors.Remove(actorId);
-            bool remainPaused = remaining.Any(id => encounter.Actors[id].TeamId == PlayerTeamId);
-            return (this with { PersonalEncounter = encounter, ReadyActors = remaining, PersonalPaused = remainPaused })
+            encounter = encounter with { Units = encounter.Units.SetItem(unitId, updated) };
+            ImmutableArray<BattleUnitId> remaining = ReadyUnits.Remove(unitId);
+            bool remainPaused = remaining.Any(id => encounter.Units[id].TeamId == PlayerTeamId);
+            return (this with { PersonalEncounter = encounter, ReadyUnits = remaining, PersonalPaused = remainPaused })
                 .AddEvent(command, true, 0, string.Empty);
         }
 
@@ -61,7 +61,7 @@ public sealed partial record World
 
                 try
                 {
-                    encounter = encounter with { Board = encounter.Board.Move(actorId, destination, TacticalBoard.MaximumCells) };
+                    encounter = encounter with { Board = encounter.Board.Move(unitId, destination, TacticalBoard.MaximumCells) };
                 }
                 catch (InvalidOperationException)
                 {
@@ -91,13 +91,13 @@ public sealed partial record World
                 encounter = encounter with { Retreated = true };
                 break;
             case WorldCommandKind.PersonalMedicine:
-                if (!ActorIdFrom(command.TargetId, out ActorId patientId) || !encounter.Actors.TryGetValue(patientId, out PersonalActorState? patient))
+                if (!BattleUnitIdFrom(command.TargetId, out BattleUnitId patientId) || !encounter.Units.TryGetValue(patientId, out BattleUnitState? patient))
                 {
                     return AddEvent(command, false, 0, "command.target-stale");
                 }
 
                 encounter = encounter with {
-                    Actors = encounter.Actors.SetItem(patientId, patient with {
+                    Units = encounter.Units.SetItem(patientId, patient with {
                         Injuries = [.. patient.Injuries.Select(value => value with { Stabilized = true })],
                     }),
                 };
@@ -119,12 +119,12 @@ public sealed partial record World
             case WorldCommandKind.PersonalRanged:
             case WorldCommandKind.PersonalSpell:
             case WorldCommandKind.PersonalPsionic:
-                if (!ActorIdFrom(command.TargetId, out ActorId targetId) || !encounter.Actors.TryGetValue(targetId, out PersonalActorState? target))
+                if (!BattleUnitIdFrom(command.TargetId, out BattleUnitId targetId) || !encounter.Units.TryGetValue(targetId, out BattleUnitState? target))
                 {
                     return AddEvent(command, false, 0, "command.target-stale");
                 }
 
-                if (targetId == actorId || personalCombatResolver is null)
+                if (targetId == unitId || personalCombatResolver is null)
                 {
                     return AddEvent(
                         command,
@@ -173,7 +173,7 @@ public sealed partial record World
                 }
 
                 bool wasIncapacitated = target.IsIncapacitated;
-                PersonalActorState resolvedTarget = resolution.Target;
+                BattleUnitState resolvedTarget = resolution.Target;
                 if (resolvedTarget.IsIncapacitated && !wasIncapacitated &&
                     !resolvedTarget.Injuries.Any(value => value.Severity == InjurySeverity.Incapacitating))
                 {
@@ -187,7 +187,7 @@ public sealed partial record World
 
                 updated = resolution.Actor;
                 encounter = encounter with {
-                    Actors = encounter.Actors.SetItem(targetId, resolvedTarget),
+                    Units = encounter.Units.SetItem(targetId, resolvedTarget),
                     DamagedObjects = resolution.DamagedObjectId is ContentId objectId
                         ? encounter.DamagedObjects.Add(objectId)
                         : encounter.DamagedObjects,
@@ -203,10 +203,10 @@ public sealed partial record World
         {
             updated = updated with { Turn = updated.Turn.SpendActionPoints(apCost) };
         }
-        encounter = encounter with { Actors = encounter.Actors.SetItem(actorId, updated) };
-        ImmutableArray<ActorId> ready = updated.ActionPoints == 0 ? ReadyActors.Remove(actorId) : ReadyActors;
-        bool pause = ready.Any(id => encounter.Actors[id].TeamId == PlayerTeamId);
-        return (this with { PersonalEncounter = encounter, ReadyActors = ready, PersonalPaused = pause })
+        encounter = encounter with { Units = encounter.Units.SetItem(unitId, updated) };
+        ImmutableArray<BattleUnitId> ready = updated.ActionPoints == 0 ? ReadyUnits.Remove(unitId) : ReadyUnits;
+        bool pause = ready.Any(id => encounter.Units[id].TeamId == PlayerTeamId);
+        return (this with { PersonalEncounter = encounter, ReadyUnits = ready, PersonalPaused = pause })
             .AddEvent(
                 command,
                 true,
@@ -222,16 +222,16 @@ public sealed partial record World
         }
 
         PersonalEncounterState encounter = PersonalEncounter;
-        ImmutableArray<ActorId>.Builder becameReady = ImmutableArray.CreateBuilder<ActorId>();
-        ImmutableDictionary<ActorId, PersonalActorState>.Builder actors = encounter.Actors.ToBuilder();
-        foreach (PersonalActorState actor in encounter.Actors.Values.OrderBy(value => value.Id))
+        ImmutableArray<BattleUnitId>.Builder becameReady = ImmutableArray.CreateBuilder<BattleUnitId>();
+        ImmutableDictionary<BattleUnitId, BattleUnitState>.Builder units = encounter.Units.ToBuilder();
+        foreach (BattleUnitState actor in encounter.Units.Values.OrderBy(value => value.Id))
         {
-            PersonalActorState current = actor.ReactionExpiresTick > 0 && actor.ReactionExpiresTick < Tick
+            BattleUnitState current = actor.ReactionExpiresTick > 0 && actor.ReactionExpiresTick < Tick
                 ? actor with { ReservedReactionPoints = 0, ReactionExpiresTick = 0 }
                 : actor;
-            if (current.IsIncapacitated || current.Surrendered || ReadyActors.Contains(current.Id))
+            if (current.IsIncapacitated || current.Surrendered || ReadyUnits.Contains(current.Id))
             {
-                actors[current.Id] = current;
+                units[current.Id] = current;
                 continue;
             }
 
@@ -241,7 +241,7 @@ public sealed partial record World
             if (advancedTurn.CanActivate)
             {
                 becameReady.Add(current.Id);
-                actors[current.Id] = current with {
+                units[current.Id] = current with {
                     Turn = advancedTurn.BeginActivation(),
                     CharacterResources = recoveredResources,
                     Defending = false,
@@ -249,20 +249,20 @@ public sealed partial record World
             }
             else
             {
-                actors[current.Id] = current with {
+                units[current.Id] = current with {
                     Turn = advancedTurn,
                     CharacterResources = recoveredResources,
                 };
             }
         }
 
-        ImmutableArray<ActorId> ready =
-            [.. ReadyActors.AddRange(becameReady).Distinct().OrderBy(id => actors[id].TeamId == PlayerTeamId ? 0 : 1).ThenBy(id => id)];
-        bool personalPause = ready.Any(id => actors[id].TeamId == PlayerTeamId &&
+        ImmutableArray<BattleUnitId> ready =
+            [.. ReadyUnits.AddRange(becameReady).Distinct().OrderBy(id => units[id].TeamId == PlayerTeamId ? 0 : 1).ThenBy(id => id)];
+        bool personalPause = ready.Any(id => units[id].TeamId == PlayerTeamId &&
             !ScheduledActions.Any(value => value.Command.IssuerId == id.Value && value.Phase < ScheduledActionPhase.Committed));
         return this with {
-            PersonalEncounter = encounter with { Actors = actors.ToImmutable() },
-            ReadyActors = ready,
+            PersonalEncounter = encounter with { Units = units.ToImmutable() },
+            ReadyUnits = ready,
             PersonalPaused = personalPause,
         };
     }
@@ -289,7 +289,7 @@ public sealed partial record World
         WorldCommandKind.PersonalSpell or
         WorldCommandKind.PersonalPsionic;
 
-    private static bool HasStableEncounterIdentity(PersonalActorState original, PersonalActorState resolved) =>
+    private static bool HasStableEncounterIdentity(BattleUnitState original, BattleUnitState resolved) =>
         original.Id == resolved.Id &&
         original.TeamId == resolved.TeamId &&
         original.CharacterId == resolved.CharacterId &&
@@ -297,11 +297,11 @@ public sealed partial record World
         original.Surrendered == resolved.Surrendered &&
         original.Prisoner == resolved.Prisoner;
 
-    private static bool ActorIdFrom(ContentId id, out ActorId value)
+    private static bool BattleUnitIdFrom(ContentId id, out BattleUnitId value)
     {
-        if (id.ToString().StartsWith("actor.", StringComparison.Ordinal))
+        if (id.ToString().StartsWith("unit.", StringComparison.Ordinal))
         {
-            value = new ActorId(id);
+            value = new BattleUnitId(id);
             return true;
         }
 

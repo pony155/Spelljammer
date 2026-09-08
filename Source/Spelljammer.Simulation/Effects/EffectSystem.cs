@@ -94,7 +94,7 @@ public static class EffectSystem
 
         StatusResult statusValidation = StatusSystem.Create(state.Statuses, catalog, limits);
         if (!state.TargetId.IsValid || state.Armor < 0 || state.Shield < 0 || !statusValidation.Accepted ||
-            state.Statuses.Instances.Any(value => value.TargetId != state.TargetId))
+            state.Statuses.Instances.Any(value => value.TargetId.Value != state.TargetId))
         {
             return EffectResolution.Rejected(state, StatusRejectionCodes.InvalidState);
         }
@@ -227,7 +227,7 @@ public static class EffectSystem
         StatusResult applied = StatusSystem.Apply(
             state.Statuses,
             new StatusApplicationRequest(
-                instanceId, payload.StatusId, request.SourceId, request.TargetId,
+                instanceId, payload.StatusId, request.SourceId, new StatusTargetId(request.TargetId),
                 payload.Duration, payload.Stacks, payload.Potency),
             catalog,
             limits);
@@ -249,7 +249,7 @@ public static class EffectSystem
         Queue<EffectRequest> pending)
     {
         StatusResult removed = StatusSystem.RemoveByDefinition(
-            state.Statuses, payload.StatusId, request.TargetId, catalog, limits);
+            state.Statuses, payload.StatusId, new StatusTargetId(request.TargetId), catalog, limits);
         if (!removed.Accepted)
         {
             throw new EffectRejectedException(removed.RejectionCode);

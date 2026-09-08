@@ -60,7 +60,7 @@ public static partial class CampaignSaveCodec
             ReservedAmount = value.ReservedAmount,
             History = [.. value.History.Select(phase => (int)phase)],
         })],
-        ReadyActorIds = [.. world.ReadyActors.Select(value => value.ToString())],
+        ReadyUnitIds = [.. world.ReadyUnits.Select(value => value.ToString())],
         Events = [.. world.Events.Select(value => new EventDto
         {
             Id = value.Id.ToString(),
@@ -148,6 +148,7 @@ public static partial class CampaignSaveCodec
             TrainingProgress = Values(character.TrainingProgress.Select(value => (value.Key.Value, value.Value))),
             CanAct = character.CanAct,
             Statuses = [.. character.Statuses.Instances.OrderBy(value => value.InstanceId).Select(ToDto)],
+            Injuries = [.. character.Injuries.Select(ToDto)],
             Evidence = [.. character.Evidence.Select(value => new CapabilityEvidenceDto
             {
                 EvidenceId = value.EvidenceId.ToString(),
@@ -296,7 +297,7 @@ public static partial class CampaignSaveCodec
     {
         Id = encounter.Id.ToString(),
         BoardId = encounter.Board.Definition.PersonalBoardId.ToString(),
-        Actors = [.. encounter.Actors.Values.OrderBy(value => value.Id).Select(value => new PersonalActorDto
+        Units = [.. encounter.Units.Values.OrderBy(value => value.Id).Select(value => new BattleUnitDto
         {
             Id = value.Id.ToString(),
             TeamId = value.TeamId.ToString(),
@@ -310,12 +311,7 @@ public static partial class CampaignSaveCodec
             ReservedReactionPoints = value.ReservedReactionPoints,
             ReactionExpiresTick = value.ReactionExpiresTick,
             Items = ToDto(value.Items),
-            Injuries = [.. value.Injuries.Select(injury => new InjuryDto
-            {
-                Id = injury.Id.ToString(),
-                Severity = (int)injury.Severity,
-                Stabilized = injury.Stabilized,
-            })],
+            Injuries = [.. value.Injuries.Select(ToDto)],
             Statuses = [.. value.Statuses.Instances.OrderBy(status => status.InstanceId).Select(ToDto)],
         })],
         Objectives = [.. encounter.Objectives.OrderBy(value => value.Key).Select(value =>
@@ -324,6 +320,13 @@ public static partial class CampaignSaveCodec
         DamagedObjectIds = [.. encounter.DamagedObjects.Order().Select(value => value.ToString())],
         Retreated = encounter.Retreated,
         CleanedUp = encounter.CleanedUp,
+    };
+
+    private static InjuryDto ToDto(InjuryState injury) => new()
+    {
+        Id = injury.Id.ToString(),
+        Severity = (int)injury.Severity,
+        Stabilized = injury.Stabilized,
     };
 
     private static CommandDto ToDto(WorldCommand value) => new()

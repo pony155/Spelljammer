@@ -746,8 +746,11 @@ defines the combat damage operations and the Effects referenced by spells,
 psionics, equipment, and race- or heritage-granted Feats, including the persistent Mindlinked
 Status.
 
-Character and personal-encounter actor state persist Status instances through
-campaign save schema 12. The prototype accepts only the current schema;
+Character and personal-encounter `BattleUnitState` persist Status instances
+through campaign save schema 13. `StatusTargetId` distinguishes the Status
+ownership contract, and `BattleUnitProjection` retargets instances explicitly
+at encounter entry and commit. Schema 12 actor targets are migrated to unit
+targets during load;
 superseded `activeEffects`, `ActiveCapabilityEffect`, and encounter-level
 `ActiveEffectState` data are no longer persistence or simulation contracts.
 Melee and ranged hit resolution emits deterministic Effect requests for armor

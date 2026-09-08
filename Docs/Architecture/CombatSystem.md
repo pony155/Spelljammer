@@ -34,7 +34,7 @@ CombatSystem validation
 Registered action system
         |
         v
-Replacement actor and target states
+Replacement battle-unit states
         |
         v
 CombatSystem result validation
@@ -43,12 +43,13 @@ CombatSystem result validation
 World atomic commit
 ```
 
-The system rejects unknown or unregistered actions, actors that cannot act,
+The system rejects unknown or unregistered actions, units that cannot act,
 illegal targets, exceptions from an action system, and structurally invalid
 results. Rejection always returns the original actor and target state, so a
-partially resolved action cannot escape into the encounter.
+partially resolved action cannot escape into the encounter. `CombatSystem`
+coordinates these replacements but does not own the unit collection.
 
-The result validator preserves actor identity, team, character association,
+The result validator preserves battle-unit identity, team, character association,
 and board cell; prevents action points from increasing; enforces Status and
 item collection shape limits; and requires valid event and damaged-object
 data. `World` performs a second validation before publishing the

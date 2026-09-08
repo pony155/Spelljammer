@@ -29,17 +29,18 @@ public sealed partial class SimulationContracts
         StatusSystemLimits limits = new(8, 20, 16);
         ContentId source = new("character.test.status-source");
         ContentId target = new("character.test.status-target");
+        StatusTargetId statusTarget = new(target);
 
         StatusResult first = StatusSystem.Apply(StatusState.Empty,
             new StatusApplicationRequest(new StatusInstanceId(Guid.Parse("11111111-aaaa-aaaa-aaaa-aaaaaaaaaaaa")),
-                confused.StatusId, source, target, null, 1, 1), catalog, limits);
+                confused.StatusId, source, statusTarget, null, 1, 1), catalog, limits);
         True(first.Accepted, first.RejectionCode);
         Equal(-20, StatusQueries.GetModifier(first.State, StatusModifierType.ModifyAccuracy, catalog),
             "Status modifier query ignored Confused.");
 
         StatusResult replacement = StatusSystem.Apply(first.State,
             new StatusApplicationRequest(new StatusInstanceId(Guid.Parse("22222222-aaaa-aaaa-aaaa-aaaaaaaaaaaa")),
-                charmed.StatusId, source, target, null, 1, 1), catalog, limits);
+                charmed.StatusId, source, statusTarget, null, 1, 1), catalog, limits);
         True(replacement.Accepted, replacement.RejectionCode);
         Equal(charmed.StatusId, replacement.State.Instances.Single().DefinitionId,
             "Higher-priority exclusive status did not replace its conflict.");
@@ -50,18 +51,18 @@ public sealed partial class SimulationContracts
 
         StatusResult lowerPriority = StatusSystem.Apply(replacement.State,
             new StatusApplicationRequest(new StatusInstanceId(Guid.Parse("33333333-aaaa-aaaa-aaaa-aaaaaaaaaaaa")),
-                confused.StatusId, source, target, null, 1, 1), catalog, limits);
+                confused.StatusId, source, statusTarget, null, 1, 1), catalog, limits);
         False(lowerPriority.Accepted, "Lower-priority exclusive status replaced Charmed.");
         True(ReferenceEquals(replacement.State, lowerPriority.State), "Rejected status application replaced state.");
 
         StatusResult ignited = StatusSystem.Apply(StatusState.Empty,
             new StatusApplicationRequest(new StatusInstanceId(Guid.Parse("44444444-aaaa-aaaa-aaaa-aaaaaaaaaaaa")),
-                burning.StatusId, source, target, null, 1, 1), catalog, limits);
+                burning.StatusId, source, statusTarget, null, 1, 1), catalog, limits);
         StatusResult stacked = StatusSystem.Apply(ignited.State,
             new StatusApplicationRequest(new StatusInstanceId(Guid.Parse("55555555-aaaa-aaaa-aaaa-aaaaaaaaaaaa")),
-                burning.StatusId, source, target, null, 1, 1), catalog, limits);
+                burning.StatusId, source, statusTarget, null, 1, 1), catalog, limits);
         Equal(2, stacked.State.Instances.Single().Stacks, "IntensityStack did not increase stacks.");
-        StatusResult advanced = StatusSystem.AdvanceTargetTurn(stacked.State, target, catalog, limits);
+        StatusResult advanced = StatusSystem.AdvanceTargetTurn(stacked.State, statusTarget, catalog, limits);
         Equal(2, advanced.State.Instances.Single().RemainingDuration, "Timed status did not consume one target turn.");
         Equal(burningDamage.EffectId, advanced.PendingEffects.Single().EffectId,
             "Status onTick effect was not emitted.");

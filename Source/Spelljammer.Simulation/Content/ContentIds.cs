@@ -1,4 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace Spelljammer.Simulation.Content;
 
@@ -400,15 +402,27 @@ public readonly record struct ResourceId : IComparable<ResourceId>
     public override string ToString() => Value.ToString();
 }
 
-/// <summary>A strongly-typed identifier for a game actor (NPC or entity).</summary>
-public readonly record struct ActorId : IComparable<ActorId>
+/// <summary>A strongly-typed identifier for one unit instance on a personal battlefield.</summary>
+public readonly record struct BattleUnitId : IComparable<BattleUnitId>
 {
-    public ActorId(ContentId value) => Value = TypedContentId.RequirePrefix(value, "actor.");
-    public ActorId(string value) : this(new ContentId(value)) { }
+    public BattleUnitId(ContentId value) => Value = TypedContentId.RequirePrefix(value, "unit.");
+    public BattleUnitId(string value) : this(new ContentId(value)) { }
     public ContentId Value { get; }
     public bool IsValid => Value.IsValid;
-    public int CompareTo(ActorId other) => Value.CompareTo(other.Value);
+    public int CompareTo(BattleUnitId other) => Value.CompareTo(other.Value);
     public override string ToString() => Value.ToString();
+
+    public static BattleUnitId Derive(EncounterId encounterId, ContentId sourceId, int spawnOrdinal)
+    {
+        if (!encounterId.IsValid || !sourceId.IsValid || spawnOrdinal < 0)
+        {
+            throw new ArgumentException("Battle-unit derivation input is invalid.");
+        }
+
+        byte[] hash = SHA256.HashData(Encoding.UTF8.GetBytes(
+            FormattableString.Invariant($"{encounterId}|{sourceId}|{spawnOrdinal}")));
+        return new BattleUnitId($"unit.u{Convert.ToHexStringLower(hash.AsSpan(0, 16))}");
+    }
 }
 
 /// <summary>A strongly-typed identifier for a team (group of characters or units).</summary>

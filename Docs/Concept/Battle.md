@@ -140,9 +140,9 @@ owns two separate bounded values:
 
 When an actor's Turn Meter reaches its threshold, the actor enters the Ready
 queue. Equal-tick readiness is ordered by documented priority, then stable
-Actor ID; UI selection order never breaks ties. A player-controlled Ready actor
+BattleUnit ID; UI selection order never breaks ties. A player-controlled Ready unit
 pauses authoritative time while the player assembles or confirms a bounded
-action plan. AI-controlled actors choose plans from the same observed state and
+action plan. AI-controlled units choose plans from the same observed state and
 legal-action rules without wall-clock delay affecting the result.
 
 An activation ends when its AP is spent, the actor ends voluntarily, the actor
@@ -181,7 +181,7 @@ Actions use explicit phases:
 Ship movement, weapon fire, spells, psionics active Feats, repairs, medical
 actions, personal plans, and environmental changes can overlap on the fixed
 timeline. Equal-tick conflicts use documented priority categories and stable
-actor IDs as final tie-breakers, never UI order or thread completion timing.
+BattleUnit IDs as final tie-breakers, never UI order or thread completion timing.
 
 A reaction reserves attention, personal AP, a station, or equipment before its
 trigger occurs. Overwatch, parry, intercept, counterspell, emergency seal, and

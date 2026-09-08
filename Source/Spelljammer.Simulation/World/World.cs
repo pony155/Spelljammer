@@ -22,14 +22,14 @@ public sealed partial record World(
     ImmutableArray<WorldCommand> Commands,
     ImmutableArray<WorldCommandLogEntry> CommandHistory,
     ImmutableArray<ScheduledAction> ScheduledActions,
-    ImmutableArray<ActorId> ReadyActors,
+    ImmutableArray<BattleUnitId> ReadyUnits,
     ImmutableArray<WorldEvent> Events)
 {
     public const int MaximumCommands = 256;
     public const int MaximumCommandHistory = 512;
     public const int MaximumSchedules = 256;
     public const int MaximumEvents = 512;
-    public const int MaximumReadyActors = 64;
+    public const int MaximumReadyUnits = 64;
 
     public static World Create(
         ulong seed,
@@ -49,7 +49,7 @@ public sealed partial record World(
             calendar.SecondsPerMinute <= 0 || calendar.MinutesPerHour <= 0 || calendar.HoursPerDay <= 0 ||
             calendar.DaysPerWeek <= 0 || calendar.Months.IsDefaultOrEmpty ||
             timeScale.WorldSecondsNumerator <= 0 || timeScale.SimulationTicksDenominator <= 0 ||
-            shipMap.Count is 0 or > 32 || encounter?.Actors.Count > MaximumReadyActors)
+            shipMap.Count is 0 or > 32 || encounter?.Units.Count > MaximumReadyUnits)
         {
             throw new InvalidOperationException("World configuration or capacity is invalid.");
         }
@@ -91,7 +91,7 @@ public sealed partial record World(
         PersonalPaused,
         [.. Ships.Values.OrderBy(value => value.Id)],
         PersonalEncounter,
-        ReadyActors,
+        ReadyUnits,
         ScheduledActions,
         CommandHistory.Length <= 64 ? CommandHistory : CommandHistory[^64..],
         Events.Length <= 64 ? Events : Events[^64..]);

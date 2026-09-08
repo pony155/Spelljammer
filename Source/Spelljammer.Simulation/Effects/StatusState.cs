@@ -10,12 +10,20 @@ public readonly record struct StatusInstanceId(Guid Value) : IComparable<StatusI
     public override string ToString() => Value.ToString("N");
 }
 
+/// <summary>Stable identity of the character, battle unit, ship, or object that owns a Status.</summary>
+public readonly record struct StatusTargetId(ContentId Value) : IComparable<StatusTargetId>
+{
+    public bool IsValid => Value.IsValid;
+    public int CompareTo(StatusTargetId other) => Value.CompareTo(other.Value);
+    public override string ToString() => Value.ToString();
+}
+
 public sealed record StatusInstance(
     StatusInstanceId InstanceId,
     StatusId DefinitionId,
     int DefinitionRevision,
     ContentId SourceId,
-    ContentId TargetId,
+    StatusTargetId TargetId,
     int RemainingDuration,
     int Stacks,
     int Potency);

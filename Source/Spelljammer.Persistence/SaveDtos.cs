@@ -51,7 +51,7 @@ internal sealed class WorldDto
     public CommandDto[] Commands { get; set; } = [];
     public CommandLogDto[] CommandHistory { get; set; } = [];
     public ScheduledActionDto[] ScheduledActions { get; set; } = [];
-    public string[] ReadyActorIds { get; set; } = [];
+    public string[] ReadyUnitIds { get; set; } = [];
     public EventDto[] Events { get; set; } = [];
 }
 
@@ -128,6 +128,7 @@ internal sealed class CharacterDto
     public bool CanAct { get; set; }
     public StatusInstanceDto[] Statuses { get; set; } = [];
     public CapabilityEvidenceDto[] Evidence { get; set; } = [];
+    public InjuryDto[] Injuries { get; set; } = [];
 }
 
 internal sealed class CharacterResourceDto
@@ -216,7 +217,7 @@ internal sealed class PersonalEncounterDto
 {
     public string Id { get; set; } = string.Empty;
     public string BoardId { get; set; } = string.Empty;
-    public PersonalActorDto[] Actors { get; set; } = [];
+    public BattleUnitDto[] Units { get; set; } = [];
     public ObjectiveDto[] Objectives { get; set; } = [];
     public string[] ExplorationChangeIds { get; set; } = [];
     public string[] DamagedObjectIds { get; set; } = [];
@@ -224,7 +225,7 @@ internal sealed class PersonalEncounterDto
     public bool CleanedUp { get; set; }
 }
 
-internal sealed class PersonalActorDto
+internal sealed class BattleUnitDto
 {
     public string Id { get; set; } = string.Empty;
     public string TeamId { get; set; } = string.Empty;

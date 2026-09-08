@@ -21,7 +21,7 @@ public sealed record StatusApplicationRequest(
     StatusInstanceId InstanceId,
     StatusId DefinitionId,
     ContentId SourceId,
-    ContentId TargetId,
+    StatusTargetId TargetId,
     int? Duration,
     int Stacks,
     int Potency);
@@ -225,7 +225,7 @@ public static class StatusSystem
     public static StatusResult RemoveByDefinition(
         StatusState state,
         StatusId definitionId,
-        ContentId targetId,
+        StatusTargetId targetId,
         IStatusDefinitionCatalog catalog,
         StatusSystemLimits limits)
     {
@@ -261,7 +261,7 @@ public static class StatusSystem
 
     public static StatusResult AdvanceTargetTurn(
         StatusState state,
-        ContentId targetId,
+        StatusTargetId targetId,
         IStatusDefinitionCatalog catalog,
         StatusSystemLimits limits)
     {
@@ -334,7 +334,7 @@ public static class StatusSystem
             }
         }
 
-        foreach (IGrouping<ContentId, StatusInstance> target in state.Instances.GroupBy(value => value.TargetId))
+        foreach (IGrouping<StatusTargetId, StatusInstance> target in state.Instances.GroupBy(value => value.TargetId))
         {
             if (target.Count() > limits.MaximumInstancesPerTarget)
             {
@@ -392,7 +392,7 @@ public static class StatusSystem
                     destination.Count),
                 effectId,
                 instance.SourceId,
-                instance.TargetId,
+                instance.TargetId.Value,
                 instance.InstanceId,
                 destination.Count,
                 instance.Stacks));

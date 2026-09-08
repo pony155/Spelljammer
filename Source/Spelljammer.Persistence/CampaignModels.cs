@@ -24,7 +24,10 @@ public static class CampaignSaveVersions
     /// <summary>
     /// Current version of the save schema.
     /// </summary>
-    public const ushort SaveSchema = 12;
+    public const ushort SaveSchema = 13;
+
+    /// <summary>Oldest schema with an explicit in-place migration to the current schema.</summary>
+    public const ushort MinimumMigratableSaveSchema = 12;
 
     /// <summary>Version of the world generation algorithm used in this save.</summary>
     public const int WorldGenerator = 1;

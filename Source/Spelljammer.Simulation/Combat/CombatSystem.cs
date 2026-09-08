@@ -69,8 +69,8 @@ public sealed class CombatSystem : IPersonalCombatResolver
         }
 
         if (!HasStableIdentity(context.Actor, context.Command.IssuerId) ||
-            !context.Encounter.Actors.TryGetValue(context.Actor.Id, out PersonalActorState? encounterActor) ||
-            !HasStableIdentity(encounterActor, context.Actor) ||
+            !context.Encounter.Units.TryGetValue(context.Actor.Id, out BattleUnitState? encounterUnit) ||
+            !HasStableIdentity(encounterUnit, context.Actor) ||
             context.Encounter.CleanedUp || context.Actor.IsIncapacitated || context.Actor.Surrendered || context.Actor.Prisoner)
         {
             return Reject(context, CombatRejectionCodes.ActorCannotAct);
@@ -78,7 +78,7 @@ public sealed class CombatSystem : IPersonalCombatResolver
 
         if (context.Actor.Id == context.Target.Id ||
             !HasStableIdentity(context.Target, context.Command.TargetId) ||
-            !context.Encounter.Actors.TryGetValue(context.Target.Id, out PersonalActorState? encounterTarget) ||
+            !context.Encounter.Units.TryGetValue(context.Target.Id, out BattleUnitState? encounterTarget) ||
             !HasStableIdentity(encounterTarget, context.Target) || context.Target.Prisoner)
         {
             return Reject(context, CombatRejectionCodes.TargetIllegal);
@@ -124,17 +124,17 @@ public sealed class CombatSystem : IPersonalCombatResolver
         HasStableIdentity(context.Target, resolution.Target) &&
         resolution.Actor.ActionPoints >= 0 && resolution.Actor.ActionPoints <= context.Actor.ActionPoints &&
         resolution.Target.ActionPoints >= 0 && resolution.Target.ActionPoints <= context.Target.ActionPoints &&
-        resolution.Actor.Statuses.Instances.Length <= PersonalEncounterState.MaximumStatusesPerActor &&
-        resolution.Target.Statuses.Instances.Length <= PersonalEncounterState.MaximumStatusesPerActor &&
+        resolution.Actor.Statuses.Instances.Length <= PersonalEncounterState.MaximumStatusesPerUnit &&
+        resolution.Target.Statuses.Instances.Length <= PersonalEncounterState.MaximumStatusesPerUnit &&
         !resolution.Actor.Items.ItemInstances.IsDefault && !resolution.Actor.Items.InventoryEntries.IsDefault &&
         !resolution.Target.Items.ItemInstances.IsDefault && !resolution.Target.Items.InventoryEntries.IsDefault &&
         resolution.EventAmount >= 0 &&
         (resolution.DamagedObjectId is not ContentId damagedObjectId || damagedObjectId.IsValid);
 
-    private static bool HasStableIdentity(PersonalActorState actor, ContentId expectedId) =>
-        actor.Id.Value == expectedId && actor.Id.IsValid && actor.TeamId.IsValid && actor.CellId.IsValid;
+    private static bool HasStableIdentity(BattleUnitState unit, ContentId expectedId) =>
+        unit.Id.Value == expectedId && unit.Id.IsValid && unit.TeamId.IsValid && unit.CellId.IsValid;
 
-    private static bool HasStableIdentity(PersonalActorState original, PersonalActorState replacement) =>
+    private static bool HasStableIdentity(BattleUnitState original, BattleUnitState replacement) =>
         replacement.Id == original.Id && replacement.TeamId == original.TeamId &&
         replacement.CharacterId == original.CharacterId && replacement.CellId == original.CellId;
 

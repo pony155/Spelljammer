@@ -10,18 +10,18 @@ public sealed partial class SimulationContracts
     private static void CombatSystemRoutesAndRejectsAtomically()
     {
         (TacticalBoard board, CellId entry, CellId exit) = CreateBoard();
-        ActorId actorId = new("actor.combat.attacker");
-        ActorId targetId = new("actor.combat.target");
-        PersonalActorState actor = Actor(actorId, new TeamId("team.combat.attackers"), entry) with {
+        BattleUnitId actorId = new("unit.combat.attacker");
+        BattleUnitId targetId = new("unit.combat.target");
+        BattleUnitState actor = Unit(actorId, new TeamId("team.combat.attackers"), entry) with {
             Turn = ActorTurn() with { CurrentActionPoints = 10 },
         };
-        PersonalActorState target = Actor(targetId, new TeamId("team.combat.targets"), exit) with {
+        BattleUnitState target = Unit(targetId, new TeamId("team.combat.targets"), exit) with {
             Turn = ActorTurn() with { CurrentActionPoints = 10 },
         };
         PersonalEncounterState encounter = new(
             new EncounterId("encounter.combat.contract"),
             board.Place(actorId, entry).Place(targetId, exit),
-            ImmutableDictionary<ActorId, PersonalActorState>.Empty.Add(actorId, actor).Add(targetId, target),
+            ImmutableDictionary<BattleUnitId, BattleUnitState>.Empty.Add(actorId, actor).Add(targetId, target),
             ImmutableDictionary<ObjectiveId, ObjectiveState>.Empty,
             ImmutableHashSet<ContentId>.Empty,
             ImmutableHashSet<ContentId>.Empty,

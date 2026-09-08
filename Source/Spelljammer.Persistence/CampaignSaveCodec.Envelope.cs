@@ -45,7 +45,7 @@ public static partial class CampaignSaveCodec
         }
 
         if (metadata.Discriminator != DocumentDiscriminator ||
-            contentLock.SaveSchemaVersion != CampaignSaveVersions.SaveSchema ||
+            !IsSupportedSaveSchema(contentLock.SaveSchemaVersion) ||
             contentLock.GeneratorVersion != CampaignSaveVersions.WorldGenerator ||
             contentLock.FormulaVersion != CampaignSaveVersions.Formula ||
             contentLock.EffectVersion != CampaignSaveVersions.Effect)
@@ -65,23 +65,46 @@ public static partial class CampaignSaveCodec
         }
 
         CampaignContentLock available = CampaignContentLock.Create(content);
+        ImmutableArray<ContentId> schemaMigrationPath =
+            contentLock.SaveSchemaVersion == CampaignSaveVersions.SaveSchema
+                ? []
+                : [CampaignSaveSchemaMigrations.BattleUnitsMigrationId];
         bool packsExact = contentLock.Packs.SequenceEqual(available.Packs);
         if (packsExact && contentLock.ManifestFingerprint == available.ManifestFingerprint &&
             contentLock.SemanticFingerprint == content.Fingerprint && contentLock.EffectiveFingerprint == content.Fingerprint)
         {
-            return new ContentPreflightResult(ContentPreflightKind.Exact, SaveDiagnosticCode.None, contentLock, [], [], []);
+            bool currentSchema = contentLock.SaveSchemaVersion == CampaignSaveVersions.SaveSchema;
+            return new ContentPreflightResult(
+                currentSchema ? ContentPreflightKind.Exact : ContentPreflightKind.Compatible,
+                SaveDiagnosticCode.None,
+                contentLock,
+                [],
+                [],
+                schemaMigrationPath);
         }
 
         if (compatibility?.Any(rule => rule.SourceFingerprint == contentLock.EffectiveFingerprint &&
                 rule.DestinationFingerprint == content.Fingerprint) == true)
         {
-            return new ContentPreflightResult(ContentPreflightKind.Compatible, SaveDiagnosticCode.None, contentLock, [], [], []);
+            return new ContentPreflightResult(
+                ContentPreflightKind.Compatible,
+                SaveDiagnosticCode.None,
+                contentLock,
+                [],
+                [],
+                schemaMigrationPath);
         }
 
         ImmutableArray<ContentId> path = migrations?.FindPath(contentLock.EffectiveFingerprint, content.Fingerprint) ?? [];
         if (!path.IsEmpty)
         {
-            return new ContentPreflightResult(ContentPreflightKind.Migratable, SaveDiagnosticCode.None, contentLock, [], [], path);
+            return new ContentPreflightResult(
+                ContentPreflightKind.Migratable,
+                SaveDiagnosticCode.None,
+                contentLock,
+                [],
+                [],
+                schemaMigrationPath.AddRange(path));
         }
 
         return new ContentPreflightResult(ContentPreflightKind.Incompatible, SaveDiagnosticCode.IncompatibleContent,
@@ -107,10 +130,17 @@ public static partial class CampaignSaveCodec
 
         try
         {
-            CampaignPayloadDto payload = JsonSerializer.Deserialize<CampaignPayloadDto>(payloadBytes.Span, JsonOptions) ??
+            CampaignContentLock savedLock = preflight.ContentLock!;
+            ReadOnlyMemory<byte> migratedPayload = CampaignSaveSchemaMigrations.Migrate(
+                payloadBytes,
+                savedLock.SaveSchemaVersion,
+                JsonOptions);
+            CampaignPayloadDto payload = JsonSerializer.Deserialize<CampaignPayloadDto>(migratedPayload.Span, JsonOptions) ??
                 throw new InvalidOperationException("Campaign payload is empty.");
+            bool addCompatibleDefinitions = preflight.Kind == ContentPreflightKind.Compatible &&
+                savedLock.EffectiveFingerprint != content.Fingerprint;
             CampaignState campaign = FromDto(
-                metadata!, preflight.ContentLock!, payload, content, preflight.Kind == ContentPreflightKind.Compatible);
+                metadata!, savedLock, payload, content, addCompatibleDefinitions);
             if (!CampaignValidator.TryValidate(campaign, content, out _))
             {
                 throw new InvalidOperationException("Campaign invariants failed.");
@@ -151,7 +181,7 @@ public static partial class CampaignSaveCodec
 
         ushort envelope = BinaryPrimitives.ReadUInt16LittleEndian(span.Slice(8, 2));
         ushort schema = BinaryPrimitives.ReadUInt16LittleEndian(span.Slice(10, 2));
-        if (envelope != CampaignSaveVersions.Envelope || schema != CampaignSaveVersions.SaveSchema)
+        if (envelope != CampaignSaveVersions.Envelope || !IsSupportedSaveSchema(schema))
         {
             return Fail(out diagnostic, SaveDiagnosticCode.Unsupported);
         }
@@ -183,6 +213,11 @@ public static partial class CampaignSaveCodec
             ValidateJsonShape(payload.Span);
             metadata = JsonSerializer.Deserialize<SavePreflightDto>(preflightBytes.Span, JsonOptions);
             if (metadata is null || Encoding.UTF8.GetByteCount(metadata.GameBuild) is 0 or > CampaignState.MaximumGameBuildBytes)
+            {
+                return Fail(out diagnostic, SaveDiagnosticCode.Corrupt);
+            }
+
+            if (metadata.ContentLock.SaveSchemaVersion != schema)
             {
                 return Fail(out diagnostic, SaveDiagnosticCode.Corrupt);
             }
@@ -244,4 +279,8 @@ public static partial class CampaignSaveCodec
             }
         }
     }
+
+    private static bool IsSupportedSaveSchema(ushort schema) =>
+        schema >= CampaignSaveVersions.MinimumMigratableSaveSchema &&
+        schema <= CampaignSaveVersions.SaveSchema;
 }

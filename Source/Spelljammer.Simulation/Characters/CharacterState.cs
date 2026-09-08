@@ -336,6 +336,7 @@ public sealed record CharacterState(
     public StatusState Statuses { get; init; } = StatusState.Empty;
     public ImmutableArray<ObservableCapabilityEvidence> Evidence { get; init; } = [];
     public CharacterResourceSet CharacterResources { get; init; } = CharacterResourceSet.Empty;
+    public ImmutableArray<InjuryState> Injuries { get; init; } = [];
 
     /// <summary>
     /// Validates the complete character state against the active content catalog.
@@ -370,7 +371,8 @@ public sealed record CharacterState(
             Resources.Count > CharacterCapabilities.MaximumSetEntries ||
             TrainingProgress.Count > CharacterCapabilities.MaximumSetEntries ||
             Statuses.Instances.Length > MaximumStatuses ||
-            Evidence.Length > MaximumEvidenceEntries)
+            Evidence.Length > MaximumEvidenceEntries ||
+            Injuries.Length > CharacterCapabilities.MaximumSetEntries)
         {
             throw new InvalidOperationException("Character state exceeds a bounded capacity.");
         }
@@ -386,6 +388,11 @@ public sealed record CharacterState(
             throw new InvalidOperationException("Character resources contain an invalid value.");
         }
 
+        if (Injuries.Any(value => !value.Id.IsValid || !Enum.IsDefined(value.Severity)))
+        {
+            throw new InvalidOperationException("Character injuries contain an invalid value.");
+        }
+
         foreach ((TrainingProjectId projectId, int progress) in TrainingProgress)
         {
             if (progress < 0 || !catalog.TryGetTrainingProject(projectId, out TrainingProjectDefinition? project) ||
@@ -399,7 +406,7 @@ public sealed record CharacterState(
             Statuses,
             catalog,
             new StatusSystemLimits(MaximumStatuses, 1_000_000, MaximumStatuses));
-        if (!statusValidation.Accepted || Statuses.Instances.Any(value => value.TargetId != Id.Value))
+        if (!statusValidation.Accepted || Statuses.Instances.Any(value => value.TargetId.Value != Id.Value))
         {
             throw new InvalidOperationException("Character status state is invalid.");
         }

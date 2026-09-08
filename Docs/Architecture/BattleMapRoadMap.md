@@ -21,11 +21,11 @@ The repository already has a useful headless foundation:
 - deterministic connectivity checks and breadth-first pathfinding;
 - bounded occupancy and per-cell capacity;
 - authored cover, visibility, atmosphere, gravity, and hazard tags;
-- personal actors with Turn Meter, Action Points, resources, equipment,
+- `BattleUnitState` units with Turn Meter, Action Points, resources, equipment,
   injuries, and Status instances;
-- fixed-tick Ready actor processing and typed personal commands;
+- fixed-tick Ready unit processing and typed personal commands;
 - melee, ranged, spell, psionic, item, Effect, and Status subsystems; and
-- versioned campaign persistence for encounter actors and board state.
+- campaign save schema 13 persistence for encounter units and board state.
 
 The current board is closer to a small linked zone/hex encounter graph than the
 dense hidden square grid described by `BattleMap.md`. Movement currently uses
@@ -83,9 +83,9 @@ versioned topology abstraction.
 | --- | --- | --- | --- |
 | 0 | Topology and contract alignment | Current baseline | Square-grid contract is documented and conflicting hex claims are removed |
 | 1 | Square-grid simulation kernel | Phase 0 | Bounded map creation, occupancy, neighbors, and deterministic weighted paths work headlessly |
-| 2 | Authored battle-map vertical slice | Phase 1 | One content-authored map loads, validates, deploys actors, and supports objectives and exits |
+| 2 | Authored battle-map vertical slice | Phase 1 | One content-authored map loads, validates, deploys units, and supports objectives and exits |
 | 3 | Movement planning and commit | Phase 2 | Reachability, path preview, AP cost, interruption, and atomic movement use the same rules |
-| 4 | LOS, cover, and combat integration | Phase 3 | Attack legality and protection are derived from map state and Effects update encounter actors atomically |
+| 4 | LOS, cover, and combat integration | Phase 3 | Attack legality and protection are derived from map state and Effects update encounter units atomically |
 | 5 | Tactical presentation | Phases 2-4 | The player can inspect and complete the authored encounter through the visible game host |
 | 6 | Exploration/combat continuity | Phase 5 | One map transitions between real-time exploration and tactical combat without state loss |
 | 7 | Procedural map generation | Phases 1-6 | Seeded generation produces validated, replayable maps from authored modules |
@@ -305,7 +305,7 @@ remove tactical UI without reconstructing the environment.
 - Opening a door, moving an object, or damaging cover before combat produces
   the same state when combat begins.
 - Combat damage and environmental changes remain after exploration resumes.
-- Repeated transition attempts are idempotent and cannot duplicate actors,
+- Repeated transition attempts are idempotent and cannot duplicate units,
   objectives, loot, or Effects.
 - Save/load works in either mode and at the transition boundary.
 
@@ -378,7 +378,7 @@ Expand content only after the authored ruin slice is stable:
 - EVA and hull exteriors;
 - stations or settlements;
 - planetary surfaces; and
-- large actors with explicit multi-cell footprints.
+- large units with explicit multi-cell footprints.
 
 ### Exit criteria
 

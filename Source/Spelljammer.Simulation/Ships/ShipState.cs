@@ -37,7 +37,7 @@ public sealed record ShipContactState(
     ContentId KnowledgeId,
     long LastObservedTick,
     bool HasFiringSolution,
-    ImmutableHashSet<ActorId> Witnesses);
+    ImmutableHashSet<BattleUnitId> Witnesses);
 
 public sealed record ShipState(
     ShipId Id,

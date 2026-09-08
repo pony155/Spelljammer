@@ -140,11 +140,11 @@ public sealed partial class SimulationContracts
     private static void TacticalBoardAndEncounterCleanupAreBounded()
     {
         (TacticalBoard board, CellId entry, CellId exit) = CreateBoard();
-        ActorId playerId = new("actor.first-voyage.scout");
-        ActorId secondPlayerId = new("actor.first-voyage.engineer");
-        ActorId thirdPlayerId = new("actor.first-voyage.medic");
-        ActorId fourthPlayerId = new("actor.first-voyage.envoy");
-        ActorId hostileId = new("actor.ruin.sentinel");
+        BattleUnitId playerId = new("unit.first-voyage.scout");
+        BattleUnitId secondPlayerId = new("unit.first-voyage.engineer");
+        BattleUnitId thirdPlayerId = new("unit.first-voyage.medic");
+        BattleUnitId fourthPlayerId = new("unit.first-voyage.envoy");
+        BattleUnitId hostileId = new("unit.ruin.sentinel");
         board = board.Place(playerId, entry).Place(secondPlayerId, entry).Place(thirdPlayerId, entry)
             .Place(fourthPlayerId, entry).Place(hostileId, exit);
         Equal(3, board.FindPath(entry, exit, TacticalBoard.MaximumCells).Length, "Bounded hex path was not deterministic.");
@@ -153,12 +153,12 @@ public sealed partial class SimulationContracts
         PersonalEncounterState encounter = new(
             new EncounterId("encounter.ruin.glass-observatory"),
             board,
-            ImmutableDictionary<ActorId, PersonalActorState>.Empty
-                .Add(playerId, Actor(playerId, playerTeam, entry))
-                .Add(secondPlayerId, Actor(secondPlayerId, playerTeam, entry))
-                .Add(thirdPlayerId, Actor(thirdPlayerId, playerTeam, entry))
-                .Add(fourthPlayerId, Actor(fourthPlayerId, playerTeam, entry))
-                .Add(hostileId, Actor(hostileId, new TeamId("team.ruin.sentinels"), exit) with { Surrendered = true }),
+            ImmutableDictionary<BattleUnitId, BattleUnitState>.Empty
+                .Add(playerId, Unit(playerId, playerTeam, entry))
+                .Add(secondPlayerId, Unit(secondPlayerId, playerTeam, entry))
+                .Add(thirdPlayerId, Unit(thirdPlayerId, playerTeam, entry))
+                .Add(fourthPlayerId, Unit(fourthPlayerId, playerTeam, entry))
+                .Add(hostileId, Unit(hostileId, new TeamId("team.ruin.sentinels"), exit) with { Surrendered = true }),
             ImmutableDictionary<ObjectiveId, ObjectiveState>.Empty.Add(new ObjectiveId("objective.ruin.extract-relic"), ObjectiveState.Active),
             ImmutableHashSet<ContentId>.Empty.Add(new ContentId("exploration.ruin.console-restored")),
             ImmutableHashSet<ContentId>.Empty.Add(new ContentId("object.ruin.ancient-defense")),
@@ -166,7 +166,7 @@ public sealed partial class SimulationContracts
             false);
         PersonalEncounterState cleaned = EncounterLifecycle.Cleanup(encounter, playerTeam);
         True(cleaned.CleanedUp, "Resolved opposition did not permit encounter cleanup.");
-        True(cleaned.Actors[hostileId].Prisoner, "A surrendered hostile was not retained as a prisoner consequence.");
+        True(cleaned.Units[hostileId].Prisoner, "A surrendered hostile was not retained as a prisoner consequence.");
         Equal(encounter.ExplorationChanges, cleaned.ExplorationChanges, "Cleanup discarded exploration changes.");
         Equal(encounter.DamagedObjects, cleaned.DamagedObjects, "Cleanup discarded damaged objects.");
     }
@@ -200,20 +200,20 @@ public sealed partial class SimulationContracts
     private static void PersonalCombatResolutionIsCommittedAtomically()
     {
         (TacticalBoard board, CellId entry, CellId exit) = CreateBoard();
-        ActorId defenderId = new("actor.first-voyage.defender");
-        ActorId attackerId = new("actor.ruin.attacker");
-        PersonalActorState defender = Actor(defenderId, new TeamId("team.player"), entry) with {
+        BattleUnitId defenderId = new("unit.first-voyage.defender");
+        BattleUnitId attackerId = new("unit.ruin.attacker");
+        BattleUnitState defender = Unit(defenderId, new TeamId("team.player"), entry) with {
             Turn = ActorTurn() with { CurrentActionPoints = 10 },
             ReservedReactionPoints = 1,
             ReactionExpiresTick = 20,
         };
-        PersonalActorState attacker = Actor(attackerId, new TeamId("team.ruin.sentinels"), exit) with {
+        BattleUnitState attacker = Unit(attackerId, new TeamId("team.ruin.sentinels"), exit) with {
             Turn = ActorTurn() with { CurrentActionPoints = 10 },
         };
         PersonalEncounterState encounter = new(
             new EncounterId("encounter.ruin.glass-observatory"),
             board.Place(defenderId, entry).Place(attackerId, exit),
-            ImmutableDictionary<ActorId, PersonalActorState>.Empty.Add(defenderId, defender).Add(attackerId, attacker),
+            ImmutableDictionary<BattleUnitId, BattleUnitState>.Empty.Add(defenderId, defender).Add(attackerId, attacker),
             ImmutableDictionary<ObjectiveId, ObjectiveState>.Empty.Add(new ObjectiveId("objective.ruin.disable-defense"), ObjectiveState.Active),
             ImmutableHashSet<ContentId>.Empty,
             ImmutableHashSet<ContentId>.Empty,
@@ -230,11 +230,11 @@ public sealed partial class SimulationContracts
             [ship],
             encounter) with {
             ShipPaused = false,
-            ReadyActors = [attackerId],
+            ReadyUnits = [attackerId],
         };
         WorldCommand attack = CreateWorldCommand("command.test.reaction", WorldCommandKind.PersonalRanged, attackerId.Value, defenderId.Value, 10, 1) with { Amount = 8 };
         World unresolved = world.Enqueue(attack).World.CommitReadyPlan().Advance(2).World;
-        Equal(10, unresolved.PersonalEncounter!.Actors[defenderId].Health,
+        Equal(10, unresolved.PersonalEncounter!.Units[defenderId].Health,
             "A combat command without the domain resolver changed target health.");
         True(unresolved.Events.Any(value =>
                 value.Kind == WorldCommandKind.PersonalRanged &&
@@ -243,7 +243,7 @@ public sealed partial class SimulationContracts
             "A missing combat resolver did not produce the stable rejection event.");
 
         world = world.Enqueue(attack).World.CommitReadyPlan().Advance(2, new ReactionCombatResolver()).World;
-        PersonalActorState after = world.PersonalEncounter!.Actors[defenderId];
+        BattleUnitState after = world.PersonalEncounter!.Units[defenderId];
         Equal(6, after.Health, "A reserved reaction did not mitigate the committed attack.");
         Equal(0, after.ReservedReactionPoints, "A reaction was not consumed atomically.");
         True(world.Events.Any(value => value.Kind == WorldCommandKind.PersonalRanged && value.Succeeded),
@@ -255,7 +255,7 @@ public sealed partial class SimulationContracts
         public PersonalCombatResolution Resolve(PersonalCombatContext context)
         {
             int damage = Math.Max(1, context.Command.Amount);
-            PersonalActorState target = context.Target;
+            BattleUnitState target = context.Target;
             if (target.ReservedReactionPoints > 0 && target.ReactionExpiresTick >= context.Tick)
             {
                 damage = Math.Max(1, damage / 2);
@@ -268,7 +268,7 @@ public sealed partial class SimulationContracts
                     CharacterResourceIds.Health,
                     healthDamage),
             };
-            PersonalActorState actor = context.Actor with {
+            BattleUnitState actor = context.Actor with {
                 Turn = context.Actor.Turn.SpendActionPoints(5),
             };
             return new PersonalCombatResolution(true, string.Empty, actor, target, healthDamage);
@@ -359,7 +359,7 @@ public sealed partial class SimulationContracts
     private static ZoneLinkDefinition Link(string id, CellId from, CellId to, int retreat) => new(
         new LinkId(id), 1, 1, $"{id}.name", $"{id}.description", from, to, new ContentId("traversal.open"), 0, retreat);
 
-    private static PersonalActorState Actor(ActorId id, TeamId team, CellId cell) => new(
+    private static BattleUnitState Unit(BattleUnitId id, TeamId team, CellId cell) => new(
         id, team, null, cell, ActorTurn(), ActorResources(), false, false, false,
         new ItemSystemState([], [], []), []);
 

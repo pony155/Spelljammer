@@ -17,7 +17,7 @@ public sealed record WorldSnapshot(
     bool PersonalPaused,
     ImmutableArray<ShipState> Ships,
     PersonalEncounterState? PersonalEncounter,
-    ImmutableArray<ActorId> ReadyActors,
+    ImmutableArray<BattleUnitId> ReadyUnits,
     ImmutableArray<ScheduledAction> Actions,
     ImmutableArray<WorldCommandLogEntry> RecentCommands,
     ImmutableArray<WorldEvent> RecentEvents);

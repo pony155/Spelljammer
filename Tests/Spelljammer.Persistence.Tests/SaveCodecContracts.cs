@@ -37,7 +37,7 @@ public sealed partial class PersistenceContracts
         Equal(campaign.Characters.Length, loaded.Campaign.Characters.Length, "Roster did not round-trip.");
         Equal(campaign.World.Ships.Values.Single().Modules.Length,
             loaded.Campaign.World.Ships.Values.Single().Modules.Length, "Ship modules did not round-trip.");
-        True(loaded.Campaign.World.PersonalEncounter!.Actors.Values.Single().Injuries.Single().Stabilized,
+        True(loaded.Campaign.World.PersonalEncounter!.Units.Values.Single().Injuries.Single().Stabilized,
             "A stabilized injury did not round-trip.");
         True(loaded.Campaign.World.Commands.Length == 1 && loaded.Campaign.World.CommandHistory.Length == 1,
             "Queued work and retained history did not round-trip.");
@@ -45,7 +45,7 @@ public sealed partial class PersistenceContracts
         Equal(12, loaded.Campaign.Characters.SelectMany(value => value.Items.InventoryEntries)
             .Single(value => value.EntryId == ammunitionEntryId).Stack.Quantity,
             "A character ammunition stack did not round-trip.");
-        Equal(12, loaded.Campaign.World.PersonalEncounter.Actors.Values
+        Equal(12, loaded.Campaign.World.PersonalEncounter.Units.Values
             .SelectMany(value => value.Items.InventoryEntries)
             .Single(value => value.EntryId == ammunitionEntryId).Stack.Quantity,
             "An encounter ammunition stack did not round-trip.");
@@ -53,7 +53,7 @@ public sealed partial class PersistenceContracts
         Equal(2, loaded.Campaign.Characters.SelectMany(value => value.Statuses.Instances)
             .Single(value => value.InstanceId == savedStatusId).RemainingDuration,
             "A character Status did not round-trip.");
-        Equal(2, loaded.Campaign.World.PersonalEncounter.Actors.Values
+        Equal(2, loaded.Campaign.World.PersonalEncounter.Units.Values
             .SelectMany(value => value.Statuses.Instances)
             .Single(value => value.InstanceId == savedStatusId).RemainingDuration,
             "An encounter Status did not round-trip.");
@@ -73,11 +73,11 @@ public sealed partial class PersistenceContracts
         byte[] unsupported = valid.ToArray();
         unsupported[10] = 0xff;
         Equal(SaveDiagnosticCode.Unsupported, CampaignSaveCodec.ValidateEnvelope(unsupported), "Unsupported schema diagnostic changed.");
-        byte[] previousSchema = valid.ToArray();
+        byte[] obsoleteSchema = valid.ToArray();
         BinaryPrimitives.WriteUInt16LittleEndian(
-            previousSchema.AsSpan(10, 2), checked((ushort)(CampaignSaveVersions.SaveSchema - 1)));
-        Equal(SaveDiagnosticCode.Unsupported, CampaignSaveCodec.ValidateEnvelope(previousSchema),
-            "A previous save schema was accepted after legacy schema support was removed.");
+            obsoleteSchema.AsSpan(10, 2), checked((ushort)(CampaignSaveVersions.MinimumMigratableSaveSchema - 1)));
+        Equal(SaveDiagnosticCode.Unsupported, CampaignSaveCodec.ValidateEnvelope(obsoleteSchema),
+            "A save older than the migration floor was accepted.");
 
         GameContentSnapshot additive = Compile(true);
         byte[] additiveSave = CampaignSaveCodec.Encode(CreateCampaign(additive), additive);

@@ -43,5 +43,11 @@ public sealed partial class PersistenceContracts
     [TestMethod]
     public void MigrationFailuresPreserveTheSourceContract() => MigrationFailuresPreserveTheSource();
 
+    [TestMethod]
+    public void BattleUnitProjectionRoundTripsCharacterStateContract() => BattleUnitProjectionRoundTripsCharacterState();
+
+    [TestMethod]
+    public void Schema12ActorSavesMigrateToBattleUnitsContract() => Schema12ActorSavesMigrateToBattleUnits();
+
 
 }

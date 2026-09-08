@@ -275,9 +275,9 @@ public static class CampaignMigrationService
         }
 
         TacticalBoard tacticalBoard = rebuilt.Board!;
-        foreach (PersonalActorState actor in source.Actors.Values.OrderBy(value => value.Id))
+        foreach (BattleUnitState unit in source.Units.Values.OrderBy(value => value.Id))
         {
-            tacticalBoard = tacticalBoard.Place(actor.Id, actor.CellId);
+            tacticalBoard = tacticalBoard.Place(unit.Id, unit.CellId);
         }
 
         return source with { Board = tacticalBoard };

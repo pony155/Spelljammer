@@ -1233,6 +1233,6 @@ other families and technologies are supported by the schema but await authored
 weapons and technology-specific effects.
 
 Character and encounter state persist the same item-instance ownership model,
-and campaign save schema 12 stores melee durability and energy. Publishing the
+and campaign save schema 13 stores melee durability and energy. Publishing the
 resolved Effect target snapshot back into encounter actor state and AI action
 selection remain encounter-system work.

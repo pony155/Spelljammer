@@ -10,8 +10,8 @@ namespace Spelljammer.Simulation.Combat;
 public sealed record PersonalCombatContext(
     WorldCommand Command,
     PersonalEncounterState Encounter,
-    PersonalActorState Actor,
-    PersonalActorState Target,
+    BattleUnitState Actor,
+    BattleUnitState Target,
     long Tick,
     ulong WorldSeed,
     ulong RandomSequence);
@@ -22,14 +22,14 @@ public sealed record PersonalCombatContext(
 public sealed record PersonalCombatResolution(
     bool Accepted,
     string RejectionCode,
-    PersonalActorState Actor,
-    PersonalActorState Target,
+    BattleUnitState Actor,
+    BattleUnitState Target,
     int EventAmount,
     ContentId? DamagedObjectId = null)
 {
     public static PersonalCombatResolution Rejected(
-        PersonalActorState actor,
-        PersonalActorState target,
+        BattleUnitState actor,
+        BattleUnitState target,
         string rejectionCode) =>
         new(false, rejectionCode, actor, target, 0);
 }

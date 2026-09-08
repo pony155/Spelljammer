@@ -27,9 +27,9 @@ public sealed partial record World
                     new ContentId("knowledge.contact.scanned"),
                     Tick,
                     ShipGeometry.Range(ship.Position, scanned.Position) != ShipRange.Beyond,
-                    command.OptionId is ContentId witnessId && ActorIdFrom(witnessId, out ActorId witness)
+                    command.OptionId is ContentId witnessId && BattleUnitIdFrom(witnessId, out BattleUnitId witness)
                         ? ImmutableHashSet.Create(witness)
-                        : ImmutableHashSet<ActorId>.Empty);
+                        : ImmutableHashSet<BattleUnitId>.Empty);
                 ship = ship with { Contacts = ship.Contacts.SetItem(scanned.Id, contact) };
                 break;
             case WorldCommandKind.Course:

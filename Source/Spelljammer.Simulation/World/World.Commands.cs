@@ -64,13 +64,13 @@ public sealed partial record World
 
     private bool TargetExists(WorldCommand command) =>
         command.TargetId == command.IssuerId || Ships.Keys.Any(value => value.Value == command.TargetId) ||
-        PersonalEncounter?.Actors.Keys.Any(value => value.Value == command.TargetId) == true ||
+        PersonalEncounter?.Units.Keys.Any(value => value.Value == command.TargetId) == true ||
         PersonalEncounter?.Board.Cells.Keys.Any(value => value.Value == command.TargetId) == true ||
         PersonalEncounter?.Objectives.Keys.Any(value => value.Value == command.TargetId) == true;
 
     private bool CanSubmitPersonal(ContentId issuerId) =>
-        ActorIdFrom(issuerId, out ActorId actorId) && ReadyActors.Contains(actorId) &&
-        PersonalEncounter?.Actors.TryGetValue(actorId, out PersonalActorState? actor) == true && actor.ActionPoints > 0;
+        BattleUnitIdFrom(issuerId, out BattleUnitId unitId) && ReadyUnits.Contains(unitId) &&
+        PersonalEncounter?.Units.TryGetValue(unitId, out BattleUnitState? unit) == true && unit.ActionPoints > 0;
 
     private static ImmutableArray<WorldCommandLogEntry> MarkCancelled(
         ImmutableArray<WorldCommandLogEntry> history,

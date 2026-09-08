@@ -42,7 +42,7 @@ Characters/  character state, creation, progression, resources, and recruitment
 Combat/      character-combat definitions, action systems, and resolution contracts
 Content/     stable content IDs, common definition metadata, and aggregate catalog
 Effects/     Effect and Status definitions, state, queries, and systems
-Encounters/  encounter definitions, state, tactical board, and lifecycle
+Encounters/  encounter definitions, battle-unit projections, tactical board, and lifecycle
 Items/       item definitions, inventory state, equipment, and mutations
 Ships/       ship definitions, state, loadout, power, damage, and combat geometry
 World/       world state, time, geometry, commands, scheduled actions, and events
@@ -66,14 +66,14 @@ world state or alter the public simulation contract.
 spell, psionic, Status, or Effect results. At commit time, melee, ranged,
 spell, and psionic commands require an `IPersonalCombatResolver`. The resolver
 uses the typed combat systems and returns one `PersonalCombatResolution`
-containing the committed actor and target states.
+containing the committed `BattleUnitState` actor and target states.
 
 The implemented [`CombatSystem`](CombatSystem.md) is the standard resolver. It
 routes each character-combat command to a registered
 `ICharacterCombatActionSystem`, validates the replacement states, and rejects
 partial or structurally invalid results before `World` commits them.
 
-The world validates actor and target identities before publishing that result.
+The world validates battle-unit actor and target identities before publishing that result.
 A missing, rejected, or structurally invalid resolution leaves encounter state
 unchanged and records a failed event. This keeps combat formulas in their
 domain systems while preserving one atomic world commit boundary.
@@ -81,6 +81,9 @@ domain systems while preserving one atomic world commit boundary.
 Movement, defend, reaction reservation, medicine, interaction, engineering,
 surrender, retreat, and activation lifecycle remain direct encounter
 operations because they do not duplicate weapon or supernatural resolution.
+Persistent characters enter encounters through `BattleUnitProjection.Project`;
+an explicit `BattleUnitProjection.Commit` transaction returns resources,
+items, Statuses, injuries, and action availability to `CharacterState`.
 
 ## Content views
 

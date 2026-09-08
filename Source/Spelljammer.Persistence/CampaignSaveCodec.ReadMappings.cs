@@ -53,7 +53,7 @@ public static partial class CampaignSaveCodec
         RequireCount(payload.World.Commands.Length, World.MaximumCommands);
         RequireCount(payload.World.CommandHistory.Length, World.MaximumCommandHistory);
         RequireCount(payload.World.ScheduledActions.Length, World.MaximumSchedules);
-        RequireCount(payload.World.ReadyActorIds.Length, World.MaximumReadyActors);
+        RequireCount(payload.World.ReadyUnitIds.Length, World.MaximumReadyUnits);
         RequireCount(payload.World.Events.Length, World.MaximumEvents);
         World world = new(
             payload.World.Seed,
@@ -80,7 +80,7 @@ public static partial class CampaignSaveCodec
                 value.ReservedResourceId is null ? null : new ResourceId(value.ReservedResourceId),
                 value.ReservedAmount,
                 [.. value.History.Select(ParseEnum<ScheduledActionPhase>)]))],
-            [.. payload.World.ReadyActorIds.Select(value => new ActorId(value))],
+            [.. payload.World.ReadyUnitIds.Select(value => new BattleUnitId(value))],
             [.. payload.World.Events.Select(value => new WorldEvent(
                 new ContentId(value.Id), value.Tick, new ContentId(value.SourceId), new ContentId(value.TargetId),
                 ParseEnum<WorldCommandKind>(value.Kind), value.Succeeded, value.Amount, value.ResultCode))]);
@@ -88,7 +88,11 @@ public static partial class CampaignSaveCodec
         CampaignContentLock activeLock = savedLock.EffectiveFingerprint == content.Fingerprint &&
             savedLock.SaveSchemaVersion == CampaignSaveVersions.SaveSchema
             ? savedLock
-            : CampaignContentLock.Create(content, savedLock.AppliedMigrationIds);
+            : CampaignContentLock.Create(
+                content,
+                savedLock.SaveSchemaVersion < CampaignSaveVersions.SaveSchema
+                    ? savedLock.AppliedMigrationIds.Append(CampaignSaveSchemaMigrations.BattleUnitsMigrationId)
+                    : savedLock.AppliedMigrationIds);
         return new CampaignState(
             metadata.GameBuild,
             activeLock,
@@ -134,7 +138,7 @@ public static partial class CampaignSaveCodec
             ShipContactState state = new(
                 new ShipId(contact.ShipId), new ContentId(contact.KnowledgeId), contact.LastObservedTick,
                 contact.HasFiringSolution, ParseIds(contact.WitnessIds, CampaignSaveLimits.MaximumCharacters)
-                    .Select(id => new ActorId(id)).ToImmutableHashSet());
+                    .Select(id => new BattleUnitId(id)).ToImmutableHashSet());
             return state;
         }).ToImmutableDictionary(contact => contact.ShipId);
         return new ShipState(
@@ -155,6 +159,7 @@ public static partial class CampaignSaveCodec
         RequireCount(value.Capabilities.Skills.Length, CampaignSaveLimits.MaximumCollectionEntries);
         RequireCount(value.Capabilities.GrantSources.Length, CharacterCapabilities.MaximumSetEntries);
         RequireCount(value.Statuses.Length, CharacterState.MaximumStatuses);
+        RequireCount(value.Injuries.Length, CharacterCapabilities.MaximumSetEntries);
         ImmutableArray<AbilityValueSnapshot> abilities =
             [.. value.Capabilities.Abilities.Select(item => new AbilityValueSnapshot(new AbilityId(item.Id), item.Value))];
         ImmutableArray<SkillValueSnapshot> skills =
@@ -193,6 +198,7 @@ public static partial class CampaignSaveCodec
             value.CanAct) {
             CharacterResources = CharacterResourceSet.Restore(value.CharacterResources.Select(FromDto)),
             Statuses = new StatusState([.. value.Statuses.Select(FromDto)]),
+            Injuries = [.. value.Injuries.Select(FromDto)],
             Evidence = [.. value.Evidence.Select(evidence => new ObservableCapabilityEvidence(
                 new ContentId(evidence.EvidenceId), new ContentId(evidence.SourceId), new CharacterId(evidence.ActorId),
                 new CharacterId(evidence.TargetId), evidence.Tick, evidence.Succeeded))],
@@ -222,35 +228,34 @@ public static partial class CampaignSaveCodec
             throw new InvalidOperationException(boardResult.RejectionCode);
         }
 
-        RequireCount(value.Actors.Length, boardDefinition.MaximumOccupants);
+        RequireCount(value.Units.Length, boardDefinition.MaximumOccupants);
         TacticalBoard board = boardResult.Board!;
-        ImmutableDictionary<ActorId, PersonalActorState>.Builder actors = ImmutableDictionary.CreateBuilder<ActorId, PersonalActorState>();
-        foreach (PersonalActorDto actorDto in value.Actors)
+        ImmutableDictionary<BattleUnitId, BattleUnitState>.Builder units = ImmutableDictionary.CreateBuilder<BattleUnitId, BattleUnitState>();
+        foreach (BattleUnitDto unitDto in value.Units)
         {
-            RequireCount(actorDto.CharacterResources.Length, CampaignSaveLimits.MaximumCollectionEntries);
-            RequireCount(actorDto.Statuses.Length, PersonalEncounterState.MaximumStatusesPerActor);
-            CellId cellId = new(actorDto.CellId);
-            ActorId actorId = new(actorDto.Id);
-            ItemSystemState items = FromDto(actorDto.Items);
+            RequireCount(unitDto.CharacterResources.Length, CampaignSaveLimits.MaximumCollectionEntries);
+            RequireCount(unitDto.Statuses.Length, PersonalEncounterState.MaximumStatusesPerUnit);
+            CellId cellId = new(unitDto.CellId);
+            BattleUnitId unitId = new(unitDto.Id);
+            ItemSystemState items = FromDto(unitDto.Items);
 
-            PersonalActorState actor = new(
-                actorId, new TeamId(actorDto.TeamId), actorDto.CharacterId is null ? null : new CharacterId(actorDto.CharacterId),
-                cellId, FromDto(actorDto.Turn), CharacterResourceSet.Restore(actorDto.CharacterResources.Select(FromDto)), actorDto.Defending,
-                actorDto.Surrendered, actorDto.Prisoner, items,
-                [.. actorDto.Injuries.Select(injury => new InjuryState(
-                    new ContentId(injury.Id), ParseEnum<InjurySeverity>(injury.Severity), injury.Stabilized))]) {
-                ReservedReactionPoints = actorDto.ReservedReactionPoints,
-                ReactionExpiresTick = actorDto.ReactionExpiresTick,
-                Statuses = new StatusState([.. actorDto.Statuses.Select(FromDto)]),
+            BattleUnitState unit = new(
+                unitId, new TeamId(unitDto.TeamId), unitDto.CharacterId is null ? null : new CharacterId(unitDto.CharacterId),
+                cellId, FromDto(unitDto.Turn), CharacterResourceSet.Restore(unitDto.CharacterResources.Select(FromDto)), unitDto.Defending,
+                unitDto.Surrendered, unitDto.Prisoner, items,
+                [.. unitDto.Injuries.Select(FromDto)]) {
+                ReservedReactionPoints = unitDto.ReservedReactionPoints,
+                ReactionExpiresTick = unitDto.ReactionExpiresTick,
+                Statuses = new StatusState([.. unitDto.Statuses.Select(FromDto)]),
             };
-            board = board.Place(actorId, cellId);
-            actors.Add(actorId, actor);
+            board = board.Place(unitId, cellId);
+            units.Add(unitId, unit);
         }
 
         PersonalEncounterState encounter = new(
             encounterDefinition.EncounterId,
             board,
-            actors.ToImmutable(),
+            units.ToImmutable(),
             value.Objectives.ToImmutableDictionary(item => new ObjectiveId(item.Id), item => ParseEnum<ObjectiveState>(item.State)),
             ParseIds(value.ExplorationChangeIds, CampaignSaveLimits.MaximumCollectionEntries).ToImmutableHashSet(),
             ParseIds(value.DamagedObjectIds, CampaignSaveLimits.MaximumCollectionEntries).ToImmutableHashSet(),
@@ -258,6 +263,9 @@ public static partial class CampaignSaveCodec
             value.CleanedUp);
         return encounter;
     }
+
+    private static InjuryState FromDto(InjuryDto injury) => new(
+        new ContentId(injury.Id), ParseEnum<InjurySeverity>(injury.Severity), injury.Stabilized);
 
     private static StatusInstanceDto ToDto(StatusInstance value) => new() {
         InstanceId = value.InstanceId.ToString(),
@@ -275,7 +283,7 @@ public static partial class CampaignSaveCodec
         new StatusId(value.DefinitionId),
         value.DefinitionRevision,
         new ContentId(value.SourceId),
-        new ContentId(value.TargetId),
+        new StatusTargetId(new ContentId(value.TargetId)),
         value.RemainingDuration,
         value.Stacks,
         value.Potency);

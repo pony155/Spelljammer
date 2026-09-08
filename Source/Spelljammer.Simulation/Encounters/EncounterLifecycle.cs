@@ -5,16 +5,16 @@ namespace Spelljammer.Simulation.Encounters;
 
 public static class EncounterLifecycle
 {
-    public static PersonalEncounterState TakePrisoner(PersonalEncounterState encounter, ActorId actorId)
+    public static PersonalEncounterState TakePrisoner(PersonalEncounterState encounter, BattleUnitId unitId)
     {
-        if (!encounter.Actors.TryGetValue(actorId, out PersonalActorState? actor) ||
-            (!actor.Surrendered && !actor.IsIncapacitated))
+        if (!encounter.Units.TryGetValue(unitId, out BattleUnitState? unit) ||
+            (!unit.Surrendered && !unit.IsIncapacitated))
         {
             throw new InvalidOperationException("Only surrendered or incapacitated actors can be taken prisoner.");
         }
 
         return encounter with {
-            Actors = encounter.Actors.SetItem(actorId, actor with { Prisoner = true }),
+            Units = encounter.Units.SetItem(unitId, unit with { Prisoner = true }),
         };
     }
 
@@ -22,7 +22,7 @@ public static class EncounterLifecycle
     {
         bool objectivesResolved = encounter.Objectives.Values.All(value =>
             value is ObjectiveState.Completed or ObjectiveState.Failed or ObjectiveState.Abandoned);
-        bool oppositionResolved = encounter.Actors.Values
+        bool oppositionResolved = encounter.Units.Values
             .Where(value => value.TeamId != playerTeamId)
             .All(value => value.IsIncapacitated || value.Surrendered || value.Prisoner);
         if (!encounter.Retreated && !objectivesResolved && !oppositionResolved)
@@ -30,11 +30,11 @@ public static class EncounterLifecycle
             throw new InvalidOperationException("An active encounter cannot be cleaned up.");
         }
 
-        ImmutableDictionary<ActorId, PersonalActorState> actors = encounter.Actors.ToImmutableDictionary(
+        ImmutableDictionary<BattleUnitId, BattleUnitState> units = encounter.Units.ToImmutableDictionary(
             pair => pair.Key,
             pair => pair.Value.TeamId == playerTeamId || !pair.Value.Surrendered
                 ? pair.Value
                 : pair.Value with { Prisoner = true });
-        return encounter with { Actors = actors, CleanedUp = true };
+        return encounter with { Units = units, CleanedUp = true };
     }
 }

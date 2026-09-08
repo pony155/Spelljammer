@@ -6,17 +6,8 @@ using Spelljammer.Simulation.Items;
 
 namespace Spelljammer.Simulation.Encounters;
 
-public enum InjurySeverity : byte
-{
-    Minor,
-    Serious,
-    Incapacitating,
-}
-
-public sealed record InjuryState(ContentId Id, InjurySeverity Severity, bool Stabilized);
-
-public sealed record PersonalActorState(
-    ActorId Id,
+public sealed record BattleUnitState(
+    BattleUnitId Id,
     TeamId TeamId,
     CharacterId? CharacterId,
     CellId CellId,
@@ -38,34 +29,6 @@ public sealed record PersonalActorState(
     public int ReservedReactionPoints { get; init; }
     public long ReactionExpiresTick { get; init; }
 
-    public static PersonalActorState Create(
-        ActorId actorId,
-        TeamId teamId,
-        CharacterState character,
-        CellId cellId,
-        CharacterResourceProfileDefinition profile)
-    {
-        ArgumentNullException.ThrowIfNull(character);
-        ArgumentNullException.ThrowIfNull(profile);
-        character.CharacterResources.Validate(profile);
-        return new PersonalActorState(
-            actorId,
-            teamId,
-            character.Id,
-            cellId,
-            CharacterTurnState.Create(profile.TurnRules),
-            character.CharacterResources,
-            false,
-            false,
-            false,
-            character.Items,
-            []) {
-            Statuses = new StatusState([.. character.Statuses.Instances.Select(value => value with
-            {
-                TargetId = actorId.Value,
-            })]),
-        };
-    }
 }
 
 public enum ObjectiveState : byte
@@ -79,12 +42,12 @@ public enum ObjectiveState : byte
 public sealed record PersonalEncounterState(
     EncounterId Id,
     TacticalBoard Board,
-    ImmutableDictionary<ActorId, PersonalActorState> Actors,
+    ImmutableDictionary<BattleUnitId, BattleUnitState> Units,
     ImmutableDictionary<ObjectiveId, ObjectiveState> Objectives,
     ImmutableHashSet<ContentId> ExplorationChanges,
     ImmutableHashSet<ContentId> DamagedObjects,
     bool Retreated,
     bool CleanedUp)
 {
-    public const int MaximumStatusesPerActor = 128;
+    public const int MaximumStatusesPerUnit = 128;
 }

@@ -85,28 +85,30 @@ public sealed partial class PersistenceContracts
         crew = crew with
         {
             Statuses = new StatusState([new StatusInstance(
-                savedStatusId, savedStatus.StatusId, savedStatus.Revision, crew.Id.Value, crew.Id.Value, 2, 1, 1)]),
+                savedStatusId, savedStatus.StatusId, savedStatus.Revision, crew.Id.Value,
+                new StatusTargetId(crew.Id.Value), 2, 1, 1)]),
         };
         ImmutableArray<CharacterState> campaignCharacters =
             [.. activeRoster.Members.Select(value => value.Id == crew.Id ? crew : value)];
         True(content.TryGetCharacterResourceProfile(new CharacterResourceProfileId("character-resources.standard"),
             out CharacterResourceProfileDefinition? resourceProfile), "Character resource profile is missing.");
-        ActorId actorId = new("actor.first-voyage.saved-crew");
+        BattleUnitId unitId = new("unit.first-voyage.saved-crew");
         CellId cellId = new("cell.ruin.entry");
-        PersonalActorState actor = new(
-            actorId, new TeamId("team.player"), crew.Id, cellId,
+        BattleUnitState unit = new(
+            unitId, new TeamId("team.player"), crew.Id, cellId,
             CharacterTurnState.Create(resourceProfile!.TurnRules) with { CurrentTurnMeter = 50, CurrentActionPoints = 2 },
             crew.CharacterResources.WithCurrentValue(CharacterResourceIds.Health, 7), true, false, false,
             crew.Items,
             [new InjuryState(new ContentId("injury.ruin.arc-burn"), InjurySeverity.Serious, true)])
         {
             Statuses = new StatusState([new StatusInstance(
-                savedStatusId, savedStatus.StatusId, savedStatus.Revision, actorId.Value, actorId.Value, 2, 1, 1)]),
+                savedStatusId, savedStatus.StatusId, savedStatus.Revision, unitId.Value,
+                new StatusTargetId(unitId.Value), 2, 1, 1)]),
         };
         PersonalEncounterState encounter = new(
             encounterDefinition.EncounterId,
-            board.Board!.Place(actorId, cellId),
-            ImmutableDictionary<ActorId, PersonalActorState>.Empty.Add(actorId, actor),
+            board.Board!.Place(unitId, cellId),
+            ImmutableDictionary<BattleUnitId, BattleUnitState>.Empty.Add(unitId, unit),
             boardDefinition.RequiredObjectiveIds.ToImmutableDictionary(value => value, _ => ObjectiveState.Active),
             ImmutableHashSet.Create(new ContentId("exploration.ruin.console-restored")),
             ImmutableHashSet.Create(new ContentId("object.ruin.ancient-defense")),

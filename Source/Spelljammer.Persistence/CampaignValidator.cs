@@ -80,7 +80,7 @@ public static class CampaignValidator
             world.CommandHistory.Length > CampaignSaveLimits.MaximumRetainedCommands ||
             world.ScheduledActions.Length > World.MaximumSchedules ||
             world.Events.Length > CampaignSaveLimits.MaximumRetainedEvents ||
-            world.ReadyActors.Length > World.MaximumReadyActors ||
+            world.ReadyUnits.Length > World.MaximumReadyUnits ||
             world.Commands.Select(value => value.Id).Distinct().Count() != world.Commands.Length ||
             world.CommandHistory.Select(value => value.Command.Id).Distinct().Count() != world.CommandHistory.Length ||
             campaign.Characters.Select(value => value.Id).Distinct().Count() != campaign.Characters.Length ||
@@ -195,8 +195,8 @@ public static class CampaignValidator
             return false;
         }
 
-        return world.ReadyActors.Distinct().Count() == world.ReadyActors.Length &&
-            world.ReadyActors.All(id => world.PersonalEncounter?.Actors.ContainsKey(id) == true) &&
+        return world.ReadyUnits.Distinct().Count() == world.ReadyUnits.Length &&
+            world.ReadyUnits.All(id => world.PersonalEncounter?.Units.ContainsKey(id) == true) &&
             world.ScheduledActions.All(action => action.CommitTick >= 0 && action.RecoverTick >= action.CommitTick &&
                 action.History.Length is > 0 and <= 8 && world.CommandHistory.Any(entry => entry.Command.Id == action.Command.Id));
     }
@@ -256,11 +256,11 @@ public static class CampaignValidator
             Add(encounter.Board.Definition.PersonalBoardId.Value);
             foreach (ContentId id in encounter.Board.Cells.Keys.Select(value => value.Value)
                          .Concat(encounter.Board.Links.Select(value => value.LinkId.Value))
-                         .Concat(encounter.Actors.Values.SelectMany(actor => actor.Items.ItemInstances.Select(item => item.DefinitionId)))
-                         .Concat(encounter.Actors.Values.SelectMany(actor =>
-                             actor.Items.InventoryEntries.Select(entry => entry.Stack.DefinitionId)))
-                         .Concat(encounter.Actors.Values.SelectMany(actor =>
-                             actor.Statuses.Instances.Select(status => status.DefinitionId.Value))))
+                         .Concat(encounter.Units.Values.SelectMany(unit => unit.Items.ItemInstances.Select(item => item.DefinitionId)))
+                         .Concat(encounter.Units.Values.SelectMany(unit =>
+                             unit.Items.InventoryEntries.Select(entry => entry.Stack.DefinitionId)))
+                         .Concat(encounter.Units.Values.SelectMany(unit =>
+                             unit.Statuses.Instances.Select(status => status.DefinitionId.Value))))
             {
                 Add(id);
             }
@@ -279,19 +279,19 @@ public static class CampaignValidator
         missingId = null;
         if (!content.TryGetEncounter(encounter.Id, out EncounterDefinition? definition) ||
             definition!.PersonalBoardId != encounter.Board.Definition.PersonalBoardId ||
-            encounter.Actors.Count > encounter.Board.Definition.MaximumOccupants ||
+            encounter.Units.Count > encounter.Board.Definition.MaximumOccupants ||
             encounter.Objectives.Count > CampaignSaveLimits.MaximumCollectionEntries)
         {
             missingId = encounter.Id.Value;
             return false;
         }
 
-        foreach (PersonalActorState actor in encounter.Actors.Values)
+        foreach (BattleUnitState unit in encounter.Units.Values)
         {
-            if (!encounter.Board.Cells.ContainsKey(actor.CellId) ||
-                actor.CharacterId is CharacterId characterId && !characterIds.Contains(characterId) ||
-                resourceProfile is null || actor.Health < 0 ||
-                actor.Injuries.Length > CampaignSaveLimits.MaximumCollectionEntries)
+            if (!encounter.Board.Cells.ContainsKey(unit.CellId) ||
+                unit.CharacterId is CharacterId characterId && !characterIds.Contains(characterId) ||
+                resourceProfile is null || unit.Health < 0 ||
+                unit.Injuries.Length > CampaignSaveLimits.MaximumCollectionEntries)
             {
                 return false;
             }
@@ -299,19 +299,19 @@ public static class CampaignValidator
 
             try
             {
-                actor.CharacterResources.Validate(resourceProfile);
-                actor.Turn.Validate(resourceProfile.TurnRules);
-                if (!ItemSystem.Create(actor.Items, content).Accepted)
+                unit.CharacterResources.Validate(resourceProfile);
+                unit.Turn.Validate(resourceProfile.TurnRules);
+                if (!ItemSystem.Create(unit.Items, content).Accepted)
                 {
                     return false;
                 }
 
                 StatusResult statuses = StatusSystem.Create(
-                    actor.Statuses,
+                    unit.Statuses,
                     content,
-                    new StatusSystemLimits(PersonalEncounterState.MaximumStatusesPerActor, 1_000_000,
-                        PersonalEncounterState.MaximumStatusesPerActor));
-                if (!statuses.Accepted || actor.Statuses.Instances.Any(value => value.TargetId != actor.Id.Value))
+                    new StatusSystemLimits(PersonalEncounterState.MaximumStatusesPerUnit, 1_000_000,
+                        PersonalEncounterState.MaximumStatusesPerUnit));
+                if (!statuses.Accepted || unit.Statuses.Instances.Any(value => value.TargetId.Value != unit.Id.Value))
                 {
                     return false;
                 }
@@ -322,9 +322,9 @@ public static class CampaignValidator
             }
         }
 
-        ImmutableArray<ActorId> occupants = [.. encounter.Board.Occupants.Values.SelectMany(value => value).Order()];
-        return occupants.SequenceEqual(encounter.Actors.Keys.Order()) &&
-            encounter.Actors.Values.All(actor => encounter.Board.Occupants.GetValueOrDefault(actor.CellId, []).Contains(actor.Id)) &&
+        ImmutableArray<BattleUnitId> occupants = [.. encounter.Board.Occupants.Values.SelectMany(value => value).Order()];
+        return occupants.SequenceEqual(encounter.Units.Keys.Order()) &&
+            encounter.Units.Values.All(unit => encounter.Board.Occupants.GetValueOrDefault(unit.CellId, []).Contains(unit.Id)) &&
             encounter.Board.Definition.RequiredObjectiveIds.All(encounter.Objectives.ContainsKey);
     }
 }

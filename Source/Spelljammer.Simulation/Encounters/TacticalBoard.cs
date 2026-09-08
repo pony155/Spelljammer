@@ -13,7 +13,7 @@ public sealed record TacticalBoard(
     PersonalBoardDefinition Definition,
     ImmutableDictionary<CellId, BoardCellDefinition> Cells,
     ImmutableArray<ZoneLinkDefinition> Links,
-    ImmutableDictionary<CellId, ImmutableArray<ActorId>> Occupants)
+    ImmutableDictionary<CellId, ImmutableArray<BattleUnitId>> Occupants)
 {
     public const int MaximumCells = 256;
     public const int MaximumLinks = 1_024;
@@ -51,7 +51,7 @@ public sealed record TacticalBoard(
             definition,
             byId,
             [.. orderedLinks],
-            ImmutableDictionary<CellId, ImmutableArray<ActorId>>.Empty);
+            ImmutableDictionary<CellId, ImmutableArray<BattleUnitId>>.Empty);
         if (orderedCells.Skip(1).Any(value =>
             candidate.FindPath(orderedCells[0].CellId, value.CellId, MaximumCells).IsEmpty))
         {
@@ -61,35 +61,35 @@ public sealed record TacticalBoard(
         return new BoardValidationResult(candidate, string.Empty);
     }
 
-    public TacticalBoard Place(ActorId actorId, CellId cellId)
+    public TacticalBoard Place(BattleUnitId unitId, CellId cellId)
     {
         if (!Cells.TryGetValue(cellId, out BoardCellDefinition? cell) ||
-            Occupants.Values.SelectMany(value => value).Contains(actorId))
+            Occupants.Values.SelectMany(value => value).Contains(unitId))
         {
             throw new InvalidOperationException("Encounter placement is invalid.");
         }
 
-        ImmutableArray<ActorId> occupants = Occupants.GetValueOrDefault(cellId, []);
+        ImmutableArray<BattleUnitId> occupants = Occupants.GetValueOrDefault(cellId, []);
         if (occupants.Length >= cell.Capacity || Occupants.Values.Sum(value => value.Length) >= Definition.MaximumOccupants)
         {
             throw new InvalidOperationException("Encounter placement exceeds capacity.");
         }
 
-        return this with { Occupants = Occupants.SetItem(cellId, [.. occupants.Append(actorId).Order()]) };
+        return this with { Occupants = Occupants.SetItem(cellId, [.. occupants.Append(unitId).Order()]) };
     }
 
-    public TacticalBoard Move(ActorId actorId, CellId destination, int maximumVisited)
+    public TacticalBoard Move(BattleUnitId unitId, CellId destination, int maximumVisited)
     {
-        CellId origin = Occupants.Single(pair => pair.Value.Contains(actorId)).Key;
+        CellId origin = Occupants.Single(pair => pair.Value.Contains(unitId)).Key;
         if (FindPath(origin, destination, maximumVisited).IsEmpty)
         {
             throw new InvalidOperationException("No bounded legal path exists.");
         }
 
         TacticalBoard removed = this with {
-            Occupants = Occupants.SetItem(origin, Occupants[origin].Remove(actorId)),
+            Occupants = Occupants.SetItem(origin, Occupants[origin].Remove(unitId)),
         };
-        return removed.Place(actorId, destination);
+        return removed.Place(unitId, destination);
     }
 
     public ImmutableArray<CellId> FindPath(CellId start, CellId goal, int maximumVisited)
