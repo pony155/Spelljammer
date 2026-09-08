@@ -4,6 +4,26 @@
 
 The **Ranged Weapon System** defines all character-operated ranged weapons.
 
+## Item-system ownership
+
+`RangedWeaponDefinition` is a concrete item definition in the equipment
+hierarchy. It is not a combat-rules record linked from a separate generic
+equipment definition:
+
+```text
+ItemDefinition
+└── EquipmentDefinition (abstract)
+    └── WeaponDefinition (abstract)
+        └── RangedWeaponDefinition
+```
+
+`ItemDefinition` owns the identity and fields common to all items.
+`EquipmentDefinition` owns the equip rule and `occupiedSlotIds`.
+`WeaponDefinition` is limited to rules genuinely shared by melee and ranged
+weapons. This type owns the ranged-specific static combat data; an individual
+equipped item's durability, ammunition, energy, and heat are runtime state
+held by its item instance. It never uses an optional `rangedWeaponId` link.
+
 A ranged weapon is defined along two independent dimensions:
 
 1. **Weapon Family** — the physical form and tactical role of the weapon.
@@ -4434,12 +4454,14 @@ the repository's camel-case convention while keeping separate
 `RangedWeaponDefinition`, `AmmunitionDefinition`,
 `RangedWeaponActionDefinition`, and `RangedWeaponState` responsibilities.
 
-Weapon definitions own family, technology, handedness, governing Skill,
-base damage and armor behavior, Stamina cost, optimal and maximum
-range, weight, durability, value, optional ammunition or internal energy,
-optional heat, traits, and allowed actions. The content compiler enforces the
-family-and-technology compatibility table in section 4 and rejects weapons
-that model both replaceable ammunition and internal energy.
+`RangedWeaponDefinition : WeaponDefinition` owns family, technology,
+handedness, governing Skill, base damage and armor behavior, Stamina cost,
+optimal and maximum range, weight, durability, value, optional ammunition or
+internal energy, optional heat, traits, and allowed actions. It inherits item
+identity from `ItemDefinition` and equip slots from `EquipmentDefinition`;
+there is no `EquipmentDefinition.rangedWeaponId` link. The content compiler
+enforces the family-and-technology compatibility table in section 4 and rejects
+weapons that model both replaceable ammunition and internal energy.
 
 Ammunition definitions use integer percentages for multiplicative damage and
 Armor Damage modifiers. Armor Penetration and range modifiers are additive.
@@ -4448,14 +4470,14 @@ consumption, energy and heat adjustments, durability cost, range penalties,
 damage falloff, reload quantity, and effects. Attack and reload actions have
 different validated field requirements.
 
-`RangedWeaponSystem` validates actor ownership, content fingerprint, equipment
-linkage, action membership, target legality, range, cover, AP, Stamina,
-ammunition, energy, heat, durability, and Skill before reserving an
-attack. Each shot uses an explicit seed and sequence, including multi-shot
-actions. Damage modifiers are applied in the order specified by section 52,
-and burst results reduce Armor between resolved hits. Accepted attempts spend
-their costs even when every shot misses; rejected attempts leave all input
-state unchanged.
+`RangedWeaponSystem` validates actor ownership, content fingerprint, that the
+equipped item resolves to `RangedWeaponDefinition`, action membership, target
+legality, range, cover, AP, Stamina, ammunition, energy, heat, durability, and
+Skill before reserving an attack. Each shot uses an explicit seed and sequence,
+including multi-shot actions. Damage modifiers are applied in the order
+specified by section 52, and burst results reduce Armor between resolved hits.
+Accepted attempts spend their costs even when every shot misses; rejected
+attempts leave all input state unchanged.
 
 Reloading is a separate transactional operation. It validates ammunition
 compatibility, prevents replacement of a non-empty incompatible magazine,

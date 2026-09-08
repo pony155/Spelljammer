@@ -4,6 +4,26 @@
 
 The Melee Weapons System defines all character-operated close-combat weapons.
 
+## Item-system ownership
+
+`MeleeWeaponDefinition` is a concrete item definition in the equipment
+hierarchy. It is not a combat-rules record linked from a separate generic
+equipment definition:
+
+```text
+ItemDefinition
+└── EquipmentDefinition (abstract)
+    └── WeaponDefinition (abstract)
+        └── MeleeWeaponDefinition
+```
+
+`ItemDefinition` owns the identity and fields common to all items.
+`EquipmentDefinition` owns the equip rule and `occupiedSlotIds`.
+`WeaponDefinition` is limited to rules genuinely shared by melee and ranged
+weapons. This type owns the melee-specific static combat data; an individual
+equipped item's durability and energy are runtime state held by its item
+instance. It never uses an optional `meleeWeaponId` link.
+
 A melee weapon is defined along two independent dimensions:
 
 1. **Weapon Family** — the physical form and combat role of the weapon.
@@ -1184,22 +1204,23 @@ this document: `damageMinimum`/`damageMaximum`, `armorDamagePercentage`,
 energy behavior expressed by zero or positive capacities, `traits`, and
 `actionIds`.
 
-`MeleeWeaponDefinition` owns family, technology, handedness, governing Skill
-and Ability, damage, armor interaction, range, weight, durability, value,
-energy behavior, unpowered fallback percentages, Strength scaling, traits,
-and its allowed action IDs. `MeleeWeaponActionDefinition` separately owns AP
-cost, accuracy, stamina, damage, armor, range, energy, durability, and effect
-modifiers. `EquipmentDefinition.meleeWeaponId` links an equippable item to its
-weapon rules without making the equipment ID the rules identity.
+`MeleeWeaponDefinition : WeaponDefinition` owns family, technology,
+handedness, governing Skill and Ability, damage, armor interaction, range,
+weight, durability, value, energy behavior, unpowered fallback percentages,
+Strength scaling, traits, and its allowed action IDs. It inherits the item
+identity from `ItemDefinition` and equip slots from `EquipmentDefinition`;
+there is no `EquipmentDefinition.meleeWeaponId` link.
+`MeleeWeaponActionDefinition` separately owns AP cost, accuracy, stamina,
+damage, armor, range, energy, durability, and effect modifiers.
 
-`MeleeWeaponSystem` validates actor ownership, content fingerprint, equipment
-linkage, action membership, target legality and range, AP, Stamina, durability,
-energy, Skill, and Ability before reserving an attack. Resolution uses explicit
-seed and sequence values, integer percentage arithmetic, and returns the new
-character, turn, and weapon state. Rejection does not mutate any of those
-inputs. AP and Stamina are paid on an accepted attempt even when it misses;
-durability and energy are likewise consumed by the attempt. Effects apply only
-on a hit.
+`MeleeWeaponSystem` validates actor ownership, content fingerprint, that the
+equipped item resolves to `MeleeWeaponDefinition`, action membership, target
+legality and range, AP, Stamina, durability, energy, Skill, and Ability before
+reserving an attack. Resolution uses explicit seed and sequence values, integer
+percentage arithmetic, and returns the new character, turn, and weapon state.
+Rejection does not mutate any of those inputs. AP and Stamina are paid on an
+accepted attempt even when it misses; durability and energy are likewise
+consumed by the attempt. Effects apply only on a hit.
 
 The base pack currently demonstrates this contract with the conventional,
 one-handed Boarding Blade and Slash, Thrust, and Heavy Strike actions. The

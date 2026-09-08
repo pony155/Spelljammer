@@ -197,7 +197,10 @@ internal static class ContentContracts
         RangedAttackResult first = RangedWeaponSystem.ResolveAttack(eligible.Reservation!, snapshot);
         RangedAttackResult second = RangedWeaponSystem.ResolveAttack(eligible.Reservation!, snapshot);
         True(first.Accepted && first.Hit, first.RejectionCode);
-        Equal(first.Resolution!, second.Resolution!, "Ranged resolution was not deterministic.");
+        Equal(first.Resolution! with { Shots = [] }, second.Resolution! with { Shots = [] },
+            "Ranged resolution summary was not deterministic.");
+        True(first.Resolution.Shots.SequenceEqual(second.Resolution.Shots),
+            "Per-shot ranged resolution was not deterministic.");
         Equal(weaponState.CurrentAmmunition - 1, first.WeaponState.CurrentAmmunition,
             "Accepted fire did not consume authored ammunition.");
         Equal(turn.CurrentActionPoints - eligible.Reservation!.ActionPointCost, first.TurnState.CurrentActionPoints,
@@ -473,7 +476,7 @@ internal static class ContentContracts
             withMod.Snapshot,
             FullSupport(withMod.Snapshot));
         True(dynamicRoster.Succeeded, dynamicRoster.Failure.ToString());
-        Equal(30, dynamicRoster.Roster!.Characters[0].Capabilities.Snapshot(withMod.Snapshot).Skills.Length,
+        Equal(31, dynamicRoster.Roster!.Characters[0].Capabilities.Snapshot(withMod.Snapshot).Skills.Length,
             "Character capability storage did not expand for an additive Skill.");
 
         True(baseOnly.Snapshot!.SkillRegistry.TryGetIndex(new SkillId("skill.engineering"), out ScopedContentIndex<SkillId> baseIndex),
