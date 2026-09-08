@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "revision": 1,
+  "id": "status.charmed",
+  "nameKey": "status.charmed.name",
+  "descriptionKey": "status.charmed.description",
+  "category": "mental",
+  "tags": ["ai-influence", "control"],
+  "defaultDuration": 3,
+  "durationType": "timed",
+  "stackPolicy": "refresh",
+  "maximumStacks": 1,
+  "exclusiveGroupId": "status-group.mental-control",
+  "priority": 50,
+  "modifiers": [],
+  "restrictions": [
+    { "type": "cannot-attack", "targetRule": "status-source" }
+  ],
+  "aiRules": [
+    { "type": "treat-as-ally", "targetRule": "status-source" },
+    { "type": "prefer-target", "targetRule": "source-enemies" }
+  ],
+  "onApplyEffectIds": [],
+  "onTickEffectIds": [],
+  "onExpireEffectIds": []
+}

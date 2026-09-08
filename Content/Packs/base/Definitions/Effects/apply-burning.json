@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "revision": 1,
+  "id": "effect.status.apply-burning",
+  "nameKey": "effect.status.apply-burning.name",
+  "descriptionKey": "effect.status.apply-burning.description",
+  "type": "apply-status",
+  "amount": 0,
+  "statusId": "status.burning",
+  "duration": 3,
+  "stacks": 1,
+  "potency": 1
+}

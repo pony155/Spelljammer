@@ -10,6 +10,7 @@ using Spelljammer.Simulation.Characters;
 using Spelljammer.Simulation.Content;
 using Spelljammer.Simulation.Encounters;
 using Spelljammer.Simulation.Items;
+using Spelljammer.Simulation.Statuses;
 using MeleeWeaponDefinition = Spelljammer.Simulation.Items.MeleeWeaponDefinition;
 using RangedWeaponDefinition = Spelljammer.Simulation.Items.RangedWeaponDefinition;
 
@@ -368,6 +369,14 @@ internal static class ContentContracts
             "The base Ability and Skill fingerprint changed.");
         Equal(6, snapshot.AbilityRegistry.Count, "The base Ability roster is incomplete.");
         Equal(30, snapshot.SkillRegistry.Count, "The base Skill roster is incomplete.");
+        Equal(4, snapshot.StatusRegistry.Count, "The base Status roster is incomplete.");
+        Equal(2, snapshot.EffectRegistry.Count, "The base Effect roster is incomplete.");
+        True(snapshot.TryGetStatus(new StatusId("status.charmed"), out StatusDefinition? charmed),
+            "Charmed was not published through the Status registry.");
+        Equal(StatusStackPolicy.Refresh, charmed!.StackPolicy, "Charmed stack policy changed.");
+        True(snapshot.TryGetEffect(new EffectId("effect.status.apply-burning"), out EffectDefinition? ignite) &&
+            ignite!.StatusId == new StatusId("status.burning"),
+            "Apply Burning did not resolve its Status reference.");
         string[] expectedAbilitys =
         [
             "ability.agility", "ability.intelligence", "ability.perception",

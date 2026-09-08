@@ -11,6 +11,7 @@ using Spelljammer.Simulation.Characters;
 using Spelljammer.Simulation.Content;
 using Spelljammer.Simulation.Encounters;
 using Spelljammer.Simulation.Items;
+using Spelljammer.Simulation.Statuses;
 
 return PersistenceContracts.Run();
 
@@ -65,6 +66,14 @@ internal static class PersistenceContracts
             .SelectMany(value => value.Items.InventoryEntries)
             .Single(value => value.EntryId == ammunitionEntryId).Stack.Quantity,
             "An encounter ammunition stack did not round-trip.");
+        StatusInstanceId savedStatusId = new(Guid.Parse("99999999-9999-9999-9999-999999999999"));
+        Equal(2, loaded.Campaign.Characters.SelectMany(value => value.Statuses.Instances)
+            .Single(value => value.InstanceId == savedStatusId).RemainingDuration,
+            "A character Status did not round-trip.");
+        Equal(2, loaded.Campaign.Voyage.PersonalEncounter.Actors.Values
+            .SelectMany(value => value.Statuses.Instances)
+            .Single(value => value.InstanceId == savedStatusId).RemainingDuration,
+            "An encounter Status did not round-trip.");
     }
 
     private static void SchemaSevenEquipmentMigratesToItemInstances()
@@ -372,6 +381,13 @@ internal static class PersistenceContracts
             crew.Items, inventory.ContainerId, ammunitionEntryId, ammunition.Id, 12, content);
         True(stocked.Accepted, stocked.RejectionCode);
         crew = crew with { Items = stocked.State };
+        StatusDefinition savedStatus = content.Statuses.Single(value => value.StatusId == new StatusId("status.confused"));
+        StatusInstanceId savedStatusId = new(Guid.Parse("99999999-9999-9999-9999-999999999999"));
+        crew = crew with
+        {
+            Statuses = new StatusState([new StatusInstance(
+                savedStatusId, savedStatus.StatusId, savedStatus.Revision, crew.Id.Value, crew.Id.Value, 2, 1, 1)]),
+        };
         ImmutableArray<CharacterState> campaignCharacters =
             [.. activeRoster.Members.Select(value => value.Id == crew.Id ? crew : value)];
         True(content.TryGetCharacterResourceProfile(new CharacterResourceProfileId("character-resources.standard"),
@@ -383,7 +399,11 @@ internal static class PersistenceContracts
             CharacterTurnState.Create(resourceProfile!.TurnRules) with { CurrentTurnMeter = 50, CurrentActionPoints = 2 },
             crew.CharacterResources.WithCurrentValue(CharacterResourceIds.Health, 7), true, false, false,
             crew.Items,
-            [new InjuryState(new ContentId("injury.ruin.arc-burn"), InjurySeverity.Serious, true)]);
+            [new InjuryState(new ContentId("injury.ruin.arc-burn"), InjurySeverity.Serious, true)])
+        {
+            Statuses = new StatusState([new StatusInstance(
+                savedStatusId, savedStatus.StatusId, savedStatus.Revision, actorId.Value, actorId.Value, 2, 1, 1)]),
+        };
         PersonalEncounterState encounter = new(
             encounterDefinition.EncounterId,
             board.Board!.Place(actorId, cellId),

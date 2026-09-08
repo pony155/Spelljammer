@@ -5,6 +5,7 @@ using Spelljammer.Simulation.Characters;
 using Spelljammer.Simulation.Content;
 using Spelljammer.Simulation.Encounters;
 using Spelljammer.Simulation.Items;
+using Spelljammer.Simulation.Statuses;
 
 namespace Spelljammer.Persistence;
 
@@ -206,7 +207,8 @@ public static class CampaignValidator
                          .Concat(capabilities.Feats.Select(value => value.Value))
                          .Concat(character.TrainingProgress.Keys.Select(value => value.Value))
                          .Concat(character.Items.ItemInstances.Select(value => value.DefinitionId))
-                         .Concat(character.Items.InventoryEntries.Select(value => value.Stack.DefinitionId)))
+                         .Concat(character.Items.InventoryEntries.Select(value => value.Stack.DefinitionId))
+                         .Concat(character.Statuses.Instances.Select(value => value.DefinitionId.Value)))
             {
                 Add(id);
             }
@@ -233,7 +235,9 @@ public static class CampaignValidator
                          .Concat(encounter.Board.Links.Select(value => value.LinkId.Value))
                          .Concat(encounter.Actors.Values.SelectMany(actor => actor.Items.ItemInstances.Select(item => item.DefinitionId)))
                          .Concat(encounter.Actors.Values.SelectMany(actor =>
-                             actor.Items.InventoryEntries.Select(entry => entry.Stack.DefinitionId))))
+                             actor.Items.InventoryEntries.Select(entry => entry.Stack.DefinitionId)))
+                         .Concat(encounter.Actors.Values.SelectMany(actor =>
+                             actor.Statuses.Instances.Select(status => status.DefinitionId.Value))))
             {
                 Add(id);
             }
@@ -276,6 +280,16 @@ public static class CampaignValidator
                 actor.CharacterResources.Validate(resourceProfile);
                 actor.Turn.Validate(resourceProfile.TurnRules);
                 if (!ItemSystem.Create(actor.Items, content).Accepted)
+                {
+                    return false;
+                }
+
+                StatusResult statuses = StatusSystem.Create(
+                    actor.Statuses,
+                    content,
+                    new StatusSystemLimits(PersonalEncounterState.MaximumActiveEffects, 1_000_000,
+                        PersonalEncounterState.MaximumActiveEffects));
+                if (!statuses.Accepted || actor.Statuses.Instances.Any(value => value.TargetId != actor.Id.Value))
                 {
                     return false;
                 }

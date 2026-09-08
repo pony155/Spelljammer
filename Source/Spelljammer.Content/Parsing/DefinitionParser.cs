@@ -67,6 +67,12 @@ internal static class DefinitionParser
                 ["kind", "actionPointCost", "staminaCostModifier", "hitModifier", "damagePercentage",
                  "ammunitionCost", "shotCount", "energyCostModifier", "heatModifier", "durabilityCost",
                  "rangePenaltyPerUnit", "damageFalloffPerUnitPercentage", "reloadAmount", "effectIds"], []),
+            [DefinitionKind.Effect] = new(
+                ["type", "amount"], ["statusId", "duration", "stacks", "potency"]),
+            [DefinitionKind.Status] = new(
+                ["category", "tags", "defaultDuration", "durationType", "stackPolicy", "maximumStacks", "priority",
+                 "modifiers", "restrictions", "aiRules", "onApplyEffectIds", "onTickEffectIds", "onExpireEffectIds"],
+                ["exclusiveGroupId"]),
             [DefinitionKind.BoardCell] = new(
                 ["zoneId", "q", "r", "capacity", "cover", "visibility", "atmosphereId", "gravityId", "hazardTags"], []),
             [DefinitionKind.ZoneLink] = new(["fromCellId", "toCellId", "accessId", "oneWay", "allowsRetreat"], []),
@@ -102,6 +108,8 @@ internal static class DefinitionParser
             ["RangedWeapons"] = DefinitionKind.RangedWeapon,
             ["Ammunition"] = DefinitionKind.Ammunition,
             ["RangedWeaponActions"] = DefinitionKind.RangedWeaponAction,
+            ["Effects"] = DefinitionKind.Effect,
+            ["Statuses"] = DefinitionKind.Status,
             ["BoardCells"] = DefinitionKind.BoardCell,
             ["ZoneLinks"] = DefinitionKind.ZoneLink,
             ["PersonalBoards"] = DefinitionKind.PersonalBoard,
@@ -166,6 +174,9 @@ internal static class DefinitionParser
         Dictionary<string, ImmutableArray<string>> arrays = new(StringComparer.Ordinal);
         Dictionary<string, ImmutableArray<int>> integerArrays = new(StringComparer.Ordinal);
         ImmutableArray<LevelProgressionEntry> levelProgressionEntries = [];
+        ImmutableArray<StatusModifierSourceDto> statusModifiers = [];
+        ImmutableArray<StatusRestrictionSourceDto> statusRestrictions = [];
+        ImmutableArray<StatusAiRuleSourceDto> statusAiRules = [];
         foreach (string field in kindFields)
         {
             if (!root.TryGetProperty(field, out JsonElement value))
@@ -174,7 +185,28 @@ internal static class DefinitionParser
                 continue;
             }
 
-            if (kind == DefinitionKind.LevelProgressionTable && field == "levels")
+            if (kind == DefinitionKind.Status && field == "modifiers")
+            {
+                if (!TryParseStatusModifiers(value, packId, relativePath, idText, diagnostics, out statusModifiers))
+                {
+                    return null;
+                }
+            }
+            else if (kind == DefinitionKind.Status && field == "restrictions")
+            {
+                if (!TryParseStatusRestrictions(value, packId, relativePath, idText, diagnostics, out statusRestrictions))
+                {
+                    return null;
+                }
+            }
+            else if (kind == DefinitionKind.Status && field == "aiRules")
+            {
+                if (!TryParseStatusAiRules(value, packId, relativePath, idText, diagnostics, out statusAiRules))
+                {
+                    return null;
+                }
+            }
+            else if (kind == DefinitionKind.LevelProgressionTable && field == "levels")
             {
                 if (!TryParseLevelProgressionEntries(value, packId, relativePath, idText, diagnostics, out levelProgressionEntries))
                 {
@@ -234,7 +266,7 @@ internal static class DefinitionParser
         foreach ((string field, string value) in strings)
         {
             bool valid = field is "activation" or "activeKind" or "family" or "technology" or "hands" or
-                "ammunitionType" or "kind"
+                "ammunitionType" or "kind" or "type" or "category" or "durationType" or "stackPolicy"
                 ? SourceValidation.IsIdSegment(value)
                 : ContentId.IsCanonical(value);
             if (!valid)
@@ -284,8 +316,158 @@ internal static class DefinitionParser
                 new ContentId(strings["progressionCurveId"]),
                 [.. arrays["actionTags"].Select(value => new ContentId(value))])
             : null;
+        StatusSourceDto? status = kind == DefinitionKind.Status
+            ? new StatusSourceDto(statusModifiers, statusRestrictions, statusAiRules)
+            : null;
         return new SourceDefinition(kind, id, 1, revision, nameKey, descriptionKey, packId, relativePath,
-            integers, strings, arrays, integerArrays, ability, skill, levelProgressionEntries);
+            integers, strings, arrays, integerArrays, ability, skill, status, levelProgressionEntries);
+    }
+
+    private static bool TryParseStatusModifiers(
+        JsonElement value,
+        string packId,
+        string relativePath,
+        string definitionId,
+        DiagnosticSink diagnostics,
+        out ImmutableArray<StatusModifierSourceDto> modifiers)
+    {
+        modifiers = [];
+        if (value.ValueKind != JsonValueKind.Array)
+        {
+            diagnostics.Add(ContentDiagnosticCodes.JsonInvalid, packId, relativePath, definitionId, "/modifiers");
+            return false;
+        }
+
+        ImmutableArray<StatusModifierSourceDto>.Builder builder = ImmutableArray.CreateBuilder<StatusModifierSourceDto>();
+        int index = 0;
+        foreach (JsonElement item in value.EnumerateArray())
+        {
+            string[] fields = ["type", "amount"];
+            if (item.ValueKind != JsonValueKind.Object ||
+                !SourceValidation.ValidateProperties(item, new HashSet<string>(fields), fields, diagnostics, packId, relativePath) ||
+                !SourceValidation.TryString(item, "type", out string type) || !SourceValidation.IsIdSegment(type) ||
+                item.GetProperty("amount").ValueKind != JsonValueKind.Number ||
+                !item.GetProperty("amount").TryGetInt32(out int amount))
+            {
+                diagnostics.Add(ContentDiagnosticCodes.JsonInvalid, packId, relativePath, definitionId, $"/modifiers/{index}");
+                return false;
+            }
+
+            builder.Add(new StatusModifierSourceDto(type, amount));
+            index++;
+        }
+
+        modifiers = builder.ToImmutable();
+        return true;
+    }
+
+    private static bool TryParseStatusRestrictions(
+        JsonElement value,
+        string packId,
+        string relativePath,
+        string definitionId,
+        DiagnosticSink diagnostics,
+        out ImmutableArray<StatusRestrictionSourceDto> restrictions)
+    {
+        restrictions = [];
+        if (value.ValueKind != JsonValueKind.Array)
+        {
+            diagnostics.Add(ContentDiagnosticCodes.JsonInvalid, packId, relativePath, definitionId, "/restrictions");
+            return false;
+        }
+
+        ImmutableArray<StatusRestrictionSourceDto>.Builder builder = ImmutableArray.CreateBuilder<StatusRestrictionSourceDto>();
+        int index = 0;
+        foreach (JsonElement item in value.EnumerateArray())
+        {
+            HashSet<string> allowed = new(["type", "targetRule", "actionTag"], StringComparer.Ordinal);
+            string[] required = ["type"];
+            if (item.ValueKind != JsonValueKind.Object ||
+                !SourceValidation.ValidateProperties(item, allowed, required, diagnostics, packId, relativePath) ||
+                !SourceValidation.TryString(item, "type", out string type) || !SourceValidation.IsIdSegment(type) ||
+                !TryOptionalIdSegment(item, "targetRule", out string? targetRule) ||
+                !TryOptionalContentId(item, "actionTag", out string? actionTag))
+            {
+                diagnostics.Add(ContentDiagnosticCodes.JsonInvalid, packId, relativePath, definitionId, $"/restrictions/{index}");
+                return false;
+            }
+
+            builder.Add(new StatusRestrictionSourceDto(type, targetRule, actionTag));
+            index++;
+        }
+
+        restrictions = builder.ToImmutable();
+        return true;
+    }
+
+    private static bool TryParseStatusAiRules(
+        JsonElement value,
+        string packId,
+        string relativePath,
+        string definitionId,
+        DiagnosticSink diagnostics,
+        out ImmutableArray<StatusAiRuleSourceDto> rules)
+    {
+        rules = [];
+        if (value.ValueKind != JsonValueKind.Array)
+        {
+            diagnostics.Add(ContentDiagnosticCodes.JsonInvalid, packId, relativePath, definitionId, "/aiRules");
+            return false;
+        }
+
+        ImmutableArray<StatusAiRuleSourceDto>.Builder builder = ImmutableArray.CreateBuilder<StatusAiRuleSourceDto>();
+        int index = 0;
+        foreach (JsonElement item in value.EnumerateArray())
+        {
+            HashSet<string> allowed = new(["type", "targetRule", "actionTag", "amount"], StringComparer.Ordinal);
+            string[] required = ["type"];
+            if (item.ValueKind != JsonValueKind.Object ||
+                !SourceValidation.ValidateProperties(item, allowed, required, diagnostics, packId, relativePath) ||
+                !SourceValidation.TryString(item, "type", out string type) || !SourceValidation.IsIdSegment(type) ||
+                !TryOptionalIdSegment(item, "targetRule", out string? targetRule) ||
+                !TryOptionalContentId(item, "actionTag", out string? actionTag) ||
+                !TryOptionalInt32(item, "amount", out int amount))
+            {
+                diagnostics.Add(ContentDiagnosticCodes.JsonInvalid, packId, relativePath, definitionId, $"/aiRules/{index}");
+                return false;
+            }
+
+            builder.Add(new StatusAiRuleSourceDto(type, targetRule, actionTag, amount));
+            index++;
+        }
+
+        rules = builder.ToImmutable();
+        return true;
+    }
+
+    private static bool TryOptionalIdSegment(JsonElement item, string property, out string? value)
+    {
+        value = null;
+        if (!item.TryGetProperty(property, out JsonElement element))
+        {
+            return true;
+        }
+
+        return element.ValueKind == JsonValueKind.String &&
+            SourceValidation.IsIdSegment(value = element.GetString()!);
+    }
+
+    private static bool TryOptionalContentId(JsonElement item, string property, out string? value)
+    {
+        value = null;
+        if (!item.TryGetProperty(property, out JsonElement element))
+        {
+            return true;
+        }
+
+        return element.ValueKind == JsonValueKind.String && ContentId.IsCanonical(value = element.GetString()!);
+    }
+
+    private static bool TryOptionalInt32(JsonElement item, string property, out int value)
+    {
+        value = 0;
+        return !item.TryGetProperty(property, out JsonElement element) ||
+            element.ValueKind == JsonValueKind.Number && element.TryGetInt32(out value);
     }
 
     private static bool TryParseLevelProgressionEntries(

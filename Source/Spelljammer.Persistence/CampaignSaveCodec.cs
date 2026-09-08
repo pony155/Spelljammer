@@ -10,6 +10,7 @@ using Spelljammer.Simulation.Characters;
 using Spelljammer.Simulation.Content;
 using Spelljammer.Simulation.Encounters;
 using Spelljammer.Simulation.Items;
+using Spelljammer.Simulation.Statuses;
 
 namespace Spelljammer.Persistence;
 
@@ -523,6 +524,7 @@ public static class CampaignSaveCodec
                 EndTick = value.EndTick,
                 ScopeId = value.ScopeId.ToString(),
             })],
+            Statuses = [.. character.Statuses.Instances.OrderBy(value => value.InstanceId).Select(ToDto)],
             Evidence = [.. character.Evidence.Select(value => new CapabilityEvidenceDto
             {
                 EvidenceId = value.EvidenceId.ToString(),
@@ -691,6 +693,7 @@ public static class CampaignSaveCodec
                 Severity = (int)injury.Severity,
                 Stabilized = injury.Stabilized,
             })],
+            Statuses = [.. value.Statuses.Instances.OrderBy(status => status.InstanceId).Select(ToDto)],
         })],
         Objectives = [.. encounter.Objectives.OrderBy(value => value.Key).Select(value =>
             new ObjectiveDto { Id = value.Key.ToString(), State = (int)value.Value })],
@@ -845,6 +848,7 @@ public static class CampaignSaveCodec
         RequireCount(value.Capabilities.Abilities.Length, CampaignSaveLimits.MaximumCollectionEntries);
         RequireCount(value.Capabilities.Skills.Length, CampaignSaveLimits.MaximumCollectionEntries);
         RequireCount(value.Capabilities.GrantSources.Length, CharacterCapabilities.MaximumSetEntries);
+        RequireCount(value.Statuses.Length, CharacterState.MaximumActiveEffects);
         ImmutableArray<AbilityValueSnapshot> abilities =
             [.. value.Capabilities.Abilities.Select(item => new AbilityValueSnapshot(new AbilityId(item.Id), item.Value))];
         ImmutableArray<SkillValueSnapshot> skills =
@@ -888,6 +892,7 @@ public static class CampaignSaveCodec
             ActiveEffects = [.. value.ActiveEffects.Select(effect => new ActiveCapabilityEffect(
                 new ContentId(effect.EffectId), new ContentId(effect.SourceId), new CharacterId(effect.ActorId),
                 new CharacterId(effect.TargetId), effect.StartTick, effect.EndTick, new ContentId(effect.ScopeId)))],
+            Statuses = new StatusState([.. value.Statuses.Select(FromDto)]),
             Evidence = [.. value.Evidence.Select(evidence => new ObservableCapabilityEvidence(
                 new ContentId(evidence.EvidenceId), new ContentId(evidence.SourceId), new CharacterId(evidence.ActorId),
                 new CharacterId(evidence.TargetId), evidence.Tick, evidence.Succeeded))],
@@ -924,6 +929,7 @@ public static class CampaignSaveCodec
         foreach (PersonalActorDto actorDto in value.Actors)
         {
             RequireCount(actorDto.CharacterResources.Length, CampaignSaveLimits.MaximumCollectionEntries);
+            RequireCount(actorDto.Statuses.Length, PersonalEncounterState.MaximumActiveEffects);
             CellId cellId = new(actorDto.CellId);
             ActorId actorId = new(actorDto.Id);
             ItemSystemState items = saveSchemaVersion < CampaignSaveVersions.ItemInstanceSaveSchema
@@ -939,6 +945,7 @@ public static class CampaignSaveCodec
             {
                 ReservedReactionPoints = actorDto.ReservedReactionPoints,
                 ReactionExpiresTick = actorDto.ReactionExpiresTick,
+                Statuses = new StatusState([.. actorDto.Statuses.Select(FromDto)]),
             };
             board = board.Place(actorId, cellId);
             actors.Add(actorId, actor);
@@ -959,6 +966,28 @@ public static class CampaignSaveCodec
         };
         return encounter;
     }
+
+    private static StatusInstanceDto ToDto(StatusInstance value) => new()
+    {
+        InstanceId = value.InstanceId.ToString(),
+        DefinitionId = value.DefinitionId.ToString(),
+        DefinitionRevision = value.DefinitionRevision,
+        SourceId = value.SourceId.ToString(),
+        TargetId = value.TargetId.ToString(),
+        RemainingDuration = value.RemainingDuration,
+        Stacks = value.Stacks,
+        Potency = value.Potency,
+    };
+
+    private static StatusInstance FromDto(StatusInstanceDto value) => new(
+        new StatusInstanceId(ParseGuid(value.InstanceId)),
+        new StatusId(value.DefinitionId),
+        value.DefinitionRevision,
+        new ContentId(value.SourceId),
+        new ContentId(value.TargetId),
+        value.RemainingDuration,
+        value.Stacks,
+        value.Potency);
 
     private static ItemSystemState FromDto(ItemSystemDto value)
     {

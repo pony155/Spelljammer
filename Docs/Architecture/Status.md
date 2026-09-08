@@ -1,6 +1,6 @@
 # Status and Effect System
 
-## 1. Overview
+# 1. Overview
 
 This document defines temporary conditions, persistent modifiers, and one-time gameplay results.
 
@@ -110,7 +110,93 @@ RemoveStatus: Poisoned
 
 ---
 
-# 4. Status Definition
+# 4. Damage Resolution Through Effects
+
+The final result of weapon damage is expressed as one or more Effects. The damage formula itself remains in the Combat System rather than inside the Effect.
+
+```text
+Weapon + WeaponAction
+        ↓
+Combat Calculation
+        ↓
+Damage Effects
+        ↓
+Effect Resolver
+        ↓
+Target State
+```
+
+Weapons and Weapon Actions provide damage parameters. The Combat System calculates the final values using the attacker, action, target, armor, defenses, and relevant modifiers. The resulting Effects represent changes that have actually occurred.
+
+```text
+DamageHealth
+{
+    damage_type: Physical
+    source: Attacker
+    target: Defender
+    amount: 25
+}
+```
+
+Armor Damage and Health Damage are separate results and must be represented by separate Effects:
+
+```text
+DamageArmor
+{
+    source: Attacker
+    target: Defender
+    amount: 40
+}
+
+DamageHealth
+{
+    damage_type: Physical
+    source: Attacker
+    target: Defender
+    amount: 25
+}
+```
+
+An attack may therefore produce several atomic Effects:
+
+```text
+DamageArmor: 40
+DamageHealth: 25 Physical
+ApplyStatus: Bleeding
+```
+
+These are separate Effects because they represent separate gameplay results.
+
+Weapon and Action fields such as `armor_damage` and `armor_penetration` are calculation inputs. They are not themselves final target changes.
+
+Damage types may include:
+
+```text
+Physical
+Thermal
+Shock
+Arcane
+```
+
+The recommended responsibility split is:
+
+```text
+Weapon / WeaponAction
+    Provide damage parameters.
+
+Combat System
+    Calculate hit results, mitigation, penetration, and final amounts.
+
+Effect
+    Express the resolved result.
+
+Status
+    Preserve ongoing consequences such as Burning or Bleeding.
+```
+
+---
+
+# 5. Status Definition
 
 StatusDefinition is static data describing the rules of a Status. It does not store the current duration of a particular target.
 
@@ -233,7 +319,7 @@ Each entry is a separate Effect. Lifecycle rules must not hide unexplained compo
 
 ---
 
-# 5. Status Instance
+# 6. Status Instance
 
 StatusInstance represents one active Status on one target.
 
@@ -269,7 +355,7 @@ source_id is important for Statuses such as Charm, which may distinguish the sou
 
 ---
 
-# 6. Duration Rules
+# 7. Duration Rules
 
 Timed Statuses use turn-based durations.
 
@@ -295,7 +381,7 @@ This makes Status expiration predictable to the player.
 
 ---
 
-# 7. Stacking Rules
+# 8. Stacking Rules
 
 Every Status must define a stack_policy.
 
@@ -386,7 +472,7 @@ The new application is ignored if the target already has the Status.
 
 ---
 
-# 8. Status Replacement and Exclusive Groups
+# 9. Status Replacement and Exclusive Groups
 
 Statuses that cannot normally coexist should share an exclusive_group.
 
@@ -445,7 +531,7 @@ If active Statuses produce contradictory rules, the higher-priority rule wins. T
 
 ---
 
-# 9. AI-Affecting Statuses
+# 10. AI-Affecting Statuses
 
 AI-affecting Statuses modify the AI's inputs instead of directly taking over the AI controller.
 
@@ -575,7 +661,7 @@ Rage should normally influence action scoring rather than make retreat mathemati
 
 ---
 
-# 10. Categories and Tags
+# 11. Categories and Tags
 
 Categories are used for organization, resistance rules, UI, and conflict resolution.
 
@@ -608,7 +694,7 @@ Category and tags are metadata. They must not replace the actual rules of the St
 
 ---
 
-# 11. Initial Design Rules
+# 12. Initial Design Rules
 
 The first implementation should follow these defaults:
 
@@ -634,3 +720,30 @@ One Effect performs one gameplay result.
 
 This structure keeps Status definitions reusable across combat, abilities, weapons, magic, traits, and environmental systems without coupling them to any particular item type.
 
+---
+
+# 13. Implementation Status
+
+The first headless implementation is available under
+`Source/Spelljammer.Simulation/Statuses`. It separates immutable
+`EffectDefinition` and `StatusDefinition` content from `EffectRequest` and
+`StatusInstance` runtime state. Status application, removal, timed turn
+advancement, refresh, extend, intensity stacking, stronger-wins replacement,
+independent instances, reject policy, exclusive-group priority, modifiers,
+restrictions, and bounded lifecycle Effect queues publish immutable state
+atomically.
+
+The content compiler accepts camel-case JSON under `Definitions/Effects` and
+`Definitions/Statuses`, validates cross-references, and includes both kinds in
+the canonical content fingerprint. The base pack currently defines Charmed,
+Confused, Raging, Burning, Apply Burning, and Burning Damage. Character and
+personal-encounter actor state can persist Status instances through campaign
+save schema 10. Melee, ranged, reload, and general character actions consult
+status action restrictions; melee and ranged accuracy include active Status
+modifiers.
+
+The current `ActiveCapabilityEffect` and encounter-level `ActiveEffectState`
+contracts remain separate compatibility models. Applying resolved attack
+damage directly to encounter targets, status-driven defense and movement,
+AI scoring, conditional expiration, treatment, and migration of those legacy
+effect records remain planned.

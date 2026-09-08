@@ -23,6 +23,8 @@ internal enum DefinitionKind : byte
     RangedWeapon,
     Ammunition,
     RangedWeaponAction,
+    Effect,
+    Status,
     BoardCell,
     ZoneLink,
     PersonalBoard,
@@ -47,6 +49,7 @@ internal sealed record SourceDefinition(
     IReadOnlyDictionary<string, ImmutableArray<int>> IntegerArrays,
     AbilitySourceDto? Ability,
     SkillSourceDto? Skill,
+    StatusSourceDto? Status,
     ImmutableArray<LevelProgressionEntry> LevelProgressionEntries);
 
 internal sealed record AbilitySourceDto(
@@ -60,6 +63,17 @@ internal sealed record SkillSourceDto(
     int Maximum,
     ContentId ProgressionCurveId,
     ImmutableArray<ContentId> ActionTags);
+
+internal sealed record StatusModifierSourceDto(string Type, int Amount);
+
+internal sealed record StatusRestrictionSourceDto(string Type, string? TargetRule, string? ActionTag);
+
+internal sealed record StatusAiRuleSourceDto(string Type, string? TargetRule, string? ActionTag, int Amount);
+
+internal sealed record StatusSourceDto(
+    ImmutableArray<StatusModifierSourceDto> Modifiers,
+    ImmutableArray<StatusRestrictionSourceDto> Restrictions,
+    ImmutableArray<StatusAiRuleSourceDto> AiRules);
 
 internal sealed record CandidatePack(
     Sources.IContentPackSource Source,

@@ -612,6 +612,17 @@ public readonly record struct EffectId : IComparable<EffectId>
     public override string ToString() => Value.ToString();
 }
 
+/// <summary>A strongly-typed identifier for an authored ongoing status.</summary>
+public readonly record struct StatusId : IComparable<StatusId>
+{
+    public StatusId(ContentId value) => Value = TypedContentId.RequirePrefix(value, "status.");
+    public StatusId(string value) : this(new ContentId(value)) { }
+    public ContentId Value { get; }
+    public bool IsValid => Value.IsValid;
+    public int CompareTo(StatusId other) => Value.CompareTo(other.Value);
+    public override string ToString() => Value.ToString();
+}
+
 /// <summary>
 /// A SHA-256 hash fingerprint used to validate content integrity and detect modifications.
 /// </summary>

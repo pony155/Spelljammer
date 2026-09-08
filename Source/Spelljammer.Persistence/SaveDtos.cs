@@ -123,6 +123,7 @@ internal sealed class CharacterDto
     public ValueDto[] TrainingProgress { get; set; } = [];
     public bool CanAct { get; set; }
     public CapabilityEffectDto[] ActiveEffects { get; set; } = [];
+    public StatusInstanceDto[] Statuses { get; set; } = [];
     public CapabilityEvidenceDto[] Evidence { get; set; } = [];
 }
 
@@ -249,6 +250,19 @@ internal sealed class PersonalActorDto
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public EquipmentStateDto[]? Equipment { get; set; }
     public InjuryDto[] Injuries { get; set; } = [];
+    public StatusInstanceDto[] Statuses { get; set; } = [];
+}
+
+internal sealed class StatusInstanceDto
+{
+    public string InstanceId { get; set; } = string.Empty;
+    public string DefinitionId { get; set; } = string.Empty;
+    public int DefinitionRevision { get; set; }
+    public string SourceId { get; set; } = string.Empty;
+    public string TargetId { get; set; } = string.Empty;
+    public int RemainingDuration { get; set; }
+    public int Stacks { get; set; }
+    public int Potency { get; set; }
 }
 
 internal sealed class EquipmentStateDto

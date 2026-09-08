@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "revision": 1,
+  "id": "effect.status.burning-damage",
+  "nameKey": "effect.status.burning-damage.name",
+  "descriptionKey": "effect.status.burning-damage.description",
+  "type": "thermal-damage",
+  "amount": 5
+}

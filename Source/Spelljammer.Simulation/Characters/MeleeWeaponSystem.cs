@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using Spelljammer.Simulation.Content;
 using Spelljammer.Simulation.Items;
+using Spelljammer.Simulation.Statuses;
 
 namespace Spelljammer.Simulation.Characters;
 
@@ -109,7 +110,7 @@ public static class MeleeWeaponSystem
             return Rejected(ActionRejectionCodes.ActorMissing, request.ActorId.Value);
         }
 
-        if (!actor.CanAct)
+        if (!actor.CanAct || !StatusQueries.CanAct(actor.Statuses, catalog))
         {
             return Rejected(ActionRejectionCodes.ActorCannotAct, actor.Id.Value);
         }
@@ -162,6 +163,11 @@ public static class MeleeWeaponSystem
             request.Target.Evasion < 0 || request.Target.Armor < 0)
         {
             return Rejected(ActionRejectionCodes.TargetIllegal, request.Target.Id.Value);
+        }
+
+        if (!StatusQueries.CanAttack(actor.Statuses, request.Target.Id.Value, catalog))
+        {
+            return Rejected(ActionRejectionCodes.ActorCannotAct, actor.Id.Value);
         }
 
         int effectiveRange = Math.Max(0, AddBounded(weapon.Range, action!.RangeModifier));
@@ -218,7 +224,10 @@ public static class MeleeWeaponSystem
         }
 
         int attackRoll = DeterministicRoll(reservation.Request.RandomSeed, reservation.Request.RandomSequence);
-        int totalAccuracy = AddBounded(attackRoll, AddBounded(reservation.SkillValue, reservation.Action.HitModifier));
+        int statusAccuracy = StatusQueries.GetModifier(
+            reservation.OriginalActor.Statuses, StatusModifierType.ModifyAccuracy, catalog);
+        int totalAccuracy = AddBounded(
+            attackRoll, AddBounded(reservation.SkillValue, AddBounded(reservation.Action.HitModifier, statusAccuracy)));
         bool hit = totalAccuracy >= reservation.Request.Target!.Evasion;
         int rolledDamage = 0;
         int healthDamage = 0;

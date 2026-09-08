@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using Spelljammer.Simulation.Content;
 using Spelljammer.Simulation.Items;
+using Spelljammer.Simulation.Statuses;
 
 namespace Spelljammer.Simulation.Characters;
 
@@ -336,6 +337,7 @@ public sealed record CharacterState(
     public const int MaximumEvidenceEntries = 256;
 
     public ImmutableArray<ActiveCapabilityEffect> ActiveEffects { get; init; } = [];
+    public StatusState Statuses { get; init; } = StatusState.Empty;
     public ImmutableArray<ObservableCapabilityEvidence> Evidence { get; init; } = [];
     public CharacterResourceSet CharacterResources { get; init; } = CharacterResourceSet.Empty;
 
@@ -405,6 +407,15 @@ public sealed record CharacterState(
             {
                 throw new InvalidOperationException("Character active effect state is invalid.");
             }
+        }
+
+        StatusResult statusValidation = StatusSystem.Create(
+            Statuses,
+            catalog,
+            new StatusSystemLimits(MaximumActiveEffects, 1_000_000, MaximumActiveEffects));
+        if (!statusValidation.Accepted || Statuses.Instances.Any(value => value.TargetId != Id.Value))
+        {
+            throw new InvalidOperationException("Character status state is invalid.");
         }
 
         foreach (ObservableCapabilityEvidence evidence in Evidence)

@@ -4497,6 +4497,6 @@ families, technologies, ammunition payloads, burst fire, area attacks, and
 environmental interactions are schema-supported concepts that still require
 authored definitions and effect-system integration.
 
-Encounter actors and campaign save schema 9 persist the item instance and its
+Encounter actors and campaign save schema 10 persist the item instance and its
 `RangedWeaponState`. Applying returned Health and Armor damage to encounter
 targets, AI action selection, line-of-fire, and terrain effects remain planned.

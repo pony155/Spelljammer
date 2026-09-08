@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using Spelljammer.Simulation.Content;
 using Spelljammer.Simulation.Items;
+using Spelljammer.Simulation.Statuses;
 
 namespace Spelljammer.Simulation.Characters;
 
@@ -159,7 +160,7 @@ public static class RangedWeaponSystem
             return Rejected(ActionRejectionCodes.ActorMissing, request.ActorId.Value);
         }
 
-        if (!actor.CanAct)
+        if (!actor.CanAct || !StatusQueries.CanAct(actor.Statuses, catalog))
         {
             return Rejected(ActionRejectionCodes.ActorCannotAct, actor.Id.Value);
         }
@@ -191,6 +192,11 @@ public static class RangedWeaponSystem
             request.Target.Evasion < 0 || request.Target.Armor < 0 || request.Target.CoverPenalty < 0)
         {
             return Rejected(ActionRejectionCodes.TargetIllegal, request.Target.Id.Value);
+        }
+
+        if (!StatusQueries.CanAttack(actor.Statuses, request.Target.Id.Value, catalog))
+        {
+            return Rejected(ActionRejectionCodes.ActorCannotAct, actor.Id.Value);
         }
 
         AmmunitionDefinition? ammunition = null;
@@ -302,6 +308,8 @@ public static class RangedWeaponSystem
             int totalAccuracy = AddBounded(roll, reservation.SkillValue);
             totalAccuracy = AddBounded(totalAccuracy, reservation.Action.HitModifier);
             totalAccuracy = AddBounded(totalAccuracy, reservation.Request.SituationalHitModifier);
+            totalAccuracy = AddBounded(totalAccuracy, StatusQueries.GetModifier(
+                reservation.OriginalActor.Statuses, StatusModifierType.ModifyAccuracy, catalog));
             totalAccuracy = AddBounded(totalAccuracy, -reservation.RangePenalty);
             bool hit = totalAccuracy >= targetDefense;
             int rolledDamage = 0;
@@ -395,7 +403,7 @@ public static class RangedWeaponSystem
             return Reject(ActionRejectionCodes.ActorMissing);
         }
 
-        if (!actor.CanAct)
+        if (!actor.CanAct || !StatusQueries.CanAct(actor.Statuses, catalog))
         {
             return Reject(ActionRejectionCodes.ActorCannotAct);
         }

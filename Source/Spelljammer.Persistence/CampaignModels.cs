@@ -23,7 +23,7 @@ public static class CampaignSaveVersions
     /// <summary>
     /// Version of the save schema. Version 7 persists encounter resources and the data-driven turn economy.
     /// </summary>
-    public const ushort SaveSchema = 9;
+    public const ushort SaveSchema = 10;
     public const ushort OldestSupportedSaveSchema = 7;
     public const ushort ItemInstanceSaveSchema = 8;
 

@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "revision": 1,
+  "id": "status.burning",
+  "nameKey": "status.burning.name",
+  "descriptionKey": "status.burning.description",
+  "category": "damage-over-time",
+  "tags": ["damage-over-time", "negative", "removable"],
+  "defaultDuration": 3,
+  "durationType": "timed",
+  "stackPolicy": "intensity-stack",
+  "maximumStacks": 3,
+  "priority": 0,
+  "modifiers": [],
+  "restrictions": [],
+  "aiRules": [],
+  "onApplyEffectIds": [],
+  "onTickEffectIds": ["effect.status.burning-damage"],
+  "onExpireEffectIds": []
+}

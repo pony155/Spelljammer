@@ -3,6 +3,7 @@ using System.Collections.Immutable;
 using Spelljammer.Content.Manifests;
 using Spelljammer.Simulation.Characters;
 using Spelljammer.Simulation.Content;
+using Spelljammer.Simulation.Statuses;
 using MeleeWeaponDefinition = Spelljammer.Simulation.Items.MeleeWeaponDefinition;
 using RangedWeaponDefinition = Spelljammer.Simulation.Items.RangedWeaponDefinition;
 using EquipmentDefinition = Spelljammer.Simulation.Items.EquipmentDefinition;
@@ -54,6 +55,8 @@ public sealed class GameContentSnapshot : ICharacterContentCatalog
         ImmutableArray<RangedWeaponDefinition> rangedWeapons,
         ImmutableArray<AmmunitionDefinition> ammunition,
         ImmutableArray<RangedWeaponActionDefinition> rangedWeaponActions,
+        ImmutableArray<EffectDefinition> effects,
+        ImmutableArray<StatusDefinition> statuses,
         ImmutableArray<BoardCellDefinition> boardCells,
         ImmutableArray<ZoneLinkDefinition> zoneLinks,
         ImmutableArray<PersonalBoardDefinition> personalBoards,
@@ -86,6 +89,8 @@ public sealed class GameContentSnapshot : ICharacterContentCatalog
             .OrderBy(definition => definition.Id).ToImmutableArray();
         Ammunition = ammunition;
         RangedWeaponActions = rangedWeaponActions;
+        Effects = effects;
+        Statuses = statuses;
         BoardCells = boardCells;
         ZoneLinks = zoneLinks;
         PersonalBoards = personalBoards;
@@ -116,6 +121,8 @@ public sealed class GameContentSnapshot : ICharacterContentCatalog
         RangedWeaponRegistry = new TypedDefinitionRegistry<RangedWeaponId, RangedWeaponDefinition>(fingerprint, rangedWeapons, definition => definition.RangedWeaponId);
         AmmunitionRegistry = new TypedDefinitionRegistry<AmmunitionId, AmmunitionDefinition>(fingerprint, ammunition, definition => definition.AmmunitionId);
         RangedWeaponActionRegistry = new TypedDefinitionRegistry<RangedWeaponActionId, RangedWeaponActionDefinition>(fingerprint, rangedWeaponActions, definition => definition.RangedWeaponActionId);
+        EffectRegistry = new TypedDefinitionRegistry<EffectId, EffectDefinition>(fingerprint, effects, definition => definition.EffectId);
+        StatusRegistry = new TypedDefinitionRegistry<StatusId, StatusDefinition>(fingerprint, statuses, definition => definition.StatusId);
         BoardCellRegistry = new TypedDefinitionRegistry<CellId, BoardCellDefinition>(fingerprint, boardCells, definition => definition.CellId);
         ZoneLinkRegistry = new TypedDefinitionRegistry<LinkId, ZoneLinkDefinition>(fingerprint, zoneLinks, definition => definition.LinkId);
         PersonalBoardRegistry = new TypedDefinitionRegistry<PersonalBoardId, PersonalBoardDefinition>(fingerprint, personalBoards, definition => definition.PersonalBoardId);
@@ -142,6 +149,8 @@ public sealed class GameContentSnapshot : ICharacterContentCatalog
             .Concat(rangedWeapons)
             .Concat(ammunition)
             .Concat(rangedWeaponActions)
+            .Concat(effects)
+            .Concat(statuses)
             .Concat(boardCells)
             .Concat(zoneLinks)
             .Concat(personalBoards)
@@ -174,6 +183,8 @@ public sealed class GameContentSnapshot : ICharacterContentCatalog
     public ImmutableArray<RangedWeaponDefinition> RangedWeapons { get; }
     public ImmutableArray<AmmunitionDefinition> Ammunition { get; }
     public ImmutableArray<RangedWeaponActionDefinition> RangedWeaponActions { get; }
+    public ImmutableArray<EffectDefinition> Effects { get; }
+    public ImmutableArray<StatusDefinition> Statuses { get; }
     public ImmutableArray<BoardCellDefinition> BoardCells { get; }
     public ImmutableArray<ZoneLinkDefinition> ZoneLinks { get; }
     public ImmutableArray<PersonalBoardDefinition> PersonalBoards { get; }
@@ -200,6 +211,8 @@ public sealed class GameContentSnapshot : ICharacterContentCatalog
     public TypedDefinitionRegistry<RangedWeaponId, RangedWeaponDefinition> RangedWeaponRegistry { get; }
     public TypedDefinitionRegistry<AmmunitionId, AmmunitionDefinition> AmmunitionRegistry { get; }
     public TypedDefinitionRegistry<RangedWeaponActionId, RangedWeaponActionDefinition> RangedWeaponActionRegistry { get; }
+    public TypedDefinitionRegistry<EffectId, EffectDefinition> EffectRegistry { get; }
+    public TypedDefinitionRegistry<StatusId, StatusDefinition> StatusRegistry { get; }
     public TypedDefinitionRegistry<CellId, BoardCellDefinition> BoardCellRegistry { get; }
     public TypedDefinitionRegistry<LinkId, ZoneLinkDefinition> ZoneLinkRegistry { get; }
     public TypedDefinitionRegistry<PersonalBoardId, PersonalBoardDefinition> PersonalBoardRegistry { get; }
@@ -238,6 +251,8 @@ public sealed class GameContentSnapshot : ICharacterContentCatalog
     public bool TryGetRangedWeapon(RangedWeaponId id, out RangedWeaponDefinition? definition) => RangedWeaponRegistry.TryGet(id, out definition);
     public bool TryGetAmmunition(AmmunitionId id, out AmmunitionDefinition? definition) => AmmunitionRegistry.TryGet(id, out definition);
     public bool TryGetRangedWeaponAction(RangedWeaponActionId id, out RangedWeaponActionDefinition? definition) => RangedWeaponActionRegistry.TryGet(id, out definition);
+    public bool TryGetEffect(EffectId id, out EffectDefinition? definition) => EffectRegistry.TryGet(id, out definition);
+    public bool TryGetStatus(StatusId id, out StatusDefinition? definition) => StatusRegistry.TryGet(id, out definition);
     public bool TryGetBoardCell(CellId id, out BoardCellDefinition? definition) => BoardCellRegistry.TryGet(id, out definition);
     public bool TryGetZoneLink(LinkId id, out ZoneLinkDefinition? definition) => ZoneLinkRegistry.TryGet(id, out definition);
     public bool TryGetPersonalBoard(PersonalBoardId id, out PersonalBoardDefinition? definition) => PersonalBoardRegistry.TryGet(id, out definition);
@@ -271,6 +286,8 @@ public sealed class GameContentSnapshot : ICharacterContentCatalog
         AddEntries(entries, "RangedWeapon", RangedWeapons, definition => definition.Id);
         AddEntries(entries, "Ammunition", Ammunition, definition => definition.Id);
         AddEntries(entries, "RangedWeaponAction", RangedWeaponActions, definition => definition.Id);
+        AddEntries(entries, "Effect", Effects, definition => definition.Id);
+        AddEntries(entries, "Status", Statuses, definition => definition.Id);
         AddEntries(entries, "BoardCell", BoardCells, definition => definition.Id);
         AddEntries(entries, "ZoneLink", ZoneLinks, definition => definition.Id);
         AddEntries(entries, "PersonalBoard", PersonalBoards, definition => definition.Id);

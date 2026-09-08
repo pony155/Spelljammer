@@ -5,10 +5,11 @@ using RangedWeaponDefinition = Spelljammer.Simulation.Items.RangedWeaponDefiniti
 using EquipmentDefinition = Spelljammer.Simulation.Items.EquipmentDefinition;
 using ItemDefinition = Spelljammer.Simulation.Items.ItemDefinition;
 using Spelljammer.Simulation.Items;
+using Spelljammer.Simulation.Statuses;
 
 namespace Spelljammer.Simulation.Characters;
 
-public interface ICharacterContentCatalog : IItemDefinitionCatalog
+public interface ICharacterContentCatalog : IItemDefinitionCatalog, IStatusDefinitionCatalog
 {
     ContentFingerprint Fingerprint { get; }
     ImmutableArray<AbilityDefinition> Abilities { get; }
@@ -23,6 +24,8 @@ public interface ICharacterContentCatalog : IItemDefinitionCatalog
     ImmutableArray<RangedWeaponDefinition> RangedWeapons { get; }
     ImmutableArray<AmmunitionDefinition> Ammunition { get; }
     ImmutableArray<RangedWeaponActionDefinition> RangedWeaponActions { get; }
+    ImmutableArray<EffectDefinition> Effects { get; }
+    ImmutableArray<StatusDefinition> Statuses { get; }
     ImmutableArray<BoardCellDefinition> BoardCells { get; }
     ImmutableArray<ZoneLinkDefinition> ZoneLinks { get; }
     ImmutableArray<PersonalBoardDefinition> PersonalBoards { get; }

@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "revision": 1,
+  "id": "status.confused",
+  "nameKey": "status.confused.name",
+  "descriptionKey": "status.confused.description",
+  "category": "mental",
+  "tags": ["ai-influence", "disruption"],
+  "defaultDuration": 2,
+  "durationType": "timed",
+  "stackPolicy": "refresh",
+  "maximumStacks": 1,
+  "exclusiveGroupId": "status-group.mental-control",
+  "priority": 30,
+  "modifiers": [
+    { "type": "modify-accuracy", "amount": -20 }
+  ],
+  "restrictions": [],
+  "aiRules": [
+    { "type": "reduce-decision-reliability", "amount": 50 },
+    { "type": "unstable-target-selection", "amount": 25 }
+  ],
+  "onApplyEffectIds": [],
+  "onTickEffectIds": [],
+  "onExpireEffectIds": []
+}

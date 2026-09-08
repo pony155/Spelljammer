@@ -5,6 +5,7 @@ using Spelljammer.Content.Parsing;
 using Spelljammer.Content.Sources;
 using Spelljammer.Simulation.Characters;
 using Spelljammer.Simulation.Content;
+using Spelljammer.Simulation.Statuses;
 using MeleeWeaponDefinition = Spelljammer.Simulation.Items.MeleeWeaponDefinition;
 using RangedWeaponDefinition = Spelljammer.Simulation.Items.RangedWeaponDefinition;
 using EquipmentDefinition = Spelljammer.Simulation.Items.EquipmentDefinition;
@@ -686,6 +687,21 @@ public sealed class GameContentCompiler
                 case DefinitionKind.RangedWeaponAction:
                     CheckPrimitives(definition, definition.Arrays["effectIds"], "/effectIds", diagnostics);
                     break;
+                case DefinitionKind.Effect:
+                    if (definition.Strings.TryGetValue("statusId", out string? effectStatusId))
+                    {
+                        CheckReference(definition, effectStatusId, DefinitionKind.Status, byId, "/statusId", diagnostics);
+                    }
+
+                    break;
+                case DefinitionKind.Status:
+                    CheckReferences(definition, definition.Arrays["onApplyEffectIds"], DefinitionKind.Effect, byId,
+                        "/onApplyEffectIds", diagnostics);
+                    CheckReferences(definition, definition.Arrays["onTickEffectIds"], DefinitionKind.Effect, byId,
+                        "/onTickEffectIds", diagnostics);
+                    CheckReferences(definition, definition.Arrays["onExpireEffectIds"], DefinitionKind.Effect, byId,
+                        "/onExpireEffectIds", diagnostics);
+                    break;
                 case DefinitionKind.BoardCell:
                     CheckPrimitive(definition, definition.Strings["zoneId"], "/zoneId", diagnostics);
                     CheckPrimitive(definition, definition.Strings["atmosphereId"], "/atmosphereId", diagnostics);
@@ -792,6 +808,12 @@ public sealed class GameContentCompiler
                     break;
                 case DefinitionKind.RangedWeaponAction:
                     ValidateRangedWeaponAction(definition, diagnostics);
+                    break;
+                case DefinitionKind.Effect:
+                    ValidateEffect(definition, diagnostics);
+                    break;
+                case DefinitionKind.Status:
+                    ValidateStatus(definition, diagnostics);
                     break;
                 case DefinitionKind.BoardCell when definition.Integers["q"] is < -1_024 or > 1_024 ||
                     definition.Integers["r"] is < -1_024 or > 1_024 || definition.Integers["capacity"] is < 1 or > 8 ||
@@ -987,6 +1009,8 @@ public sealed class GameContentCompiler
         ImmutableArray<RangedWeaponDefinition> rangedWeapons = [.. sources.Where(value => value.Kind == DefinitionKind.RangedWeapon).OrderBy(value => value.Id).Select(CompileRangedWeapon)];
         ImmutableArray<AmmunitionDefinition> ammunition = [.. sources.Where(value => value.Kind == DefinitionKind.Ammunition).OrderBy(value => value.Id).Select(CompileAmmunition)];
         ImmutableArray<RangedWeaponActionDefinition> rangedWeaponActions = [.. sources.Where(value => value.Kind == DefinitionKind.RangedWeaponAction).OrderBy(value => value.Id).Select(CompileRangedWeaponAction)];
+        ImmutableArray<EffectDefinition> effects = [.. sources.Where(value => value.Kind == DefinitionKind.Effect).OrderBy(value => value.Id).Select(CompileEffect)];
+        ImmutableArray<StatusDefinition> statuses = [.. sources.Where(value => value.Kind == DefinitionKind.Status).OrderBy(value => value.Id).Select(CompileStatus)];
         ImmutableArray<BoardCellDefinition> boardCells = [.. sources.Where(value => value.Kind == DefinitionKind.BoardCell).OrderBy(value => value.Id).Select(CompileBoardCell)];
         ImmutableArray<ZoneLinkDefinition> zoneLinks = [.. sources.Where(value => value.Kind == DefinitionKind.ZoneLink).OrderBy(value => value.Id).Select(CompileZoneLink)];
         ImmutableArray<PersonalBoardDefinition> personalBoards = [.. sources.Where(value => value.Kind == DefinitionKind.PersonalBoard).OrderBy(value => value.Id).Select(CompilePersonalBoard)];
@@ -996,13 +1020,13 @@ public sealed class GameContentCompiler
         ImmutableArray<ShipWeaponConfigurationDefinition> shipWeapons = [.. sources.Where(value => value.Kind == DefinitionKind.ShipWeaponConfiguration).OrderBy(value => value.Id).Select(CompileShipWeapon)];
         ImmutableArray<ContentPackIdentity> identities = [.. packs.Select(pack => new ContentPackIdentity(
             pack.Manifest.Id, pack.Manifest.Version, pack.Manifest.ContentRevision))];
-        ContentDefinition[] all = [.. abilities, .. skills, .. levelProgressionTables, .. characterResourceProfiles, .. access, .. backgrounds, .. characters, .. scenarios, .. feats, .. heritages, .. races, .. training, .. equipment, .. meleeWeapons, .. meleeWeaponActions, .. rangedWeapons, .. ammunition, .. rangedWeaponActions, .. boardCells, .. zoneLinks, .. personalBoards, .. encounters, .. shipFrames, .. shipModules, .. shipWeapons];
+        ContentDefinition[] all = [.. abilities, .. skills, .. levelProgressionTables, .. characterResourceProfiles, .. access, .. backgrounds, .. characters, .. scenarios, .. feats, .. heritages, .. races, .. training, .. equipment, .. meleeWeapons, .. meleeWeaponActions, .. rangedWeapons, .. ammunition, .. rangedWeaponActions, .. effects, .. statuses, .. boardCells, .. zoneLinks, .. personalBoards, .. encounters, .. shipFrames, .. shipModules, .. shipWeapons];
         (byte[] canonicalBytes, ContentFingerprint fingerprint) = CanonicalSemanticWriter.Write(identities, all);
         Dictionary<ContentId, ContentId> provenance = sources.ToDictionary(
             source => source.Id,
             source => new ContentId(source.PackId));
         GameContentSnapshot snapshot = new(fingerprint, identities, abilities, skills, levelProgressionTables, characterResourceProfiles, access, backgrounds, characters, scenarios, feats, heritages, races, training,
-            equipment, meleeWeapons, meleeWeaponActions, rangedWeapons, ammunition, rangedWeaponActions,
+            equipment, meleeWeapons, meleeWeaponActions, rangedWeapons, ammunition, rangedWeaponActions, effects, statuses,
             boardCells, zoneLinks, personalBoards, encounters, shipFrames, shipModules, shipWeapons,
             [.. canonicalBytes], provenance);
         return new ContentCompilationResult(snapshot, diagnostics.ToImmutable(), null);
@@ -1254,6 +1278,129 @@ public sealed class GameContentCompiler
         value.Integers["durabilityCost"], value.Integers["rangePenaltyPerUnit"],
         value.Integers["damageFalloffPerUnitPercentage"], value.Integers["reloadAmount"],
         Sort(value.Arrays["effectIds"]).Select(item => new ContentId(item)).ToImmutableArray());
+
+    private static EffectDefinition CompileEffect(SourceDefinition value) => new(
+        new EffectId(value.Id), 1, value.Revision, value.NameKey, value.DescriptionKey,
+        ParseEffectType(value.Strings["type"]), value.Integers["amount"],
+        value.Strings.TryGetValue("statusId", out string? statusId) ? new StatusId(statusId) : null,
+        value.Integers.GetValueOrDefault("duration"), value.Integers.GetValueOrDefault("stacks"),
+        value.Integers.GetValueOrDefault("potency"));
+
+    private static StatusDefinition CompileStatus(SourceDefinition value) => new(
+        new StatusId(value.Id), 1, value.Revision, value.NameKey, value.DescriptionKey,
+        ParseStatusCategory(value.Strings["category"]), Sort(value.Arrays["tags"]),
+        value.Integers["defaultDuration"], ParseStatusDurationType(value.Strings["durationType"]),
+        ParseStatusStackPolicy(value.Strings["stackPolicy"]), value.Integers["maximumStacks"],
+        value.Strings.TryGetValue("exclusiveGroupId", out string? groupId) ? new ContentId(groupId) : null,
+        value.Integers["priority"],
+        [.. value.Status!.Modifiers.Select(item => new StatusModifierDefinition(ParseStatusModifierType(item.Type), item.Amount))],
+        [.. value.Status.Restrictions.Select(item => new StatusRestrictionDefinition(
+            ParseStatusRestrictionType(item.Type), ParseStatusTargetRule(item.TargetRule),
+            item.ActionTag is null ? null : new ContentId(item.ActionTag)))],
+        [.. value.Status.AiRules.Select(item => new StatusAiRuleDefinition(
+            ParseStatusAiRuleType(item.Type), ParseStatusTargetRule(item.TargetRule),
+            item.ActionTag is null ? null : new ContentId(item.ActionTag), item.Amount))],
+        Sort(value.Arrays["onApplyEffectIds"]).Select(item => new EffectId(item)).ToImmutableArray(),
+        Sort(value.Arrays["onTickEffectIds"]).Select(item => new EffectId(item)).ToImmutableArray(),
+        Sort(value.Arrays["onExpireEffectIds"]).Select(item => new EffectId(item)).ToImmutableArray());
+
+    private static EffectType ParseEffectType(string value) => value switch
+    {
+        "heal-health" => EffectType.HealHealth,
+        "restore-mana" => EffectType.RestoreMana,
+        "restore-stamina" => EffectType.RestoreStamina,
+        "restore-resolve" => EffectType.RestoreResolve,
+        "reduce-strain" => EffectType.ReduceStrain,
+        "physical-damage" => EffectType.PhysicalDamage,
+        "thermal-damage" => EffectType.ThermalDamage,
+        "shock-damage" => EffectType.ShockDamage,
+        "arcane-damage" => EffectType.ArcaneDamage,
+        "armor-damage" => EffectType.ArmorDamage,
+        "apply-status" => EffectType.ApplyStatus,
+        "remove-status" => EffectType.RemoveStatus,
+        "modify-damage" => EffectType.ModifyDamage,
+        "modify-defense" => EffectType.ModifyDefense,
+        "modify-accuracy" => EffectType.ModifyAccuracy,
+        "modify-movement" => EffectType.ModifyMovement,
+        "modify-resistance" => EffectType.ModifyResistance,
+        "grant-shield" => EffectType.GrantShield,
+        _ => throw new ArgumentOutOfRangeException(nameof(value)),
+    };
+
+    private static StatusCategory ParseStatusCategory(string value) => value switch
+    {
+        "mental" => StatusCategory.Mental,
+        "emotion" => StatusCategory.Emotion,
+        "control" => StatusCategory.Control,
+        "disruption" => StatusCategory.Disruption,
+        "damage-over-time" => StatusCategory.DamageOverTime,
+        "defensive" => StatusCategory.Defensive,
+        "resource" => StatusCategory.Resource,
+        "physical" => StatusCategory.Physical,
+        "magical" => StatusCategory.Magical,
+        _ => throw new ArgumentOutOfRangeException(nameof(value)),
+    };
+
+    private static StatusDurationType ParseStatusDurationType(string value) => value switch
+    {
+        "timed" => StatusDurationType.Timed,
+        "permanent" => StatusDurationType.Permanent,
+        "until-removed" => StatusDurationType.UntilRemoved,
+        "conditional" => StatusDurationType.Conditional,
+        _ => throw new ArgumentOutOfRangeException(nameof(value)),
+    };
+
+    private static StatusStackPolicy ParseStatusStackPolicy(string value) => value switch
+    {
+        "refresh" => StatusStackPolicy.Refresh,
+        "extend" => StatusStackPolicy.Extend,
+        "intensity-stack" => StatusStackPolicy.IntensityStack,
+        "stronger-wins" => StatusStackPolicy.StrongerWins,
+        "independent" => StatusStackPolicy.Independent,
+        "reject" => StatusStackPolicy.Reject,
+        _ => throw new ArgumentOutOfRangeException(nameof(value)),
+    };
+
+    private static StatusModifierType ParseStatusModifierType(string value) => value switch
+    {
+        "modify-damage" => StatusModifierType.ModifyDamage,
+        "modify-defense" => StatusModifierType.ModifyDefense,
+        "modify-accuracy" => StatusModifierType.ModifyAccuracy,
+        "modify-movement" => StatusModifierType.ModifyMovement,
+        "modify-resistance" => StatusModifierType.ModifyResistance,
+        "modify-resolve" => StatusModifierType.ModifyResolve,
+        "grant-shield" => StatusModifierType.GrantShield,
+        _ => throw new ArgumentOutOfRangeException(nameof(value)),
+    };
+
+    private static StatusRestrictionType ParseStatusRestrictionType(string value) => value switch
+    {
+        "cannot-act" => StatusRestrictionType.CannotAct,
+        "cannot-attack" => StatusRestrictionType.CannotAttack,
+        "cannot-move" => StatusRestrictionType.CannotMove,
+        "discourage-action" => StatusRestrictionType.DiscourageAction,
+        _ => throw new ArgumentOutOfRangeException(nameof(value)),
+    };
+
+    private static StatusAiRuleType ParseStatusAiRuleType(string value) => value switch
+    {
+        "treat-as-ally" => StatusAiRuleType.TreatAsAlly,
+        "prefer-target" => StatusAiRuleType.PreferTarget,
+        "prefer-action" => StatusAiRuleType.PreferAction,
+        "discourage-action" => StatusAiRuleType.DiscourageAction,
+        "reduce-decision-reliability" => StatusAiRuleType.ReduceDecisionReliability,
+        "unstable-target-selection" => StatusAiRuleType.UnstableTargetSelection,
+        _ => throw new ArgumentOutOfRangeException(nameof(value)),
+    };
+
+    private static StatusTargetRule ParseStatusTargetRule(string? value) => value switch
+    {
+        null => StatusTargetRule.None,
+        "status-source" => StatusTargetRule.StatusSource,
+        "nearest-enemy" => StatusTargetRule.NearestEnemy,
+        "source-enemies" => StatusTargetRule.SourceEnemies,
+        _ => throw new ArgumentOutOfRangeException(nameof(value)),
+    };
 
     private static RangedWeaponFamily ParseRangedWeaponFamily(string value) => value switch
     {
@@ -1668,6 +1815,63 @@ public sealed class GameContentCompiler
         }
     }
 
+    private static void ValidateEffect(SourceDefinition definition, DiagnosticSink diagnostics)
+    {
+        string type = definition.Strings["type"];
+        bool knownType = type is "heal-health" or "restore-mana" or "restore-stamina" or "restore-resolve" or
+            "reduce-strain" or "physical-damage" or "thermal-damage" or "shock-damage" or "arcane-damage" or
+            "armor-damage" or "apply-status" or "remove-status" or "modify-damage" or "modify-defense" or
+            "modify-accuracy" or "modify-movement" or "modify-resistance" or "grant-shield";
+        int amount = definition.Integers["amount"];
+        int duration = definition.Integers.GetValueOrDefault("duration");
+        int stacks = definition.Integers.GetValueOrDefault("stacks");
+        int potency = definition.Integers.GetValueOrDefault("potency");
+        bool statusOperation = type is "apply-status" or "remove-status";
+        bool applyStatus = type == "apply-status";
+        bool invalid = !knownType || amount is < 0 or > 1_000_000 || duration is < 0 or > 1_000_000 ||
+            stacks is < 0 or > 1_000_000 || potency is < 0 or > 1_000_000 ||
+            statusOperation != definition.Strings.ContainsKey("statusId") ||
+            applyStatus && stacks < 1 || !applyStatus && (duration != 0 || stacks != 0 || potency != 0);
+        if (invalid)
+        {
+            OutOfRange(definition, "/type", diagnostics);
+        }
+    }
+
+    private static void ValidateStatus(SourceDefinition definition, DiagnosticSink diagnostics)
+    {
+        string category = definition.Strings["category"];
+        string durationType = definition.Strings["durationType"];
+        string stackPolicy = definition.Strings["stackPolicy"];
+        int defaultDuration = definition.Integers["defaultDuration"];
+        bool invalid = category is not ("mental" or "emotion" or "control" or "disruption" or
+                "damage-over-time" or "defensive" or "resource" or "physical" or "magical") ||
+              durationType is not ("timed" or "permanent" or "until-removed" or "conditional") ||
+              stackPolicy is not ("refresh" or "extend" or "intensity-stack" or "stronger-wins" or "independent" or "reject") ||
+              (durationType == "timed" ? defaultDuration is < 1 or > 1_000_000 : defaultDuration != 0) ||
+              definition.Integers["maximumStacks"] is < 1 or > 1_000_000 ||
+              stackPolicy == "extend" && durationType != "timed" ||
+              stackPolicy != "intensity-stack" && definition.Integers["maximumStacks"] != 1 ||
+              definition.Integers["priority"] is < -1_000_000 or > 1_000_000 ||
+            definition.Status is null ||
+            definition.Status.Modifiers.Any(value =>
+                value.Type is not ("modify-damage" or "modify-defense" or "modify-accuracy" or "modify-movement" or
+                    "modify-resistance" or "modify-resolve" or "grant-shield") ||
+                value.Amount is < -1_000_000 or > 1_000_000) ||
+            definition.Status.Restrictions.Any(value =>
+                value.Type is not ("cannot-act" or "cannot-attack" or "cannot-move" or "discourage-action") ||
+                value.TargetRule is not (null or "status-source" or "nearest-enemy" or "source-enemies")) ||
+            definition.Status.AiRules.Any(value =>
+                value.Type is not ("treat-as-ally" or "prefer-target" or "prefer-action" or "discourage-action" or
+                    "reduce-decision-reliability" or "unstable-target-selection") ||
+                value.TargetRule is not (null or "status-source" or "nearest-enemy" or "source-enemies") ||
+                value.Amount is < -1_000_000 or > 1_000_000);
+        if (invalid)
+        {
+            OutOfRange(definition, "/category", diagnostics);
+        }
+    }
+
     private static bool IsRangedCombinationAllowed(string family, string technology) => family switch
     {
         "bow" or "crossbow" => technology is "conventional" or "arcane",
@@ -1959,6 +2163,8 @@ public sealed class GameContentCompiler
         DefinitionKind.RangedWeapon => "ranged-weapon.",
         DefinitionKind.Ammunition => "ammunition.",
         DefinitionKind.RangedWeaponAction => "ranged-action.",
+        DefinitionKind.Effect => "effect.",
+        DefinitionKind.Status => "status.",
         DefinitionKind.BoardCell => "cell.",
         DefinitionKind.ZoneLink => "link.",
         DefinitionKind.PersonalBoard => "board.",

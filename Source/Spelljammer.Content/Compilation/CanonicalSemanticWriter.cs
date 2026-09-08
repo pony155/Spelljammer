@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
 using Spelljammer.Simulation.Content;
+using Spelljammer.Simulation.Statuses;
 using MeleeWeaponDefinition = Spelljammer.Simulation.Items.MeleeWeaponDefinition;
 using RangedWeaponDefinition = Spelljammer.Simulation.Items.RangedWeaponDefinition;
 using ArmorDefinition = Spelljammer.Simulation.Items.ArmorDefinition;
@@ -329,6 +330,38 @@ internal static class CanonicalSemanticWriter
                 properties["shotCount"] = output => output.Append(value.ShotCount);
                 properties["staminaCostModifier"] = output => output.Append(value.StaminaCostModifier);
                 break;
+            case EffectDefinition value:
+                properties["amount"] = output => output.Append(value.Amount);
+                properties["duration"] = output => output.Append(value.Duration);
+                properties["potency"] = output => output.Append(value.Potency);
+                properties["stacks"] = output => output.Append(value.Stacks);
+                if (value.StatusId is StatusId statusId)
+                {
+                    properties["statusId"] = output => WriteString(output, statusId.ToString());
+                }
+
+                properties["type"] = output => WriteString(output, WriteEffectType(value.Type));
+                break;
+            case StatusDefinition value:
+                properties["aiRules"] = output => WriteStatusAiRules(output, value.AiRules);
+                properties["category"] = output => WriteString(output, WriteStatusCategory(value.Category));
+                properties["defaultDuration"] = output => output.Append(value.DefaultDuration);
+                properties["durationType"] = output => WriteString(output, WriteStatusDurationType(value.DurationType));
+                if (value.ExclusiveGroupId is ContentId groupId)
+                {
+                    properties["exclusiveGroupId"] = output => WriteString(output, groupId.ToString());
+                }
+
+                properties["maximumStacks"] = output => output.Append(value.MaximumStacks);
+                properties["modifiers"] = output => WriteStatusModifiers(output, value.Modifiers);
+                properties["onApplyEffectIds"] = output => WriteStrings(output, value.OnApplyEffectIds.Select(id => id.ToString()));
+                properties["onExpireEffectIds"] = output => WriteStrings(output, value.OnExpireEffectIds.Select(id => id.ToString()));
+                properties["onTickEffectIds"] = output => WriteStrings(output, value.OnTickEffectIds.Select(id => id.ToString()));
+                properties["priority"] = output => output.Append(value.Priority);
+                properties["restrictions"] = output => WriteStatusRestrictions(output, value.Restrictions);
+                properties["stackPolicy"] = output => WriteString(output, WriteStatusStackPolicy(value.StackPolicy));
+                properties["tags"] = output => WriteStrings(output, value.Tags);
+                break;
             case BoardCellDefinition value:
                 properties["atmosphereId"] = output => WriteString(output, value.AtmosphereId.ToString());
                 properties["capacity"] = output => output.Append(value.Capacity);
@@ -438,13 +471,15 @@ internal static class CanonicalSemanticWriter
         RangedWeaponDefinition => 15,
         AmmunitionDefinition => 16,
         RangedWeaponActionDefinition => 17,
-        BoardCellDefinition => 18,
-        ZoneLinkDefinition => 19,
-        PersonalBoardDefinition => 20,
-        EncounterDefinition => 21,
-        ShipFrameDefinition => 22,
-        ShipModuleDefinition => 23,
-        ShipWeaponConfigurationDefinition => 24,
+        EffectDefinition => 18,
+        StatusDefinition => 19,
+        BoardCellDefinition => 20,
+        ZoneLinkDefinition => 21,
+        PersonalBoardDefinition => 22,
+        EncounterDefinition => 23,
+        ShipFrameDefinition => 24,
+        ShipModuleDefinition => 25,
+        ShipWeaponConfigurationDefinition => 26,
         _ => throw new ArgumentOutOfRangeException(nameof(definition)),
     };
 
@@ -507,6 +542,133 @@ internal static class CanonicalSemanticWriter
         AmmunitionType.PlasmaCell => "plasma-cell",
         _ => throw new ArgumentOutOfRangeException(nameof(ammunitionType)),
     };
+
+    private static string WriteEffectType(EffectType value) => ToKebabCase(value.ToString());
+    private static string WriteStatusCategory(StatusCategory value) => ToKebabCase(value.ToString());
+    private static string WriteStatusDurationType(StatusDurationType value) => ToKebabCase(value.ToString());
+    private static string WriteStatusStackPolicy(StatusStackPolicy value) => ToKebabCase(value.ToString());
+
+    private static void WriteStatusModifiers(StringBuilder builder, IEnumerable<StatusModifierDefinition> values)
+    {
+        builder.Append('[');
+        bool first = true;
+        foreach (StatusModifierDefinition value in values.OrderBy(item => item.Type).ThenBy(item => item.Amount))
+        {
+            if (!first)
+            {
+                builder.Append(',');
+            }
+
+            first = false;
+            builder.Append("{\"amount\":").Append(value.Amount).Append(",\"type\":");
+            WriteString(builder, ToKebabCase(value.Type.ToString()));
+            builder.Append('}');
+        }
+
+        builder.Append(']');
+    }
+
+    private static void WriteStatusRestrictions(StringBuilder builder, IEnumerable<StatusRestrictionDefinition> values)
+    {
+        builder.Append('[');
+        bool first = true;
+        foreach (StatusRestrictionDefinition value in values.OrderBy(item => item.Type).ThenBy(item => item.TargetRule)
+                     .ThenBy(item => item.ActionTag))
+        {
+            if (!first)
+            {
+                builder.Append(',');
+            }
+
+            first = false;
+            builder.Append('{');
+            bool hasProperty = false;
+            if (value.ActionTag is ContentId actionTag)
+            {
+                builder.Append("\"actionTag\":");
+                WriteString(builder, actionTag.ToString());
+                hasProperty = true;
+            }
+
+            if (value.TargetRule != StatusTargetRule.None)
+            {
+                if (hasProperty) builder.Append(',');
+                builder.Append("\"targetRule\":");
+                WriteString(builder, ToKebabCase(value.TargetRule.ToString()));
+                hasProperty = true;
+            }
+
+            if (hasProperty) builder.Append(',');
+            builder.Append("\"type\":");
+            WriteString(builder, ToKebabCase(value.Type.ToString()));
+            builder.Append('}');
+        }
+
+        builder.Append(']');
+    }
+
+    private static void WriteStatusAiRules(StringBuilder builder, IEnumerable<StatusAiRuleDefinition> values)
+    {
+        builder.Append('[');
+        bool first = true;
+        foreach (StatusAiRuleDefinition value in values.OrderBy(item => item.Type).ThenBy(item => item.TargetRule)
+                     .ThenBy(item => item.ActionTag).ThenBy(item => item.Amount))
+        {
+            if (!first)
+            {
+                builder.Append(',');
+            }
+
+            first = false;
+            builder.Append('{');
+            bool hasProperty = false;
+            if (value.ActionTag is ContentId actionTag)
+            {
+                builder.Append("\"actionTag\":");
+                WriteString(builder, actionTag.ToString());
+                hasProperty = true;
+            }
+
+            if (value.Amount != 0)
+            {
+                if (hasProperty) builder.Append(',');
+                builder.Append("\"amount\":").Append(value.Amount);
+                hasProperty = true;
+            }
+
+            if (value.TargetRule != StatusTargetRule.None)
+            {
+                if (hasProperty) builder.Append(',');
+                builder.Append("\"targetRule\":");
+                WriteString(builder, ToKebabCase(value.TargetRule.ToString()));
+                hasProperty = true;
+            }
+
+            if (hasProperty) builder.Append(',');
+            builder.Append("\"type\":");
+            WriteString(builder, ToKebabCase(value.Type.ToString()));
+            builder.Append('}');
+        }
+
+        builder.Append(']');
+    }
+
+    private static string ToKebabCase(string value)
+    {
+        StringBuilder builder = new();
+        for (int index = 0; index < value.Length; index++)
+        {
+            char character = value[index];
+            if (index > 0 && char.IsUpper(character))
+            {
+                builder.Append('-');
+            }
+
+            builder.Append(char.ToLowerInvariant(character));
+        }
+
+        return builder.ToString();
+    }
 
     private static void WriteStrings(StringBuilder builder, IEnumerable<string> values)
     {

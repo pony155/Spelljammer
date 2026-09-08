@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "revision": 1,
+  "id": "status.raging",
+  "nameKey": "status.raging.name",
+  "descriptionKey": "status.raging.description",
+  "category": "emotion",
+  "tags": ["aggressive", "ai-influence", "emotion"],
+  "defaultDuration": 3,
+  "durationType": "timed",
+  "stackPolicy": "refresh",
+  "maximumStacks": 1,
+  "exclusiveGroupId": "status-group.emotional-state",
+  "priority": 40,
+  "modifiers": [],
+  "restrictions": [
+    { "type": "discourage-action", "actionTag": "action.retreat" },
+    { "type": "discourage-action", "actionTag": "action.defend" }
+  ],
+  "aiRules": [
+    { "type": "prefer-target", "targetRule": "nearest-enemy" },
+    { "type": "prefer-action", "actionTag": "action.attack" },
+    { "type": "prefer-action", "actionTag": "action.charge" }
+  ],
+  "onApplyEffectIds": [],
+  "onTickEffectIds": [],
+  "onExpireEffectIds": []
+}

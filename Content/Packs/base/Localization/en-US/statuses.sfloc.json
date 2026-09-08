@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "locale": "en-US",
+  "namespace": "statuses",
+  "fallbacks": [],
+  "textDirection": "ltr",
+  "messages": {
+    "status.charmed.name": { "description": "Charmed status name.", "message": "Charmed" },
+    "status.charmed.description": { "description": "Charmed status summary.", "message": "Cannot attack the status source and treats it as an ally." },
+    "status.confused.name": { "description": "Confused status name.", "message": "Confused" },
+    "status.confused.description": { "description": "Confused status summary.", "message": "Accuracy and decision reliability are reduced." },
+    "status.raging.name": { "description": "Raging status name.", "message": "Raging" },
+    "status.raging.description": { "description": "Raging status summary.", "message": "Aggressive actions are preferred over retreat or defense." },
+    "status.burning.name": { "description": "Burning status name.", "message": "Burning" },
+    "status.burning.description": { "description": "Burning status summary.", "message": "Suffers thermal damage at the end of each turn." },
+    "effect.status.burning-damage.name": { "description": "Burning damage effect name.", "message": "Burning Damage" },
+    "effect.status.burning-damage.description": { "description": "Burning damage effect summary.", "message": "Deals thermal damage." },
+    "effect.status.apply-burning.name": { "description": "Apply Burning effect name.", "message": "Ignite" },
+    "effect.status.apply-burning.description": { "description": "Apply Burning effect summary.", "message": "Applies Burning to the target." }
+  }
+}

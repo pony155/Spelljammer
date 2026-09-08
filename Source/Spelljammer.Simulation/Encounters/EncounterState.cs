@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using Spelljammer.Simulation.Characters;
 using Spelljammer.Simulation.Content;
 using Spelljammer.Simulation.Items;
+using Spelljammer.Simulation.Statuses;
 
 namespace Spelljammer.Simulation.Encounters;
 
@@ -262,6 +263,7 @@ public sealed record PersonalActorState(
     ItemSystemState Items,
     ImmutableArray<InjuryState> Injuries)
 {
+    public StatusState Statuses { get; init; } = StatusState.Empty;
     public int TurnMeter => Turn.CurrentTurnMeter;
     public int TurnRate => Turn.BaseTurnMeterGain;
     public int ActionPoints => Turn.CurrentActionPoints;
@@ -291,7 +293,13 @@ public sealed record PersonalActorState(
             false,
             false,
             character.Items,
-            []);
+            [])
+        {
+            Statuses = new StatusState([.. character.Statuses.Instances.Select(value => value with
+            {
+                TargetId = actorId.Value,
+            })]),
+        };
     }
 }
 

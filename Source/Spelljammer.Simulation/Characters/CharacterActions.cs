@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using Spelljammer.Simulation.Content;
+using Spelljammer.Simulation.Statuses;
 
 namespace Spelljammer.Simulation.Characters;
 
@@ -246,7 +247,7 @@ public static class CharacterActionSystem
             return Rejected(ActionRejectionCodes.ActorMissing, request.ActorId.Value);
         }
 
-        if (!actor.CanAct)
+        if (!actor.CanAct || !StatusQueries.CanAct(actor.Statuses, catalog))
         {
             return Rejected(ActionRejectionCodes.ActorCannotAct, actor.Id.Value);
         }
