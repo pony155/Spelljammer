@@ -100,7 +100,9 @@ adaptation and depend on ordinary atmosphere, food, sleep, and medical support.
 Elves originate from a homeworld distinct from human and dwarven worlds. Their
 long-lived nervous systems sense patterns in light and the void's aetheric
 currents. Elven records preserve the earliest documented successful Arcane
-spaceflight. Their Racial Feat, **Aether Sense**, can reveal
+spaceflight. The historically significant First Voyage begins Year 0 of the
+Elven Astral Calendar (EAC), now also used by dwarven and human states for
+cross-civilization records. Their Racial Feat, **Aether Sense**, can reveal
 weak anomalies or unstable routes before ordinary instruments, but intense
 interference causes sensory strain. Aether Sense grants innate `access.magic`,
 allowing an Elf to learn and cast spells without the Spellcasting Training

@@ -16,6 +16,42 @@ Authoritative time has three separate contracts under
 `FractionRemainder`, and the selected calendar and time-scale IDs. It does not
 persist duplicated year, month, day, or formatted text.
 
+## Standard calendar and time
+
+The setting's shared interstellar calendar is the **Elven Astral Calendar
+(EAC)**. **Year 0 EAC** is the **First Voyage**, the first historically
+significant elven interstellar voyage. The modern campaign era is approximately
+**7421 EAC**.
+
+The corresponding standard time is **Elven Astral Time (EAT)**. EAC identifies
+the date and historical year; EAT identifies the time within that date. EAT
+uses the 24-hour clock.
+
+Their common unit structure is:
+
+| Unit | Definition |
+| --- | ---: |
+| Minute | 60 seconds |
+| Hour | 60 minutes |
+| Day | 24 hours |
+| Month | 30 days |
+| Year | 12 months |
+| Year | 360 days |
+
+Elven, dwarven, and human institutions use EAC for cross-system navigation,
+trade, military activity, diplomacy, and official records. Every starport,
+warship, merchant vessel, navigation system, and formal record that uses EAC
+uses EAT as its default time standard. Local, religious, dynastic, and
+traditional calendars and local civil time remain valid presentation systems.
+A conversion to one of those systems must be a pure projection from the same
+absolute campaign time; it must not introduce a second mutable clock.
+
+The `EAC` era label, `EAT` time-standard label, and localized timestamp
+formatting belong to presentation and localization. Simulation state stores
+stable calendar IDs and numeric time only. Scenario content selects the exact
+opening timestamp; a campaign in the modern era should author a starting year
+near 7421 rather than deriving it from the host computer's clock.
+
 ## Advancement
 
 `World.AdvanceOneTick` advances both `World.Tick` and `CampaignClockState`.
@@ -51,10 +87,15 @@ canonicalized, fingerprinted, and exposed through `IWorldContentCatalog`.
 ## Date queries
 
 `WorldTimeQueries.GetDateTime` is a pure projection over a clock and matching
-calendar definition. The first implemented calendar has twelve authored
-30-day months, a seven-day week, and starting year 327. These are base content
-values rather than simulation constants. Leap years and irregular era rules
-are not implemented.
+calendar definition. EAT uses 60-second minutes, 60-minute hours, and 24-hour
+days. EAC has twelve authored 30-day months and a 360-day year. The existing
+calendar model also authors a seven-day week for weekday display. All of these
+values remain content rather than simulation constants. Leap years, irregular
+era rules, and conversion between calendar definitions are not implemented.
+
+The base `voidfarer-standard.json` authors `startingYear` as `7421`, placing
+the default campaign clock in the modern EAC era. Changing this value or any
+other calendar unit changes the compiled semantic content fingerprint.
 
 ## Persistence
 
@@ -68,7 +109,7 @@ explicit migration before they can be loaded.
 
 ## Planned extensions
 
-Voyage-relative days, accelerated voyage scales, local planetary light cycles,
-and shipboard watch schedules are not part of this first implementation. They
-should derive from absolute campaign time instead of maintaining parallel
-mutable clocks.
+Voyage-relative days, accelerated voyage scales, EAC/EAT-to-local-time
+conversion, local planetary light cycles, and shipboard watch schedules are
+not part of this first implementation. They should derive from absolute
+campaign time instead of maintaining parallel mutable clocks.

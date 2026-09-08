@@ -16,7 +16,12 @@ Simulation cadence and catch-up policy come from the fingerprinted
 `CampaignClockState`; each accepted simulation tick advances campaign seconds
 through a fingerprinted `TimeScaleDefinition`. A `CalendarDefinition` and
 pure `WorldTimeQueries` projection provide the world date without duplicating
-year, month, or day in mutable state. See [World time](WorldTime.md).
+year, month, or day in mutable state. The Elven Astral Calendar (EAC) is the
+setting's shared interstellar date standard, paired with Elven Astral Time
+(EAT) as its 24-hour time standard. Local calendars and civil times must
+project from the same absolute campaign time. See [World time](WorldTime.md)
+and the setting history in
+[History](../Concept/History.md#elven-astral-calendar).
 
 The base pack authors these rules under `Definitions/WorldTimes`,
 `Definitions/TimeScales`, and `Definitions/Calendars`. Changing cadence,

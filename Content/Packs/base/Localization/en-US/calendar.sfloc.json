@@ -5,8 +5,8 @@
   "fallbacks": [],
   "textDirection": "ltr",
   "messages": {
-    "calendar.voidfarer-standard.name": { "description": "Display name for the standard campaign calendar.", "message": "Voidfarer Calendar" },
-    "calendar.voidfarer-standard.description": { "description": "Description of the standard campaign calendar.", "message": "A twelve-month calendar used by voidfaring crews and ports." },
+    "calendar.voidfarer-standard.name": { "description": "Display name for the standard interstellar calendar.", "message": "Elven Astral Calendar" },
+    "calendar.voidfarer-standard.description": { "description": "Description of the standard interstellar calendar and time system.", "message": "The EAC calendar and EAT 24-hour time standard used for interstellar navigation and formal records." },
     "calendar.month.first-light.name": { "description": "Calendar month name.", "message": "First Light" },
     "calendar.month.emberwake.name": { "description": "Calendar month name.", "message": "Emberwake" },
     "calendar.month.starcurrent.name": { "description": "Calendar month name.", "message": "Starcurrent" },
