@@ -26,6 +26,12 @@ Character resource profiles define Health, Stamina, Mana, Resolve, Strain,
 Turn Meter, Action Points, stamina speed bands, and stable personal-action AP
 costs. These values are compiled and fingerprinted with the rest of gameplay
 content rather than supplied by simulation fallbacks.
+World-time definitions similarly own the fixed ticks-per-second cadence and
+the bounded catch-up limit used by each authoritative `World`.
+Time-scale definitions provide deterministic rational conversion from ticks to
+campaign seconds, while calendar definitions provide ordered localized months
+and all date-unit sizes plus a fully authored opening timestamp. The compiled
+snapshot exposes all three through `IWorldContentCatalog`.
 
 Public namespaces are:
 
@@ -41,6 +47,10 @@ The related `Spelljammer.Simulation.Content` namespace contains the validated
 stable-ID wrappers and immutable definitions that may cross into authoritative
 gameplay. It has no loader or filesystem dependency.
 
-`GameContentCompiler` builds an entire candidate before returning a snapshot.
+`GameContentCompiler` is the public compilation facade. Its partial
+implementations are separated by pipeline responsibility: localization,
+pack ordering, source processing, linking, validation dispatch, definition
+validation, definition compilation, and snapshot construction. It builds an
+entire candidate before returning a snapshot.
 `GameContentRegistry` publishes only successful candidates, so callers can
 retain the prior snapshot after any content or I/O failure.

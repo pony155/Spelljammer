@@ -1,10 +1,14 @@
 using System.Collections.Immutable;
 using Spelljammer.Simulation.Characters;
+using Spelljammer.Simulation.Combat;
 using Spelljammer.Simulation.Content;
 
 namespace Spelljammer.Simulation.Items;
 
 /// <summary>Atomic item, inventory, and equipment-loadout mutations.</summary>
+/// <remarks>
+/// Code flow: Each request validates IDs, definitions, capacity, quantities, and slot compatibility before returning one replacement item-system state or an unchanged rejected result.
+/// </remarks>
 public static class ItemSystem
 {
     public static ItemSystemResult Create(ItemSystemState candidate, IItemDefinitionCatalog catalog)
@@ -516,8 +520,8 @@ public static class ItemSystem
                         }
                         break;
                     case RangedWeaponDefinition ranged when item.RangedWeaponState is not null && item.MeleeWeaponState is null &&
-                        catalog is ICharacterContentCatalog characterCatalog:
-                        item.RangedWeaponState.Validate(ranged, characterCatalog);
+                        catalog is ICombatContentCatalog combatCatalog:
+                        item.RangedWeaponState.Validate(ranged, combatCatalog);
                         if (item.CurrentDurability != item.RangedWeaponState.CurrentDurability)
                         {
                             throw new InvalidOperationException();

@@ -1,9 +1,13 @@
 using System.Collections.Immutable;
+using Spelljammer.Simulation.Combat;
 using Spelljammer.Simulation.Content;
 
 namespace Spelljammer.Simulation.Items;
 
 /// <summary>Stackable ammunition item and its ranged-combat modifiers.</summary>
+/// <remarks>
+/// Code flow: Ammunition definitions enter the unified item catalog, reload resolves a stack entry and compatibility, then atomically consumes quantity while updating the weapon magazine.
+/// </remarks>
 public sealed record AmmunitionDefinition(
     AmmunitionId AmmunitionId,
     int SchemaVersion,

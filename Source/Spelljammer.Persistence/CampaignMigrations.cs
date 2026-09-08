@@ -3,9 +3,17 @@ using Spelljammer.Content.Compilation;
 using Spelljammer.Simulation.Characters;
 using Spelljammer.Simulation.Content;
 using Spelljammer.Simulation.Encounters;
+using Spelljammer.Simulation.Ships;
+using Spelljammer.Simulation.World;
 
 namespace Spelljammer.Persistence;
 
+/// <summary>
+/// Defines content-fingerprint migrations for already decoded campaign state.
+/// </summary>
+/// <remarks>
+/// Code flow: Preflight selects a deterministic chain from source to destination fingerprint, each migration validates its input and returns replacement state, and the final campaign is revalidated.
+/// </remarks>
 public interface ICampaignMigration
 {
     ContentId Id { get; }
@@ -203,7 +211,7 @@ public static class CampaignMigrationService
             CharacterCapabilities capabilities = CharacterCapabilities.Restore(rebound, newContent);
             return character with { ContentFingerprint = newContent.Fingerprint, Capabilities = capabilities };
         })];
-        ImmutableDictionary<ShipId, ShipState> ships = source.Voyage.Ships.Values.Select(ship =>
+        ImmutableDictionary<ShipId, ShipState> ships = source.World.Ships.Values.Select(ship =>
         {
             if (!newContent.TryGetShipFrame(ship.Frame.ShipFrameId, out ShipFrameDefinition? frame))
             {
@@ -228,18 +236,28 @@ public static class CampaignMigrationService
             })];
             return ship with { Frame = frame!, Modules = modules };
         }).ToImmutableDictionary(ship => ship.Id);
-        PersonalEncounterState? encounter = source.Voyage.PersonalEncounter is null
+        PersonalEncounterState? encounter = source.World.PersonalEncounter is null
             ? null
-            : RebindEncounter(source.Voyage.PersonalEncounter, newContent);
+            : RebindEncounter(source.World.PersonalEncounter, newContent);
+        if (!newContent.TryGetWorldTime(source.World.TimeDefinition.WorldTimeId, out WorldTimeDefinition? timeDefinition) ||
+            !newContent.TryGetCalendar(source.World.Calendar.CalendarId, out CalendarDefinition? calendar) ||
+            !newContent.TryGetTimeScale(source.World.TimeScale.TimeScaleId, out TimeScaleDefinition? timeScale))
+        {
+            throw new InvalidOperationException("Destination world-time content is missing.");
+        }
+
         CampaignContentLock contentLock = CampaignContentLock.Create(
             newContent, source.ContentLock.AppliedMigrationIds.Append(migrationId));
         return source with
         {
             ContentLock = contentLock,
             Characters = characters,
-            Voyage = source.Voyage with
+            World = source.World with
             {
                 ContentFingerprint = newContent.Fingerprint,
+                TimeDefinition = timeDefinition!,
+                Calendar = calendar!,
+                TimeScale = timeScale!,
                 Ships = ships,
                 PersonalEncounter = encounter,
             },
@@ -263,9 +281,9 @@ public static class CampaignMigrationService
         }
 
         TacticalBoard tacticalBoard = rebuilt.Board!;
-        foreach (PersonalActorState actor in source.Actors.Values.OrderBy(value => value.Id))
+        foreach (BattleUnitState unit in source.Units.Values.OrderBy(value => value.Id))
         {
-            tacticalBoard = tacticalBoard.Place(actor.Id, actor.CellId);
+            tacticalBoard = tacticalBoard.Place(unit.Id, unit.CellId);
         }
 
         return source with { Board = tacticalBoard };

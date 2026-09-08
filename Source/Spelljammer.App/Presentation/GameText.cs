@@ -11,8 +11,10 @@ namespace Spelljammer.Presentation;
 /// </summary>
 /// <remarks>
 /// This class loads embedded localization artifacts for all supported languages
-/// (English, French, Traditional Chinese) organized by UI sections (menu, settings, creation).
+/// (English, French, Traditional Chinese) organized by UI sections and calendar presentation.
 /// The localization service handles string lookup, fallbacks, and formatting.
+/// Code flow: Embedded artifacts are loaded into a catalog generation, the settings language selects a locale,
+/// and UI callers resolve stable keys with fallback and typed formatting through this facade.
 /// </remarks>
 internal sealed class GameText
 {
@@ -24,12 +26,15 @@ internal sealed class GameText
         "Spelljammer.Localization.en-US.menu.sfloc",
         "Spelljammer.Localization.en-US.settings.sfloc",
         "Spelljammer.Localization.en-US.creation.sfloc",
+        "Spelljammer.Localization.en-US.calendar.sfloc",
         "Spelljammer.Localization.fr-FR.menu.sfloc",
         "Spelljammer.Localization.fr-FR.settings.sfloc",
         "Spelljammer.Localization.fr-FR.creation.sfloc",
+        "Spelljammer.Localization.fr-FR.calendar.sfloc",
         "Spelljammer.Localization.zh-Hant-TW.menu.sfloc",
         "Spelljammer.Localization.zh-Hant-TW.settings.sfloc",
         "Spelljammer.Localization.zh-Hant-TW.creation.sfloc",
+        "Spelljammer.Localization.zh-Hant-TW.calendar.sfloc",
     ];
 
     private readonly LocalizationService localization;
@@ -84,7 +89,7 @@ internal sealed class GameText
         LocalizationService service = new();
         Require(service.Initialize(new LocalizationConfig(
             "en-US",
-            RequiredNamespaces: ["menu", "settings", "creation"])),
+            RequiredNamespaces: ["menu", "settings", "creation", "calendar"])),
             "Could not initialize the application localization service.");
         GameText result = new(service, catalogs);
         result.SetLanguage(language);

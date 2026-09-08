@@ -2,6 +2,12 @@ using System.Runtime.InteropServices;
 
 namespace Spelljammer.Interop;
 
+/// <summary>
+/// Declares the managed representation of the versioned SpriteForge native ABI.
+/// </summary>
+/// <remarks>
+/// Code flow: Managed hosts marshal bounded blittable requests into native functions, inspect returned status values, and copy snapshots or commands back into managed presentation code.
+/// </remarks>
 internal enum EngineStatus
 {
     Success = 0,
@@ -42,45 +48,6 @@ internal struct EngineAudioConfig
     internal ulong MaximumResidentBytes;
     internal ulong MaximumStreamBufferBytes;
     internal uint EnableVoiceStealing;
-}
-
-[StructLayout(LayoutKind.Sequential)]
-internal struct EngineCamera2D
-{
-    internal float PositionX;
-    internal float PositionY;
-    internal float RotationRadians;
-    internal float PixelsPerWorldUnit;
-    internal uint IntegerZoom;
-    internal uint PixelPerfect;
-}
-
-[StructLayout(LayoutKind.Sequential)]
-internal struct EngineSpriteDraw
-{
-    internal uint Texture;
-    internal uint SourceX;
-    internal uint SourceY;
-    internal uint SourceWidth;
-    internal uint SourceHeight;
-    internal int PivotX;
-    internal int PivotY;
-    internal uint UntrimmedWidth;
-    internal uint UntrimmedHeight;
-    internal float PositionX;
-    internal float PositionY;
-    internal float ScaleX;
-    internal float ScaleY;
-    internal float RotationRadians;
-    internal float ColorR;
-    internal float ColorG;
-    internal float ColorB;
-    internal float ColorA;
-    internal int Layer;
-    internal int Order;
-    internal uint FlipX;
-    internal uint FlipY;
-    internal uint PixelSnap;
 }
 
 [StructLayout(LayoutKind.Sequential)]
@@ -549,42 +516,6 @@ internal static class SpriteForgeNative
                 $"SpriteForge interop layout '{typeof(T).Name}' is {actual} bytes; expected {expected}.");
         }
     }
-
-    [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
-    internal static extern uint SpriteForge_GetInteropVersion();
-
-    [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
-    internal static extern EngineStatus SpriteForge_CreateRenderer(
-        nint nativeWindow,
-        uint logicalWidth,
-        uint logicalHeight,
-        uint maxSprites,
-        uint verticalSync,
-        out nint renderer);
-
-    [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
-    internal static extern void SpriteForge_DestroyRenderer(nint renderer);
-
-    [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
-    internal static extern EngineStatus SpriteForge_CreateRgba8Texture(
-        nint renderer,
-        uint width,
-        uint height,
-        byte[] pixels,
-        nuint sizeBytes,
-        out uint texture);
-
-    [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
-    internal static extern EngineStatus SpriteForge_DestroyTexture(
-        nint renderer,
-        uint texture);
-
-    [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
-    internal static extern EngineStatus SpriteForge_RenderSprites(
-        nint renderer,
-        in EngineCamera2D camera,
-        [In] EngineSpriteDraw[] draws,
-        uint drawCount);
 
     [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
     internal static extern EngineStatus SpriteForge_GetDefaultAudioConfig(out EngineAudioConfig config);

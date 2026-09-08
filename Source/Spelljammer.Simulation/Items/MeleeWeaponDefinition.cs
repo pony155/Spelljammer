@@ -1,8 +1,15 @@
 using System.Collections.Immutable;
+using Spelljammer.Simulation.Combat;
 using Spelljammer.Simulation.Content;
 
 namespace Spelljammer.Simulation.Items;
 
+/// <summary>
+/// Defines melee weapons by combining common item data with close-combat actions.
+/// </summary>
+/// <remarks>
+/// Code flow: Compiled definitions enter the item catalog, equipment selects an instance, and melee combat resolves its family, reach, hands, and authored action data.
+/// </remarks>
 public sealed record MeleeWeaponDefinition(
     MeleeWeaponId MeleeWeaponId,
     int SchemaVersion,

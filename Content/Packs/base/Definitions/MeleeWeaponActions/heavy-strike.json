@@ -13,5 +13,5 @@
   "rangeModifier": 0,
   "energyCostModifier": 0,
   "durabilityCost": 2,
-  "effectIds": ["effect.equipment.attack"]
+  "effectIds": []
 }

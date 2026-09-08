@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "revision": 1,
+  "id": "effect.equipment.focus",
+  "nameKey": "effect.equipment.focus.name",
+  "descriptionKey": "effect.equipment.focus.description",
+  "type": "emit-event",
+  "amount": 0,
+  "eventId": "event.equipment.focus"
+}

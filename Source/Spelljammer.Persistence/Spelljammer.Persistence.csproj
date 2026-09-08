@@ -3,6 +3,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Spelljammer.Content\Spelljammer.Content.csproj" />
     <ProjectReference Include="..\Spelljammer.Simulation\Spelljammer.Simulation.csproj" />
+    <ProjectReference Include="..\Spelljammer.Storage\Spelljammer.Storage.csproj" />
   </ItemGroup>
 
 </Project>

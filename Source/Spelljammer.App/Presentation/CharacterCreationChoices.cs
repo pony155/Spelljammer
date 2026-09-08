@@ -2,6 +2,12 @@ using Spelljammer.Simulation.Content;
 
 namespace Spelljammer.Presentation;
 
+/// <summary>
+/// Builds presentation-ready character-creation choices from compiled gameplay content.
+/// </summary>
+/// <remarks>
+/// Code flow: Content definitions are filtered and localized, converted to stable choice records, and resolved into the IDs and seed used by character creation.
+/// </remarks>
 internal sealed record CharacterCreationChoice(
     string TextId,
     CharacterId CharacterId,

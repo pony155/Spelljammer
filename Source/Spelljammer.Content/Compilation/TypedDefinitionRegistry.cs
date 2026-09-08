@@ -4,6 +4,12 @@ using Spelljammer.Simulation.Content;
 
 namespace Spelljammer.Content.Compilation;
 
+/// <summary>
+/// Provides immutable typed definition lookup and fingerprint-scoped dense indices.
+/// </summary>
+/// <remarks>
+/// Code flow: Linked definitions are sorted and checked for duplicates and capacity, assigned dense indices bound to one fingerprint, then exposed through ID and index lookups.
+/// </remarks>
 public readonly record struct ScopedContentIndex<TId>
     where TId : struct
 {

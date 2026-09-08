@@ -10,6 +10,8 @@ namespace Spelljammer.Settings;
 /// screen shake), accessibility settings (subtitles, reduced motion), and localization settings (language,
 /// resolution). The record is immutable and can be validated for correctness using the <see cref="IsValid"/>
 /// property before being serialized or applied.
+/// Code flow: Startup decodes a candidate profile, validation normalizes or rejects its values, the registry publishes
+/// accepted settings, and presentation and audio services consume the immutable snapshot.
 /// </remarks>
 /// <param name="SchemaVersion">The version of the settings schema; used for format evolution and migration.</param>
 /// <param name="MasterVolume">Master volume level (0-100).</param>

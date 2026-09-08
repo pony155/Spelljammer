@@ -1,5 +1,11 @@
 namespace Spelljammer.Simulation.Items;
 
+/// <summary>
+/// Centralizes stable rejection codes returned by inventory and equipment operations.
+/// </summary>
+/// <remarks>
+/// Code flow: Item-system validation selects one code without mutating state, callers inspect the result, and persistence or UI layers may record or localize the stable code.
+/// </remarks>
 public static class ItemRejectionCodes
 {
     public const string None = "none";

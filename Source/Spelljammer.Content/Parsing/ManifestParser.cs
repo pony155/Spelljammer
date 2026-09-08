@@ -6,6 +6,12 @@ using Spelljammer.Simulation.Content;
 
 namespace Spelljammer.Content.Parsing;
 
+/// <summary>
+/// Parses and validates a content pack's manifest and dependency metadata.
+/// </summary>
+/// <remarks>
+/// Code flow: Strict JSON parsing validates required fields, versions, paths, dependencies, and load hints, then returns an immutable manifest used by pack ordering or diagnostics on failure.
+/// </remarks>
 internal static class ManifestParser
 {
     private static readonly string[] Required =

@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "locale": "en-US",
+  "namespace": "time-scale",
+  "fallbacks": [],
+  "textDirection": "ltr",
+  "messages": {
+    "time-scale.tactical.name": {
+      "description": "Display name for normal tactical campaign-time progression.",
+      "message": "Tactical Time"
+    },
+    "time-scale.tactical.description": {
+      "description": "Description of normal tactical campaign-time progression.",
+      "message": "Advances one world second for every twenty simulation ticks."
+    }
+  }
+}

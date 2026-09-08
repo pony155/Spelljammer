@@ -1,4 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace Spelljammer.Simulation.Content;
 
@@ -9,6 +11,8 @@ namespace Spelljammer.Simulation.Content;
 /// Content IDs follow a strict canonical grammar: lowercase letters and digits separated by dots and hyphens,
 /// with at least 3 characters and at most 127 characters. The format is: namespace.type-variant or similar.
 /// This ensures IDs are human-readable, deterministic, and safe for serialization.
+/// Code flow: Authored names are validated and normalized into typed IDs, passed through catalogs and state,
+/// and compared or serialized without using localized text or runtime object references.
 /// </remarks>
 public readonly record struct ContentId : IComparable<ContentId>
 {
@@ -228,6 +232,58 @@ public readonly record struct CharacterResourceProfileId : IComparable<Character
     public override string ToString() => Value.ToString();
 }
 
+/// <summary>Identifies data-driven authoritative world timing rules.</summary>
+public readonly record struct WorldTimeId : IComparable<WorldTimeId>
+{
+    public WorldTimeId(ContentId value) => Value = TypedContentId.RequirePrefix(value, "world-time.");
+    public WorldTimeId(string value) : this(new ContentId(value)) { }
+    public ContentId Value { get; }
+    public bool IsValid => Value.IsValid;
+    public int CompareTo(WorldTimeId other) => Value.CompareTo(other.Value);
+    public override string ToString() => Value.ToString();
+    public static bool TryParse(string? value, out WorldTimeId id) =>
+        TypedContentId.TryParse(value, "world-time.", out id);
+}
+
+/// <summary>Identifies a data-driven campaign calendar.</summary>
+public readonly record struct CalendarId : IComparable<CalendarId>
+{
+    public CalendarId(ContentId value) => Value = TypedContentId.RequirePrefix(value, "calendar.");
+    public CalendarId(string value) : this(new ContentId(value)) { }
+    public ContentId Value { get; }
+    public bool IsValid => Value.IsValid;
+    public int CompareTo(CalendarId other) => Value.CompareTo(other.Value);
+    public override string ToString() => Value.ToString();
+    public static bool TryParse(string? value, out CalendarId id) =>
+        TypedContentId.TryParse(value, "calendar.", out id);
+}
+
+/// <summary>Identifies an ordered month within a campaign calendar.</summary>
+public readonly record struct CalendarMonthId : IComparable<CalendarMonthId>
+{
+    public CalendarMonthId(ContentId value) => Value = TypedContentId.RequirePrefix(value, "calendar.month.");
+    public CalendarMonthId(string value) : this(new ContentId(value)) { }
+    public ContentId Value { get; }
+    public bool IsValid => Value.IsValid;
+    public int CompareTo(CalendarMonthId other) => Value.CompareTo(other.Value);
+    public override string ToString() => Value.ToString();
+    public static bool TryParse(string? value, out CalendarMonthId id) =>
+        TypedContentId.TryParse(value, "calendar.month.", out id);
+}
+
+/// <summary>Identifies a data-driven mapping from simulation ticks to world time.</summary>
+public readonly record struct TimeScaleId : IComparable<TimeScaleId>
+{
+    public TimeScaleId(ContentId value) => Value = TypedContentId.RequirePrefix(value, "time-scale.");
+    public TimeScaleId(string value) : this(new ContentId(value)) { }
+    public ContentId Value { get; }
+    public bool IsValid => Value.IsValid;
+    public int CompareTo(TimeScaleId other) => Value.CompareTo(other.Value);
+    public override string ToString() => Value.ToString();
+    public static bool TryParse(string? value, out TimeScaleId id) =>
+        TypedContentId.TryParse(value, "time-scale.", out id);
+}
+
 /// <summary>
 /// A strongly-typed identifier for an access privilege or ability category.
 /// </summary>
@@ -348,15 +404,27 @@ public readonly record struct ResourceId : IComparable<ResourceId>
     public override string ToString() => Value.ToString();
 }
 
-/// <summary>A strongly-typed identifier for a game actor (NPC or entity).</summary>
-public readonly record struct ActorId : IComparable<ActorId>
+/// <summary>A strongly-typed identifier for one unit instance on a personal battlefield.</summary>
+public readonly record struct BattleUnitId : IComparable<BattleUnitId>
 {
-    public ActorId(ContentId value) => Value = TypedContentId.RequirePrefix(value, "actor.");
-    public ActorId(string value) : this(new ContentId(value)) { }
+    public BattleUnitId(ContentId value) => Value = TypedContentId.RequirePrefix(value, "unit.");
+    public BattleUnitId(string value) : this(new ContentId(value)) { }
     public ContentId Value { get; }
     public bool IsValid => Value.IsValid;
-    public int CompareTo(ActorId other) => Value.CompareTo(other.Value);
+    public int CompareTo(BattleUnitId other) => Value.CompareTo(other.Value);
     public override string ToString() => Value.ToString();
+
+    public static BattleUnitId Derive(EncounterId encounterId, ContentId sourceId, int spawnOrdinal)
+    {
+        if (!encounterId.IsValid || !sourceId.IsValid || spawnOrdinal < 0)
+        {
+            throw new ArgumentException("Battle-unit derivation input is invalid.");
+        }
+
+        byte[] hash = SHA256.HashData(Encoding.UTF8.GetBytes(
+            FormattableString.Invariant($"{encounterId}|{sourceId}|{spawnOrdinal}")));
+        return new BattleUnitId($"unit.u{Convert.ToHexStringLower(hash.AsSpan(0, 16))}");
+    }
 }
 
 /// <summary>A strongly-typed identifier for a team (group of characters or units).</summary>

@@ -44,14 +44,14 @@ Partial training never provides partial access.
 
 ## Racial and Heritage Feats
 
-A Racial Feat represents physiology, supernatural nature, or a distinct racial
+A race- or heritage-granted Feat represents physiology, supernatural nature, or a distinct racial
 adaptation. A Heritage Feat represents a compatible environmental, cultural,
 or physiological inheritance. Neither category dictates personality,
 intelligence, morality, profession, faction, or a hard Skill ceiling.
 
 At character creation, a character receives:
 
-1. the Racial Feats granted by their Race definition; and
+1. the Feats granted by their Race definition; and
 2. the Heritage Feats granted by their compatible Heritage definition.
 
 A Racial or Heritage Feat may grant innate supernatural access. Innate access
@@ -61,7 +61,7 @@ not count as having completed that training project.
 ## Grant provenance
 
 Every effective capability records a stable source chain. If a learned Feat and
-a Racial Feat both grant `access.magic`, removing either source leaves access
+a race-granted Feat both grant `access.magic`, removing either source leaves access
 available while the other valid source remains. Removing a source also removes
 only capabilities that no longer have another retained source.
 
@@ -97,7 +97,7 @@ The first crew-enabled slice needs:
 - the Race and Heritage Feats defined in [`Races.md`](Races.md);
 - Spellcasting Training and Psionics Awakening as learned access Feats;
 - independent provenance when innate and trained access overlap;
-- one action enabled by a Racial Feat;
+- one action enabled by a race- or heritage-granted Feat;
 - one effect removed without removing an independent grant source; and
 - inspectable rejection reasons for missing or incompatible Feats.
 

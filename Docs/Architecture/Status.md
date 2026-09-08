@@ -726,24 +726,39 @@ This structure keeps Status definitions reusable across combat, abilities, weapo
 
 The first headless implementation is available under
 `Source/Spelljammer.Simulation/Effects`. It separates immutable
-`EffectDefinition` and `StatusDefinition` content from `EffectRequest` and
-`StatusInstance` runtime state. Status application, removal, timed turn
+typed `EffectDefinition` payloads and `StatusDefinition` content from
+`EffectApplicationDefinition`, `EffectRequest`, and `StatusInstance` runtime
+state. Each request owns a deterministic `EffectInvocationId`; applications
+describe target selection, timing, probability, power, and tags independently
+from the reusable Effect payload. Status application, removal, timed turn
 advancement, refresh, extend, intensity stacking, stronger-wins replacement,
 independent instances, reject policy, exclusive-group priority, modifiers,
 restrictions, and bounded lifecycle Effect queues publish immutable state
 atomically.
 
 The content compiler accepts camel-case JSON under `Definitions/Effects` and
-`Definitions/Statuses`, validates cross-references, and includes both kinds in
-the canonical content fingerprint. The base pack currently defines Charmed,
-Confused, Raging, Burning, Apply Burning, and Burning Damage. Character and
-personal-encounter actor state can persist Status instances through campaign
-save schema 10. Melee, ranged, reload, and general character actions consult
-status action restrictions; melee and ranged accuracy include active Status
-modifiers.
+`Definitions/Statuses`, validates every Feat, gear, melee-action,
+ranged-action, and Status Effect reference against the unified Effect catalog,
+and includes both kinds in the canonical content fingerprint. Effect payloads
+are compiled into resource, damage, status application/removal, modifier,
+shield, or event types instead of one nullable catch-all record. The base pack
+defines the combat damage operations and the Effects referenced by spells,
+psionics, equipment, and race- or heritage-granted Feats, including the persistent Mindlinked
+Status.
 
-The current `ActiveCapabilityEffect` and encounter-level `ActiveEffectState`
-contracts remain separate compatibility models. Applying resolved attack
-damage directly to encounter targets, status-driven defense and movement,
-AI scoring, conditional expiration, treatment, and migration of those legacy
-effect records remain planned.
+Character and personal-encounter `BattleUnitState` persist Status instances
+through campaign save schema 13. `StatusTargetId` distinguishes the Status
+ownership contract, and `BattleUnitProjection` retargets instances explicitly
+at encounter entry and commit. Schema 12 actor targets are migrated to unit
+targets during load;
+superseded `activeEffects`, `ActiveCapabilityEffect`, and encounter-level
+`ActiveEffectState` data are no longer persistence or simulation contracts.
+Melee and ranged hit resolution emits deterministic Effect requests for armor
+and Health damage plus authored action Effects, and exposes an atomic
+`ResolveEffects` boundary. Spells and psionic actions emit the same request
+type. Reload and general character actions consult Status restrictions, while
+melee and ranged accuracy include active Status modifiers.
+
+Applying an attack's resolved target snapshot back into the encounter,
+scheduled non-instant applications, status-driven defense and movement, AI
+scoring, conditional expiration, and resistance checks remain planned.

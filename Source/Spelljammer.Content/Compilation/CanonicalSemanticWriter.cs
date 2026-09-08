@@ -10,6 +10,12 @@ using AmmunitionDefinition = Spelljammer.Simulation.Items.AmmunitionDefinition;
 
 namespace Spelljammer.Content.Compilation;
 
+/// <summary>
+/// Serializes compiled semantic content into canonical bytes and computes its fingerprint.
+/// </summary>
+/// <remarks>
+/// Code flow: Packs and definitions are ordered by canonical kind and ID, invariant values are emitted with stable escaping and field order, and SHA-256 identifies the exact gameplay semantics.
+/// </remarks>
 internal static class CanonicalSemanticWriter
 {
     public static (byte[] Bytes, ContentFingerprint Fingerprint) Write(
@@ -64,6 +70,28 @@ internal static class CanonicalSemanticWriter
 
         switch (definition)
         {
+            case WorldTimeDefinition value:
+                properties["maximumCatchUpTicks"] = output => output.Append(value.MaximumCatchUpTicks);
+                properties["ticksPerSecond"] = output => output.Append(value.TicksPerSecond);
+                break;
+            case CalendarDefinition value:
+                properties["daysPerWeek"] = output => output.Append(value.DaysPerWeek);
+                properties["hoursPerDay"] = output => output.Append(value.HoursPerDay);
+                properties["minutesPerHour"] = output => output.Append(value.MinutesPerHour);
+                properties["months"] = output => WriteCalendarMonths(output, value.Months);
+                properties["secondsPerMinute"] = output => output.Append(value.SecondsPerMinute);
+                properties["startingDay"] = output => output.Append(value.StartingDay);
+                properties["startingDayOfWeekIndex"] = output => output.Append(value.StartingDayOfWeekIndex);
+                properties["startingHour"] = output => output.Append(value.StartingHour);
+                properties["startingMinute"] = output => output.Append(value.StartingMinute);
+                properties["startingMonth"] = output => output.Append(value.StartingMonth);
+                properties["startingSecond"] = output => output.Append(value.StartingSecond);
+                properties["startingYear"] = output => output.Append(value.StartingYear);
+                break;
+            case TimeScaleDefinition value:
+                properties["simulationTicksDenominator"] = output => output.Append(value.SimulationTicksDenominator);
+                properties["worldSecondsNumerator"] = output => output.Append(value.WorldSecondsNumerator);
+                break;
             case AbilityDefinition value:
                 properties["defaultValue"] = output => output.Append(value.DefaultValue);
                 properties["maximum"] = output => output.Append(value.Maximum);
@@ -151,7 +179,7 @@ internal static class CanonicalSemanticWriter
 
                 if (!value.EffectIds.IsEmpty)
                 {
-                    properties["effectIds"] = output => WriteIds(output, value.EffectIds);
+                    properties["effectIds"] = output => WriteIds(output, value.EffectIds.Select(id => id.Value));
                 }
 
                 if (!value.GrantedFeatIds.IsEmpty)
@@ -231,7 +259,7 @@ internal static class CanonicalSemanticWriter
                 break;
             case GearDefinition value:
                 properties["actionIds"] = output => WriteIds(output, value.ActionIds);
-                properties["effectIds"] = output => WriteIds(output, value.EffectIds);
+                properties["effectIds"] = output => WriteIds(output, value.EffectIds.Select(id => id.Value));
                 properties["kind"] = output => WriteString(output, "gear");
                 properties["occupiedSlotIds"] = output => WriteIds(output, value.OccupiedSlotIds);
                 properties["tags"] = output => WriteStrings(output, value.Tags);
@@ -268,7 +296,7 @@ internal static class CanonicalSemanticWriter
                 properties["armorPenetrationModifier"] = output => output.Append(value.ArmorPenetrationModifier);
                 properties["damagePercentage"] = output => output.Append(value.DamagePercentage);
                 properties["durabilityCost"] = output => output.Append(value.DurabilityCost);
-                properties["effectIds"] = output => WriteIds(output, value.EffectIds);
+                properties["effectIds"] = output => WriteIds(output, value.EffectIds.Select(id => id.Value));
                 properties["energyCostModifier"] = output => output.Append(value.EnergyCostModifier);
                 properties["hitModifier"] = output => output.Append(value.HitModifier);
                 properties["rangeModifier"] = output => output.Append(value.RangeModifier);
@@ -320,7 +348,7 @@ internal static class CanonicalSemanticWriter
                 properties["damageFalloffPerUnitPercentage"] = output => output.Append(value.DamageFalloffPerUnitPercentage);
                 properties["damagePercentage"] = output => output.Append(value.DamagePercentage);
                 properties["durabilityCost"] = output => output.Append(value.DurabilityCost);
-                properties["effectIds"] = output => WriteIds(output, value.EffectIds);
+                properties["effectIds"] = output => WriteIds(output, value.EffectIds.Select(id => id.Value));
                 properties["energyCostModifier"] = output => output.Append(value.EnergyCostModifier);
                 properties["heatModifier"] = output => output.Append(value.HeatModifier);
                 properties["hitModifier"] = output => output.Append(value.HitModifier);
@@ -331,13 +359,24 @@ internal static class CanonicalSemanticWriter
                 properties["staminaCostModifier"] = output => output.Append(value.StaminaCostModifier);
                 break;
             case EffectDefinition value:
-                properties["amount"] = output => output.Append(value.Amount);
-                properties["duration"] = output => output.Append(value.Duration);
-                properties["potency"] = output => output.Append(value.Potency);
-                properties["stacks"] = output => output.Append(value.Stacks);
-                if (value.StatusId is StatusId statusId)
+                properties["amount"] = output => output.Append(EffectAmount(value.Payload));
+                properties["duration"] = output => output.Append(
+                    value.Payload is ApplyStatusEffectPayload application ? application.Duration ?? 0 : 0);
+                properties["potency"] = output => output.Append(
+                    value.Payload is ApplyStatusEffectPayload application ? application.Potency : 0);
+                properties["stacks"] = output => output.Append(
+                    value.Payload is ApplyStatusEffectPayload application ? application.Stacks : 0);
+                if (value.Payload is ApplyStatusEffectPayload application)
                 {
-                    properties["statusId"] = output => WriteString(output, statusId.ToString());
+                    properties["statusId"] = output => WriteString(output, application.StatusId.ToString());
+                }
+                else if (value.Payload is RemoveStatusEffectPayload removal)
+                {
+                    properties["statusId"] = output => WriteString(output, removal.StatusId.ToString());
+                }
+                else if (value.Payload is EmitEventEffectPayload emitted)
+                {
+                    properties["eventId"] = output => WriteString(output, emitted.EventId.ToString());
                 }
 
                 properties["type"] = output => WriteString(output, WriteEffectType(value.Type));
@@ -480,6 +519,9 @@ internal static class CanonicalSemanticWriter
         ShipFrameDefinition => 24,
         ShipModuleDefinition => 25,
         ShipWeaponConfigurationDefinition => 26,
+        WorldTimeDefinition => 27,
+        CalendarDefinition => 28,
+        TimeScaleDefinition => 29,
         _ => throw new ArgumentOutOfRangeException(nameof(definition)),
     };
 
@@ -691,6 +733,15 @@ internal static class CanonicalSemanticWriter
     private static void WriteIds(StringBuilder builder, IEnumerable<ContentId> ids) =>
         WriteStrings(builder, ids.Select(id => id.ToString()));
 
+    private static int EffectAmount(EffectPayload payload) => payload switch
+    {
+        ResourceEffectPayload value => value.Amount,
+        DamageEffectPayload value => value.Amount,
+        ModifierEffectPayload value => value.Amount,
+        GrantShieldEffectPayload value => value.Amount,
+        _ => 0,
+    };
+
     private static void WriteIntegers(StringBuilder builder, IEnumerable<int> values)
     {
         builder.Append('[').AppendJoin(',', values).Append(']');
@@ -721,6 +772,30 @@ internal static class CanonicalSemanticWriter
                 .Append(",\"requiredExperience\":").Append(entry.RequiredExperience)
                 .Append(",\"skillPoints\":").Append(entry.SkillPoints)
                 .Append('}');
+        }
+
+        builder.Append(']');
+    }
+
+    private static void WriteCalendarMonths(
+        StringBuilder builder,
+        IEnumerable<CalendarMonthDefinition> months)
+    {
+        builder.Append('[');
+        bool first = true;
+        foreach (CalendarMonthDefinition month in months)
+        {
+            if (!first)
+            {
+                builder.Append(',');
+            }
+
+            first = false;
+            builder.Append("{\"days\":").Append(month.Days).Append(",\"id\":");
+            WriteString(builder, month.CalendarMonthId.ToString());
+            builder.Append(",\"nameKey\":");
+            WriteString(builder, month.NameKey);
+            builder.Append('}');
         }
 
         builder.Append(']');

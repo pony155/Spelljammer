@@ -1,9 +1,16 @@
 using System.Collections.Immutable;
 using Spelljammer.Simulation.Characters;
+using Spelljammer.Simulation.Combat;
 using Spelljammer.Simulation.Content;
 
 namespace Spelljammer.Simulation.Items;
 
+/// <summary>
+/// Defines stable item identities, stack entries, inventory containers, and equipment loadouts.
+/// </summary>
+/// <remarks>
+/// Code flow: Item creation establishes instances or stacks, inventory operations replace bounded container entries, and equipment operations reference non-stackable instances by stable ID.
+/// </remarks>
 public readonly record struct ItemInstanceId(Guid Value)
 {
     public bool IsValid => Value != Guid.Empty;

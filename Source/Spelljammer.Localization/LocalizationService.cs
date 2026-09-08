@@ -7,6 +7,9 @@ namespace Spelljammer.Localization;
 /// <summary>
 /// Status codes returned by localization operations.
 /// </summary>
+/// <remarks>
+/// Code flow: Catalog generations are initialized and published on the owner thread, locale selection resolves fallback entries, and formatting returns bounded text plus observable diagnostics.
+/// </remarks>
 public enum LocalizationStatus
 {
     /// <summary>Operation completed successfully.</summary>

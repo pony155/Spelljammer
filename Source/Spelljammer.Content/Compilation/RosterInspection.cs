@@ -4,6 +4,12 @@ using Spelljammer.Simulation.Content;
 
 namespace Spelljammer.Content.Compilation;
 
+/// <summary>
+/// Projects compiled character and roster data into localized read-only inspection models.
+/// </summary>
+/// <remarks>
+/// Code flow: A content-locked roster is validated, stable character and capability IDs resolve through the snapshot, labels are localized, and deterministic display rows are returned without state mutation.
+/// </remarks>
 public sealed record CapabilityDisplayValue(ContentId Id, string Label, int Value);
 
 public sealed record CharacterRosterDisplayRow(

@@ -19,7 +19,7 @@ The simulation currently implements:
 The scenario-selected profile at
 `Content/Packs/base/Definitions/CharacterResourceProfiles/standard.json` owns
 base values, thresholds, stamina speed bands, recovery, and personal-action AP
-costs. `VoyageWorld` must not contain fallback combat-economy numbers.
+costs. `World` must not contain fallback combat-economy numbers.
 
 Threshold-driven status application, authored Resolve attacks, psionic
 overload outcomes, activity-sensitive recovery, attribute-derived Turn Meter
@@ -438,7 +438,7 @@ timing cannot change combat results.
 Resources are numeric state, not statuses. A threshold crossing may request an
 authored status such as Shaken, Critical Strain, or Psionic Overload, but that
 status owns its own definition, source, duration, stacking, and removal rule.
-See [`../Concept/Status.md`](../Concept/Status.md).
+See [`Status.md`](Status.md).
 
 Physical statuses may include Bleeding, Burning, Poisoned, Stunned, Knocked
 Down, Crippled, Suppressed, or Blinded. Mental statuses may include Shaken,

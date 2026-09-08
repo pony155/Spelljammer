@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "revision": 1,
+  "id": "world-time.standard",
+  "nameKey": "world-time.standard.name",
+  "descriptionKey": "world-time.standard.description",
+  "ticksPerSecond": 20,
+  "maximumCatchUpTicks": 8
+}

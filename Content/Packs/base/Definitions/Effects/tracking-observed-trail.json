@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "revision": 1,
+  "id": "effect.tracking.observed-trail",
+  "nameKey": "effect.tracking.observed-trail.name",
+  "descriptionKey": "effect.tracking.observed-trail.description",
+  "type": "emit-event",
+  "amount": 0,
+  "eventId": "event.tracking.observed-trail"
+}

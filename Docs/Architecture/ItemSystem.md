@@ -11,7 +11,7 @@ localized text.
 Melee and ranged weapon rules compile into the same item catalog as armor and
 gear. Character creation produces deterministic item instances, equips their
 starting loadout through `ItemSystem`, and combat commits weapon condition back
-to those instances. Campaign save schema 10 persists the complete item state.
+to those instances. Campaign save schema 13 persists the complete item state.
 Consumables, materials, trade goods, crafting, merchants, loot generation, and
 ground containers are planned extensions rather than implemented features.
 
@@ -381,8 +381,8 @@ Implemented integration:
 3. Character and encounter state both use `ItemSystemState`.
 4. Melee and ranged commands address weapons by `ItemInstanceId` and commit
    durability, energy, ammunition, and heat to the owning character.
-5. Save schema 10 serializes instances, stack entries, containers, loadouts, and
-   specialized weapon state; schema 7 and 8 data are converted during load.
+5. Save schema 13 serializes instances, stack entries, containers, loadouts, and
+   specialized weapon state. The prototype accepts only the current save schema.
 
 Loot containers, merchants, item drops, and consumable effects remain planned.
 

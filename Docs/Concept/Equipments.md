@@ -14,7 +14,7 @@ economy, crafting, and the broader catalog in this document remain planned.
 - Keep inventory and item values readable; equipment is not an engineering or
   accounting simulation.
 - Let any classless character use compatible equipment when its explicit Skill,
-  Feat, Racial Feat, or physical requirement is met.
+  Feat, race- or heritage-granted Feat, or physical requirement is met.
 - Keep stable IDs and data-authored definitions for saves, balancing, and
   eventual modding.
 
@@ -94,7 +94,7 @@ statistics.
 
 An item never grants unrestricted spellcasting, psionics influence, or immunity
 to all hazards. A casting focus helps an authorized caster; it does not replace
-Spellcasting Training or an innate Racial Feat. A weapon's technology path does
+Spellcasting Training or an innate race- or heritage-granted Feat. A weapon's technology path does
 not make it automatically stronger than the other path.
 
 ## Resonance and industrial craft
@@ -130,18 +130,20 @@ The first personal-combat slice needs only a small mixed set:
 
 | Equipment | Stable ID | Purpose |
 | --- | --- | --- |
-| Boarding blade | `item.weapon.boarding-blade` | Reliable melee weapon |
-| Service pistol | `item.weapon.service-pistol` | Short-range industrial sidearm |
-| Aether projector | `item.weapon.aether-projector` | Short-range Arcane energy weapon using charge |
-| Laser carbine | `item.weapon.laser-carbine` | Atompunk ranged weapon with laser damage and charge cost |
-| Plasma rifle | `item.weapon.plasma-rifle` | Atompunk ranged weapon with plasma damage and charge cost |
-| Pressure suit | `item.armor.pressure-suit` | Basic armor and vacuum protection |
-| Powered armor | `item.armor.powered-armor` | Atompunk Body armor with high Armor Value and optional energy cost |
-| Repair kit | `item.tool.repair-kit` | Support Engineering repair actions |
-| Survey scanner | `item.tool.survey-scanner` | Support Sensors and ruin exploration |
-| Field medkit | `item.medical.field-medkit` | Stabilize or treat an injury |
-| Casting focus | `item.arcane.casting-focus` | Support a known spell without granting access |
+| Boarding blade | `melee-weapon.boarding-blade` | Reliable melee weapon |
+| Service pistol | `ranged-weapon.service-pistol` | Short-range industrial sidearm |
+| Aether projector | `ranged-weapon.aether-projector` | Short-range Arcane energy weapon using charge |
+| Laser carbine | `ranged-weapon.laser-carbine` | Atompunk ranged weapon with laser damage and charge cost |
+| Plasma rifle | `ranged-weapon.plasma-rifle` | Atompunk ranged weapon with plasma damage and charge cost |
+| Pressure suit | `equipment.personal.pressure-suit` | Basic armor and vacuum protection |
+| Powered armor | `equipment.powered-armor` | Atompunk Body armor with high Armor Value and optional energy cost |
+| Repair kit | `equipment.repair-kit` | Support Engineering repair actions |
+| Survey scanner | `equipment.survey-scanner` | Support Sensors and ruin exploration |
+| Field medkit | `equipment.personal.field-medkit` | Stabilize or treat an injury |
+| Casting focus | `equipment.personal.casting-focus` | Support a known spell without granting access |
 
-These IDs are planned design content, not a claim that an item registry or
-inventory UI exists yet. More equipment is added only when it creates a new
+The unified item catalog, inventory state, equipment operations, Boarding
+Blade, Service Pistol, Pressure Suit, Field Medkit, and Casting Focus are
+implemented. The other rows remain planned authored content, and an inventory
+UI is not implemented yet. More equipment is added only when it creates a new
 meaningful choice rather than a small numerical upgrade.

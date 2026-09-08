@@ -3,6 +3,12 @@ using Spelljammer.Simulation.Content;
 
 namespace Spelljammer.Simulation.Characters;
 
+/// <summary>
+/// Resolves data-driven character training projects and their completion rewards.
+/// </summary>
+/// <remarks>
+/// Code flow: A training command checks facilities, safety requirements, prerequisites, and resources, then atomically deducts cost and grants feats or access through a completion event.
+/// </remarks>
 public sealed record TrainingContext(
     ImmutableHashSet<ContentId> AvailableFacilityIds,
     ImmutableHashSet<ContentId> AvailableSafetyIds);
@@ -28,7 +34,7 @@ public static class CharacterTrainingSystem
         CharacterState character,
         TrainingProjectId projectId,
         TrainingContext context,
-        ICharacterContentCatalog catalog)
+        ICharacterDefinitionCatalog catalog)
     {
         if (!TryProject(character, projectId, catalog, out TrainingProjectDefinition? project, out string rejection))
         {
@@ -77,7 +83,7 @@ public static class CharacterTrainingSystem
         CharacterState character,
         TrainingProjectId projectId,
         int workUnits,
-        ICharacterContentCatalog catalog)
+        ICharacterDefinitionCatalog catalog)
     {
         if (!TryProject(character, projectId, catalog, out TrainingProjectDefinition? project, out string rejection))
         {
@@ -106,7 +112,7 @@ public static class CharacterTrainingSystem
     public static TrainingCommandResult Cancel(
         CharacterState character,
         TrainingProjectId projectId,
-        ICharacterContentCatalog catalog)
+        ICharacterDefinitionCatalog catalog)
     {
         if (!TryProject(character, projectId, catalog, out _, out string rejection))
         {
@@ -125,7 +131,7 @@ public static class CharacterTrainingSystem
     public static TrainingCommandResult Complete(
         CharacterState character,
         TrainingProjectId projectId,
-        ICharacterContentCatalog catalog)
+        ICharacterDefinitionCatalog catalog)
     {
         if (!TryProject(character, projectId, catalog, out TrainingProjectDefinition? project, out string rejection))
         {
@@ -192,7 +198,7 @@ public static class CharacterTrainingSystem
     private static bool TryProject(
         CharacterState character,
         TrainingProjectId projectId,
-        ICharacterContentCatalog catalog,
+        ICharacterDefinitionCatalog catalog,
         out TrainingProjectDefinition? project,
         out string rejection)
     {

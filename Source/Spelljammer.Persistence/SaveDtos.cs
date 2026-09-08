@@ -1,7 +1,11 @@
-using System.Text.Json.Serialization;
-
 namespace Spelljammer.Persistence;
 
+/// <summary>
+/// Defines the bounded JSON transfer objects used inside campaign save envelopes.
+/// </summary>
+/// <remarks>
+/// Code flow: Write mappings project authoritative domain state into DTOs, JSON serialization stores them in the save envelope, and read mappings reconstruct validated domain values.
+/// </remarks>
 internal sealed class SavePreflightDto
 {
     public string Discriminator { get; set; } = string.Empty;
@@ -42,6 +46,7 @@ internal sealed class CampaignPayloadDto
 internal sealed class WorldDto
 {
     public ulong Seed { get; set; }
+    public CampaignClockDto Clock { get; set; } = new();
     public long Tick { get; set; }
     public ulong RandomSequence { get; set; }
     public string PlayerTeamId { get; set; } = string.Empty;
@@ -52,8 +57,16 @@ internal sealed class WorldDto
     public CommandDto[] Commands { get; set; } = [];
     public CommandLogDto[] CommandHistory { get; set; } = [];
     public ScheduledActionDto[] ScheduledActions { get; set; } = [];
-    public string[] ReadyActorIds { get; set; } = [];
-    public VoyageEventDto[] Events { get; set; } = [];
+    public string[] ReadyUnitIds { get; set; } = [];
+    public EventDto[] Events { get; set; } = [];
+}
+
+internal sealed class CampaignClockDto
+{
+    public long ElapsedWorldSeconds { get; set; }
+    public int FractionRemainder { get; set; }
+    public string CalendarId { get; set; } = string.Empty;
+    public string TimeScaleId { get; set; } = string.Empty;
 }
 
 internal sealed class ShipDto
@@ -115,16 +128,13 @@ internal sealed class CharacterDto
     public string[] LanguageIds { get; set; } = [];
     public string[] ScriptIds { get; set; } = [];
     public ItemSystemDto Items { get; set; } = new();
-    [JsonPropertyName("equipmentIds")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string[]? LegacyEquipmentDefinitionIds { get; set; }
     public ValueDto[] Resources { get; set; } = [];
     public CharacterResourceDto[] CharacterResources { get; set; } = [];
     public ValueDto[] TrainingProgress { get; set; } = [];
     public bool CanAct { get; set; }
-    public CapabilityEffectDto[] ActiveEffects { get; set; } = [];
     public StatusInstanceDto[] Statuses { get; set; } = [];
     public CapabilityEvidenceDto[] Evidence { get; set; } = [];
+    public InjuryDto[] Injuries { get; set; } = [];
 }
 
 internal sealed class CharacterResourceDto
@@ -199,17 +209,6 @@ internal sealed class GrantDto
     public int SourceKind { get; set; }
 }
 
-internal sealed class CapabilityEffectDto
-{
-    public string EffectId { get; set; } = string.Empty;
-    public string SourceId { get; set; } = string.Empty;
-    public string ActorId { get; set; } = string.Empty;
-    public string TargetId { get; set; } = string.Empty;
-    public long StartTick { get; set; }
-    public long EndTick { get; set; }
-    public string ScopeId { get; set; } = string.Empty;
-}
-
 internal sealed class CapabilityEvidenceDto
 {
     public string EvidenceId { get; set; } = string.Empty;
@@ -224,16 +223,15 @@ internal sealed class PersonalEncounterDto
 {
     public string Id { get; set; } = string.Empty;
     public string BoardId { get; set; } = string.Empty;
-    public PersonalActorDto[] Actors { get; set; } = [];
+    public BattleUnitDto[] Units { get; set; } = [];
     public ObjectiveDto[] Objectives { get; set; } = [];
     public string[] ExplorationChangeIds { get; set; } = [];
     public string[] DamagedObjectIds { get; set; } = [];
     public bool Retreated { get; set; }
     public bool CleanedUp { get; set; }
-    public EncounterEffectDto[] ActiveEffects { get; set; } = [];
 }
 
-internal sealed class PersonalActorDto
+internal sealed class BattleUnitDto
 {
     public string Id { get; set; } = string.Empty;
     public string TeamId { get; set; } = string.Empty;
@@ -247,8 +245,6 @@ internal sealed class PersonalActorDto
     public int ReservedReactionPoints { get; set; }
     public long ReactionExpiresTick { get; set; }
     public ItemSystemDto Items { get; set; } = new();
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public EquipmentStateDto[]? Equipment { get; set; }
     public InjuryDto[] Injuries { get; set; } = [];
     public StatusInstanceDto[] Statuses { get; set; } = [];
 }
@@ -263,14 +259,6 @@ internal sealed class StatusInstanceDto
     public int RemainingDuration { get; set; }
     public int Stacks { get; set; }
     public int Potency { get; set; }
-}
-
-internal sealed class EquipmentStateDto
-{
-    public string SlotId { get; set; } = string.Empty;
-    public string EquipmentId { get; set; } = string.Empty;
-    public int Condition { get; set; }
-    public int ResourceRemaining { get; set; }
 }
 
 internal sealed class ItemSystemDto
@@ -354,15 +342,6 @@ internal sealed class ObjectiveDto
     public int State { get; set; }
 }
 
-internal sealed class EncounterEffectDto
-{
-    public string Id { get; set; } = string.Empty;
-    public string SourceId { get; set; } = string.Empty;
-    public string TargetId { get; set; } = string.Empty;
-    public long ExpiresTick { get; set; }
-    public int Stacks { get; set; }
-}
-
 internal sealed class CommandDto
 {
     public string Id { get; set; } = string.Empty;
@@ -396,7 +375,7 @@ internal sealed class ScheduledActionDto
     public int[] History { get; set; } = [];
 }
 
-internal sealed class VoyageEventDto
+internal sealed class EventDto
 {
     public string Id { get; set; } = string.Empty;
     public long Tick { get; set; }

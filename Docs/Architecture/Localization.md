@@ -2,12 +2,12 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Phases 1 and 2 plus M2 base Ability/Skill catalogs implemented; application UI wiring and the full production workflow remain planned |
+| Status | Runtime/compiler and main-menu, settings, character-creation, and calendar UI wiring implemented; broader gameplay UI coverage and the full production workflow remain planned |
 | Scope | Game text catalogs, locale selection, message formatting, language profiles, subtitles, and translation workflow |
 | Owner | Spelljammer with game-owned offline tooling |
 | Runtime language | C# gameplay/application layer with copy-only Engine boundaries |
 | Initial content format | Versioned UTF-8 source catalogs compiled to bounded binary artifacts |
-| Last updated | 2026-09-05 |
+| Last updated | 2026-09-08 |
 
 ## Summary
 
@@ -24,27 +24,28 @@ semantics, and the generic asset system may transport compiled catalog bytes.
 None of those engine modules understands localization keys, plural rules, or
 the meaning of a ship or crew name.
 
-`Source/Spelljammer.App/` contains a Windows-only .NET 10 WPF
-sprite-rendering prototype, not the complete space-sandbox application. Phases 1 and 2
-provide a separate Spelljammer-owned .NET 10
-runtime, strict source compiler, deterministic typed catalog artifacts, SFMF
-formatting, pinned number/plural profiles, `en-US` sample content,
-pseudo-locales, and a compile-only test target. Resolved messages carry a
-copy-only language profile suitable for a future UI/Text adapter. The WPF
-example does not yet select a locale or display localized UI. Persisted
-preferences, shipping translation packs, application UI wiring, and production
-RTL support remain planned.
+`Source/Spelljammer.App/` contains the Windows-only .NET 10 WPF application
+shell, not the complete space-sandbox application. Phases 1 and 2 provide a
+separate Spelljammer-owned .NET 10 runtime, strict source compiler,
+deterministic typed catalog artifacts, SFMF formatting, pinned number/plural
+profiles, `en-US` source content, and pseudo-locales. Resolved messages carry a
+copy-only language profile suitable for the UI/Text boundary. The WPF host
+loads embedded `en-US`, `fr-FR`, and `zh-Hant-TW` catalogs for its main menu,
+settings, character-creation, and calendar surfaces, persists the locale
+preference, and republishes those surfaces when the locale changes. Broader
+gameplay UI coverage, shipping-complete translation packs, the production
+translation workflow, and production RTL support remain planned.
 
 ## Related contracts
 
 | Area | Authority |
 | --- | --- |
-| Product ownership and sandbox direction | [Design concept vision](../DesignConcept/Vision.md) |
+| Product ownership and sandbox direction | [Concept vision](../Concept/Vision.md) |
 | UI layout, actions, semantics, and managed boundary | [SpriteForge UI system](https://github.com/pony155/SpriteForge/blob/main/Engine/Docs/UISystem.md) |
 | Unicode shaping, font fallback, glyph coverage, and bidi limits | [SpriteForge font system](https://github.com/pony155/SpriteForge/blob/main/Engine/Docs/FontSystem.md) |
 | Stable asset identity and transactional publication | [SpriteForge asset system](https://github.com/pony155/SpriteForge/blob/main/Engine/Docs/AssetSystem.md) |
 | Deterministic simulation and replay commands | [SpriteForge command system](https://github.com/pony155/SpriteForge/blob/main/Engine/Docs/CommandSystem.md) |
-| Application lifecycle and service ordering | [SpriteForge framework](https://github.com/pony155/SpriteForge/blob/main/Engine/Docs/Frameworkd.md) |
+| Application lifecycle and service ordering | [SpriteForge framework](https://github.com/pony155/SpriteForge/blob/main/Engine/Docs/Framework.md) |
 | Dialogue, UI, and accessibility audio routing | [SpriteForge audio system](https://github.com/pony155/SpriteForge/blob/main/Engine/Docs/AudioSystem.md) |
 
 ## Goals

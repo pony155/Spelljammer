@@ -3,8 +3,17 @@ using Spelljammer.Simulation.Content;
 
 namespace Spelljammer.Content.Compilation;
 
+/// <summary>
+/// Defines the normalized intermediate representation shared by content parsing and compilation.
+/// </summary>
+/// <remarks>
+/// Code flow: Definition parsing stores validated common and kind-specific source data, linking resolves referenced IDs, and typed compilation converts the intermediate records into simulation definitions.
+/// </remarks>
 internal enum DefinitionKind : byte
 {
+    WorldTime,
+    Calendar,
+    TimeScale,
     Ability,
     Skill,
     LevelProgressionTable,
@@ -49,6 +58,7 @@ internal sealed record SourceDefinition(
     IReadOnlyDictionary<string, ImmutableArray<int>> IntegerArrays,
     AbilitySourceDto? Ability,
     SkillSourceDto? Skill,
+    CalendarSourceDto? Calendar,
     StatusSourceDto? Status,
     ImmutableArray<LevelProgressionEntry> LevelProgressionEntries);
 
@@ -63,6 +73,13 @@ internal sealed record SkillSourceDto(
     int Maximum,
     ContentId ProgressionCurveId,
     ImmutableArray<ContentId> ActionTags);
+
+internal sealed record CalendarMonthSourceDto(
+    CalendarMonthId CalendarMonthId,
+    string NameKey,
+    int Days);
+
+internal sealed record CalendarSourceDto(ImmutableArray<CalendarMonthSourceDto> Months);
 
 internal sealed record StatusModifierSourceDto(string Type, int Amount);
 

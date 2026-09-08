@@ -1,5 +1,11 @@
 namespace Spelljammer.Localization;
 
+/// <summary>
+/// Centralizes hard safety bounds for localization catalogs and message formatting.
+/// </summary>
+/// <remarks>
+/// Code flow: Catalog loading and runtime formatting consult these limits before allocating, decoding, recursing, or publishing externally supplied localization data.
+/// </remarks>
 public static class LocalizationLimits
 {
     public const int MaximumArtifactBytes = 32 * 1024 * 1024;

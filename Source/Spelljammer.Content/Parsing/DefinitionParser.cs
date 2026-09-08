@@ -6,6 +6,12 @@ using Spelljammer.Simulation.Content;
 
 namespace Spelljammer.Content.Parsing;
 
+/// <summary>
+/// Parses authored gameplay JSON into normalized source definitions by content kind.
+/// </summary>
+/// <remarks>
+/// Code flow: A definition discriminator selects its schema, common and kind-specific fields are validated under bounds, and a normalized intermediate definition enters linking and compilation.
+/// </remarks>
 internal static class DefinitionParser
 {
     private static readonly string[] CommonRequired = ["schemaVersion", "revision", "id", "nameKey", "descriptionKey"];
@@ -15,6 +21,12 @@ internal static class DefinitionParser
     private static readonly IReadOnlyDictionary<DefinitionKind, KindSchema> KindSchemas =
         new Dictionary<DefinitionKind, KindSchema>
         {
+            [DefinitionKind.WorldTime] = new(["ticksPerSecond", "maximumCatchUpTicks"], []),
+            [DefinitionKind.Calendar] = new(
+                ["secondsPerMinute", "minutesPerHour", "hoursPerDay", "daysPerWeek", "startingYear",
+                 "startingMonth", "startingDay", "startingDayOfWeekIndex", "startingHour", "startingMinute",
+                 "startingSecond", "months"], []),
+            [DefinitionKind.TimeScale] = new(["worldSecondsNumerator", "simulationTicksDenominator"], []),
             [DefinitionKind.Ability] = new(["minimum", "maximum", "defaultValue", "tags"], []),
             [DefinitionKind.Skill] = new(["minimum", "maximum", "progressionCurveId", "actionTags"], []),
             [DefinitionKind.LevelProgressionTable] = new(["levels"], []),
@@ -68,7 +80,7 @@ internal static class DefinitionParser
                  "ammunitionCost", "shotCount", "energyCostModifier", "heatModifier", "durabilityCost",
                  "rangePenaltyPerUnit", "damageFalloffPerUnitPercentage", "reloadAmount", "effectIds"], []),
             [DefinitionKind.Effect] = new(
-                ["type", "amount"], ["statusId", "duration", "stacks", "potency"]),
+                ["type", "amount"], ["statusId", "eventId", "duration", "stacks", "potency"]),
             [DefinitionKind.Status] = new(
                 ["category", "tags", "defaultDuration", "durationType", "stackPolicy", "maximumStacks", "priority",
                  "modifiers", "restrictions", "aiRules", "onApplyEffectIds", "onTickEffectIds", "onExpireEffectIds"],
@@ -90,6 +102,9 @@ internal static class DefinitionParser
     private static readonly IReadOnlyDictionary<string, DefinitionKind> Directories =
         new Dictionary<string, DefinitionKind>(StringComparer.Ordinal)
         {
+            ["WorldTimes"] = DefinitionKind.WorldTime,
+            ["Calendars"] = DefinitionKind.Calendar,
+            ["TimeScales"] = DefinitionKind.TimeScale,
             ["Abilities"] = DefinitionKind.Ability,
             ["Skills"] = DefinitionKind.Skill,
             ["LevelProgressionTables"] = DefinitionKind.LevelProgressionTable,
@@ -174,6 +189,7 @@ internal static class DefinitionParser
         Dictionary<string, ImmutableArray<string>> arrays = new(StringComparer.Ordinal);
         Dictionary<string, ImmutableArray<int>> integerArrays = new(StringComparer.Ordinal);
         ImmutableArray<LevelProgressionEntry> levelProgressionEntries = [];
+        ImmutableArray<CalendarMonthSourceDto> calendarMonths = [];
         ImmutableArray<StatusModifierSourceDto> statusModifiers = [];
         ImmutableArray<StatusRestrictionSourceDto> statusRestrictions = [];
         ImmutableArray<StatusAiRuleSourceDto> statusAiRules = [];
@@ -185,7 +201,14 @@ internal static class DefinitionParser
                 continue;
             }
 
-            if (kind == DefinitionKind.Status && field == "modifiers")
+            if (kind == DefinitionKind.Calendar && field == "months")
+            {
+                if (!TryParseCalendarMonths(value, packId, relativePath, idText, limits, diagnostics, out calendarMonths))
+                {
+                    return null;
+                }
+            }
+            else if (kind == DefinitionKind.Status && field == "modifiers")
             {
                 if (!TryParseStatusModifiers(value, packId, relativePath, idText, diagnostics, out statusModifiers))
                 {
@@ -316,11 +339,58 @@ internal static class DefinitionParser
                 new ContentId(strings["progressionCurveId"]),
                 [.. arrays["actionTags"].Select(value => new ContentId(value))])
             : null;
+        CalendarSourceDto? calendar = kind == DefinitionKind.Calendar
+            ? new CalendarSourceDto(calendarMonths)
+            : null;
         StatusSourceDto? status = kind == DefinitionKind.Status
             ? new StatusSourceDto(statusModifiers, statusRestrictions, statusAiRules)
             : null;
         return new SourceDefinition(kind, id, 1, revision, nameKey, descriptionKey, packId, relativePath,
-            integers, strings, arrays, integerArrays, ability, skill, status, levelProgressionEntries);
+            integers, strings, arrays, integerArrays, ability, skill, calendar, status, levelProgressionEntries);
+    }
+
+    private static bool TryParseCalendarMonths(
+        JsonElement value,
+        string packId,
+        string relativePath,
+        string definitionId,
+        ContentLimits limits,
+        DiagnosticSink diagnostics,
+        out ImmutableArray<CalendarMonthSourceDto> months)
+    {
+        months = [];
+        if (value.ValueKind != JsonValueKind.Array)
+        {
+            diagnostics.Add(ContentDiagnosticCodes.JsonInvalid, packId, relativePath, definitionId, "/months");
+            return false;
+        }
+
+        ImmutableArray<CalendarMonthSourceDto>.Builder builder =
+            ImmutableArray.CreateBuilder<CalendarMonthSourceDto>();
+        int index = 0;
+        foreach (JsonElement item in value.EnumerateArray())
+        {
+            string[] fields = ["id", "nameKey", "days"];
+            if (item.ValueKind != JsonValueKind.Object ||
+                !SourceValidation.ValidateProperties(
+                    item, new HashSet<string>(fields), fields, diagnostics, packId, relativePath) ||
+                !SourceValidation.TryString(item, "id", out string id) ||
+                !CalendarMonthId.TryParse(id, out CalendarMonthId monthId) ||
+                !SourceValidation.TryString(item, "nameKey", out string monthNameKey) ||
+                !SourceValidation.IsLocalizationKey(monthNameKey, limits) ||
+                item.GetProperty("days").ValueKind != JsonValueKind.Number ||
+                !item.GetProperty("days").TryGetInt32(out int days))
+            {
+                diagnostics.Add(ContentDiagnosticCodes.JsonInvalid, packId, relativePath, definitionId, $"/months/{index}");
+                return false;
+            }
+
+            builder.Add(new CalendarMonthSourceDto(monthId, monthNameKey, days));
+            index++;
+        }
+
+        months = builder.ToImmutable();
+        return true;
     }
 
     private static bool TryParseStatusModifiers(

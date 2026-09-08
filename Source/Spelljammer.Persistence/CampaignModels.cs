@@ -6,6 +6,7 @@ using Spelljammer.Content.Manifests;
 using Spelljammer.Simulation.Characters;
 using Spelljammer.Simulation.Content;
 using Spelljammer.Simulation.Encounters;
+using Spelljammer.Simulation.World;
 
 namespace Spelljammer.Persistence;
 
@@ -14,6 +15,8 @@ namespace Spelljammer.Persistence;
 /// </summary>
 /// <remarks>
 /// These version numbers are used to track format compatibility and enable migrations when save formats change.
+/// Code flow: Save writing records these versions and immutable campaign contracts, preflight compares them with the
+/// active runtime and content, and registries publish only accepted replacement campaign state.
 /// </remarks>
 public static class CampaignSaveVersions
 {
@@ -21,11 +24,12 @@ public static class CampaignSaveVersions
     public const ushort Envelope = 1;
 
     /// <summary>
-    /// Version of the save schema. Version 7 persists encounter resources and the data-driven turn economy.
+    /// Current version of the save schema.
     /// </summary>
-    public const ushort SaveSchema = 10;
-    public const ushort OldestSupportedSaveSchema = 7;
-    public const ushort ItemInstanceSaveSchema = 8;
+    public const ushort SaveSchema = 13;
+
+    /// <summary>Oldest schema with an explicit in-place migration to the current schema.</summary>
+    public const ushort MinimumMigratableSaveSchema = 12;
 
     /// <summary>Version of the world generation algorithm used in this save.</summary>
     public const int WorldGenerator = 1;
@@ -171,8 +175,7 @@ public static class SaveDiagnosticCodes
     /// <summary>Localization key for migration failure.</summary>
     public const string MigrationFailed = "save.migration-failed";
 
-    public static string Stable(SaveDiagnosticCode code) => code switch
-    {
+    public static string Stable(SaveDiagnosticCode code) => code switch {
         SaveDiagnosticCode.None => string.Empty,
         SaveDiagnosticCode.Corrupt => Corrupt,
         SaveDiagnosticCode.Oversized => Oversized,
@@ -231,7 +234,7 @@ public sealed record CampaignState(
     string GameBuild,
     CampaignContentLock ContentLock,
     ContentId CurrentLocationId,
-    VoyageWorld Voyage,
+    World World,
     CharacterId ProtagonistId,
     ImmutableArray<CharacterState> Characters)
 {

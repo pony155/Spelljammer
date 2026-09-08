@@ -11,6 +11,8 @@ namespace Spelljammer.Simulation.Characters;
 /// <remarks>
 /// This class encapsulates the character's abilities, skills, and passive or active Feats.
 /// All data is immutable and validated against content definitions using fingerprints to ensure consistency.
+/// Code flow: Character creation builds capabilities from linked definitions and grants, gameplay systems return
+/// replacement character state, and battle projection copies only combat-owned fields across encounter boundaries.
 /// </remarks>
 public sealed class CharacterCapabilities
 {
@@ -86,7 +88,7 @@ public sealed class CharacterCapabilities
     /// <returns>True if the ability was found and retrieved; otherwise, false.</returns>
     public bool TryGetAbility(
         AbilityId id,
-        ICharacterContentCatalog catalog,
+        ICharacterDefinitionCatalog catalog,
         out short value,
         out CapabilityLookupFailure failure)
     {
@@ -122,7 +124,7 @@ public sealed class CharacterCapabilities
     /// <returns>True if the skill was found and retrieved; otherwise, false.</returns>
     public bool TryGetSkill(
         SkillId id,
-        ICharacterContentCatalog catalog,
+        ICharacterDefinitionCatalog catalog,
         out byte value,
         out CapabilityLookupFailure failure)
     {
@@ -145,7 +147,7 @@ public sealed class CharacterCapabilities
         return true;
     }
 
-    public CharacterCapabilitySnapshot Snapshot(ICharacterContentCatalog catalog)
+    public CharacterCapabilitySnapshot Snapshot(ICharacterDefinitionCatalog catalog)
     {
         if (catalog.Fingerprint != Fingerprint || catalog.Abilities.Length != abilityValues.Length ||
             catalog.Skills.Length != skillValues.Length)
@@ -174,7 +176,7 @@ public sealed class CharacterCapabilities
             [.. GrantSources.OrderBy(value => value.CapabilityId).ThenBy(value => value.SourceId)]);
     }
 
-    public static CharacterCapabilities Restore(CharacterCapabilitySnapshot snapshot, ICharacterContentCatalog catalog)
+    public static CharacterCapabilities Restore(CharacterCapabilitySnapshot snapshot, ICharacterDefinitionCatalog catalog)
     {
         ArgumentNullException.ThrowIfNull(snapshot);
         ArgumentNullException.ThrowIfNull(catalog);
@@ -325,21 +327,18 @@ public sealed record CharacterState(
     ImmutableDictionary<TrainingProjectId, int> TrainingProgress,
     bool CanAct = true)
 {
-    /// <summary>
-    /// Maximum number of active character effects retained in persistent state.
-    /// Encounter-local effects have their own limit.
-    /// </summary>
-    public const int MaximumActiveEffects = 128;
+    /// <summary>Maximum number of active Status instances retained for a character.</summary>
+    public const int MaximumStatuses = 128;
 
     /// <summary>
     /// Maximum number of observable evidence entries retained for a character.
     /// </summary>
     public const int MaximumEvidenceEntries = 256;
 
-    public ImmutableArray<ActiveCapabilityEffect> ActiveEffects { get; init; } = [];
     public StatusState Statuses { get; init; } = StatusState.Empty;
     public ImmutableArray<ObservableCapabilityEvidence> Evidence { get; init; } = [];
     public CharacterResourceSet CharacterResources { get; init; } = CharacterResourceSet.Empty;
+    public ImmutableArray<InjuryState> Injuries { get; init; } = [];
 
     /// <summary>
     /// Validates the complete character state against the active content catalog.
@@ -350,7 +349,7 @@ public sealed record CharacterState(
     /// Thrown when the state has a content mismatch, invalid references, negative
     /// resources or progress, or exceeds a bounded collection.
     /// </exception>
-    public void ValidateForContent(ICharacterContentCatalog catalog)
+    public void ValidateForContent(ICharacterStateCatalog catalog)
     {
         ArgumentNullException.ThrowIfNull(catalog);
         if (ContentFingerprint != catalog.Fingerprint || Capabilities.Fingerprint != ContentFingerprint)
@@ -373,8 +372,9 @@ public sealed record CharacterState(
             ScriptIds.Length > CharacterCapabilities.MaximumSetEntries ||
             Resources.Count > CharacterCapabilities.MaximumSetEntries ||
             TrainingProgress.Count > CharacterCapabilities.MaximumSetEntries ||
-            ActiveEffects.Length > MaximumActiveEffects ||
-            Evidence.Length > MaximumEvidenceEntries)
+            Statuses.Instances.Length > MaximumStatuses ||
+            Evidence.Length > MaximumEvidenceEntries ||
+            Injuries.Length > CharacterCapabilities.MaximumSetEntries)
         {
             throw new InvalidOperationException("Character state exceeds a bounded capacity.");
         }
@@ -390,6 +390,11 @@ public sealed record CharacterState(
             throw new InvalidOperationException("Character resources contain an invalid value.");
         }
 
+        if (Injuries.Any(value => !value.Id.IsValid || !Enum.IsDefined(value.Severity)))
+        {
+            throw new InvalidOperationException("Character injuries contain an invalid value.");
+        }
+
         foreach ((TrainingProjectId projectId, int progress) in TrainingProgress)
         {
             if (progress < 0 || !catalog.TryGetTrainingProject(projectId, out TrainingProjectDefinition? project) ||
@@ -399,21 +404,11 @@ public sealed record CharacterState(
             }
         }
 
-        foreach (ActiveCapabilityEffect effect in ActiveEffects)
-        {
-            if (!effect.EffectId.IsValid || !effect.SourceId.IsValid ||
-                effect.ActorId != Id || !effect.TargetId.IsValid || !effect.ScopeId.IsValid ||
-                effect.StartTick < 0 || effect.EndTick < effect.StartTick)
-            {
-                throw new InvalidOperationException("Character active effect state is invalid.");
-            }
-        }
-
         StatusResult statusValidation = StatusSystem.Create(
             Statuses,
             catalog,
-            new StatusSystemLimits(MaximumActiveEffects, 1_000_000, MaximumActiveEffects));
-        if (!statusValidation.Accepted || Statuses.Instances.Any(value => value.TargetId != Id.Value))
+            new StatusSystemLimits(MaximumStatuses, 1_000_000, MaximumStatuses));
+        if (!statusValidation.Accepted || Statuses.Instances.Any(value => value.TargetId.Value != Id.Value))
         {
             throw new InvalidOperationException("Character status state is invalid.");
         }
@@ -465,15 +460,6 @@ public sealed record CharacterState(
         };
     }
 }
-
-public sealed record ActiveCapabilityEffect(
-    ContentId EffectId,
-    ContentId SourceId,
-    CharacterId ActorId,
-    CharacterId TargetId,
-    long StartTick,
-    long EndTick,
-    ContentId ScopeId);
 
 public sealed record ObservableCapabilityEvidence(
     ContentId EvidenceId,

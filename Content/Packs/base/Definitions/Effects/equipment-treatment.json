@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "revision": 1,
+  "id": "effect.equipment.treatment",
+  "nameKey": "effect.equipment.treatment.name",
+  "descriptionKey": "effect.equipment.treatment.description",
+  "type": "heal-health",
+  "amount": 10
+}

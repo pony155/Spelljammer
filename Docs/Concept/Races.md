@@ -51,7 +51,7 @@ A persistent character is composed from independent, stable layers:
 | Background | academy graduate, dockhand, caravan guard | Starting skill package and history, never a class |
 | Abilities | Strength, Agility, Perception, Toughness, Willpower, Intelligence | Broad capability shared by many actions |
 | Skills | piloting, engineering, merchant, negotiation, language and literacy | Learned competence that improves independently |
-| Racial Feats | Versatility, Aether Sense, Braced Stance | Racial feats granted by Race and Heritage |
+| Race and Heritage Feats | Versatility, Aether Sense, Braced Stance | Unified Feat definitions granted by Race and Heritage |
 
 No translated name or description becomes gameplay identity. Definitions use
 canonical lowercase ASCII IDs; localized keys provide player-facing names.
@@ -85,7 +85,7 @@ first arrived, humanity was between a medieval and renaissance age and had not
 yet achieved spaceflight. The First Concord gave human communities access to
 elven Aether navigation and dwarven engineering methods; human crews then made
 those methods their own and became widespread through social and technical
-adaptation. Their Racial Feat is **Versatility**: one starting aptitude may be
+adaptation. Their race-granted Feat is **Versatility**: one starting aptitude may be
 reassigned during recruitment. Their bodies have no extreme environmental
 adaptation and depend on ordinary atmosphere, food, sleep, and medical support.
 
@@ -100,7 +100,9 @@ adaptation and depend on ordinary atmosphere, food, sleep, and medical support.
 Elves originate from a homeworld distinct from human and dwarven worlds. Their
 long-lived nervous systems sense patterns in light and the void's aetheric
 currents. Elven records preserve the earliest documented successful Arcane
-spaceflight. Their Racial Feat, **Aether Sense**, can reveal
+spaceflight. The historically significant First Voyage begins Year 0 of the
+Elven Astral Calendar (EAC), now also used by dwarven and human states for
+cross-civilization records. Their race-granted Feat, **Aether Sense**, can reveal
 weak anomalies or unstable routes before ordinary instruments, but intense
 interference causes sensory strain. Aether Sense grants innate `access.magic`,
 allowing an Elf to learn and cast spells without the Spellcasting Training
@@ -135,7 +137,7 @@ miner, trader, or industrial engineer; this is a cultural passion, not a rule.
 ### Half-elves
 
 Half-elves are a first-class race in the initial content model, representing
-characters with both human and elven parentage. Their Racial Feat, **Blended
+characters with both human and elven parentage. Their race-granted Feat, **Blended
 Physiology**, lets a character select one minor human adaptation and one minor
 elven sense, each at reduced strength. It does not determine heritage or
 guarantee social acceptance.
@@ -161,7 +163,7 @@ for half-elves must remain valid through an explicit migration.
 
 Dwarves originate from a homeworld distinct from human and elven worlds. They
 are compact, dense-bodied people adapted to confined habitats and demanding
-physical environments. Their Racial Feat, **Braced Stance**, reduces
+physical environments. Their race-granted Feat, **Braced Stance**, reduces
 forced movement and work interruption. Their mass raises acceleration costs,
 and cramped does not mean weightless: ship layout and rescue equipment must
 support them.
@@ -197,7 +199,7 @@ as central virtues. Alongside goblin societies, they uncovered ancient wrecks
 on their shared ancestral homeworld: ships made by an unknown civilization that
 travelled the void before the earliest elven record. Their spacefaring cultures
 grew through generations of salvage and reverse engineering, not through the
-First Concord. Their Racial Feat, **Second Wind**, allows a controlled burst of
+First Concord. Their race-granted Feat, **Second Wind**, allows a controlled burst of
 work or combat stamina followed by a visible recovery debt.
 
 | Heritage | Stable ID | Heritage Feat | Cost |
@@ -212,7 +214,7 @@ Gnomes are small-bodied people with extremely sensitive touch and fine spatial
 judgment. Several dwarf and gnome research communities developed the first
 repeatable instruments and scientific methods for measuring and coupling to
 Aether; this is a shared historical achievement, not an innate trait. Their
-Racial Feat, **Closework**, reduces penalties when manipulating
+race-granted Feat, **Closework**, reduces penalties when manipulating
 compact mechanisms or working in confined stations. Their reach and unaided
 carrying capacity are limited, and shared equipment must be adjustable rather
 than assuming one body scale. Gnomes are not inherently inventive or
@@ -239,7 +241,7 @@ Goblins are compact, quick-moving people adapted to crowded habitats and
 improvised routes. Alongside orc societies, their salvagers and makers
 recovered precursor ships on their shared ancestral homeworld and
 reverse-engineered enough of their Aether couplers to begin independent
-spaceflight. Their Racial Feat, **Tight Passage**, reduces movement and work
+spaceflight. Their race-granted Feat, **Tight Passage**, reduces movement and work
 penalties in ducts, wreckage, and congested decks. Their lighter frames are
 easier to throw off balance, and standard armor, furniture, and controls may
 require refitting. Goblins are not inherently dishonest, reckless, or crude;
@@ -262,7 +264,7 @@ knowledge is a lasting source of leverage and friction within the alliance.
 ### Somnari
 
 Somnari are a psionics race whose nervous systems resonate with nearby thought.
-Their Racial Feat, **Mindwake**, lets them sense active psionics effects and
+Their race-granted Feat, **Mindwake**, lets them sense active psionics effects and
 initiate a consensual short-range mindlink without a spell or device. Mindwake
 grants innate `access.psionics`, not mastery: the Psionics skill governs
 control, clarity, range, and learned active Feats. Psionics storms, crowded minds,
@@ -305,7 +307,7 @@ Veyr culture is deliberately gothic: sable architecture, high spires, memorial
 gardens, formal mourning, candlelit rites, and elaborate records of ancestry
 and obligation. This is a tradition, not evidence that they are undead or that
 they feed on blood. Veyr breathe, eat, sleep, and receive medical care normally.
-Their Racial Feat, **Dusk Sight**, gives clear low-light vision but makes sudden
+Their race-granted Feat, **Dusk Sight**, gives clear low-light vision but makes sudden
 bright flashes and prolonged glare more taxing.
 
 | Heritage | Stable ID | Heritage Feat | Cost |
@@ -331,7 +333,7 @@ than property, a disposable tool, or a copy for another's use. Eidolons are now
 scattered across the galaxy, and disputes over anchor custody, continuity of
 identity, and reconstruction rights remain central to their history.
 
-Their Racial Feat, **Soul Anchor**, removes the need to breathe, eat ordinary
+Their race-granted Feat, **Soul Anchor**, removes the need to breathe, eat ordinary
 food, or sleep and provides resistance to vacuum and common disease. Activity
 and recovery instead consume resonance held by the anchor, and serious bodily
 disruption requires a safe anchor, suitable material, and time to rebuild a
@@ -357,7 +359,7 @@ knowledgeable; memories and personality belong to the individual.
 
 Tharun are a spacefaring jackal-like race with long directional ears, keen
 chemical senses in atmosphere, and strong spatial memory. Character creation
-stores `race.tharun` and one compatible Heritage. Their Racial Feat,
+stores `race.tharun` and one compatible Heritage. Their race-granted Feat,
 **Trail Sense**, reduces uncertainty when following an already observed
 physical, chemical, thermal, acoustic, or signal trail. It improves how
 Sensors, Xenology, Ancient Lore, and relevant field work use available
@@ -400,22 +402,22 @@ by hostility, exclusion, reprisals, or open conflict.
 | Hull-Listener | `heritage.tharun.hull-listener` | Reads faint vibration and movement through direct contact with a hull or deck | Heavy machinery, impacts, and sustained alarm noise cause sensory strain |
 | Startrail | `heritage.tharun.startrail` | Retains bearings and correlates weak route traces after partial sensor loss | Featureless space and contradictory interference require more time and can produce false leads |
 
-## Racial feats
+## Race- and heritage-granted Feats
 
-A **Racial Feat** is a racial feat: a discrete rule granted by a character's Race or
-compatible Heritage. It represents inherited physiology, supernatural nature,
-or a heritage-specific adaptation. It does not represent personality, beliefs,
-professional training, or general learned competence.
+A **race- or heritage-granted Feat** is a normal Feat definition granted by a
+character's Race or compatible Heritage. It represents inherited physiology,
+supernatural nature, or a heritage-specific adaptation. It does not represent
+personality, beliefs, professional training, or general learned competence.
 
-A Racial Feat may explicitly grant an innate supernatural access ID. Innate access
+A race- or heritage-granted Feat may explicitly grant an innate supernatural access ID. Innate access
 substitutes for the corresponding learned access Feat, but never grants skill
 ranks or unnamed abilities. Learned Feats come from training and are defined in
-[`Skills.md`](Skills.md); they are not Racial Feats and are not inherited.
+[`Skills.md`](Skills.md); they are not inherited Feats.
 See [`Feats.md`](Feats.md) for the wider Feat terminology and identity rules.
 The technical content namespace is `feat.*`, and Race and Heritage definitions
 grant their Feats through `grantedFeatIds`.
 
-Every character begins with two Racial Feats:
+Every character begins with two granted Feats:
 
 1. one Race Feat granted by their `raceId`; and
 2. one Heritage Feat granted by their `heritageId`.
@@ -434,15 +436,15 @@ Every character begins with two Racial Feats:
 | Eidolon | Soul Anchor | `feat.race.eidolon.soul-anchor` | None by default |
 | Tharun | Trail Sense | `feat.race.tharun.trail-sense` | None |
 
-Heritage Feats use IDs such as `feat.heritage.dwarf.cometdelver`. A Racial Feat
+Heritage Feats use IDs such as `feat.heritage.dwarf.cometdelver`. A Feat
 definition owns its explicit effects, costs, requirements, and
-incompatibilities. Race and Heritage definitions grant Racial Feat IDs rather than
+incompatibilities. Race and Heritage definitions grant Feat IDs rather than
 duplicating those rules.
 
-Racial Feats do not have a 0–100 value, improve through use, or unlock because of a
+Race- and heritage-granted Feats do not have a 0–100 value, improve through use, or unlock because of a
 class. Learned active Feats and professional expertise belong to Skills, while
 trained supernatural access belongs to learned Feats. Content validation
-rejects missing Racial Feat IDs, unknown access IDs, duplicate grants, and Racial Feats
+rejects missing Feat IDs, unknown access IDs, duplicate grants, and Feats
 that are incompatible with the granting Race or Heritage.
 
 ## Classless capabilities
@@ -497,7 +499,7 @@ race rather than copying the race definition:
 Persistent race state stores race and heritage definition IDs, definition
 revisions, and race-specific rolled parameters. It never stores localized names
 as identity. Definition loading must reject duplicate IDs, missing races,
-incompatible heritages, missing or incompatible Racial Feats, incompatible body
+incompatible heritages, missing or incompatible granted Feats, incompatible body
 rules, unknown modifiers, and unbounded generation tables before publication.
 
 ## Balance rules
@@ -519,12 +521,12 @@ rules, unknown modifiers, and unbounded generation tables before publication.
 The first crew-enabled vertical slice should use eleven authored characters:
 one human, elf, half-elf, dwarf, orc, gnome, goblin, Somnari, Veyr, Eidolon,
 and Tharun. Each needs a race, heritage, background, abilities, skills, two
-Racial Feats, and compatible quarters. The two Racial Feats are racial feats:
+race- or heritage-granted Feats, and compatible quarters. The two granted Feats are:
 one granted by Race and one by Heritage. The Elf must exercise innate
 magical access and the Somnari must exercise innate psionics access. The
 Eidolon's anchor logistics and the Tharun's evidence-bounded tracking must
 each change at least one voyage decision. At least one character without
-either access Racial Feat must demonstrate earning an access Feat through
+either innate-access Feat must demonstrate earning an access Feat through
 documented training. Ship jobs and schedules are a separate future crew-system
 concern, not a component of race or heritage. The slice needs only four shared
 needs—rest, nutrition or equivalent reserve, safety, and belonging.

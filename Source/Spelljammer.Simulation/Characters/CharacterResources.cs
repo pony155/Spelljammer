@@ -3,6 +3,12 @@ using Spelljammer.Simulation.Content;
 
 namespace Spelljammer.Simulation.Characters;
 
+/// <summary>
+/// Defines and updates character health, stamina, mana, resolve, strain, and other data-driven resources.
+/// </summary>
+/// <remarks>
+/// Code flow: A resource profile creates bounded state, permanent and temporary modifiers derive limits and recovery, and spend, restore, damage, healing, or rest return replacement resource sets.
+/// </remarks>
 public sealed record CharacterResourceModifier(ContentId SourceId, int MaximumDelta, int RecoveryRateDelta);
 
 public sealed record CharacterResourceState(

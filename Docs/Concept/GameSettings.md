@@ -211,7 +211,8 @@ the current campaign model does not yet serialize a game-settings record. A
 load validates the stored settings version and every stable option ID before
 reconstructing campaign state. Unknown campaign rules cannot be replaced with
 defaults silently. The existing envelope and migration boundary are documented
-in [`../Architecture/CampaignSaves.md`](../Architecture/CampaignSaves.md).
+in the
+[`Spelljammer.Persistence` source briefing](../../Source/Spelljammer.Persistence/README.md).
 
 Settings writes follow the same safety principles as campaign saves: write one
 same-directory temporary artifact, flush it, validate it, and replace only the
@@ -273,7 +274,7 @@ The delivered slice adds:
   same-directory replacement, exact-file recovery, and stable diagnostics;
 - a localized in-window SpriteForge UI modal with mouse interaction and keyboard focus,
   navigation, adjustment, acceptance, and cancellation; and
-- compile-only settings and engine-interop contracts covering bounds,
+- MSTest settings contracts and engine-interop contracts covering bounds,
   corruption, rollback, recovery, action routing, and batch atomicity.
 
 The remaining first-slice work is:

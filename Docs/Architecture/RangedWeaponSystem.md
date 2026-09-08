@@ -4495,8 +4495,11 @@ The base pack demonstrates the contract with the Ballistic Service Pistol,
 Standard Pistol Rounds, Standard Shot, Aimed Shot, and Reload Magazine. Other
 families, technologies, ammunition payloads, burst fire, area attacks, and
 environmental interactions are schema-supported concepts that still require
-authored definitions and effect-system integration.
+authored definitions. A hit now emits deterministic armor-damage and
+physical-damage `EffectRequest` values plus action-authored Effects;
+`ResolveEffects` applies the batch atomically through the shared Effect system.
 
-Encounter actors and campaign save schema 10 persist the item instance and its
-`RangedWeaponState`. Applying returned Health and Armor damage to encounter
-targets, AI action selection, line-of-fire, and terrain effects remain planned.
+Encounter units and campaign save schema 13 persist the item instance and its
+`RangedWeaponState`. Publishing the resolved Effect target snapshot back into
+encounter actor state, AI action selection, line-of-fire, and terrain effects
+remain planned.

@@ -4,6 +4,12 @@ using Spelljammer.Content.Diagnostics;
 
 namespace Spelljammer.Content.Parsing;
 
+/// <summary>
+/// Parses authored UTF-8 JSON with strict syntax, duplicate-property, depth, and size rules.
+/// </summary>
+/// <remarks>
+/// Code flow: Source bytes are checked for canonical UTF-8, tokenized under configured bounds, inspected for duplicate names, and returned as a document or diagnostic without throwing into the pipeline.
+/// </remarks>
 internal static class StrictJson
 {
     private static readonly UTF8Encoding StrictUtf8 = new(false, true);

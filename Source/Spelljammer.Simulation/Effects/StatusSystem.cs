@@ -3,6 +3,12 @@ using Spelljammer.Simulation.Content;
 
 namespace Spelljammer.Simulation.Effects;
 
+/// <summary>
+/// Applies, stacks, refreshes, expires, and removes bounded status instances.
+/// </summary>
+/// <remarks>
+/// Code flow: A request resolves its status definition, validates target limits and stack policy, produces pending effects, and atomically returns replacement status state or a rejection.
+/// </remarks>
 public sealed record StatusSystemLimits(
     int MaximumInstancesPerTarget,
     int MaximumDuration,
@@ -21,12 +27,13 @@ public sealed record StatusApplicationRequest(
     StatusInstanceId InstanceId,
     StatusId DefinitionId,
     ContentId SourceId,
-    ContentId TargetId,
+    StatusTargetId TargetId,
     int? Duration,
     int Stacks,
     int Potency);
 
 public sealed record PendingEffect(
+    EffectInvocationId InvocationId,
     EffectId EffectId,
     ContentId SourceId,
     ContentId TargetId,
@@ -119,7 +126,7 @@ public static class StatusSystem
             }
 
             working = working.Remove(conflict);
-            AppendPending(effects, conflictDefinition.OnExpireEffectIds, conflict);
+            AppendPending(effects, conflictDefinition.OnExpireEffectIds, conflict, "expire");
         }
 
         StatusInstance? existing = working
@@ -158,7 +165,7 @@ public static class StatusSystem
                     }
 
                     applied = proposed;
-                    AppendPending(effects, resolvedDefinition.OnExpireEffectIds, existing);
+                    AppendPending(effects, resolvedDefinition.OnExpireEffectIds, existing, "expire");
                     break;
                 case StatusStackPolicy.Reject:
                     return StatusResult.Rejected(state, StatusRejectionCodes.AlreadyPresent);
@@ -174,7 +181,7 @@ public static class StatusSystem
             return StatusResult.Rejected(state, StatusRejectionCodes.CapacityExceeded);
         }
 
-        AppendPending(effects, resolvedDefinition.OnApplyEffectIds, applied);
+        AppendPending(effects, resolvedDefinition.OnApplyEffectIds, applied, "apply");
         if (effects.Count > limits.MaximumEffectsPerTransaction)
         {
             return StatusResult.Rejected(state, StatusRejectionCodes.CapacityExceeded);
@@ -212,7 +219,7 @@ public static class StatusSystem
 
         catalog.TryGetStatus(existing.DefinitionId, out StatusDefinition? definition);
         ImmutableArray<PendingEffect>.Builder effects = ImmutableArray.CreateBuilder<PendingEffect>();
-        AppendPending(effects, definition!.OnExpireEffectIds, existing);
+        AppendPending(effects, definition!.OnExpireEffectIds, existing, "expire");
         if (effects.Count > limits.MaximumEffectsPerTransaction)
         {
             return StatusResult.Rejected(state, StatusRejectionCodes.CapacityExceeded);
@@ -224,7 +231,7 @@ public static class StatusSystem
     public static StatusResult RemoveByDefinition(
         StatusState state,
         StatusId definitionId,
-        ContentId targetId,
+        StatusTargetId targetId,
         IStatusDefinitionCatalog catalog,
         StatusSystemLimits limits)
     {
@@ -243,7 +250,7 @@ public static class StatusSystem
         foreach (StatusInstance instance in removed.OrderBy(value => value.InstanceId))
         {
             catalog.TryGetStatus(instance.DefinitionId, out StatusDefinition? definition);
-            AppendPending(effects, definition!.OnExpireEffectIds, instance);
+            AppendPending(effects, definition!.OnExpireEffectIds, instance, "expire");
         }
 
         if (effects.Count > limits.MaximumEffectsPerTransaction)
@@ -260,7 +267,7 @@ public static class StatusSystem
 
     public static StatusResult AdvanceTargetTurn(
         StatusState state,
-        ContentId targetId,
+        StatusTargetId targetId,
         IStatusDefinitionCatalog catalog,
         StatusSystemLimits limits)
     {
@@ -284,7 +291,7 @@ public static class StatusSystem
             }
 
             catalog.TryGetStatus(instance.DefinitionId, out StatusDefinition? definition);
-            AppendPending(effects, definition!.OnTickEffectIds, instance);
+            AppendPending(effects, definition!.OnTickEffectIds, instance, "tick");
             if (definition.DurationType != StatusDurationType.Timed)
             {
                 retained.Add(instance);
@@ -298,7 +305,7 @@ public static class StatusSystem
             }
             else
             {
-                AppendPending(effects, definition.OnExpireEffectIds, instance);
+                AppendPending(effects, definition.OnExpireEffectIds, instance, "expire");
             }
         }
 
@@ -333,7 +340,7 @@ public static class StatusSystem
             }
         }
 
-        foreach (IGrouping<ContentId, StatusInstance> target in state.Instances.GroupBy(value => value.TargetId))
+        foreach (IGrouping<StatusTargetId, StatusInstance> target in state.Instances.GroupBy(value => value.TargetId))
         {
             if (target.Count() > limits.MaximumInstancesPerTarget)
             {
@@ -377,14 +384,21 @@ public static class StatusSystem
     private static void AppendPending(
         ImmutableArray<PendingEffect>.Builder destination,
         ImmutableArray<EffectId> effectIds,
-        StatusInstance instance)
+        StatusInstance instance,
+        string lifecycle)
     {
         foreach (EffectId effectId in effectIds)
         {
             destination.Add(new PendingEffect(
+                EffectInvocationId.Derive(
+                    instance.InstanceId,
+                    effectId,
+                    lifecycle,
+                    instance.RemainingDuration,
+                    destination.Count),
                 effectId,
                 instance.SourceId,
-                instance.TargetId,
+                instance.TargetId.Value,
                 instance.InstanceId,
                 destination.Count,
                 instance.Stacks));

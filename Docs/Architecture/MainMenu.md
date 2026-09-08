@@ -4,7 +4,7 @@
 
 Spelljammer starts in `MainMenuWindow`. Its current actions are New Game, Game
 Settings, and Quit Game. New Game opens the first character-creation UI; it
-does not yet advertise Continue or connect the retained expedition prototype.
+does not yet advertise Continue or launch an authoritative campaign.
 
 The authored background is:
 

@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "revision": 1,
+  "id": "effect.psionics.shared-channel",
+  "nameKey": "effect.psionics.shared-channel.name",
+  "descriptionKey": "effect.psionics.shared-channel.description",
+  "type": "apply-status",
+  "amount": 0,
+  "statusId": "status.mindlinked",
+  "duration": 0,
+  "stacks": 1,
+  "potency": 1
+}

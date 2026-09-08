@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "locale": "en-US",
+  "namespace": "calendar",
+  "fallbacks": [],
+  "textDirection": "ltr",
+  "messages": {
+    "calendar.voidfarer-standard.name": { "description": "Display name for the standard interstellar calendar.", "message": "Elven Astral Calendar" },
+    "calendar.voidfarer-standard.description": { "description": "Description of the standard interstellar calendar and time system.", "message": "The EAC calendar and EAT 24-hour time standard used for interstellar navigation and formal records." },
+    "calendar.era.eac.label": { "description": "Abbreviated era label for Elven Astral Calendar years.", "message": "EAC" },
+    "calendar.time-standard.eat.label": { "description": "Abbreviated label for Elven Astral Time.", "message": "EAT" },
+    "calendar.date.full": {
+      "description": "Full EAC date without the time of day.",
+      "arguments": { "year": "text", "era": "localizable", "month": "localizable", "day": "text" },
+      "message": "{year} {era} · {month} {day}"
+    },
+    "calendar.time.full": {
+      "description": "Full 24-hour EAT time without the date.",
+      "arguments": { "hour": "text", "minute": "text", "second": "text", "standard": "localizable" },
+      "message": "{hour}:{minute}:{second} {standard}"
+    },
+    "calendar.timestamp.full": {
+      "description": "Full localized EAC and EAT timestamp.",
+      "arguments": { "date": "localizable", "time": "localizable" },
+      "message": "{date} · {time}"
+    },
+    "calendar.weekday.first.name": { "description": "Name of EAC weekday index zero.", "message": "First Day" },
+    "calendar.weekday.second.name": { "description": "Name of EAC weekday index one.", "message": "Second Day" },
+    "calendar.weekday.third.name": { "description": "Name of EAC weekday index two.", "message": "Third Day" },
+    "calendar.weekday.fourth.name": { "description": "Name of EAC weekday index three.", "message": "Fourth Day" },
+    "calendar.weekday.fifth.name": { "description": "Name of EAC weekday index four.", "message": "Fifth Day" },
+    "calendar.weekday.sixth.name": { "description": "Name of EAC weekday index five.", "message": "Sixth Day" },
+    "calendar.weekday.seventh.name": { "description": "Name of EAC weekday index six.", "message": "Seventh Day" },
+    "calendar.month.first-light.name": { "description": "Calendar month name.", "message": "First Light" },
+    "calendar.month.emberwake.name": { "description": "Calendar month name.", "message": "Emberwake" },
+    "calendar.month.starcurrent.name": { "description": "Calendar month name.", "message": "Starcurrent" },
+    "calendar.month.gilded-tide.name": { "description": "Calendar month name.", "message": "Gilded Tide" },
+    "calendar.month.long-sail.name": { "description": "Calendar month name.", "message": "Long Sail" },
+    "calendar.month.cinderfall.name": { "description": "Calendar month name.", "message": "Cinderfall" },
+    "calendar.month.voidbloom.name": { "description": "Calendar month name.", "message": "Voidbloom" },
+    "calendar.month.iron-comet.name": { "description": "Calendar month name.", "message": "Iron Comet" },
+    "calendar.month.pale-orbit.name": { "description": "Calendar month name.", "message": "Pale Orbit" },
+    "calendar.month.deepwatch.name": { "description": "Calendar month name.", "message": "Deepwatch" },
+    "calendar.month.homeward.name": { "description": "Calendar month name.", "message": "Homeward" },
+    "calendar.month.last-lantern.name": { "description": "Calendar month name.", "message": "Last Lantern" }
+  }
+}

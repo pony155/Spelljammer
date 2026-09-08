@@ -265,6 +265,41 @@ spaceflight: resonance navigators sensed open-space Aether and guided a
 starwood sailcraft along it. Before this, Arcane practice was local and ships
 relied on conventional propulsion.
 
+## Elven Astral Calendar
+
+The **Elven Astral Calendar (EAC)** was established by early elven
+spacefarers. **Year 0 EAC** marks the **First Voyage**: the first elven
+interstellar expedition whose successful crossing, return, and surviving
+records gave later civilizations a shared historical reference point. The
+calendar does not claim that no older people ever crossed space; precursor
+wrecks demonstrate that voyages occurred before surviving elven history.
+
+EAC uses a regular navigational year. Its companion time standard is
+**Elven Astral Time (EAT)**, the elven astral standard time used to identify
+the time within an EAC date. Together they define:
+
+- 60 seconds per minute;
+- 60 minutes per hour;
+- 24 hours per day, written using the 24-hour clock;
+- 30 days per month;
+- 12 months per year; and
+- 360 days per year.
+
+The present era is approximately **7421 EAC**. Elven, dwarven, and human
+states use EAC and EAT as their common date and time standards for
+interstellar navigation, trade, military coordination, diplomacy, treaties,
+and formal records. Starports, warships, merchant vessels, and navigation
+systems that use EAC therefore use EAT by default. Their adoption provides a
+shared timestamp, not elven political authority over the cultures that use
+them.
+
+Individual worlds, faiths, kingdoms, communities, and institutions may retain
+local calendars, religious calendars, dynastic eras, and traditional systems
+of reckoning and local civil time. Records intended to cross cultural or
+jurisdictional boundaries include an EAC/EAT timestamp or an unambiguous
+conversion to it. A local timestamp and its EAC/EAT equivalent describe the
+same moment; they do not advance on separate authoritative timelines.
+
 Generations later, dwarf and gnome researchers independently measured Aether
 currents, interference, resonance, and charge with repeatable instruments and
 experiments. Their scientific coupling methods made Aether control teachable,
@@ -397,7 +432,7 @@ engineering calculations.
 
 ## Design boundaries
 
-- Magic requires training or an explicit Racial Feat; it is not a substitute
+- Magic requires training or an explicit race- or heritage-granted Feat; it is not a substitute
   for every skill or social decision.
 - Atompunk technology is advanced but controlled: nuclear weapons, radiation,
   and reactor disasters appear only as authored high-consequence content, not

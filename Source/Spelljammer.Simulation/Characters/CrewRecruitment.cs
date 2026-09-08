@@ -6,6 +6,9 @@ namespace Spelljammer.Simulation.Characters;
 /// <summary>
 /// The protagonist and NPCs currently travelling as one active crew.
 /// </summary>
+/// <remarks>
+/// Code flow: Recruitment resolves a candidate against the active scenario and content fingerprint, validates duplicate and data-driven roster capacity rules, and returns a replacement roster or explicit failure.
+/// </remarks>
 public sealed record CrewRoster(
     ContentFingerprint ContentFingerprint,
     ScenarioId ScenarioId,
@@ -35,7 +38,7 @@ public sealed record RecruitmentResult(CrewRoster? Roster, RecruitmentFailure Fa
 /// </summary>
 public static class CrewRecruitmentSystem
 {
-    public static RecruitmentResult Create(CharacterState protagonist, ICharacterContentCatalog catalog)
+    public static RecruitmentResult Create(CharacterState protagonist, ICharacterDefinitionCatalog catalog)
     {
         ArgumentNullException.ThrowIfNull(protagonist);
         ArgumentNullException.ThrowIfNull(catalog);
@@ -70,7 +73,7 @@ public static class CrewRecruitmentSystem
     public static RecruitmentResult Recruit(
         CrewRoster roster,
         CharacterState npc,
-        ICharacterContentCatalog catalog)
+        ICharacterDefinitionCatalog catalog)
     {
         ArgumentNullException.ThrowIfNull(roster);
         ArgumentNullException.ThrowIfNull(npc);
@@ -123,7 +126,7 @@ public static class CrewRecruitmentSystem
 
     private static bool TryValidateCharacter(
         CharacterState character,
-        ICharacterContentCatalog catalog,
+        ICharacterDefinitionCatalog catalog,
         out RecruitmentFailure failure)
     {
         if (!catalog.TryGetCharacter(character.Id, out CharacterDefinition? definition))

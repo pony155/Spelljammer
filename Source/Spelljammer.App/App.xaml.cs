@@ -13,6 +13,8 @@ namespace Spelljammer;
 /// 2. Loading localization strings in the user's language
 /// 3. Initializing and displaying the main menu window
 /// 4. Managing application lifecycle
+/// Code flow: Startup publishes settings and localization dependencies before constructing the main window, while
+/// shutdown disposes native-backed services on their owning UI thread.
 /// </remarks>
 public partial class App : Application
 {

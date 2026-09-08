@@ -3,6 +3,12 @@ using Spelljammer.Simulation.Content;
 
 namespace Spelljammer.Simulation.Items;
 
+/// <summary>
+/// Defines wearable armor, including slot compatibility, armor value, penalties, and tags.
+/// </summary>
+/// <remarks>
+/// Code flow: Compiled armor enters the item catalog, equipment validation assigns its instance to a compatible slot, and combat projections consume its authored defensive data.
+/// </remarks>
 public sealed record ArmorDefinition(
     ContentId Id,
     int SchemaVersion,

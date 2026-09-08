@@ -1,11 +1,15 @@
 using System.Collections.Immutable;
 using Spelljammer.Simulation.Content;
+using Spelljammer.Simulation.Effects;
 
 namespace Spelljammer.Simulation.Characters;
 
 /// <summary>
 /// Represents evidence of a route observed by a character with a confidence level.
 /// </summary>
+/// <remarks>
+/// Code flow: Observations enter bounded racial sensing rules, deterministic interpretation combines matching evidence, and resulting trails or reactions are returned as immutable capability outcomes.
+/// </remarks>
 /// <param name="RouteId">The ID of the route being tracked.</param>
 /// <param name="EvidenceId">The type of evidence observed (footprints, scent, magical traces, etc.).</param>
 /// <param name="Confidence">The confidence level in this evidence (0-255).</param>
@@ -28,8 +32,8 @@ public sealed record TrailInterpretation(ContentId RouteId, ImmutableArray<Conte
 /// </remarks>
 public static class RaceCapabilities
 {
-    private static readonly ContentId SoulAnchorEffect = new("effect.recovery.soul-anchor");
-    private static readonly ContentId TrailSenseEffect = new("effect.tracking.observed-trail");
+    private static readonly EffectId SoulAnchorEffect = new("effect.recovery.soul-anchor");
+    private static readonly EffectId TrailSenseEffect = new("effect.tracking.observed-trail");
 
     /// <summary>
     /// Creates a soul anchor recovery action if the character has the soul anchor effect.
@@ -39,7 +43,7 @@ public static class RaceCapabilities
     /// <returns>The soul anchor recovery action if available; null otherwise.</returns>
     public static ActionDefinition? CreateSoulAnchorRecoveryAction(
         CharacterState character,
-        ICharacterContentCatalog catalog)
+        ICharacterDefinitionCatalog catalog)
     {
         if (!HasEffect(character, catalog, SoulAnchorEffect))
         {
@@ -66,7 +70,7 @@ public static class RaceCapabilities
 
     public static ImmutableArray<TrailInterpretation> InterpretObservedTrails(
         CharacterState character,
-        ICharacterContentCatalog catalog,
+        ICharacterDefinitionCatalog catalog,
         IReadOnlyList<ObservedRouteEvidence> observedEvidence)
     {
         ArgumentNullException.ThrowIfNull(observedEvidence);
@@ -88,7 +92,7 @@ public static class RaceCapabilities
         ];
     }
 
-    private static bool HasEffect(CharacterState character, ICharacterContentCatalog catalog, ContentId effectId)
+    private static bool HasEffect(CharacterState character, ICharacterDefinitionCatalog catalog, EffectId effectId)
     {
         if (character.ContentFingerprint != catalog.Fingerprint)
         {
@@ -97,7 +101,8 @@ public static class RaceCapabilities
 
         foreach (FeatId featId in character.Capabilities.Feats)
         {
-            if (catalog.TryGetFeat(featId, out FeatDefinition? feat) && feat!.EffectIds.Contains(effectId))
+            if (catalog.TryGetFeat(featId, out FeatDefinition? feat) &&
+                feat!.EffectIds.Contains(effectId))
             {
                 return true;
             }

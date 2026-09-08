@@ -4,6 +4,12 @@ using Spelljammer.Presentation;
 
 namespace Spelljammer;
 
+/// <summary>
+/// Hosts character creation and translates presentation selections into a simulation request.
+/// </summary>
+/// <remarks>
+/// Code flow: Available content becomes UI choices, player input produces a deterministic selection, and completion returns the selected character seed and definition IDs.
+/// </remarks>
 internal sealed class CharacterCreationScreen : Grid, IDisposable
 {
     private readonly SpriteForgeCharacterCreationView creationView;

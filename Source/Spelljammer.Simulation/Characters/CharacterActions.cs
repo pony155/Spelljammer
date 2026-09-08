@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using Spelljammer.Simulation.Combat;
 using Spelljammer.Simulation.Content;
 using Spelljammer.Simulation.Effects;
 
@@ -7,6 +8,9 @@ namespace Spelljammer.Simulation.Characters;
 /// <summary>
 /// Localization keys for reasons an action might be rejected during validation.
 /// </summary>
+/// <remarks>
+/// Code flow: An action request resolves actor and definition data, validates targeting, restrictions, resources, and action points, then commits effects and returns replacement state or a stable rejection code.
+/// </remarks>
 public static class ActionRejectionCodes
 {
     /// <summary>Action was accepted without issue.</summary>
@@ -240,7 +244,7 @@ public static class CharacterActionSystem
         CharacterState? actor,
         ActionDefinition? definition,
         ActionRequest request,
-        ICharacterContentCatalog catalog)
+        ICombatContentCatalog catalog)
     {
         if (actor is null || actor.Id != request.ActorId)
         {
@@ -349,7 +353,7 @@ public static class CharacterActionSystem
             null);
     }
 
-    public static ActionExecutionResult Resolve(ActionReservation reservation, ICharacterContentCatalog catalog)
+    public static ActionExecutionResult Resolve(ActionReservation reservation, ICombatContentCatalog catalog)
     {
         ArgumentNullException.ThrowIfNull(reservation);
         ArgumentNullException.ThrowIfNull(catalog);
@@ -358,7 +362,9 @@ public static class CharacterActionSystem
             return RejectedExecution(reservation.OriginalState, ActionRejectionCodes.ContentMismatch);
         }
 
-        int roll = DeterministicRoll(reservation.Request.RandomSeed, reservation.Request.RandomSequence);
+        int roll = CombatResolutionUtilities.DeterministicRoll(
+            reservation.Request.RandomSeed,
+            reservation.Request.RandomSequence);
         int total = checked(reservation.AbilityValue * 10 + reservation.SkillValue + reservation.Definition.Modifier + roll);
         bool succeeded = total >= reservation.Definition.Difficulty;
         ImmutableDictionary<ResourceId, int>.Builder resources = reservation.OriginalState.Resources.ToBuilder();
@@ -405,15 +411,6 @@ public static class CharacterActionSystem
             succeeded ? ActionRejectionCodes.None : "resolution.check-failed",
             succeeded ? reservation.Definition.GrantedFeatIds : []);
         return new ActionExecutionResult(committed, true, succeeded, ActionRejectionCodes.None, resolution);
-    }
-
-    private static int DeterministicRoll(ulong seed, ulong sequence)
-    {
-        ulong value = seed + (sequence + 1) * 0x9e3779b97f4a7c15UL;
-        value = (value ^ (value >> 30)) * 0xbf58476d1ce4e5b9UL;
-        value = (value ^ (value >> 27)) * 0x94d049bb133111ebUL;
-        value ^= value >> 31;
-        return 1 + (int)(value % 100);
     }
 
     private static ActionEligibilityResult Rejected(string code, ContentId? relatedId = null) => new(null, code, relatedId);

@@ -1,38 +1,21 @@
 using System.Collections.Immutable;
 using Spelljammer.Simulation.Content;
-using MeleeWeaponDefinition = Spelljammer.Simulation.Items.MeleeWeaponDefinition;
-using RangedWeaponDefinition = Spelljammer.Simulation.Items.RangedWeaponDefinition;
-using EquipmentDefinition = Spelljammer.Simulation.Items.EquipmentDefinition;
-using ItemDefinition = Spelljammer.Simulation.Items.ItemDefinition;
-using Spelljammer.Simulation.Items;
 using Spelljammer.Simulation.Effects;
+using Spelljammer.Simulation.Items;
 
 namespace Spelljammer.Simulation.Characters;
 
-public interface ICharacterContentCatalog : IItemDefinitionCatalog, IStatusDefinitionCatalog
+/// <summary>Definitions needed by character creation, capability lookup, progression, and recruitment.</summary>
+/// <remarks>
+/// Code flow: Compiled content implements the catalog, character systems resolve stable IDs and typed definitions through it, and a shared fingerprint prevents cross-content state mutation.
+/// </remarks>
+public interface ICharacterDefinitionCatalog : IContentCatalogIdentity
 {
-    ContentFingerprint Fingerprint { get; }
     ImmutableArray<AbilityDefinition> Abilities { get; }
     ImmutableArray<SkillDefinition> Skills { get; }
     ImmutableArray<CharacterResourceProfileDefinition> CharacterResourceProfiles { get; }
     ImmutableArray<CharacterDefinition> Characters { get; }
     ImmutableArray<ScenarioDefinition> Scenarios { get; }
-    ImmutableArray<EquipmentDefinition> Equipment { get; }
-    ImmutableArray<ItemDefinition> Items { get; }
-    ImmutableArray<MeleeWeaponDefinition> MeleeWeapons { get; }
-    ImmutableArray<MeleeWeaponActionDefinition> MeleeWeaponActions { get; }
-    ImmutableArray<RangedWeaponDefinition> RangedWeapons { get; }
-    ImmutableArray<AmmunitionDefinition> Ammunition { get; }
-    ImmutableArray<RangedWeaponActionDefinition> RangedWeaponActions { get; }
-    ImmutableArray<EffectDefinition> Effects { get; }
-    ImmutableArray<StatusDefinition> Statuses { get; }
-    ImmutableArray<BoardCellDefinition> BoardCells { get; }
-    ImmutableArray<ZoneLinkDefinition> ZoneLinks { get; }
-    ImmutableArray<PersonalBoardDefinition> PersonalBoards { get; }
-    ImmutableArray<EncounterDefinition> Encounters { get; }
-    ImmutableArray<ShipFrameDefinition> ShipFrames { get; }
-    ImmutableArray<ShipModuleDefinition> ShipModules { get; }
-    ImmutableArray<ShipWeaponConfigurationDefinition> ShipWeaponConfigurations { get; }
 
     bool TryGetAbility(AbilityId id, out AbilityDefinition? definition, out int index);
     bool TryGetSkill(SkillId id, out SkillDefinition? definition, out int index);
@@ -44,20 +27,17 @@ public interface ICharacterContentCatalog : IItemDefinitionCatalog, IStatusDefin
     bool TryGetFeat(FeatId id, out FeatDefinition? definition);
     bool TryGetHeritage(HeritageId id, out HeritageDefinition? definition);
     bool TryGetRace(RaceId id, out RaceDefinition? definition);
-    bool TryGetMeleeWeapon(MeleeWeaponId id, out MeleeWeaponDefinition? definition);
-    bool TryGetMeleeWeaponAction(MeleeWeaponActionId id, out MeleeWeaponActionDefinition? definition);
-    bool TryGetRangedWeapon(RangedWeaponId id, out RangedWeaponDefinition? definition);
-    bool TryGetAmmunition(AmmunitionId id, out AmmunitionDefinition? definition);
-    bool TryGetRangedWeaponAction(RangedWeaponActionId id, out RangedWeaponActionDefinition? definition);
-    bool TryGetBoardCell(CellId id, out BoardCellDefinition? definition);
-    bool TryGetZoneLink(LinkId id, out ZoneLinkDefinition? definition);
-    bool TryGetPersonalBoard(PersonalBoardId id, out PersonalBoardDefinition? definition);
-    bool TryGetEncounter(EncounterId id, out EncounterDefinition? definition);
-    bool TryGetShipFrame(ShipFrameId id, out ShipFrameDefinition? definition);
-    bool TryGetShipModule(ModuleId id, out ShipModuleDefinition? definition);
-    bool TryGetShipWeaponConfiguration(ShipWeaponConfigurationId id, out ShipWeaponConfigurationDefinition? definition);
     bool TryGetTrainingProject(TrainingProjectId id, out TrainingProjectDefinition? definition);
 }
+
+/// <summary>Definitions needed to validate a complete persisted character state.</summary>
+public interface ICharacterStateCatalog :
+    ICharacterDefinitionCatalog,
+    IItemDefinitionCatalog,
+    IStatusDefinitionCatalog;
+
+/// <summary>Character definitions plus inventory definitions needed while creating a character.</summary>
+public interface ICharacterCreationCatalog : ICharacterDefinitionCatalog, IItemDefinitionCatalog;
 
 public enum CapabilityLookupFailure : byte
 {

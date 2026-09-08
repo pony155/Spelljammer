@@ -6,8 +6,9 @@ messages from validated `.sfloc` artifacts. `en-US` is the source locale;
 transforms. The WPF host now stages embedded `en-US`, `fr-FR`, and
 `zh-Hant-TW` `menu`, `settings`, and `creation` catalogs on the UI owner thread,
 displays resolved text in the main menu and its in-window flows, and republishes
-those surfaces when language changes.
-Localization of the older expedition prototype remains planned.
+those surfaces when language changes. The expedition prototype has been
+retired; localization for future campaign and combat presentation remains
+planned as those UI surfaces are implemented.
 
 ## Runtime contract
 

@@ -13,6 +13,12 @@ using Spelljammer.Localization;
 
 namespace Spelljammer.Presentation;
 
+/// <summary>
+/// Presents deterministic character-creation choices through the SpriteForge UI bridge.
+/// </summary>
+/// <remarks>
+/// Code flow: Definition-backed choices populate native controls, input updates the current selection, and confirmation emits a managed completion event.
+/// </remarks>
 internal sealed class CharacterCreationCompletedEventArgs(CharacterCreationSelection selection) : EventArgs
 {
     internal CharacterCreationSelection Selection { get; } = selection;

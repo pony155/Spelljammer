@@ -1222,7 +1222,10 @@ percentage arithmetic, and returns the new character and turn state. The new
 weapon state is committed inside the addressed `ItemInstance`. Rejection does
 not mutate any input. AP and Stamina are paid on an
 accepted attempt even when it misses; durability and energy are likewise
-consumed by the attempt. Effects apply only on a hit.
+consumed by the attempt. A hit emits deterministic armor-damage and
+physical-damage `EffectRequest` values plus any Effects authored by the weapon
+action. `ResolveEffects` applies that batch atomically through the shared
+Effect system; a miss emits no Effects.
 
 The base pack currently demonstrates this contract with the conventional,
 one-handed Boarding Blade and Slash, Thrust, and Heavy Strike actions. The
@@ -1230,6 +1233,6 @@ other families and technologies are supported by the schema but await authored
 weapons and technology-specific effects.
 
 Character and encounter state persist the same item-instance ownership model,
-and campaign save schema 10 stores melee durability and energy. Applying the
-returned Health and Armor damage to encounter targets and AI action selection
-remain encounter-system work.
+and campaign save schema 13 stores melee durability and energy. Publishing the
+resolved Effect target snapshot back into encounter actor state and AI action
+selection remain encounter-system work.

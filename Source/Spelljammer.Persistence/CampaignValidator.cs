@@ -4,6 +4,8 @@ using Spelljammer.Content.Compilation;
 using Spelljammer.Simulation.Characters;
 using Spelljammer.Simulation.Content;
 using Spelljammer.Simulation.Encounters;
+using Spelljammer.Simulation.Ships;
+using Spelljammer.Simulation.World;
 using Spelljammer.Simulation.Items;
 using Spelljammer.Simulation.Effects;
 
@@ -21,6 +23,8 @@ namespace Spelljammer.Persistence;
 /// - Commands are properly sorted by execution order
 /// - All character references are valid and unique
 /// - All equipment and scenario references exist in content
+/// Code flow: A decoded or migrated candidate is traversed against the active content snapshot, the first invariant
+/// failure returns a stable diagnostic and optional missing ID, and only a fully valid campaign may be published.
 /// </remarks>
 public static class CampaignValidator
 {
@@ -36,8 +40,23 @@ public static class CampaignValidator
         ArgumentNullException.ThrowIfNull(campaign);
         ArgumentNullException.ThrowIfNull(content);
         missingId = null;
-        VoyageWorld world = campaign.Voyage;
+        World world = campaign.World;
         CampaignContentLock expectedLock = CampaignContentLock.Create(content);
+        if (world.TimeDefinition is null ||
+            !content.TryGetWorldTime(world.TimeDefinition.WorldTimeId, out WorldTimeDefinition? activeTimeDefinition))
+        {
+            missingId = world.TimeDefinition?.Id;
+            return false;
+        }
+
+        if (world.Calendar is null || world.TimeScale is null || world.Clock is null ||
+            !content.TryGetCalendar(world.Clock.CalendarId, out CalendarDefinition? activeCalendar) ||
+            !content.TryGetTimeScale(world.Clock.TimeScaleId, out TimeScaleDefinition? activeTimeScale))
+        {
+            missingId = world.Calendar?.Id ?? world.TimeScale?.Id;
+            return false;
+        }
+
         if (Encoding.UTF8.GetByteCount(campaign.GameBuild) is 0 or > CampaignState.MaximumGameBuildBytes ||
             campaign.ContentLock.BaseContentRevision != expectedLock.BaseContentRevision ||
             !campaign.ContentLock.Packs.SequenceEqual(expectedLock.Packs) ||
@@ -50,14 +69,20 @@ public static class CampaignValidator
             campaign.ContentLock.SaveSchemaVersion != CampaignSaveVersions.SaveSchema ||
             campaign.ContentLock.AppliedMigrationIds.Length > CampaignSaveLimits.MaximumCollectionEntries ||
             campaign.ContentLock.AppliedMigrationIds.Distinct().Count() != campaign.ContentLock.AppliedMigrationIds.Length ||
+            world.TimeDefinition != activeTimeDefinition ||
+            world.Calendar != activeCalendar || world.TimeScale != activeTimeScale ||
+            world.Clock.CalendarId != world.Calendar.CalendarId ||
+            world.Clock.TimeScaleId != world.TimeScale.TimeScaleId ||
+            world.Clock.ElapsedWorldSeconds < 0 || world.Clock.FractionRemainder < 0 ||
+            world.Clock.FractionRemainder >= world.TimeScale.SimulationTicksDenominator ||
             world.ContentFingerprint != content.Fingerprint || world.Tick < 0 ||
             world.Ships.Count is 0 or > CampaignSaveLimits.MaximumShips ||
             campaign.Characters.Length is 0 or > CampaignSaveLimits.MaximumCharacters ||
-            world.Commands.Length > VoyageWorld.MaximumCommands ||
+            world.Commands.Length > World.MaximumCommands ||
             world.CommandHistory.Length > CampaignSaveLimits.MaximumRetainedCommands ||
-            world.ScheduledActions.Length > VoyageWorld.MaximumSchedules ||
+            world.ScheduledActions.Length > World.MaximumSchedules ||
             world.Events.Length > CampaignSaveLimits.MaximumRetainedEvents ||
-            world.ReadyActors.Length > VoyageWorld.MaximumReadyActors ||
+            world.ReadyUnits.Length > World.MaximumReadyUnits ||
             world.Commands.Select(value => value.Id).Distinct().Count() != world.Commands.Length ||
             world.CommandHistory.Select(value => value.Command.Id).Distinct().Count() != world.CommandHistory.Length ||
             campaign.Characters.Select(value => value.Id).Distinct().Count() != campaign.Characters.Length ||
@@ -105,10 +130,7 @@ public static class CampaignValidator
                 character.Resources.Values.Any(value => value < 0) ||
                 character.TrainingProgress.Count > CharacterCapabilities.MaximumSetEntries ||
                 character.TrainingProgress.Any(value => value.Value < 0 || !content.TryGetTrainingProject(value.Key, out _)) ||
-                character.ActiveEffects.Length > CampaignSaveLimits.MaximumCollectionEntries ||
                 character.Evidence.Length > CampaignSaveLimits.MaximumRetainedEvents ||
-                character.ActiveEffects.Any(value => !characterIds.Contains(value.ActorId) ||
-                    !characterIds.Contains(value.TargetId) || value.EndTick < value.StartTick) ||
                 character.Evidence.Any(value => !characterIds.Contains(value.ActorId) ||
                     !characterIds.Contains(value.TargetId) || value.Tick < 0))
             {
@@ -175,8 +197,8 @@ public static class CampaignValidator
             return false;
         }
 
-        return world.ReadyActors.Distinct().Count() == world.ReadyActors.Length &&
-            world.ReadyActors.All(id => world.PersonalEncounter?.Actors.ContainsKey(id) == true) &&
+        return world.ReadyUnits.Distinct().Count() == world.ReadyUnits.Length &&
+            world.ReadyUnits.All(id => world.PersonalEncounter?.Units.ContainsKey(id) == true) &&
             world.ScheduledActions.All(action => action.CommitTick >= 0 && action.RecoverTick >= action.CommitTick &&
                 action.History.Length is > 0 and <= 8 && world.CommandHistory.Any(entry => entry.Command.Id == action.Command.Id));
     }
@@ -193,6 +215,9 @@ public static class CampaignValidator
         }
 
         Add(campaign.CurrentLocationId);
+        Add(campaign.World.TimeDefinition.Id);
+        Add(campaign.World.Calendar.Id);
+        Add(campaign.World.TimeScale.Id);
 
         foreach (CharacterState character in campaign.Characters)
         {
@@ -214,7 +239,7 @@ public static class CampaignValidator
             }
         }
 
-        foreach (ShipState ship in campaign.Voyage.Ships.Values)
+        foreach (ShipState ship in campaign.World.Ships.Values)
         {
             Add(ship.Frame.ShipFrameId.Value);
             foreach (InstalledModuleState module in ship.Modules)
@@ -227,17 +252,17 @@ public static class CampaignValidator
             }
         }
 
-        if (campaign.Voyage.PersonalEncounter is PersonalEncounterState encounter)
+        if (campaign.World.PersonalEncounter is PersonalEncounterState encounter)
         {
             Add(encounter.Id.Value);
             Add(encounter.Board.Definition.PersonalBoardId.Value);
             foreach (ContentId id in encounter.Board.Cells.Keys.Select(value => value.Value)
                          .Concat(encounter.Board.Links.Select(value => value.LinkId.Value))
-                         .Concat(encounter.Actors.Values.SelectMany(actor => actor.Items.ItemInstances.Select(item => item.DefinitionId)))
-                         .Concat(encounter.Actors.Values.SelectMany(actor =>
-                             actor.Items.InventoryEntries.Select(entry => entry.Stack.DefinitionId)))
-                         .Concat(encounter.Actors.Values.SelectMany(actor =>
-                             actor.Statuses.Instances.Select(status => status.DefinitionId.Value))))
+                         .Concat(encounter.Units.Values.SelectMany(unit => unit.Items.ItemInstances.Select(item => item.DefinitionId)))
+                         .Concat(encounter.Units.Values.SelectMany(unit =>
+                             unit.Items.InventoryEntries.Select(entry => entry.Stack.DefinitionId)))
+                         .Concat(encounter.Units.Values.SelectMany(unit =>
+                             unit.Statuses.Instances.Select(status => status.DefinitionId.Value))))
             {
                 Add(id);
             }
@@ -256,20 +281,19 @@ public static class CampaignValidator
         missingId = null;
         if (!content.TryGetEncounter(encounter.Id, out EncounterDefinition? definition) ||
             definition!.PersonalBoardId != encounter.Board.Definition.PersonalBoardId ||
-            encounter.Actors.Count > encounter.Board.Definition.MaximumOccupants ||
-            encounter.Objectives.Count > CampaignSaveLimits.MaximumCollectionEntries ||
-            encounter.ActiveEffects.Length > PersonalEncounterState.MaximumActiveEffects)
+            encounter.Units.Count > encounter.Board.Definition.MaximumOccupants ||
+            encounter.Objectives.Count > CampaignSaveLimits.MaximumCollectionEntries)
         {
             missingId = encounter.Id.Value;
             return false;
         }
 
-        foreach (PersonalActorState actor in encounter.Actors.Values)
+        foreach (BattleUnitState unit in encounter.Units.Values)
         {
-            if (!encounter.Board.Cells.ContainsKey(actor.CellId) ||
-                actor.CharacterId is CharacterId characterId && !characterIds.Contains(characterId) ||
-                resourceProfile is null || actor.Health < 0 ||
-                actor.Injuries.Length > CampaignSaveLimits.MaximumCollectionEntries)
+            if (!encounter.Board.Cells.ContainsKey(unit.CellId) ||
+                unit.CharacterId is CharacterId characterId && !characterIds.Contains(characterId) ||
+                resourceProfile is null || unit.Health < 0 ||
+                unit.Injuries.Length > CampaignSaveLimits.MaximumCollectionEntries)
             {
                 return false;
             }
@@ -277,19 +301,19 @@ public static class CampaignValidator
 
             try
             {
-                actor.CharacterResources.Validate(resourceProfile);
-                actor.Turn.Validate(resourceProfile.TurnRules);
-                if (!ItemSystem.Create(actor.Items, content).Accepted)
+                unit.CharacterResources.Validate(resourceProfile);
+                unit.Turn.Validate(resourceProfile.TurnRules);
+                if (!ItemSystem.Create(unit.Items, content).Accepted)
                 {
                     return false;
                 }
 
                 StatusResult statuses = StatusSystem.Create(
-                    actor.Statuses,
+                    unit.Statuses,
                     content,
-                    new StatusSystemLimits(PersonalEncounterState.MaximumActiveEffects, 1_000_000,
-                        PersonalEncounterState.MaximumActiveEffects));
-                if (!statuses.Accepted || actor.Statuses.Instances.Any(value => value.TargetId != actor.Id.Value))
+                    new StatusSystemLimits(PersonalEncounterState.MaximumStatusesPerUnit, 1_000_000,
+                        PersonalEncounterState.MaximumStatusesPerUnit));
+                if (!statuses.Accepted || unit.Statuses.Instances.Any(value => value.TargetId.Value != unit.Id.Value))
                 {
                     return false;
                 }
@@ -300,10 +324,9 @@ public static class CampaignValidator
             }
         }
 
-        ImmutableArray<ActorId> occupants = [.. encounter.Board.Occupants.Values.SelectMany(value => value).Order()];
-        return occupants.SequenceEqual(encounter.Actors.Keys.Order()) &&
-            encounter.Actors.Values.All(actor => encounter.Board.Occupants.GetValueOrDefault(actor.CellId, []).Contains(actor.Id)) &&
-            encounter.Board.Definition.RequiredObjectiveIds.All(encounter.Objectives.ContainsKey) &&
-            encounter.ActiveEffects.All(effect => encounter.Actors.ContainsKey(effect.TargetId) && effect.Stacks is >= 1 and <= 16);
+        ImmutableArray<BattleUnitId> occupants = [.. encounter.Board.Occupants.Values.SelectMany(value => value).Order()];
+        return occupants.SequenceEqual(encounter.Units.Keys.Order()) &&
+            encounter.Units.Values.All(unit => encounter.Board.Occupants.GetValueOrDefault(unit.CellId, []).Contains(unit.Id)) &&
+            encounter.Board.Definition.RequiredObjectiveIds.All(encounter.Objectives.ContainsKey);
     }
 }

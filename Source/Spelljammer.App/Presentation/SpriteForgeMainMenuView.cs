@@ -9,6 +9,12 @@ using Spelljammer.Interop;
 
 namespace Spelljammer.Presentation;
 
+/// <summary>
+/// Presents the main menu through SpriteForge's retained native UI bridge.
+/// </summary>
+/// <remarks>
+/// Code flow: The view creates a native document, forwards WPF input and layout changes, renders presentation commands, and raises managed navigation events.
+/// </remarks>
 internal sealed class SpriteForgeMainMenuView : FrameworkElement, IDisposable
 {
     internal const double LogicalWidth = 1280;

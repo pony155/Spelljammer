@@ -9,6 +9,12 @@ using Spelljammer.Settings;
 
 namespace Spelljammer.Presentation;
 
+/// <summary>
+/// Defines the SpriteForge-backed settings view and its managed interaction events.
+/// </summary>
+/// <remarks>
+/// Code flow: A settings profile is projected into native UI elements, native actions update the draft profile, and apply or cancel events are raised to the WPF host.
+/// </remarks>
 internal sealed class GameSettingsApplyRequestedEventArgs(GameSettingsProfile profile) : EventArgs
 {
     internal GameSettingsProfile Profile { get; } = profile;

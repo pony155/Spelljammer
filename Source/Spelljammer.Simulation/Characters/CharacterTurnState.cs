@@ -3,6 +3,12 @@ using Spelljammer.Simulation.Content;
 
 namespace Spelljammer.Simulation.Characters;
 
+/// <summary>
+/// Defines a character's deterministic turn meter, action points, costs, and modifiers.
+/// </summary>
+/// <remarks>
+/// Code flow: Tick advancement derives turn-meter gain from resources and modifiers, reaching the threshold opens a turn, and accepted actions atomically spend configured action points.
+/// </remarks>
 public sealed record CharacterTurnModifier(
     ContentId SourceId,
     int TurnMeterGainPercentageDelta,

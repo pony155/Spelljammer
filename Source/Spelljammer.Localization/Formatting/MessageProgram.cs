@@ -3,6 +3,12 @@ using System.Text;
 
 namespace Spelljammer.Localization;
 
+/// <summary>
+/// Defines the bounded executable representation of a compiled localization message.
+/// </summary>
+/// <remarks>
+/// Code flow: Message nodes are encoded into stable bytecode, validated while decoding, and later executed with typed arguments by the formatter.
+/// </remarks>
 public enum MessageArgumentPresentation : byte
 {
     Default,

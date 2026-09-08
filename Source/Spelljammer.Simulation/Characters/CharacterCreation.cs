@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using System.Security.Cryptography;
 using System.Text;
+using Spelljammer.Simulation.Combat;
 using Spelljammer.Simulation.Content;
 using Spelljammer.Simulation.Items;
 
@@ -12,6 +13,8 @@ namespace Spelljammer.Simulation.Characters;
 /// <remarks>
 /// The request specifies all character creation choices: race, heritage, background, and scenario.
 /// The content fingerprint ensures the request matches the available game content.
+/// Code flow: The request resolves and validates every selected definition, deterministic derivation builds the
+/// initial capabilities, resources, equipment, and progression state, and success returns one complete character.
 /// </remarks>
 /// <param name="ContentFingerprint">The fingerprint of the content being used for creation.</param>
 /// <param name="ScenarioId">The starting scenario for the new character.</param>
@@ -131,7 +134,7 @@ public static class CharacterCreator
 {
     public static CharacterCreationResult Create(
         CharacterCreationRequest request,
-        ICharacterContentCatalog catalog,
+        ICharacterCreationCatalog catalog,
         CrewSupportProfile support)
     {
         ArgumentNullException.ThrowIfNull(catalog);
@@ -290,7 +293,7 @@ public static class CharacterCreator
     private static ItemSystemResult CreateStartingItems(
         CharacterCreationRequest request,
         CharacterDefinition template,
-        ICharacterContentCatalog catalog)
+        ICharacterCreationCatalog catalog)
     {
         ContentId ownerId = template.CharacterId.Value;
         InventoryContainerId containerId = new(DeriveGuid(request, "inventory", ownerId, 0));
@@ -349,7 +352,7 @@ public static class CharacterCreator
         ContentFingerprint fingerprint,
         ScenarioId scenarioId,
         ulong seed,
-        ICharacterContentCatalog catalog,
+        ICharacterCreationCatalog catalog,
         CrewSupportProfile support)
     {
         if (fingerprint != catalog.Fingerprint)
@@ -424,7 +427,7 @@ public static class CharacterCreator
         }
     }
 
-    private sealed class GrantCollector(ICharacterContentCatalog catalog, RaceId raceId)
+    private sealed class GrantCollector(ICharacterCreationCatalog catalog, RaceId raceId)
     {
         private readonly HashSet<FeatId> feats = [];
         private readonly List<CapabilityGrant> sources = [];

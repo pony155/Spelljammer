@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "revision": 1,
+  "id": "status.mindlinked",
+  "nameKey": "status.mindlinked.name",
+  "descriptionKey": "status.mindlinked.description",
+  "category": "mental",
+  "tags": ["communication", "psionic"],
+  "defaultDuration": 0,
+  "durationType": "until-removed",
+  "stackPolicy": "refresh",
+  "maximumStacks": 1,
+  "priority": 0,
+  "modifiers": [],
+  "restrictions": [],
+  "aiRules": [],
+  "onApplyEffectIds": [],
+  "onTickEffectIds": [],
+  "onExpireEffectIds": []
+}
