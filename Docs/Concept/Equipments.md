@@ -66,6 +66,11 @@ found items as cargo, but must equip them to use their active effect.
 | Industrial equipment | breaching charge, sensor kit, power cell, radiation suit | Engineering, combat, or environmental support |
 | Relics | ancient key, psionics lens, star compass | A unique authored action with clear limits |
 
+Implemented melee equipment links to separate weapon and action definitions;
+family, technology, durability, energy behavior, AP, accuracy, and armor
+interaction are specified in
+[`../Architecture/MeleeWeaponSystem.md`](../Architecture/MeleeWeaponSystem.md).
+
 ## Technology and magic
 
 Arcane is the overall magical practice; Aether is the non-material medium that

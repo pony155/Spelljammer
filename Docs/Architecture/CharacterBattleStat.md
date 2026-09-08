@@ -330,6 +330,15 @@ specialization should normally use Feats, familiarity, Background bonuses, or
 equipment requirements rather than fragmenting every weapon family into a
 separate Skill.
 
+The implemented first melee slice uses the weapon's authored
+`strengthDamageScale` as an additive percentage contribution before the
+action's damage percentage is applied. The governing melee Skill and each
+action's `hitModifier` determine accuracy. Armor Penetration bypasses part of
+the target's Armor while Armor Damage reduces Armor as a separate result. See
+[`MeleeWeaponSystem.md`](MeleeWeaponSystem.md) for the current content and
+resolution contract. Critical hits, weapon requirements, and damage scaling
+from Skill remain planned.
+
 Throwing governs accuracy, effective range, scatter, and placement for
 grenades, knives, bombs, alchemical weapons, and magical charges. Strength may
 separately affect the range of heavy thrown objects.

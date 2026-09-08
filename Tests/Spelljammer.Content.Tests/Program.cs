@@ -39,6 +39,7 @@ internal static class ContentContracts
         MindlinkRequiresKnowledgeConsentAndStrain();
         RaceCapabilitiesRespectTheirBoundaries();
         Milestone5EncounterAndShipContentIsLinked();
+        MeleeWeaponsAreDataDrivenAndAtomic();
         Console.WriteLine("Content and character capability contracts passed.");
         return 0;
     }
@@ -86,6 +87,69 @@ internal static class ContentContracts
         True(industrial.Modules.Any(value => value.Definition.ModuleId == new ModuleId("module.power.diesel-generator")),
             "The industrial package lost its diesel generator.");
         Equal(frame.MaximumHull, arcane.Hull, "A valid loadout did not publish the frame's hull budget.");
+    }
+
+    private static void MeleeWeaponsAreDataDrivenAndAtomic()
+    {
+        (GameContentSnapshot snapshot, RosterSnapshot roster) = BaseRoster();
+        Equal(1, snapshot.MeleeWeaponRegistry.Count, "The base melee weapon was not published.");
+        Equal(3, snapshot.MeleeWeaponActionRegistry.Count, "The base melee action set is incomplete.");
+
+        EquipmentId equipmentId = new("equipment.personal.boarding-blade");
+        True(snapshot.TryGetEquipment(equipmentId, out EquipmentDefinition? equipment), "Boarding blade equipment is missing.");
+        Equal(new MeleeWeaponId("melee-weapon.boarding-blade"), equipment!.MeleeWeaponId!.Value,
+            "Equipment did not link to its melee rules.");
+        True(snapshot.TryGetMeleeWeapon(equipment.MeleeWeaponId.Value, out MeleeWeaponDefinition? weapon),
+            "Boarding blade melee rules are missing.");
+        True(snapshot.TryGetMeleeWeaponAction(new MeleeWeaponActionId("melee-action.slash"), out _),
+            "Slash action is missing.");
+        Equal(MeleeWeaponFamily.Blade, weapon!.Family, "Weapon family was not compiled from JSON.");
+        Equal(MeleeWeaponTechnology.Conventional, weapon.Technology, "Weapon technology was not compiled from JSON.");
+
+        CharacterState actor = roster.Characters.First() with
+        {
+            EquipmentIds = roster.Characters.First().EquipmentIds.Add(equipmentId.Value),
+        };
+        CharacterState target = roster.Characters.First(value => value.Id != actor.Id);
+        ScenarioDefinition scenario = snapshot.Scenarios.Single(value => value.ScenarioId == actor.ScenarioId);
+        True(snapshot.TryGetCharacterResourceProfile(scenario.CharacterResourceProfileId!.Value,
+            out CharacterResourceProfileDefinition? profile), "Character resource profile is missing.");
+        CharacterTurnState turn = CharacterTurnState.Create(profile!.TurnRules).RestoreActionPoints(profile.TurnRules.BaseActionPoints);
+        MeleeWeaponState weaponState = MeleeWeaponState.Create(weapon);
+        MeleeAttackRequest request = new(
+            actor.Id,
+            equipmentId,
+            new MeleeWeaponActionId("melee-action.slash"),
+            new MeleeTarget(target.Id, true, true, 1, 0, 5),
+            turn,
+            weaponState,
+            0x5eedUL,
+            12);
+
+        MeleeAttackEligibilityResult eligible = MeleeWeaponSystem.CheckEligibility(actor, request, snapshot);
+        True(eligible.Accepted, eligible.RejectionCode);
+        MeleeAttackResult first = MeleeWeaponSystem.Resolve(eligible.Reservation!, snapshot);
+        MeleeAttackResult second = MeleeWeaponSystem.Resolve(eligible.Reservation!, snapshot);
+        True(first.Accepted && first.Hit, first.RejectionCode);
+        Equal(first.Resolution!, second.Resolution!, "Melee resolution was not deterministic.");
+        Equal(turn.CurrentActionPoints - eligible.Reservation!.ActionPointCost, first.TurnState.CurrentActionPoints,
+            "The action-owned AP cost was not committed.");
+        Equal(actor.CharacterResources.GetCurrentValue(CharacterResourceIds.Stamina) - eligible.Reservation.StaminaCost,
+            first.Actor.CharacterResources.GetCurrentValue(CharacterResourceIds.Stamina),
+            "The weapon and action stamina cost was not committed.");
+        Equal(weaponState.CurrentDurability - eligible.Reservation.Action.DurabilityCost,
+            first.WeaponState.CurrentDurability, "Weapon durability was not committed.");
+
+        MeleeAttackRequest tooFar = request with
+        {
+            Target = request.Target! with { Distance = weapon.Range + 1 },
+        };
+        MeleeAttackEligibilityResult rejected = MeleeWeaponSystem.CheckEligibility(actor, tooFar, snapshot);
+        False(rejected.Accepted, "An out-of-range melee attack was accepted.");
+        Equal(ActionRejectionCodes.TargetOutOfRange, rejected.RejectionCode, "Out-of-range rejection was unstable.");
+        Equal(actor, eligible.Reservation.OriginalActor, "Eligibility mutated the actor before commit.");
+        Equal(turn, request.TurnState, "Eligibility mutated Action Points before commit.");
+        Equal(weaponState, request.WeaponState, "Eligibility mutated weapon state before commit.");
     }
 
     private static ShipState CreateContentShip(GameContentSnapshot snapshot, ShipFrameDefinition frame, string path, ShipId shipId)

@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "locale": "en-US",
+  "namespace": "melee-weapon",
+  "fallbacks": [],
+  "textDirection": "ltr",
+  "messages": {
+    "melee-weapon.boarding-blade.name": { "description": "Boarding blade rules display name.", "message": "Boarding Blade" },
+    "melee-weapon.boarding-blade.description": { "description": "Boarding blade rules summary.", "message": "A reliable conventional blade balanced for close fighting aboard ships." }
+  }
+}

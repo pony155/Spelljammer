@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "revision": 1,
+  "id": "melee-action.heavy-strike",
+  "nameKey": "melee-action.heavy-strike.name",
+  "descriptionKey": "melee-action.heavy-strike.description",
+  "actionPointCost": 7,
+  "staminaCostModifier": 6,
+  "hitModifier": -15,
+  "damagePercentage": 150,
+  "armorDamagePercentage": 35,
+  "armorPenetrationModifier": 5,
+  "rangeModifier": 0,
+  "energyCostModifier": 0,
+  "durabilityCost": 2,
+  "effectIds": ["effect.equipment.attack"]
+}

@@ -18,6 +18,8 @@ internal enum DefinitionKind : byte
     Race,
     TrainingProject,
     Equipment,
+    MeleeWeapon,
+    MeleeWeaponAction,
     BoardCell,
     ZoneLink,
     PersonalBoard,

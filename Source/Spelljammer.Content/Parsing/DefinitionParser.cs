@@ -41,7 +41,17 @@ internal static class DefinitionParser
             [DefinitionKind.TrainingProject] = new(
                 ["requiredSkillIds", "workUnits", "progressCap", "facilityId", "resourceId", "resourceCost", "safetyId", "grantedFeatIds"], []),
             [DefinitionKind.Equipment] = new(
-                ["slotId", "initialStateId", "resourceId", "resourceCapacity", "actionIds", "effectIds"], []),
+                ["slotId", "initialStateId", "resourceId", "resourceCapacity", "actionIds", "effectIds"], ["meleeWeaponId"]),
+            [DefinitionKind.MeleeWeapon] = new(
+                ["family", "technology", "hands", "skillId", "abilityId", "damageMinimum", "damageMaximum", "armorDamagePercentage",
+                 "armorPenetrationPercentage", "staminaCost", "range", "weightGrams", "maximumDurability", "value",
+                 "strengthDamageScale", "traits", "actionIds"],
+                ["energyCapacity", "energyPerAttack", "unpoweredDamagePercentage",
+                 "unpoweredArmorPenetrationPercentage"]),
+            [DefinitionKind.MeleeWeaponAction] = new(
+                ["actionPointCost", "staminaCostModifier", "hitModifier", "damagePercentage",
+                 "armorDamagePercentage", "armorPenetrationModifier", "rangeModifier", "energyCostModifier",
+                 "durabilityCost", "effectIds"], []),
             [DefinitionKind.BoardCell] = new(
                 ["zoneId", "q", "r", "capacity", "cover", "visibility", "atmosphereId", "gravityId", "hazardTags"], []),
             [DefinitionKind.ZoneLink] = new(["fromCellId", "toCellId", "accessId", "oneWay", "allowsRetreat"], []),
@@ -72,6 +82,8 @@ internal static class DefinitionParser
             ["Races"] = DefinitionKind.Race,
             ["TrainingProjects"] = DefinitionKind.TrainingProject,
             ["Equipment"] = DefinitionKind.Equipment,
+            ["MeleeWeapons"] = DefinitionKind.MeleeWeapon,
+            ["MeleeWeaponActions"] = DefinitionKind.MeleeWeaponAction,
             ["BoardCells"] = DefinitionKind.BoardCell,
             ["ZoneLinks"] = DefinitionKind.ZoneLink,
             ["PersonalBoards"] = DefinitionKind.PersonalBoard,
@@ -203,7 +215,7 @@ internal static class DefinitionParser
 
         foreach ((string field, string value) in strings)
         {
-            bool valid = field is "activation" or "activeKind"
+            bool valid = field is "activation" or "activeKind" or "family" or "technology" or "hands"
                 ? SourceValidation.IsIdSegment(value)
                 : ContentId.IsCanonical(value);
             if (!valid)
@@ -215,9 +227,9 @@ internal static class DefinitionParser
 
         foreach ((string field, ImmutableArray<string> values) in arrays)
         {
-            if (field is "tags" or "targetTags" or "hazardTags" or "effectIds")
+            if (field is "tags" or "targetTags" or "hazardTags" or "traits" or "effectIds")
             {
-                bool invalid = field is "tags" or "targetTags" or "hazardTags"
+                bool invalid = field is "tags" or "targetTags" or "hazardTags" or "traits"
                     ? values.Any(value => !SourceValidation.IsIdSegment(value))
                     : values.Any(value => !ContentId.IsCanonical(value));
                 if (invalid)

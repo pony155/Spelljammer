@@ -216,6 +216,45 @@ internal static class CanonicalSemanticWriter
                 properties["resourceCapacity"] = output => output.Append(value.ResourceCapacity);
                 properties["resourceId"] = output => WriteString(output, value.ResourceId.ToString());
                 properties["slotId"] = output => WriteString(output, value.SlotId.ToString());
+                if (value.MeleeWeaponId is MeleeWeaponId meleeWeaponId)
+                {
+                    properties["meleeWeaponId"] = output => WriteString(output, meleeWeaponId.ToString());
+                }
+                break;
+            case MeleeWeaponDefinition value:
+                properties["abilityId"] = output => WriteString(output, value.AbilityId.ToString());
+                properties["actionIds"] = output => WriteIds(output, value.ActionIds.Select(id => id.Value));
+                properties["armorDamagePercentage"] = output => output.Append(value.ArmorDamagePercentage);
+                properties["armorPenetrationPercentage"] = output => output.Append(value.ArmorPenetrationPercentage);
+                properties["damageMaximum"] = output => output.Append(value.DamageMaximum);
+                properties["damageMinimum"] = output => output.Append(value.DamageMinimum);
+                properties["energyCapacity"] = output => output.Append(value.EnergyCapacity);
+                properties["energyPerAttack"] = output => output.Append(value.EnergyPerAttack);
+                properties["family"] = output => WriteString(output, WriteMeleeFamily(value.Family));
+                properties["hands"] = output => WriteString(output, value.Hands == MeleeWeaponHands.OneHanded ? "one-handed" : "two-handed");
+                properties["maximumDurability"] = output => output.Append(value.MaximumDurability);
+                properties["range"] = output => output.Append(value.Range);
+                properties["skillId"] = output => WriteString(output, value.SkillId.ToString());
+                properties["staminaCost"] = output => output.Append(value.StaminaCost);
+                properties["strengthDamageScale"] = output => output.Append(value.StrengthDamageScale);
+                properties["technology"] = output => WriteString(output, WriteMeleeTechnology(value.Technology));
+                properties["traits"] = output => WriteStrings(output, value.Traits);
+                properties["unpoweredArmorPenetrationPercentage"] = output => output.Append(value.UnpoweredArmorPenetrationPercentage);
+                properties["unpoweredDamagePercentage"] = output => output.Append(value.UnpoweredDamagePercentage);
+                properties["value"] = output => output.Append(value.Value);
+                properties["weightGrams"] = output => output.Append(value.WeightGrams);
+                break;
+            case MeleeWeaponActionDefinition value:
+                properties["actionPointCost"] = output => output.Append(value.ActionPointCost);
+                properties["armorDamagePercentage"] = output => output.Append(value.ArmorDamagePercentage);
+                properties["armorPenetrationModifier"] = output => output.Append(value.ArmorPenetrationModifier);
+                properties["damagePercentage"] = output => output.Append(value.DamagePercentage);
+                properties["durabilityCost"] = output => output.Append(value.DurabilityCost);
+                properties["effectIds"] = output => WriteIds(output, value.EffectIds);
+                properties["energyCostModifier"] = output => output.Append(value.EnergyCostModifier);
+                properties["hitModifier"] = output => output.Append(value.HitModifier);
+                properties["rangeModifier"] = output => output.Append(value.RangeModifier);
+                properties["staminaCostModifier"] = output => output.Append(value.StaminaCostModifier);
                 break;
             case BoardCellDefinition value:
                 properties["atmosphereId"] = output => WriteString(output, value.AtmosphereId.ToString());
@@ -320,14 +359,37 @@ internal static class CanonicalSemanticWriter
         CharacterResourceProfileDefinition => 10,
         TrainingProjectDefinition => 11,
         EquipmentDefinition => 12,
-        BoardCellDefinition => 13,
-        ZoneLinkDefinition => 14,
-        PersonalBoardDefinition => 15,
-        EncounterDefinition => 16,
-        ShipFrameDefinition => 17,
-        ShipModuleDefinition => 18,
-        ShipWeaponConfigurationDefinition => 19,
+        MeleeWeaponDefinition => 13,
+        MeleeWeaponActionDefinition => 14,
+        BoardCellDefinition => 15,
+        ZoneLinkDefinition => 16,
+        PersonalBoardDefinition => 17,
+        EncounterDefinition => 18,
+        ShipFrameDefinition => 19,
+        ShipModuleDefinition => 20,
+        ShipWeaponConfigurationDefinition => 21,
         _ => throw new ArgumentOutOfRangeException(nameof(definition)),
+    };
+
+    private static string WriteMeleeFamily(MeleeWeaponFamily family) => family switch
+    {
+        MeleeWeaponFamily.Blade => "blade",
+        MeleeWeaponFamily.Dagger => "dagger",
+        MeleeWeaponFamily.Axe => "axe",
+        MeleeWeaponFamily.Blunt => "blunt",
+        MeleeWeaponFamily.Polearm => "polearm",
+        MeleeWeaponFamily.Fist => "fist",
+        _ => throw new ArgumentOutOfRangeException(nameof(family)),
+    };
+
+    private static string WriteMeleeTechnology(MeleeWeaponTechnology technology) => technology switch
+    {
+        MeleeWeaponTechnology.Conventional => "conventional",
+        MeleeWeaponTechnology.Chain => "chain",
+        MeleeWeaponTechnology.Shock => "shock",
+        MeleeWeaponTechnology.Powered => "powered",
+        MeleeWeaponTechnology.Arcane => "arcane",
+        _ => throw new ArgumentOutOfRangeException(nameof(technology)),
     };
 
     private static void WriteStrings(StringBuilder builder, IEnumerable<string> values)

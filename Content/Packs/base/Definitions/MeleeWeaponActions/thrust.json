@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "revision": 1,
+  "id": "melee-action.thrust",
+  "nameKey": "melee-action.thrust.name",
+  "descriptionKey": "melee-action.thrust.description",
+  "actionPointCost": 5,
+  "staminaCostModifier": 2,
+  "hitModifier": 0,
+  "damagePercentage": 90,
+  "armorDamagePercentage": 0,
+  "armorPenetrationModifier": 20,
+  "rangeModifier": 0,
+  "energyCostModifier": 0,
+  "durabilityCost": 1,
+  "effectIds": ["effect.equipment.attack"]
+}

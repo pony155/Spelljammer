@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "locale": "en-US",
+  "namespace": "melee-action",
+  "fallbacks": [],
+  "textDirection": "ltr",
+  "messages": {
+    "melee-action.slash.name": { "description": "Slash action display name.", "message": "Slash" },
+    "melee-action.slash.description": { "description": "Slash action summary.", "message": "A controlled cut with dependable accuracy." },
+    "melee-action.thrust.name": { "description": "Thrust action display name.", "message": "Thrust" },
+    "melee-action.thrust.description": { "description": "Thrust action summary.", "message": "A focused attack that trades damage for armor penetration." },
+    "melee-action.heavy-strike.name": { "description": "Heavy strike action display name.", "message": "Heavy Strike" },
+    "melee-action.heavy-strike.description": { "description": "Heavy strike action summary.", "message": "A tiring, less accurate blow with high damage and armor wear." }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "revision": 1,
+  "id": "melee-action.slash",
+  "nameKey": "melee-action.slash.name",
+  "descriptionKey": "melee-action.slash.description",
+  "actionPointCost": 5,
+  "staminaCostModifier": 0,
+  "hitModifier": 10,
+  "damagePercentage": 100,
+  "armorDamagePercentage": 10,
+  "armorPenetrationModifier": 0,
+  "rangeModifier": 0,
+  "energyCostModifier": 0,
+  "durabilityCost": 1,
+  "effectIds": ["effect.equipment.attack"]
+}

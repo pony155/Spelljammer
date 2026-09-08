@@ -44,6 +44,8 @@ public sealed class GameContentSnapshot : ICharacterContentCatalog
         ImmutableArray<RaceDefinition> races,
         ImmutableArray<TrainingProjectDefinition> trainingProjects,
         ImmutableArray<EquipmentDefinition> equipment,
+        ImmutableArray<MeleeWeaponDefinition> meleeWeapons,
+        ImmutableArray<MeleeWeaponActionDefinition> meleeWeaponActions,
         ImmutableArray<BoardCellDefinition> boardCells,
         ImmutableArray<ZoneLinkDefinition> zoneLinks,
         ImmutableArray<PersonalBoardDefinition> personalBoards,
@@ -69,6 +71,8 @@ public sealed class GameContentSnapshot : ICharacterContentCatalog
         Races = races;
         TrainingProjects = trainingProjects;
         Equipment = equipment;
+        MeleeWeapons = meleeWeapons;
+        MeleeWeaponActions = meleeWeaponActions;
         BoardCells = boardCells;
         ZoneLinks = zoneLinks;
         PersonalBoards = personalBoards;
@@ -94,6 +98,8 @@ public sealed class GameContentSnapshot : ICharacterContentCatalog
         RaceRegistry = new TypedDefinitionRegistry<RaceId, RaceDefinition>(fingerprint, races, definition => definition.RaceId);
         TrainingProjectRegistry = new TypedDefinitionRegistry<TrainingProjectId, TrainingProjectDefinition>(fingerprint, trainingProjects, definition => definition.TrainingProjectId);
         EquipmentRegistry = new TypedDefinitionRegistry<EquipmentId, EquipmentDefinition>(fingerprint, equipment, definition => definition.EquipmentId);
+        MeleeWeaponRegistry = new TypedDefinitionRegistry<MeleeWeaponId, MeleeWeaponDefinition>(fingerprint, meleeWeapons, definition => definition.MeleeWeaponId);
+        MeleeWeaponActionRegistry = new TypedDefinitionRegistry<MeleeWeaponActionId, MeleeWeaponActionDefinition>(fingerprint, meleeWeaponActions, definition => definition.MeleeWeaponActionId);
         BoardCellRegistry = new TypedDefinitionRegistry<CellId, BoardCellDefinition>(fingerprint, boardCells, definition => definition.CellId);
         ZoneLinkRegistry = new TypedDefinitionRegistry<LinkId, ZoneLinkDefinition>(fingerprint, zoneLinks, definition => definition.LinkId);
         PersonalBoardRegistry = new TypedDefinitionRegistry<PersonalBoardId, PersonalBoardDefinition>(fingerprint, personalBoards, definition => definition.PersonalBoardId);
@@ -115,6 +121,8 @@ public sealed class GameContentSnapshot : ICharacterContentCatalog
             .Concat(races)
             .Concat(trainingProjects)
             .Concat(equipment)
+            .Concat(meleeWeapons)
+            .Concat(meleeWeaponActions)
             .Concat(boardCells)
             .Concat(zoneLinks)
             .Concat(personalBoards)
@@ -141,6 +149,8 @@ public sealed class GameContentSnapshot : ICharacterContentCatalog
     public ImmutableArray<RaceDefinition> Races { get; }
     public ImmutableArray<TrainingProjectDefinition> TrainingProjects { get; }
     public ImmutableArray<EquipmentDefinition> Equipment { get; }
+    public ImmutableArray<MeleeWeaponDefinition> MeleeWeapons { get; }
+    public ImmutableArray<MeleeWeaponActionDefinition> MeleeWeaponActions { get; }
     public ImmutableArray<BoardCellDefinition> BoardCells { get; }
     public ImmutableArray<ZoneLinkDefinition> ZoneLinks { get; }
     public ImmutableArray<PersonalBoardDefinition> PersonalBoards { get; }
@@ -162,6 +172,8 @@ public sealed class GameContentSnapshot : ICharacterContentCatalog
     public TypedDefinitionRegistry<RaceId, RaceDefinition> RaceRegistry { get; }
     public TypedDefinitionRegistry<TrainingProjectId, TrainingProjectDefinition> TrainingProjectRegistry { get; }
     public TypedDefinitionRegistry<EquipmentId, EquipmentDefinition> EquipmentRegistry { get; }
+    public TypedDefinitionRegistry<MeleeWeaponId, MeleeWeaponDefinition> MeleeWeaponRegistry { get; }
+    public TypedDefinitionRegistry<MeleeWeaponActionId, MeleeWeaponActionDefinition> MeleeWeaponActionRegistry { get; }
     public TypedDefinitionRegistry<CellId, BoardCellDefinition> BoardCellRegistry { get; }
     public TypedDefinitionRegistry<LinkId, ZoneLinkDefinition> ZoneLinkRegistry { get; }
     public TypedDefinitionRegistry<PersonalBoardId, PersonalBoardDefinition> PersonalBoardRegistry { get; }
@@ -193,6 +205,8 @@ public sealed class GameContentSnapshot : ICharacterContentCatalog
     public bool TryGetRace(RaceId id, out RaceDefinition? definition) => RaceRegistry.TryGet(id, out definition);
     public bool TryGetTrainingProject(TrainingProjectId id, out TrainingProjectDefinition? definition) => TrainingProjectRegistry.TryGet(id, out definition);
     public bool TryGetEquipment(EquipmentId id, out EquipmentDefinition? definition) => EquipmentRegistry.TryGet(id, out definition);
+    public bool TryGetMeleeWeapon(MeleeWeaponId id, out MeleeWeaponDefinition? definition) => MeleeWeaponRegistry.TryGet(id, out definition);
+    public bool TryGetMeleeWeaponAction(MeleeWeaponActionId id, out MeleeWeaponActionDefinition? definition) => MeleeWeaponActionRegistry.TryGet(id, out definition);
     public bool TryGetBoardCell(CellId id, out BoardCellDefinition? definition) => BoardCellRegistry.TryGet(id, out definition);
     public bool TryGetZoneLink(LinkId id, out ZoneLinkDefinition? definition) => ZoneLinkRegistry.TryGet(id, out definition);
     public bool TryGetPersonalBoard(PersonalBoardId id, out PersonalBoardDefinition? definition) => PersonalBoardRegistry.TryGet(id, out definition);
@@ -221,6 +235,8 @@ public sealed class GameContentSnapshot : ICharacterContentCatalog
         AddEntries(entries, "Race", Races, definition => definition.Id);
         AddEntries(entries, "TrainingProject", TrainingProjects, definition => definition.Id);
         AddEntries(entries, "Equipment", Equipment, definition => definition.Id);
+        AddEntries(entries, "MeleeWeapon", MeleeWeapons, definition => definition.Id);
+        AddEntries(entries, "MeleeWeaponAction", MeleeWeaponActions, definition => definition.Id);
         AddEntries(entries, "BoardCell", BoardCells, definition => definition.Id);
         AddEntries(entries, "ZoneLink", ZoneLinks, definition => definition.Id);
         AddEntries(entries, "PersonalBoard", PersonalBoards, definition => definition.Id);

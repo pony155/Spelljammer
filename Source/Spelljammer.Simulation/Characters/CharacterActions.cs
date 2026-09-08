@@ -41,6 +41,12 @@ public static class ActionRejectionCodes
     /// <summary>The actor does not have the required equipment to perform this action.</summary>
     public const string EquipmentRequired = "command.equipment-required";
 
+    /// <summary>The equipped weapon is broken and cannot perform an attack.</summary>
+    public const string EquipmentBroken = "command.equipment-broken";
+
+    /// <summary>The selected target is beyond the action's effective range.</summary>
+    public const string TargetOutOfRange = "command.target-out-of-range";
+
     /// <summary>The action requires a specific context that is not present.</summary>
     public const string ContextRequired = "command.context-required";
 

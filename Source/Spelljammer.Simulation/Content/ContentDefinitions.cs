@@ -267,8 +267,83 @@ public sealed record EquipmentDefinition(
     ResourceId ResourceId,
     int ResourceCapacity,
     ImmutableArray<ContentId> ActionIds,
-    ImmutableArray<ContentId> EffectIds)
+    ImmutableArray<ContentId> EffectIds,
+    MeleeWeaponId? MeleeWeaponId)
     : ContentDefinition(EquipmentId.Value, SchemaVersion, Revision, NameKey, DescriptionKey);
+
+public enum MeleeWeaponFamily : byte
+{
+    Blade,
+    Dagger,
+    Axe,
+    Blunt,
+    Polearm,
+    Fist,
+}
+
+public enum MeleeWeaponTechnology : byte
+{
+    Conventional,
+    Chain,
+    Shock,
+    Powered,
+    Arcane,
+}
+
+public enum MeleeWeaponHands : byte
+{
+    OneHanded,
+    TwoHanded,
+}
+
+/// <summary>Data-driven properties shared by every action performed with one melee weapon.</summary>
+public sealed record MeleeWeaponDefinition(
+    MeleeWeaponId MeleeWeaponId,
+    int SchemaVersion,
+    int Revision,
+    string NameKey,
+    string DescriptionKey,
+    MeleeWeaponFamily Family,
+    MeleeWeaponTechnology Technology,
+    MeleeWeaponHands Hands,
+    SkillId SkillId,
+    AbilityId AbilityId,
+    int DamageMinimum,
+    int DamageMaximum,
+    int ArmorDamagePercentage,
+    int ArmorPenetrationPercentage,
+    int StaminaCost,
+    int Range,
+    int WeightGrams,
+    int MaximumDurability,
+    int Value,
+    int EnergyCapacity,
+    int EnergyPerAttack,
+    int UnpoweredDamagePercentage,
+    int UnpoweredArmorPenetrationPercentage,
+    int StrengthDamageScale,
+    ImmutableArray<string> Traits,
+    ImmutableArray<MeleeWeaponActionId> ActionIds)
+    : ContentDefinition(MeleeWeaponId.Value, SchemaVersion, Revision, NameKey, DescriptionKey);
+
+/// <summary>Action-owned AP, accuracy, cost, and effect modifiers for a melee attack.</summary>
+public sealed record MeleeWeaponActionDefinition(
+    MeleeWeaponActionId MeleeWeaponActionId,
+    int SchemaVersion,
+    int Revision,
+    string NameKey,
+    string DescriptionKey,
+    int ActionPointCost,
+    int StaminaCostModifier,
+    int HitModifier,
+    int DamagePercentage,
+    int ArmorDamagePercentage,
+    int ArmorPenetrationModifier,
+    int RangeModifier,
+    int EnergyCostModifier,
+    int DurabilityCost,
+    ImmutableArray<ContentId> EffectIds)
+    : ContentDefinition(MeleeWeaponActionId.Value, SchemaVersion, Revision, NameKey, DescriptionKey);
 
 public sealed record BoardCellDefinition(
     CellId CellId,
