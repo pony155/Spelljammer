@@ -8,7 +8,7 @@ namespace Spelljammer.Simulation.Combat;
 /// Immutable input supplied to the personal-combat authority when a scheduled combat command commits.
 /// </summary>
 public sealed record PersonalCombatContext(
-    VoyageCommand Command,
+    Command Command,
     PersonalEncounterState Encounter,
     PersonalActorState Actor,
     PersonalActorState Target,
@@ -36,7 +36,7 @@ public sealed record PersonalCombatResolution(
 
 /// <summary>
 /// Resolves personal combat commands through the typed weapon, spell, psionic, status, and effect systems.
-/// <see cref="CombatSystem"/> is the standard coordinator; VoyageWorld schedules and commits the returned
+/// <see cref="CombatSystem"/> is the standard coordinator; World schedules and commits the returned
 /// transaction but does not calculate combat damage.
 /// </summary>
 public interface IPersonalCombatResolver

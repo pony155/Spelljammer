@@ -205,7 +205,7 @@ public static class CampaignMigrationService
             CharacterCapabilities capabilities = CharacterCapabilities.Restore(rebound, newContent);
             return character with { ContentFingerprint = newContent.Fingerprint, Capabilities = capabilities };
         })];
-        ImmutableDictionary<ShipId, ShipState> ships = source.Voyage.Ships.Values.Select(ship =>
+        ImmutableDictionary<ShipId, ShipState> ships = source.World.Ships.Values.Select(ship =>
         {
             if (!newContent.TryGetShipFrame(ship.Frame.ShipFrameId, out ShipFrameDefinition? frame))
             {
@@ -230,16 +230,16 @@ public static class CampaignMigrationService
             })];
             return ship with { Frame = frame!, Modules = modules };
         }).ToImmutableDictionary(ship => ship.Id);
-        PersonalEncounterState? encounter = source.Voyage.PersonalEncounter is null
+        PersonalEncounterState? encounter = source.World.PersonalEncounter is null
             ? null
-            : RebindEncounter(source.Voyage.PersonalEncounter, newContent);
+            : RebindEncounter(source.World.PersonalEncounter, newContent);
         CampaignContentLock contentLock = CampaignContentLock.Create(
             newContent, source.ContentLock.AppliedMigrationIds.Append(migrationId));
         return source with
         {
             ContentLock = contentLock,
             Characters = characters,
-            Voyage = source.Voyage with
+            World = source.World with
             {
                 ContentFingerprint = newContent.Fingerprint,
                 Ships = ships,

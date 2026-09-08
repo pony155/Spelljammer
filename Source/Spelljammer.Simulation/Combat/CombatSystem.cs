@@ -24,27 +24,27 @@ public static class CombatRejectionCodes
 /// </summary>
 public interface ICharacterCombatActionSystem
 {
-    VoyageCommandKind CommandKind { get; }
+    CommandKind CommandKind { get; }
 
     PersonalCombatResolution Resolve(PersonalCombatContext context);
 }
 
 /// <summary>
-/// Deterministic character-combat coordinator used by <see cref="VoyageWorld"/>.
+/// Deterministic character-combat coordinator used by <see cref="World"/>.
 /// It routes commands to focused action systems and validates their replacement
 /// actor states before the encounter publishes the transaction.
 /// </summary>
 public sealed class CombatSystem : IPersonalCombatResolver
 {
-    private static readonly ImmutableHashSet<VoyageCommandKind> SupportedCommandKinds =
+    private static readonly ImmutableHashSet<CommandKind> SupportedCommandKinds =
     [
-        VoyageCommandKind.PersonalMelee,
-        VoyageCommandKind.PersonalRanged,
-        VoyageCommandKind.PersonalSpell,
-        VoyageCommandKind.PersonalPsionic,
+        CommandKind.PersonalMelee,
+        CommandKind.PersonalRanged,
+        CommandKind.PersonalSpell,
+        CommandKind.PersonalPsionic,
     ];
 
-    private readonly ImmutableDictionary<VoyageCommandKind, ICharacterCombatActionSystem> actionSystems;
+    private readonly ImmutableDictionary<CommandKind, ICharacterCombatActionSystem> actionSystems;
 
     public CombatSystem(IEnumerable<ICharacterCombatActionSystem> actionSystems)
     {

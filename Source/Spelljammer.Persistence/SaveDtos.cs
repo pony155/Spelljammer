@@ -51,7 +51,7 @@ internal sealed class WorldDto
     public CommandLogDto[] CommandHistory { get; set; } = [];
     public ScheduledActionDto[] ScheduledActions { get; set; } = [];
     public string[] ReadyActorIds { get; set; } = [];
-    public VoyageEventDto[] Events { get; set; } = [];
+    public EventDto[] Events { get; set; } = [];
 }
 
 internal sealed class ShipDto
@@ -359,7 +359,7 @@ internal sealed class ScheduledActionDto
     public int[] History { get; set; } = [];
 }
 
-internal sealed class VoyageEventDto
+internal sealed class EventDto
 {
     public string Id { get; set; } = string.Empty;
     public long Tick { get; set; }

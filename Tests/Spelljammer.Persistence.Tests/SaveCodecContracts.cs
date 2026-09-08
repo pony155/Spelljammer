@@ -29,22 +29,22 @@ internal static partial class PersistenceContracts
         Equal(ContentPreflightKind.Exact, preflight.Kind, "Exact content did not pass preflight.");
         CampaignReadResult loaded = CampaignSaveCodec.Decode(first, content);
         True(loaded.Succeeded, loaded.Diagnostic.ToString());
-        Equal(campaign.Voyage.Seed, loaded.Campaign!.Voyage.Seed, "Voyage seed did not round-trip.");
-        Equal(campaign.Voyage.Tick, loaded.Campaign.Voyage.Tick, "Voyage tick did not round-trip.");
+        Equal(campaign.World.Seed, loaded.Campaign!.World.Seed, "World seed did not round-trip.");
+        Equal(campaign.World.Tick, loaded.Campaign.World.Tick, "World tick did not round-trip.");
         Equal(campaign.CurrentLocationId, loaded.Campaign.CurrentLocationId, "Current location did not round-trip.");
         Equal(campaign.ProtagonistId, loaded.Campaign.ProtagonistId, "Protagonist identity did not round-trip.");
         Equal(campaign.Characters.Length, loaded.Campaign.Characters.Length, "Roster did not round-trip.");
-        Equal(campaign.Voyage.Ships.Values.Single().Modules.Length,
-            loaded.Campaign.Voyage.Ships.Values.Single().Modules.Length, "Ship modules did not round-trip.");
-        True(loaded.Campaign.Voyage.PersonalEncounter!.Actors.Values.Single().Injuries.Single().Stabilized,
+        Equal(campaign.World.Ships.Values.Single().Modules.Length,
+            loaded.Campaign.World.Ships.Values.Single().Modules.Length, "Ship modules did not round-trip.");
+        True(loaded.Campaign.World.PersonalEncounter!.Actors.Values.Single().Injuries.Single().Stabilized,
             "A stabilized injury did not round-trip.");
-        True(loaded.Campaign.Voyage.Commands.Length == 1 && loaded.Campaign.Voyage.CommandHistory.Length == 1,
+        True(loaded.Campaign.World.Commands.Length == 1 && loaded.Campaign.World.CommandHistory.Length == 1,
             "Queued work and retained history did not round-trip.");
         InventoryEntryId ammunitionEntryId = new(Guid.Parse("88888888-8888-8888-8888-888888888888"));
         Equal(12, loaded.Campaign.Characters.SelectMany(value => value.Items.InventoryEntries)
             .Single(value => value.EntryId == ammunitionEntryId).Stack.Quantity,
             "A character ammunition stack did not round-trip.");
-        Equal(12, loaded.Campaign.Voyage.PersonalEncounter.Actors.Values
+        Equal(12, loaded.Campaign.World.PersonalEncounter.Actors.Values
             .SelectMany(value => value.Items.InventoryEntries)
             .Single(value => value.EntryId == ammunitionEntryId).Stack.Quantity,
             "An encounter ammunition stack did not round-trip.");
@@ -52,7 +52,7 @@ internal static partial class PersistenceContracts
         Equal(2, loaded.Campaign.Characters.SelectMany(value => value.Statuses.Instances)
             .Single(value => value.InstanceId == savedStatusId).RemainingDuration,
             "A character Status did not round-trip.");
-        Equal(2, loaded.Campaign.Voyage.PersonalEncounter.Actors.Values
+        Equal(2, loaded.Campaign.World.PersonalEncounter.Actors.Values
             .SelectMany(value => value.Statuses.Instances)
             .Single(value => value.InstanceId == savedStatusId).RemainingDuration,
             "An encounter Status did not round-trip.");

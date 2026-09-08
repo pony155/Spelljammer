@@ -19,7 +19,7 @@ characters, rules, content, code, artwork, and sound remain original.
 > content-locked saves, and data-driven gameplay definitions. These systems are
 > not yet composed into a complete playable campaign. The retired 4-by-4
 > expedition and native renderer demonstration have been removed so new
-> gameplay follows one authoritative `VoyageWorld` path.
+> gameplay follows one authoritative `World` path.
 
 ## Current implementation
 
@@ -38,7 +38,7 @@ Implemented foundations include:
   capability/grant storage, action eligibility and resolution, Feat training,
   mixed-crew support validation, and localization-ready roster
   inspection;
-- a headless 20 Hz `VoyageWorld` with tactical pause, bounded ordered commands,
+- a headless 20 Hz `World` with tactical pause, bounded ordered commands,
   immutable snapshots and replay logs, continuous ship combat, modular damage,
   data-driven personal Turn Meters and Action Points, shared character
   resources, stamina speed penalties, reactions, injuries, objectives, and

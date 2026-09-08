@@ -7,7 +7,7 @@ using Spelljammer.Simulation.Ships;
 
 namespace Spelljammer.Simulation.World;
 
-public static class VoyageTime
+public static class WorldTime
 {
     public const int TicksPerSecond = 20;
     public const int MaximumCatchUpTicks = 8;
@@ -45,7 +45,7 @@ public readonly record struct FixedVector2(FixedScalar X, FixedScalar Y)
     public static FixedVector2 operator -(FixedVector2 left, FixedVector2 right) => new(left.X - right.X, left.Y - right.Y);
 }
 
-public sealed record VoyageWorldSnapshot(
+public sealed record WorldSnapshot(
     ulong Seed,
     ContentFingerprint ContentFingerprint,
     long Tick,
@@ -55,12 +55,12 @@ public sealed record VoyageWorldSnapshot(
     PersonalEncounterState? PersonalEncounter,
     ImmutableArray<ActorId> ReadyActors,
     ImmutableArray<ScheduledAction> Actions,
-    ImmutableArray<VoyageCommandLogEntry> RecentCommands,
-    ImmutableArray<VoyageEvent> RecentEvents);
+    ImmutableArray<CommandLogEntry> RecentCommands,
+    ImmutableArray<Event> RecentEvents);
 
-public sealed record VoyageAdvanceResult(VoyageWorld World, VoyageWorldSnapshot Snapshot, int AdvancedTicks);
+public sealed record AdvanceResult(World World, WorldSnapshot Snapshot, int AdvancedTicks);
 
-public sealed record VoyageWorld(
+public sealed record World(
     ulong Seed,
     ContentFingerprint ContentFingerprint,
     long Tick,
@@ -70,11 +70,11 @@ public sealed record VoyageWorld(
     bool PersonalPaused,
     ImmutableDictionary<ShipId, ShipState> Ships,
     PersonalEncounterState? PersonalEncounter,
-    ImmutableArray<VoyageCommand> Commands,
-    ImmutableArray<VoyageCommandLogEntry> CommandHistory,
+    ImmutableArray<Command> Commands,
+    ImmutableArray<CommandLogEntry> CommandHistory,
     ImmutableArray<ScheduledAction> ScheduledActions,
     ImmutableArray<ActorId> ReadyActors,
-    ImmutableArray<VoyageEvent> Events)
+    ImmutableArray<Event> Events)
 {
     public const int MaximumCommands = 256;
     public const int MaximumCommandHistory = 512;
@@ -82,7 +82,7 @@ public sealed record VoyageWorld(
     public const int MaximumEvents = 512;
     public const int MaximumReadyActors = 64;
 
-    public static VoyageWorld Create(
+    public static World Create(
         ulong seed,
         ContentFingerprint fingerprint,
         TeamId playerTeamId,
@@ -92,10 +92,10 @@ public sealed record VoyageWorld(
         ImmutableDictionary<ShipId, ShipState> shipMap = ships.ToImmutableDictionary(value => value.Id);
         if (shipMap.Count is 0 or > 32 || encounter?.Actors.Count > MaximumReadyActors)
         {
-            throw new InvalidOperationException("Voyage world capacity is invalid.");
+            throw new InvalidOperationException("World capacity is invalid.");
         }
 
-        return new VoyageWorld(
+        return new World(
             seed,
             fingerprint,
             0,
@@ -112,11 +112,11 @@ public sealed record VoyageWorld(
             []);
     }
 
-    public VoyageWorld SetShipPause(bool paused) => this with { ShipPaused = paused };
+    public World SetShipPause(bool paused) => this with { ShipPaused = paused };
 
-    public VoyageWorld CommitReadyPlan() => this with { PersonalPaused = false };
+    public World CommitReadyPlan() => this with { PersonalPaused = false };
 
-    public VoyageCommandResult Enqueue(VoyageCommand command)
+    public CommandResult Enqueue(Command command)
     {
         if (command.TargetTick < Tick)
         {
@@ -139,22 +139,22 @@ public sealed record VoyageWorld(
             return Rejected(this, "command.actor-not-ready");
         }
 
-        ImmutableArray<VoyageCommand> queued =
+        ImmutableArray<Command> queued =
             [.. Commands.Append(command).OrderBy(value => value.TargetTick).ThenBy(value => value.Priority)
                 .ThenBy(value => value.IssuerId).ThenBy(value => value.Sequence).ThenBy(value => value.Id)];
-        return new VoyageCommandResult(this with
+        return new CommandResult(this with
         {
             Commands = queued,
-            CommandHistory = CommandHistory.Add(new VoyageCommandLogEntry(Tick, command, null)),
+            CommandHistory = CommandHistory.Add(new CommandLogEntry(Tick, command, null)),
         }, true, string.Empty);
     }
 
-    public VoyageCommandResult Cancel(ContentId commandId)
+    public CommandResult Cancel(ContentId commandId)
     {
-        VoyageCommand? queued = Commands.FirstOrDefault(value => value.Id == commandId);
+        Command? queued = Commands.FirstOrDefault(value => value.Id == commandId);
         if (queued is not null)
         {
-            return new VoyageCommandResult(this with
+            return new CommandResult(this with
             {
                 Commands = Commands.Remove(queued),
                 CommandHistory = MarkCancelled(CommandHistory, commandId, Tick),
@@ -168,19 +168,19 @@ public sealed record VoyageWorld(
         }
 
         ScheduledAction interrupted = schedule with { Phase = ScheduledActionPhase.Interrupted };
-        return new VoyageCommandResult(this with
+        return new CommandResult(this with
         {
             ScheduledActions = ScheduledActions.Replace(schedule, interrupted),
             CommandHistory = MarkCancelled(CommandHistory, commandId, Tick),
         }, true, string.Empty);
     }
 
-    public VoyageAdvanceResult Advance(
+    public AdvanceResult Advance(
         int requestedTicks,
         IPersonalCombatResolver? personalCombatResolver = null)
     {
-        int ticks = Math.Clamp(requestedTicks, 0, VoyageTime.MaximumCatchUpTicks);
-        VoyageWorld world = this;
+        int ticks = Math.Clamp(requestedTicks, 0, WorldTime.MaximumCatchUpTicks);
+        World world = this;
         int advanced = 0;
         for (int index = 0; index < ticks; index++)
         {
@@ -193,10 +193,10 @@ public sealed record VoyageWorld(
             advanced++;
         }
 
-        return new VoyageAdvanceResult(world, world.Snapshot(), advanced);
+        return new AdvanceResult(world, world.Snapshot(), advanced);
     }
 
-    public VoyageWorldSnapshot Snapshot() => new(
+    public WorldSnapshot Snapshot() => new(
         Seed,
         ContentFingerprint,
         Tick,
@@ -209,13 +209,13 @@ public sealed record VoyageWorld(
         CommandHistory.Length <= 64 ? CommandHistory : CommandHistory[^64..],
         Events.Length <= 64 ? Events : Events[^64..]);
 
-    private VoyageWorld AdvanceOneTick(IPersonalCombatResolver? personalCombatResolver)
+    private World AdvanceOneTick(IPersonalCombatResolver? personalCombatResolver)
     {
         long nextTick = Tick + 1;
-        VoyageWorld world = this with { Tick = nextTick };
-        VoyageCommand[] due = [.. world.Commands.Where(value => value.TargetTick <= nextTick)];
+        World world = this with { Tick = nextTick };
+        Command[] due = [.. world.Commands.Where(value => value.TargetTick <= nextTick)];
         world = world with { Commands = [.. world.Commands.Except(due)] };
-        foreach (VoyageCommand command in due)
+        foreach (Command command in due)
         {
             world = world.DeclareAndReserve(command);
         }
@@ -259,7 +259,7 @@ public sealed record VoyageWorld(
         return world;
     }
 
-    private VoyageWorld DeclareAndReserve(VoyageCommand command)
+    private World DeclareAndReserve(Command command)
     {
         if (ScheduledActions.Length >= MaximumSchedules)
         {
@@ -268,7 +268,7 @@ public sealed record VoyageWorld(
 
         ResourceId? resourceId = null;
         int reserved = 0;
-        if (command.Kind == VoyageCommandKind.Fire && TryShip(command.IssuerId, out ShipState? ship))
+        if (command.Kind == CommandKind.Fire && TryShip(command.IssuerId, out ShipState? ship))
         {
             InstalledModuleState? battery = ship!.Modules.SingleOrDefault(value => value.Weapon is not null);
             if (battery?.Weapon is null || battery.Condition == ModuleCondition.Disabled ||
@@ -297,11 +297,11 @@ public sealed record VoyageWorld(
         return this with { ScheduledActions = ScheduledActions.Add(action) };
     }
 
-    private VoyageWorld Commit(
+    private World Commit(
         ScheduledAction schedule,
         IPersonalCombatResolver? personalCombatResolver)
     {
-        VoyageWorld committed = IsPersonal(schedule.Command.Kind)
+        World committed = IsPersonal(schedule.Command.Kind)
             ? CommitPersonal(schedule.Command, personalCombatResolver)
             : CommitShip(schedule.Command, schedule.ReservedResourceId, schedule.ReservedAmount);
         int index = IndexOf(committed.ScheduledActions, value => value.Command.Id == schedule.Command.Id);
@@ -320,7 +320,7 @@ public sealed record VoyageWorld(
         return committed;
     }
 
-    private VoyageWorld CommitShip(VoyageCommand command, ResourceId? reservedResource, int reservedAmount)
+    private World CommitShip(Command command, ResourceId? reservedResource, int reservedAmount)
     {
         if (!TryShip(command.IssuerId, out ShipState? actor))
         {
@@ -330,7 +330,7 @@ public sealed record VoyageWorld(
         ShipState ship = actor!;
         switch (command.Kind)
         {
-            case VoyageCommandKind.Scan:
+            case CommandKind.Scan:
                 if (!TryShip(command.TargetId, out ShipState? scanned))
                 {
                     return AddEvent(command, false, 0, "command.target-stale");
@@ -346,17 +346,17 @@ public sealed record VoyageWorld(
                         : ImmutableHashSet<ActorId>.Empty);
                 ship = ship with { Contacts = ship.Contacts.SetItem(scanned.Id, contact) };
                 break;
-            case VoyageCommandKind.Course:
-            case VoyageCommandKind.Thrust:
+            case CommandKind.Course:
+            case CommandKind.Thrust:
                 ship = ship with { Velocity = command.Vector };
                 break;
-            case VoyageCommandKind.Turn:
+            case CommandKind.Turn:
                 ship = ship with { HeadingMilliDegrees = NormalizeHeading(ship.HeadingMilliDegrees + command.Amount) };
                 break;
-            case VoyageCommandKind.Brake:
+            case CommandKind.Brake:
                 ship = ship with { Velocity = FixedVector2.Zero };
                 break;
-            case VoyageCommandKind.Intercept:
+            case CommandKind.Intercept:
                 if (!TryShip(command.TargetId, out ShipState? intercepted))
                 {
                     return AddEvent(command, false, 0, "command.target-stale");
@@ -364,28 +364,28 @@ public sealed record VoyageWorld(
 
                 ship = ship with { Velocity = Direction(ship.Position, intercepted!.Position) };
                 break;
-            case VoyageCommandKind.Fire:
+            case CommandKind.Fire:
                 return CommitFire(command, ship, reservedResource, reservedAmount);
-            case VoyageCommandKind.Ram:
+            case CommandKind.Ram:
                 return CommitRam(command, ship);
-            case VoyageCommandKind.RaiseShield:
-            case VoyageCommandKind.LowerShield:
-                bool raised = command.Kind == VoyageCommandKind.RaiseShield;
+            case CommandKind.RaiseShield:
+            case CommandKind.LowerShield:
+                bool raised = command.Kind == CommandKind.RaiseShield;
                 ship = ship with
                 {
                     Modules = [.. ship.Modules.Select(value => value.Definition.ShieldValue > 0 ? value with { ShieldRaised = raised } : value)],
                 };
                 break;
-            case VoyageCommandKind.Defend:
+            case CommandKind.Defend:
                 ship = ship with { Defending = true };
                 break;
-            case VoyageCommandKind.DamageControl:
+            case CommandKind.DamageControl:
                 ship = RepairModule(ship, command.OptionId);
                 break;
-            case VoyageCommandKind.Signal:
+            case CommandKind.Signal:
                 ship = ship with { PersistentEvidence = ship.PersistentEvidence.Add(new ContentId("evidence.ship.signal")) };
                 break;
-            case VoyageCommandKind.Retreat:
+            case CommandKind.Retreat:
                 ship = ship with { Disengaged = true, PersistentEvidence = ship.PersistentEvidence.Add(new ContentId("evidence.ship.escape")) };
                 break;
             default:
@@ -395,7 +395,7 @@ public sealed record VoyageWorld(
         return (this with { Ships = Ships.SetItem(ship.Id, ship) }).AddEvent(command, true, command.Amount, string.Empty);
     }
 
-    private VoyageWorld CommitFire(VoyageCommand command, ShipState attacker, ResourceId? resourceId, int resourceCost)
+    private World CommitFire(Command command, ShipState attacker, ResourceId? resourceId, int resourceCost)
     {
         if (!TryShip(command.TargetId, out ShipState? target) || resourceId is null ||
             !attacker.Contacts.TryGetValue(target!.Id, out ShipContactState? contact) || !contact.HasFiringSolution)
@@ -438,7 +438,7 @@ public sealed record VoyageWorld(
         }).AddEvent(command, true, damage.Event.HullDamage, string.Empty);
     }
 
-    private VoyageWorld CommitRam(VoyageCommand command, ShipState attacker)
+    private World CommitRam(Command command, ShipState attacker)
     {
         if (!TryShip(command.TargetId, out ShipState? target) || ShipGeometry.Range(attacker.Position, target!.Position) != ShipRange.Contact)
         {
@@ -453,8 +453,8 @@ public sealed record VoyageWorld(
         }).AddEvent(command, true, targetDamage.Event.HullDamage, string.Empty);
     }
 
-    private VoyageWorld CommitPersonal(
-        VoyageCommand command,
+    private World CommitPersonal(
+        Command command,
         IPersonalCombatResolver? personalCombatResolver)
     {
         if (PersonalEncounter is null || !ActorIdFrom(command.IssuerId, out ActorId actorId) ||
@@ -467,7 +467,7 @@ public sealed record VoyageWorld(
         PersonalEncounterState encounter = PersonalEncounter;
         PersonalActorState updated = actor;
         int eventAmount = command.Amount;
-        if (command.Kind == VoyageCommandKind.PersonalEndActivation)
+        if (command.Kind == CommandKind.PersonalEndActivation)
         {
             updated = updated with { Turn = updated.Turn.EndActivation() };
             encounter = encounter with { Actors = encounter.Actors.SetItem(actorId, updated) };
@@ -498,7 +498,7 @@ public sealed record VoyageWorld(
 
         switch (command.Kind)
         {
-            case VoyageCommandKind.PersonalMove:
+            case CommandKind.PersonalMove:
                 if (!CellIdFrom(command.TargetId, out CellId destination))
                 {
                     return AddEvent(command, false, 0, "command.target-stale");
@@ -515,16 +515,16 @@ public sealed record VoyageWorld(
 
                 updated = updated with { CellId = destination };
                 break;
-            case VoyageCommandKind.PersonalDefend:
+            case CommandKind.PersonalDefend:
                 updated = updated with { Defending = true };
                 break;
-            case VoyageCommandKind.PersonalReserveReaction:
-                updated = updated with { ReservedReactionPoints = 1, ReactionExpiresTick = Tick + VoyageTime.TicksPerSecond };
+            case CommandKind.PersonalReserveReaction:
+                updated = updated with { ReservedReactionPoints = 1, ReactionExpiresTick = Tick + WorldTime.TicksPerSecond };
                 break;
-            case VoyageCommandKind.PersonalSurrender:
+            case CommandKind.PersonalSurrender:
                 updated = updated with { Surrendered = true };
                 break;
-            case VoyageCommandKind.PersonalRetreat:
+            case CommandKind.PersonalRetreat:
                 if (!encounter.Board.Definition.RetreatCellIds.Contains(updated.CellId))
                 {
                     return AddEvent(command, false, 0, "command.retreat-unavailable");
@@ -532,7 +532,7 @@ public sealed record VoyageWorld(
 
                 encounter = encounter with { Retreated = true };
                 break;
-            case VoyageCommandKind.PersonalMedicine:
+            case CommandKind.PersonalMedicine:
                 if (!ActorIdFrom(command.TargetId, out ActorId patientId) || !encounter.Actors.TryGetValue(patientId, out PersonalActorState? patient))
                 {
                     return AddEvent(command, false, 0, "command.target-stale");
@@ -546,7 +546,7 @@ public sealed record VoyageWorld(
                     }),
                 };
                 break;
-            case VoyageCommandKind.PersonalInteract:
+            case CommandKind.PersonalInteract:
                 if (command.OptionId is ContentId objectiveId && ObjectiveIdFrom(objectiveId, out ObjectiveId objective) &&
                     encounter.Objectives.ContainsKey(objective))
                 {
@@ -557,13 +557,13 @@ public sealed record VoyageWorld(
                     };
                 }
                 break;
-            case VoyageCommandKind.PersonalEngineering:
+            case CommandKind.PersonalEngineering:
                 encounter = encounter with { ExplorationChanges = encounter.ExplorationChanges.Add(new ContentId("exploration.ruin.defense-disabled")) };
                 break;
-            case VoyageCommandKind.PersonalMelee:
-            case VoyageCommandKind.PersonalRanged:
-            case VoyageCommandKind.PersonalSpell:
-            case VoyageCommandKind.PersonalPsionic:
+            case CommandKind.PersonalMelee:
+            case CommandKind.PersonalRanged:
+            case CommandKind.PersonalSpell:
+            case CommandKind.PersonalPsionic:
                 if (!ActorIdFrom(command.TargetId, out ActorId targetId) || !encounter.Actors.TryGetValue(targetId, out PersonalActorState? target))
                 {
                     return AddEvent(command, false, 0, "command.target-stale");
@@ -661,7 +661,7 @@ public sealed record VoyageWorld(
                 string.Empty);
     }
 
-    private VoyageWorld UpdateShips()
+    private World UpdateShips()
     {
         ImmutableDictionary<ShipId, ShipState>.Builder ships = Ships.ToBuilder();
         foreach (ShipState original in Ships.Values.OrderBy(value => value.Id))
@@ -684,7 +684,7 @@ public sealed record VoyageWorld(
         return this with { Ships = ships.ToImmutable() };
     }
 
-    private VoyageWorld UpdatePersonalTimeline()
+    private World UpdatePersonalTimeline()
     {
         if (PersonalEncounter is null)
         {
@@ -769,9 +769,9 @@ public sealed record VoyageWorld(
         };
     }
 
-    private VoyageWorld AddEvent(VoyageCommand command, bool succeeded, int amount, string code)
+    private World AddEvent(Command command, bool succeeded, int amount, string code)
     {
-        VoyageEvent value = new(
+        Event value = new(
             new ContentId($"event.voyage.sequence-{RandomSequence % 1_000_000}"),
             Tick,
             command.IssuerId,
@@ -780,11 +780,11 @@ public sealed record VoyageWorld(
             succeeded,
             amount,
             code);
-        ImmutableArray<VoyageEvent> events = Events.Length == MaximumEvents ? Events.RemoveAt(0).Add(value) : Events.Add(value);
+        ImmutableArray<Event> events = Events.Length == MaximumEvents ? Events.RemoveAt(0).Add(value) : Events.Add(value);
         return this with { Events = events, RandomSequence = RandomSequence + 1 };
     }
 
-    private bool TargetExists(VoyageCommand command) =>
+    private bool TargetExists(Command command) =>
         command.TargetId == command.IssuerId || Ships.Keys.Any(value => value.Value == command.TargetId) ||
         PersonalEncounter?.Actors.Keys.Any(value => value.Value == command.TargetId) == true ||
         PersonalEncounter?.Board.Cells.Keys.Any(value => value.Value == command.TargetId) == true ||
@@ -794,28 +794,28 @@ public sealed record VoyageWorld(
         ActorIdFrom(issuerId, out ActorId actorId) && ReadyActors.Contains(actorId) &&
         PersonalEncounter?.Actors.TryGetValue(actorId, out PersonalActorState? actor) == true && actor.ActionPoints > 0;
 
-    private static ContentId PersonalActionId(VoyageCommandKind kind) => kind switch
+    private static ContentId PersonalActionId(CommandKind kind) => kind switch
     {
-        VoyageCommandKind.PersonalMove => new("action.personal.move"),
-        VoyageCommandKind.PersonalDefend => new("action.personal.defend"),
-        VoyageCommandKind.PersonalReserveReaction => new("action.personal.reserve-reaction"),
-        VoyageCommandKind.PersonalMelee => new("action.personal.melee"),
-        VoyageCommandKind.PersonalRanged => new("action.personal.ranged"),
-        VoyageCommandKind.PersonalSpell => new("action.personal.spell"),
-        VoyageCommandKind.PersonalPsionic => new("action.personal.psionic"),
-        VoyageCommandKind.PersonalEngineering => new("action.personal.engineering"),
-        VoyageCommandKind.PersonalMedicine => new("action.personal.medicine"),
-        VoyageCommandKind.PersonalInteract => new("action.personal.interact"),
-        VoyageCommandKind.PersonalSurrender => new("action.personal.surrender"),
-        VoyageCommandKind.PersonalRetreat => new("action.personal.retreat"),
+        CommandKind.PersonalMove => new("action.personal.move"),
+        CommandKind.PersonalDefend => new("action.personal.defend"),
+        CommandKind.PersonalReserveReaction => new("action.personal.reserve-reaction"),
+        CommandKind.PersonalMelee => new("action.personal.melee"),
+        CommandKind.PersonalRanged => new("action.personal.ranged"),
+        CommandKind.PersonalSpell => new("action.personal.spell"),
+        CommandKind.PersonalPsionic => new("action.personal.psionic"),
+        CommandKind.PersonalEngineering => new("action.personal.engineering"),
+        CommandKind.PersonalMedicine => new("action.personal.medicine"),
+        CommandKind.PersonalInteract => new("action.personal.interact"),
+        CommandKind.PersonalSurrender => new("action.personal.surrender"),
+        CommandKind.PersonalRetreat => new("action.personal.retreat"),
         _ => throw new KeyNotFoundException("The command is not a personal action."),
     };
 
-    private static bool IsPersonalCombat(VoyageCommandKind kind) => kind is
-        VoyageCommandKind.PersonalMelee or
-        VoyageCommandKind.PersonalRanged or
-        VoyageCommandKind.PersonalSpell or
-        VoyageCommandKind.PersonalPsionic;
+    private static bool IsPersonalCombat(CommandKind kind) => kind is
+        CommandKind.PersonalMelee or
+        CommandKind.PersonalRanged or
+        CommandKind.PersonalSpell or
+        CommandKind.PersonalPsionic;
 
     private static bool HasStableEncounterIdentity(PersonalActorState original, PersonalActorState resolved) =>
         original.Id == resolved.Id &&
@@ -840,7 +840,7 @@ public sealed record VoyageWorld(
         return false;
     }
 
-    private static bool IsPersonal(VoyageCommandKind kind) => kind >= VoyageCommandKind.PersonalMove;
+    private static bool IsPersonal(CommandKind kind) => kind >= CommandKind.PersonalMove;
 
     private static int NormalizeHeading(int value)
     {
@@ -901,8 +901,8 @@ public sealed record VoyageWorld(
         return -1;
     }
 
-    private static ImmutableArray<VoyageCommandLogEntry> MarkCancelled(
-        ImmutableArray<VoyageCommandLogEntry> history,
+    private static ImmutableArray<CommandLogEntry> MarkCancelled(
+        ImmutableArray<CommandLogEntry> history,
         ContentId commandId,
         long tick)
     {
@@ -910,26 +910,26 @@ public sealed record VoyageWorld(
         return index < 0 ? history : history.SetItem(index, history[index] with { CancelledTick = tick });
     }
 
-    private static VoyageCommandResult Rejected(VoyageWorld world, string code) => new(world, false, code);
+    private static CommandResult Rejected(World world, string code) => new(world, false, code);
 }
 
 public static class OpponentPlanner
 {
     public const int MaximumCandidates = 8;
 
-    public static VoyageCommand Plan(ShipState opponent, ShipState player, long tick, ulong sequence)
+    public static Command Plan(ShipState opponent, ShipState player, long tick, ulong sequence)
     {
         bool canFire = opponent.Contacts.TryGetValue(player.Id, out ShipContactState? contact) && contact.HasFiringSolution &&
             opponent.Modules.Any(value => value.WeaponReadiness == WeaponReadiness.Ready);
-        VoyageCommandKind kind = canFire ? VoyageCommandKind.Fire : VoyageCommandKind.Intercept;
+        CommandKind kind = canFire ? CommandKind.Fire : CommandKind.Intercept;
         ContentId target = player.Id.Value;
         if (opponent.Hull <= opponent.Frame.MaximumHull / 4)
         {
-            kind = VoyageCommandKind.Retreat;
+            kind = CommandKind.Retreat;
             target = opponent.Id.Value;
         }
 
-        return new VoyageCommand(
+        return new Command(
             new ContentId($"command.opponent.sequence-{sequence % 1_000_000}"),
             kind,
             tick,

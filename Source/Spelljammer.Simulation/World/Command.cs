@@ -2,7 +2,7 @@ using Spelljammer.Simulation.Content;
 
 namespace Spelljammer.Simulation.World;
 
-public enum VoyageCommandKind : byte
+public enum CommandKind : byte
 {
     Scan,
     Course,
@@ -33,9 +33,9 @@ public enum VoyageCommandKind : byte
     PersonalEndActivation,
 }
 
-public sealed record VoyageCommand(
+public sealed record Command(
     ContentId Id,
-    VoyageCommandKind Kind,
+    CommandKind Kind,
     long TargetTick,
     int Priority,
     ContentId IssuerId,
@@ -45,6 +45,6 @@ public sealed record VoyageCommand(
     ContentId? OptionId,
     ulong Sequence);
 
-public sealed record VoyageCommandLogEntry(long SubmittedTick, VoyageCommand Command, long? CancelledTick);
+public sealed record CommandLogEntry(long SubmittedTick, Command Command, long? CancelledTick);
 
-public sealed record VoyageCommandResult(VoyageWorld World, bool Accepted, string RejectionCode);
+public sealed record CommandResult(World World, bool Accepted, string RejectionCode);

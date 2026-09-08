@@ -6,7 +6,7 @@
 project. It does not reference WPF, SpriteForge, localization, wall-clock APIs,
 filesystem APIs, or mutable presentation objects.
 
-`VoyageWorld` owns the fixed-tick voyage timeline, ship and personal
+`World` owns the fixed-tick voyage timeline, ship and personal
 encounters, typed commands, scheduled action phases, replay history, and
 bounded events. Accepted transitions publish replacement immutable state.
 Rejected commands preserve the prior world and return stable rejection codes.
@@ -17,7 +17,7 @@ priority, issuer ID, sequence, and command ID. Random outcomes use explicit
 world or action seeds and owned sequence values.
 
 The retired `ExpeditionSimulation` prototype, its 4-by-4 chart, and its WPF
-host have been removed. New gameplay must integrate with `VoyageWorld` or a
+host have been removed. New gameplay must integrate with `World` or a
 more focused authoritative subsystem rather than recreate a parallel
 simulation.
 
@@ -30,12 +30,13 @@ Combat/      character-combat coordination and resolution contracts
 Ships/       ship state and ship-combat rules
 ```
 
-The public type names retain the `Voyage` prefix where it clarifies their
-scope, while their namespaces follow these ownership boundaries.
+Public world types use concise names such as `World`, `Command`, `Event`, and
+`ScheduledAction`; their `Spelljammer.Simulation.World` namespace supplies the
+domain context.
 
 ## Personal combat authority
 
-`VoyageWorld` schedules personal actions but does not calculate weapon,
+`World` schedules personal actions but does not calculate weapon,
 spell, psionic, Status, or Effect results. At commit time, melee, ranged,
 spell, and psionic commands require an `IPersonalCombatResolver`. The resolver
 uses the typed combat systems and returns one `PersonalCombatResolution`
@@ -44,7 +45,7 @@ containing the committed actor and target states.
 The implemented [`CombatSystem`](CombatSystem.md) is the standard resolver. It
 routes each character-combat command to a registered
 `ICharacterCombatActionSystem`, validates the replacement states, and rejects
-partial or structurally invalid results before `VoyageWorld` commits them.
+partial or structurally invalid results before `World` commits them.
 
 The world validates actor and target identities before publishing that result.
 A missing, rejected, or structurally invalid resolution leaves encounter state
@@ -71,7 +72,7 @@ view they consume.
 
 ## Persistence and content
 
-The persistence project serializes `VoyageWorld`, character, encounter, item,
+The persistence project serializes `World`, character, encounter, item,
 Status, and command state only after content preflight. See the
 [Persistence source briefing](../../Source/Spelljammer.Persistence/README.md).
 

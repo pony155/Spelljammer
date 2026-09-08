@@ -22,11 +22,11 @@ public static partial class CampaignSaveCodec
     {
         CurrentLocationId = campaign.CurrentLocationId.ToString(),
         ProtagonistId = campaign.ProtagonistId.ToString(),
-        World = ToDto(campaign.Voyage),
+        World = ToDto(campaign.World),
         Characters = [.. campaign.Characters.OrderBy(value => value.Id).Select(value => ToDto(value, content))],
     };
 
-    private static WorldDto ToDto(VoyageWorld world) => new()
+    private static WorldDto ToDto(World world) => new()
     {
         Seed = world.Seed,
         Tick = world.Tick,
@@ -54,7 +54,7 @@ public static partial class CampaignSaveCodec
             History = [.. value.History.Select(phase => (int)phase)],
         })],
         ReadyActorIds = [.. world.ReadyActors.Select(value => value.ToString())],
-        Events = [.. world.Events.Select(value => new VoyageEventDto
+        Events = [.. world.Events.Select(value => new EventDto
         {
             Id = value.Id.ToString(),
             Tick = value.Tick,
@@ -319,7 +319,7 @@ public static partial class CampaignSaveCodec
         CleanedUp = encounter.CleanedUp,
     };
 
-    private static CommandDto ToDto(VoyageCommand value) => new()
+    private static CommandDto ToDto(Command value) => new()
     {
         Id = value.Id.ToString(),
         Kind = (int)value.Kind,

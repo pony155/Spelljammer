@@ -30,12 +30,12 @@ public static partial class CampaignSaveCodec
             ? null
             : FromDto(payload.World.PersonalEncounter, content);
 
-        RequireCount(payload.World.Commands.Length, VoyageWorld.MaximumCommands);
-        RequireCount(payload.World.CommandHistory.Length, VoyageWorld.MaximumCommandHistory);
-        RequireCount(payload.World.ScheduledActions.Length, VoyageWorld.MaximumSchedules);
-        RequireCount(payload.World.ReadyActorIds.Length, VoyageWorld.MaximumReadyActors);
-        RequireCount(payload.World.Events.Length, VoyageWorld.MaximumEvents);
-        VoyageWorld world = new(
+        RequireCount(payload.World.Commands.Length, World.MaximumCommands);
+        RequireCount(payload.World.CommandHistory.Length, World.MaximumCommandHistory);
+        RequireCount(payload.World.ScheduledActions.Length, World.MaximumSchedules);
+        RequireCount(payload.World.ReadyActorIds.Length, World.MaximumReadyActors);
+        RequireCount(payload.World.Events.Length, World.MaximumEvents);
+        World world = new(
             payload.World.Seed,
             content.Fingerprint,
             payload.World.Tick,
@@ -46,7 +46,7 @@ public static partial class CampaignSaveCodec
             ships,
             encounter,
             [.. payload.World.Commands.Select(FromDto)],
-            [.. payload.World.CommandHistory.Select(value => new VoyageCommandLogEntry(
+            [.. payload.World.CommandHistory.Select(value => new CommandLogEntry(
                 value.SubmittedTick, FromDto(value.Command), value.CancelledTick))],
             [.. payload.World.ScheduledActions.Select(value => new ScheduledAction(
                 FromDto(value.Command),
@@ -57,9 +57,9 @@ public static partial class CampaignSaveCodec
                 value.ReservedAmount,
                 [.. value.History.Select(ParseEnum<ScheduledActionPhase>)]))],
             [.. payload.World.ReadyActorIds.Select(value => new ActorId(value))],
-            [.. payload.World.Events.Select(value => new VoyageEvent(
+            [.. payload.World.Events.Select(value => new Event(
                 new ContentId(value.Id), value.Tick, new ContentId(value.SourceId), new ContentId(value.TargetId),
-                ParseEnum<VoyageCommandKind>(value.Kind), value.Succeeded, value.Amount, value.ResultCode))]);
+                ParseEnum<CommandKind>(value.Kind), value.Succeeded, value.Amount, value.ResultCode))]);
 
         CampaignContentLock activeLock = savedLock.EffectiveFingerprint == content.Fingerprint &&
             savedLock.SaveSchemaVersion == CampaignSaveVersions.SaveSchema
@@ -314,8 +314,8 @@ public static partial class CampaignSaveCodec
         ? result
         : throw new InvalidOperationException("Item state contains an invalid identifier.");
 
-    private static VoyageCommand FromDto(CommandDto value) => new(
-        new ContentId(value.Id), ParseEnum<VoyageCommandKind>(value.Kind), value.TargetTick, value.Priority,
+    private static Command FromDto(CommandDto value) => new(
+        new ContentId(value.Id), ParseEnum<CommandKind>(value.Kind), value.TargetTick, value.Priority,
         new ContentId(value.IssuerId), new ContentId(value.TargetId),
         new FixedVector2(new FixedScalar(value.VectorX), new FixedScalar(value.VectorY)), value.Amount,
         value.OptionId is null ? null : new ContentId(value.OptionId), value.Sequence);

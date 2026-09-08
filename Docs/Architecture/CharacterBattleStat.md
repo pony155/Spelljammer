@@ -19,7 +19,7 @@ The simulation currently implements:
 The scenario-selected profile at
 `Content/Packs/base/Definitions/CharacterResourceProfiles/standard.json` owns
 base values, thresholds, stamina speed bands, recovery, and personal-action AP
-costs. `VoyageWorld` must not contain fallback combat-economy numbers.
+costs. `World` must not contain fallback combat-economy numbers.
 
 Threshold-driven status application, authored Resolve attacks, psionic
 overload outcomes, activity-sensitive recovery, attribute-derived Turn Meter

@@ -38,7 +38,7 @@ public static class CampaignValidator
         ArgumentNullException.ThrowIfNull(campaign);
         ArgumentNullException.ThrowIfNull(content);
         missingId = null;
-        VoyageWorld world = campaign.Voyage;
+        World world = campaign.World;
         CampaignContentLock expectedLock = CampaignContentLock.Create(content);
         if (Encoding.UTF8.GetByteCount(campaign.GameBuild) is 0 or > CampaignState.MaximumGameBuildBytes ||
             campaign.ContentLock.BaseContentRevision != expectedLock.BaseContentRevision ||
@@ -55,11 +55,11 @@ public static class CampaignValidator
             world.ContentFingerprint != content.Fingerprint || world.Tick < 0 ||
             world.Ships.Count is 0 or > CampaignSaveLimits.MaximumShips ||
             campaign.Characters.Length is 0 or > CampaignSaveLimits.MaximumCharacters ||
-            world.Commands.Length > VoyageWorld.MaximumCommands ||
+            world.Commands.Length > World.MaximumCommands ||
             world.CommandHistory.Length > CampaignSaveLimits.MaximumRetainedCommands ||
-            world.ScheduledActions.Length > VoyageWorld.MaximumSchedules ||
+            world.ScheduledActions.Length > World.MaximumSchedules ||
             world.Events.Length > CampaignSaveLimits.MaximumRetainedEvents ||
-            world.ReadyActors.Length > VoyageWorld.MaximumReadyActors ||
+            world.ReadyActors.Length > World.MaximumReadyActors ||
             world.Commands.Select(value => value.Id).Distinct().Count() != world.Commands.Length ||
             world.CommandHistory.Select(value => value.Command.Id).Distinct().Count() != world.CommandHistory.Length ||
             campaign.Characters.Select(value => value.Id).Distinct().Count() != campaign.Characters.Length ||
@@ -213,7 +213,7 @@ public static class CampaignValidator
             }
         }
 
-        foreach (ShipState ship in campaign.Voyage.Ships.Values)
+        foreach (ShipState ship in campaign.World.Ships.Values)
         {
             Add(ship.Frame.ShipFrameId.Value);
             foreach (InstalledModuleState module in ship.Modules)
@@ -226,7 +226,7 @@ public static class CampaignValidator
             }
         }
 
-        if (campaign.Voyage.PersonalEncounter is PersonalEncounterState encounter)
+        if (campaign.World.PersonalEncounter is PersonalEncounterState encounter)
         {
             Add(encounter.Id.Value);
             Add(encounter.Board.Definition.PersonalBoardId.Value);

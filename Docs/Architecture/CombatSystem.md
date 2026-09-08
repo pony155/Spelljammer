@@ -12,9 +12,9 @@ rules. Those remain in focused action systems such as `MeleeWeaponSystem`,
 
 ## Implemented boundary
 
-`CombatSystem` implements `IPersonalCombatResolver`, which lets `VoyageWorld`
+`CombatSystem` implements `IPersonalCombatResolver`, which lets `World`
 schedule and commit character combat without calculating combat outcomes.
-Each supported `VoyageCommandKind` is registered through an
+Each supported `CommandKind` is registered through an
 `ICharacterCombatActionSystem` adapter.
 
 The coordinator and result contracts live in `Spelljammer.Simulation.Combat`.
@@ -40,7 +40,7 @@ Replacement actor and target states
 CombatSystem result validation
         |
         v
-VoyageWorld atomic commit
+World atomic commit
 ```
 
 The system rejects unknown or unregistered actions, actors that cannot act,
@@ -51,13 +51,13 @@ partially resolved action cannot escape into the encounter.
 The result validator preserves actor identity, team, character association,
 and board cell; prevents action points from increasing; enforces Status and
 item collection shape limits; and requires valid event and damaged-object
-data. `VoyageWorld` performs a second validation before publishing the
+data. `World` performs a second validation before publishing the
 replacement encounter state.
 
 ## Composition
 
 The application composition root should construct one `CombatSystem` from the
-available action adapters and pass it to `VoyageWorld.Advance`. An adapter owns
+available action adapters and pass it to `World.Advance`. An adapter owns
 translation between `PersonalCombatContext` and its typed domain request. For
 example, a melee adapter selects the commanded item/action, derives target
 distance and defenses from the board and combatant state, invokes

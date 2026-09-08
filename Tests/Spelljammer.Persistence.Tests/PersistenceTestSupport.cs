@@ -112,9 +112,9 @@ internal static partial class PersistenceContracts
             ImmutableHashSet.Create(new ContentId("object.ruin.ancient-defense")),
             false,
             false);
-        VoyageWorld world = VoyageWorld.Create(0x5eedUL, content.Fingerprint, new TeamId("team.player"), [loadout.Ship!], encounter);
-        VoyageCommand queued = new(
-            new ContentId("command.saved.course"), VoyageCommandKind.Course, 1, 10, loadout.Ship!.Id.Value,
+        World world = World.Create(0x5eedUL, content.Fingerprint, new TeamId("team.player"), [loadout.Ship!], encounter);
+        Command queued = new(
+            new ContentId("command.saved.course"), CommandKind.Course, 1, 10, loadout.Ship!.Id.Value,
             loadout.Ship.Id.Value, new FixedVector2(FixedScalar.FromInt(1), FixedScalar.FromInt(0)), 0, null, 1);
         world = world.Enqueue(queued).World;
         return new CampaignState(

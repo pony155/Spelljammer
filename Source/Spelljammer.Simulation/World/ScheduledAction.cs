@@ -16,7 +16,7 @@ public enum ScheduledActionPhase : byte
 }
 
 public sealed record ScheduledAction(
-    VoyageCommand Command,
+    Command Command,
     ScheduledActionPhase Phase,
     long CommitTick,
     long RecoverTick,

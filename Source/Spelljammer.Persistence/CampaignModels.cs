@@ -229,7 +229,7 @@ public sealed record CampaignState(
     string GameBuild,
     CampaignContentLock ContentLock,
     ContentId CurrentLocationId,
-    VoyageWorld Voyage,
+    World World,
     CharacterId ProtagonistId,
     ImmutableArray<CharacterState> Characters)
 {

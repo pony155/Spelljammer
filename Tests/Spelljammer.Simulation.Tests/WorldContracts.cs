@@ -13,39 +13,39 @@ internal static partial class SimulationContracts
     private static void FixedTickCadenceAndOrderingAreDeterministic()
     {
         ShipState ship = CreateShip(new ShipId("ship.first-voyage.player"), new TeamId("team.player"), "ship.path.arcane");
-        VoyageWorld initial = VoyageWorld.Create(
+        World initial = World.Create(
             0x5eedUL,
             new ContentFingerprint(new string('a', 64)),
             ship.TeamId,
             [ship]);
         Equal(0, initial.Advance(8).AdvancedTicks, "Paused ship simulation advanced authoritative time.");
 
-        VoyageCommand second = Command("command.test.second", VoyageCommandKind.Course, ship.Id.Value, ship.Id.Value, 20, 2);
-        VoyageCommand first = Command("command.test.first", VoyageCommandKind.Course, ship.Id.Value, ship.Id.Value, 10, 1);
-        VoyageWorld queued = initial.SetShipPause(false).Enqueue(second).World.Enqueue(first).World;
+        Command second = Command("command.test.second", CommandKind.Course, ship.Id.Value, ship.Id.Value, 20, 2);
+        Command first = Command("command.test.first", CommandKind.Course, ship.Id.Value, ship.Id.Value, 10, 1);
+        World queued = initial.SetShipPause(false).Enqueue(second).World.Enqueue(first).World;
         Equal(first.Id, queued.Commands[0].Id, "Equal-tick commands were not stably priority ordered.");
-        VoyageCommandResult stale = queued.Enqueue(first with { Id = new ContentId("command.test.stale"), TargetTick = -1 });
+        CommandResult stale = queued.Enqueue(first with { Id = new ContentId("command.test.stale"), TargetTick = -1 });
         False(stale.Accepted, "A stale command entered the authoritative queue.");
         True(ReferenceEquals(queued, stale.World), "A rejected command replaced the world instance.");
-        VoyageWorld prepared = queued.Advance(2).World;
+        World prepared = queued.Advance(2).World;
         True(prepared.ScheduledActions.All(value => value.Phase == ScheduledActionPhase.Recovering &&
             value.History.Contains(ScheduledActionPhase.Reserved) && value.History.Contains(ScheduledActionPhase.Committed)),
             "Scheduled actions did not preserve their transaction phases.");
 
-        VoyageWorld cancellationCandidate = initial.SetShipPause(false).Enqueue(first).World;
-        VoyageCommandResult cancelled = cancellationCandidate.Cancel(first.Id);
+        World cancellationCandidate = initial.SetShipPause(false).Enqueue(first).World;
+        CommandResult cancelled = cancellationCandidate.Cancel(first.Id);
         True(cancelled.Accepted && cancelled.World.CommandHistory.Single().CancelledTick == 0,
             "Pre-commit cancellation was not retained in the replay log.");
 
-        VoyageWorld batched = queued.Advance(8).World;
-        VoyageWorld stepped = queued;
+        World batched = queued.Advance(8).World;
+        World stepped = queued;
         for (int index = 0; index < 8; index++)
         {
             stepped = stepped.Advance(1).World;
         }
 
-        VoyageWorldSnapshot batchedSnapshot = batched.Snapshot();
-        VoyageWorldSnapshot steppedSnapshot = stepped.Snapshot();
+        WorldSnapshot batchedSnapshot = batched.Snapshot();
+        WorldSnapshot steppedSnapshot = stepped.Snapshot();
         Equal(batchedSnapshot.Tick, steppedSnapshot.Tick, "Render cadence changed the committed tick.");
         Equal(batchedSnapshot.Ships[0].Position, steppedSnapshot.Ships[0].Position,
             "Render cadence changed fixed-point movement.");
@@ -138,16 +138,16 @@ internal static partial class SimulationContracts
             false,
             false);
         ShipState ship = CreateShip(new ShipId("ship.first-voyage.personal"), defender.TeamId, "ship.path.arcane");
-        VoyageWorld world = VoyageWorld.Create(17, new ContentFingerprint(new string('b', 64)), defender.TeamId, [ship], encounter) with {
+        World world = World.Create(17, new ContentFingerprint(new string('b', 64)), defender.TeamId, [ship], encounter) with {
             ShipPaused = false,
             ReadyActors = [attackerId],
         };
-        VoyageCommand attack = Command("command.test.reaction", VoyageCommandKind.PersonalRanged, attackerId.Value, defenderId.Value, 10, 1) with { Amount = 8 };
-        VoyageWorld unresolved = world.Enqueue(attack).World.CommitReadyPlan().Advance(2).World;
+        Command attack = Command("command.test.reaction", CommandKind.PersonalRanged, attackerId.Value, defenderId.Value, 10, 1) with { Amount = 8 };
+        World unresolved = world.Enqueue(attack).World.CommitReadyPlan().Advance(2).World;
         Equal(10, unresolved.PersonalEncounter!.Actors[defenderId].Health,
             "A combat command without the domain resolver changed target health.");
         True(unresolved.Events.Any(value =>
-                value.Kind == VoyageCommandKind.PersonalRanged &&
+                value.Kind == CommandKind.PersonalRanged &&
                 !value.Succeeded &&
                 value.ResultCode == "command.personal-combat-resolver-required"),
             "A missing combat resolver did not produce the stable rejection event.");
@@ -156,7 +156,7 @@ internal static partial class SimulationContracts
         PersonalActorState after = world.PersonalEncounter!.Actors[defenderId];
         Equal(6, after.Health, "A reserved reaction did not mitigate the committed attack.");
         Equal(0, after.ReservedReactionPoints, "A reaction was not consumed atomically.");
-        True(world.Events.Any(value => value.Kind == VoyageCommandKind.PersonalRanged && value.Succeeded),
+        True(world.Events.Any(value => value.Kind == CommandKind.PersonalRanged && value.Succeeded),
             "Committed personal action was not preserved in the replay event stream.");
     }
 
@@ -185,9 +185,9 @@ internal static partial class SimulationContracts
         }
     }
 
-    private static VoyageCommand Command(
+    private static Command Command(
         string id,
-        VoyageCommandKind kind,
+        CommandKind kind,
         ContentId issuer,
         ContentId target,
         int priority,
