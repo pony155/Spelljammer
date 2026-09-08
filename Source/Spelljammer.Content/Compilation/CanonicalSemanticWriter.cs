@@ -74,6 +74,12 @@ internal static class CanonicalSemanticWriter
                 properties["minutesPerHour"] = output => output.Append(value.MinutesPerHour);
                 properties["months"] = output => WriteCalendarMonths(output, value.Months);
                 properties["secondsPerMinute"] = output => output.Append(value.SecondsPerMinute);
+                properties["startingDay"] = output => output.Append(value.StartingDay);
+                properties["startingDayOfWeekIndex"] = output => output.Append(value.StartingDayOfWeekIndex);
+                properties["startingHour"] = output => output.Append(value.StartingHour);
+                properties["startingMinute"] = output => output.Append(value.StartingMinute);
+                properties["startingMonth"] = output => output.Append(value.StartingMonth);
+                properties["startingSecond"] = output => output.Append(value.StartingSecond);
                 properties["startingYear"] = output => output.Append(value.StartingYear);
                 break;
             case TimeScaleDefinition value:

@@ -20,10 +20,26 @@ public sealed record CalendarDefinition(
     int HoursPerDay,
     int DaysPerWeek,
     long StartingYear,
+    int StartingMonth,
+    int StartingDay,
+    int StartingDayOfWeekIndex,
+    int StartingHour,
+    int StartingMinute,
+    int StartingSecond,
     ImmutableArray<CalendarMonthDefinition> Months)
     : ContentDefinition(CalendarId.Value, SchemaVersion, Revision, NameKey, DescriptionKey)
 {
     public long SecondsPerDay => checked((long)SecondsPerMinute * MinutesPerHour * HoursPerDay);
 
     public long DaysPerYear => Months.Sum(month => (long)month.Days);
+
+    public long StartingDayOfYear => Months
+        .Take(StartingMonth - 1)
+        .Sum(month => (long)month.Days) + StartingDay - 1;
+
+    public long StartingOffsetSeconds => checked(
+        StartingDayOfYear * SecondsPerDay +
+        (long)StartingHour * MinutesPerHour * SecondsPerMinute +
+        (long)StartingMinute * SecondsPerMinute +
+        StartingSecond);
 }

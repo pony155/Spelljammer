@@ -286,6 +286,23 @@ public sealed partial class GameContentCompiler
             return;
         }
 
+        int startingMonth = definition.Integers["startingMonth"];
+        if (startingMonth < 1 || startingMonth > calendar.Months.Length ||
+            definition.Integers["startingDay"] < 1 ||
+            definition.Integers["startingDay"] > calendar.Months[startingMonth - 1].Days ||
+            definition.Integers["startingDayOfWeekIndex"] < 0 ||
+            definition.Integers["startingDayOfWeekIndex"] >= definition.Integers["daysPerWeek"] ||
+            definition.Integers["startingHour"] < 0 ||
+            definition.Integers["startingHour"] >= definition.Integers["hoursPerDay"] ||
+            definition.Integers["startingMinute"] < 0 ||
+            definition.Integers["startingMinute"] >= definition.Integers["minutesPerHour"] ||
+            definition.Integers["startingSecond"] < 0 ||
+            definition.Integers["startingSecond"] >= definition.Integers["secondsPerMinute"])
+        {
+            OutOfRange(definition, "/startingMonth", diagnostics);
+            return;
+        }
+
         if (calendar.Months.Select(month => month.CalendarMonthId).Distinct().Count() != calendar.Months.Length)
         {
             diagnostics.Add(

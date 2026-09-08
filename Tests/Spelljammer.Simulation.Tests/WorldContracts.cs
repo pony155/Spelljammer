@@ -16,11 +16,9 @@ internal static partial class SimulationContracts
     private static readonly CalendarDefinition TestCalendar = new(
         new CalendarId("calendar.test.standard"), 1, 1,
         "calendar.test.standard.name", "calendar.test.standard.description",
-        60, 60, 24, 7, 327,
-        [
-            new CalendarMonthDefinition(new CalendarMonthId("calendar.month.test-first"), "calendar.month.test-first.name", 30),
-            new CalendarMonthDefinition(new CalendarMonthId("calendar.month.test-second"), "calendar.month.test-second.name", 30),
-        ]);
+        60, 60, 24, 7, 7421, 1, 1, 0, 0, 0, 0,
+        [.. Enumerable.Range(1, 12).Select(index => new CalendarMonthDefinition(
+            new CalendarMonthId($"calendar.month.test-{index}"), $"calendar.month.test-{index}.name", 30))]);
     private static readonly TimeScaleDefinition TestTimeScale = new(
         new TimeScaleId("time-scale.test.tactical"), 1, 1,
         "time-scale.test.tactical.name", "time-scale.test.tactical.description", 1, 20);
@@ -39,12 +37,38 @@ internal static partial class SimulationContracts
             "Twenty tactical ticks did not advance exactly one world second.");
         Equal(batched, stepped, "Batched clock advancement changed the deterministic remainder.");
 
+        WorldDateTime opening = WorldTimeQueries.GetDateTime(initial, TestCalendar);
+        Equal(7421L, opening.Year, "The authored EAC opening year was not used.");
+        Equal(1, opening.Month, "The authored EAC opening month was not used.");
+        Equal(1, opening.Day, "The authored EAC opening day was not used.");
+        Equal(0, opening.Hour, "The authored EAT opening hour was not used.");
+        Equal(0, opening.Minute, "The authored EAT opening minute was not used.");
+        Equal(0, opening.Second, "The authored EAT opening second was not used.");
+
+        WorldDateTime lastSecondOfMinute = WorldTimeQueries.GetDateTime(
+            initial with { ElapsedWorldSeconds = 59 }, TestCalendar);
+        Equal(59, lastSecondOfMinute.Second, "EAT advanced before the sixtieth second.");
+        WorldDateTime secondMinute = WorldTimeQueries.GetDateTime(
+            initial with { ElapsedWorldSeconds = 60 }, TestCalendar);
+        Equal(1, secondMinute.Minute, "Sixty EAT seconds did not advance one minute.");
+        Equal(0, secondMinute.Second, "The second did not reset at the EAT minute boundary.");
+
+        WorldDateTime lastSecondOfDay = WorldTimeQueries.GetDateTime(
+            initial with { ElapsedWorldSeconds = TestCalendar.SecondsPerDay - 1 }, TestCalendar);
+        Equal(23, lastSecondOfDay.Hour, "The EAT day did not end at hour 23.");
+        Equal(59, lastSecondOfDay.Minute, "The EAT day did not end at minute 59.");
+        Equal(59, lastSecondOfDay.Second, "The EAT day did not end at second 59.");
+        WorldDateTime secondDay = WorldTimeQueries.GetDateTime(
+            initial with { ElapsedWorldSeconds = TestCalendar.SecondsPerDay }, TestCalendar);
+        Equal(2, secondDay.Day, "Twenty-four EAT hours did not advance one EAC day.");
+        Equal(0, secondDay.Hour, "The EAT hour did not reset at the day boundary.");
+
         CampaignClockState secondMonth = initial with
         {
             ElapsedWorldSeconds = TestCalendar.SecondsPerDay * 30,
         };
         WorldDateTime monthBoundary = WorldTimeQueries.GetDateTime(secondMonth, TestCalendar);
-        Equal(327L, monthBoundary.Year, "Month rollover changed the campaign year.");
+        Equal(7421L, monthBoundary.Year, "Month rollover changed the campaign year.");
         Equal(2, monthBoundary.Month, "Calendar did not advance to the second authored month.");
         Equal(1, monthBoundary.Day, "Month rollover did not begin on day one.");
 
@@ -53,7 +77,7 @@ internal static partial class SimulationContracts
             ElapsedWorldSeconds = TestCalendar.SecondsPerDay * TestCalendar.DaysPerYear,
         };
         WorldDateTime yearBoundary = WorldTimeQueries.GetDateTime(secondYear, TestCalendar);
-        Equal(328L, yearBoundary.Year, "Calendar year rollover was not derived from authored months.");
+        Equal(7422L, yearBoundary.Year, "Calendar year rollover was not derived from authored months.");
         Equal(1, yearBoundary.Month, "Calendar year rollover did not return to the first month.");
         Equal(1, yearBoundary.Day, "Calendar year rollover did not begin on day one.");
     }

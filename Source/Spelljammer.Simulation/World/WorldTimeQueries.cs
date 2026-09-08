@@ -23,8 +23,9 @@ public static class WorldTimeQueries
         Validate(clock, calendar);
 
         long secondsPerDay = calendar.SecondsPerDay;
-        long elapsedDays = clock.ElapsedWorldSeconds / secondsPerDay;
-        long secondsWithinDay = clock.ElapsedWorldSeconds % secondsPerDay;
+        long elapsedCalendarSeconds = checked(calendar.StartingOffsetSeconds + clock.ElapsedWorldSeconds);
+        long elapsedDays = elapsedCalendarSeconds / secondsPerDay;
+        long secondsWithinDay = elapsedCalendarSeconds % secondsPerDay;
         long daysPerYear = calendar.DaysPerYear;
         long year = checked(calendar.StartingYear + elapsedDays / daysPerYear);
         long dayOfYear = elapsedDays % daysPerYear;
@@ -48,7 +49,8 @@ public static class WorldTimeQueries
             month.CalendarMonthId,
             month.NameKey,
             (int)dayOfYear + 1,
-            (int)(elapsedDays % calendar.DaysPerWeek),
+            (int)((calendar.StartingDayOfWeekIndex + elapsedDays - calendar.StartingDayOfYear) %
+                calendar.DaysPerWeek),
             hour,
             minute,
             second);
@@ -68,7 +70,13 @@ public static class WorldTimeQueries
         if (clock.ElapsedWorldSeconds < 0 || clock.CalendarId != calendar.CalendarId ||
             calendar.SecondsPerMinute <= 0 || calendar.MinutesPerHour <= 0 || calendar.HoursPerDay <= 0 ||
             calendar.DaysPerWeek <= 0 || calendar.Months.IsDefaultOrEmpty ||
-            calendar.Months.Any(month => month.Days <= 0))
+            calendar.Months.Any(month => month.Days <= 0) ||
+            calendar.StartingMonth < 1 || calendar.StartingMonth > calendar.Months.Length ||
+            calendar.StartingDay < 1 || calendar.StartingDay > calendar.Months[calendar.StartingMonth - 1].Days ||
+            calendar.StartingDayOfWeekIndex < 0 || calendar.StartingDayOfWeekIndex >= calendar.DaysPerWeek ||
+            calendar.StartingHour < 0 || calendar.StartingHour >= calendar.HoursPerDay ||
+            calendar.StartingMinute < 0 || calendar.StartingMinute >= calendar.MinutesPerHour ||
+            calendar.StartingSecond < 0 || calendar.StartingSecond >= calendar.SecondsPerMinute)
         {
             throw new ArgumentException("Campaign clock state or calendar definition is invalid.");
         }

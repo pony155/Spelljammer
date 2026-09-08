@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 2,
+  "revision": 3,
   "id": "calendar.voidfarer-standard",
   "nameKey": "calendar.voidfarer-standard.name",
   "descriptionKey": "calendar.voidfarer-standard.description",
@@ -9,6 +9,12 @@
   "hoursPerDay": 24,
   "daysPerWeek": 7,
   "startingYear": 7421,
+  "startingMonth": 1,
+  "startingDay": 1,
+  "startingDayOfWeekIndex": 0,
+  "startingHour": 0,
+  "startingMinute": 0,
+  "startingSecond": 0,
   "months": [
     { "id": "calendar.month.first-light", "nameKey": "calendar.month.first-light.name", "days": 30 },
     { "id": "calendar.month.emberwake", "nameKey": "calendar.month.emberwake.name", "days": 30 },

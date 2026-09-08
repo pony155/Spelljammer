@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "locale": "fr-FR",
+  "namespace": "calendar",
+  "fallbacks": ["en-US"],
+  "textDirection": "ltr",
+  "messages": {
+    "calendar.voidfarer-standard.name": { "description": "Nom du calendrier interstellaire standard.", "message": "Calendrier astral elfique" },
+    "calendar.voidfarer-standard.description": { "description": "Description du calendrier et du système horaire interstellaires.", "message": "Le calendrier EAC et l’heure standard EAT sur 24 heures utilisés pour la navigation interstellaire et les documents officiels." },
+    "calendar.era.eac.label": { "description": "Abréviation de l’ère du calendrier astral elfique.", "message": "EAC" },
+    "calendar.time-standard.eat.label": { "description": "Abréviation de l’heure astrale elfique.", "message": "EAT" },
+    "calendar.date.full": {
+      "description": "Date EAC complète sans l’heure.",
+      "arguments": { "year": "text", "era": "localizable", "month": "localizable", "day": "text" },
+      "message": "{day} {month} {year} {era}"
+    },
+    "calendar.time.full": {
+      "description": "Heure EAT complète sur 24 heures sans la date.",
+      "arguments": { "hour": "text", "minute": "text", "second": "text", "standard": "localizable" },
+      "message": "{hour}:{minute}:{second} {standard}"
+    },
+    "calendar.timestamp.full": {
+      "description": "Horodatage EAC et EAT complet et localisé.",
+      "arguments": { "date": "localizable", "time": "localizable" },
+      "message": "{date} · {time}"
+    },
+    "calendar.weekday.first.name": { "description": "Nom du jour EAC d’indice zéro.", "message": "Premier jour" },
+    "calendar.weekday.second.name": { "description": "Nom du jour EAC d’indice un.", "message": "Deuxième jour" },
+    "calendar.weekday.third.name": { "description": "Nom du jour EAC d’indice deux.", "message": "Troisième jour" },
+    "calendar.weekday.fourth.name": { "description": "Nom du jour EAC d’indice trois.", "message": "Quatrième jour" },
+    "calendar.weekday.fifth.name": { "description": "Nom du jour EAC d’indice quatre.", "message": "Cinquième jour" },
+    "calendar.weekday.sixth.name": { "description": "Nom du jour EAC d’indice cinq.", "message": "Sixième jour" },
+    "calendar.weekday.seventh.name": { "description": "Nom du jour EAC d’indice six.", "message": "Septième jour" },
+    "calendar.month.first-light.name": { "description": "Nom du mois.", "message": "Première Lueur" },
+    "calendar.month.emberwake.name": { "description": "Nom du mois.", "message": "Sillage de Braise" },
+    "calendar.month.starcurrent.name": { "description": "Nom du mois.", "message": "Courant Stellaire" },
+    "calendar.month.gilded-tide.name": { "description": "Nom du mois.", "message": "Marée Dorée" },
+    "calendar.month.long-sail.name": { "description": "Nom du mois.", "message": "Longue Voile" },
+    "calendar.month.cinderfall.name": { "description": "Nom du mois.", "message": "Chute de Cendres" },
+    "calendar.month.voidbloom.name": { "description": "Nom du mois.", "message": "Floraison du Vide" },
+    "calendar.month.iron-comet.name": { "description": "Nom du mois.", "message": "Comète de Fer" },
+    "calendar.month.pale-orbit.name": { "description": "Nom du mois.", "message": "Orbite Pâle" },
+    "calendar.month.deepwatch.name": { "description": "Nom du mois.", "message": "Veille Profonde" },
+    "calendar.month.homeward.name": { "description": "Nom du mois.", "message": "Retour" },
+    "calendar.month.last-lantern.name": { "description": "Nom du mois.", "message": "Dernière Lanterne" }
+  }
+}

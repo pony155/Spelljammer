@@ -33,7 +33,13 @@ internal static partial class ContentContracts
         Equal(1, snapshot.CalendarRegistry.Count, "The campaign calendar was not published.");
         True(snapshot.TryGetCalendar(new CalendarId("calendar.voidfarer-standard"), out CalendarDefinition? calendar),
             "Typed calendar lookup failed.");
-        Equal(327L, calendar!.StartingYear, "The starting campaign year did not come from JSON.");
+        Equal(7421L, calendar!.StartingYear, "The starting campaign year did not come from JSON.");
+        Equal(1, calendar.StartingMonth, "The starting campaign month did not come from JSON.");
+        Equal(1, calendar.StartingDay, "The starting campaign day did not come from JSON.");
+        Equal(0, calendar.StartingDayOfWeekIndex, "The starting weekday did not come from JSON.");
+        Equal(0, calendar.StartingHour, "The starting EAT hour did not come from JSON.");
+        Equal(0, calendar.StartingMinute, "The starting EAT minute did not come from JSON.");
+        Equal(0, calendar.StartingSecond, "The starting EAT second did not come from JSON.");
         Equal(12, calendar.Months.Length, "The authored calendar months were not preserved.");
         Equal(new CalendarMonthId("calendar.month.first-light"), calendar.Months[0].CalendarMonthId,
             "Calendar month order changed during compilation.");

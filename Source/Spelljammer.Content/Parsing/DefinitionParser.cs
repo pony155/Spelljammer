@@ -17,7 +17,9 @@ internal static class DefinitionParser
         {
             [DefinitionKind.WorldTime] = new(["ticksPerSecond", "maximumCatchUpTicks"], []),
             [DefinitionKind.Calendar] = new(
-                ["secondsPerMinute", "minutesPerHour", "hoursPerDay", "daysPerWeek", "startingYear", "months"], []),
+                ["secondsPerMinute", "minutesPerHour", "hoursPerDay", "daysPerWeek", "startingYear",
+                 "startingMonth", "startingDay", "startingDayOfWeekIndex", "startingHour", "startingMinute",
+                 "startingSecond", "months"], []),
             [DefinitionKind.TimeScale] = new(["worldSecondsNumerator", "simulationTicksDenominator"], []),
             [DefinitionKind.Ability] = new(["minimum", "maximum", "defaultValue", "tags"], []),
             [DefinitionKind.Skill] = new(["minimum", "maximum", "progressionCurveId", "actionTags"], []),

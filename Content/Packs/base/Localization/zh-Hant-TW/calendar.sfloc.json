@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "locale": "zh-Hant-TW",
+  "namespace": "calendar",
+  "fallbacks": ["en-US"],
+  "textDirection": "ltr",
+  "messages": {
+    "calendar.voidfarer-standard.name": { "description": "跨星域標準曆法的顯示名稱。", "message": "精靈星界曆" },
+    "calendar.voidfarer-standard.description": { "description": "跨星域標準曆法與時間系統的說明。", "message": "用於星際航行與正式紀錄的 EAC 曆法，以及採 24 小時制的 EAT 標準時間。" },
+    "calendar.era.eac.label": { "description": "精靈星界曆紀年的縮寫。", "message": "EAC" },
+    "calendar.time-standard.eat.label": { "description": "精靈宇宙標準時間的縮寫。", "message": "EAT" },
+    "calendar.date.full": {
+      "description": "不包含時間的完整 EAC 日期。",
+      "arguments": { "year": "text", "era": "localizable", "month": "localizable", "day": "text" },
+      "message": "{year} {era}・{month} {day} 日"
+    },
+    "calendar.time.full": {
+      "description": "不包含日期的完整 24 小時制 EAT 時間。",
+      "arguments": { "hour": "text", "minute": "text", "second": "text", "standard": "localizable" },
+      "message": "{hour}:{minute}:{second} {standard}"
+    },
+    "calendar.timestamp.full": {
+      "description": "完整且在地化的 EAC 與 EAT 時間戳。",
+      "arguments": { "date": "localizable", "time": "localizable" },
+      "message": "{date}・{time}"
+    },
+    "calendar.weekday.first.name": { "description": "EAC 星期索引零的名稱。", "message": "第一日" },
+    "calendar.weekday.second.name": { "description": "EAC 星期索引一的名稱。", "message": "第二日" },
+    "calendar.weekday.third.name": { "description": "EAC 星期索引二的名稱。", "message": "第三日" },
+    "calendar.weekday.fourth.name": { "description": "EAC 星期索引三的名稱。", "message": "第四日" },
+    "calendar.weekday.fifth.name": { "description": "EAC 星期索引四的名稱。", "message": "第五日" },
+    "calendar.weekday.sixth.name": { "description": "EAC 星期索引五的名稱。", "message": "第六日" },
+    "calendar.weekday.seventh.name": { "description": "EAC 星期索引六的名稱。", "message": "第七日" },
+    "calendar.month.first-light.name": { "description": "月份名稱。", "message": "初光" },
+    "calendar.month.emberwake.name": { "description": "月份名稱。", "message": "燼航" },
+    "calendar.month.starcurrent.name": { "description": "月份名稱。", "message": "星流" },
+    "calendar.month.gilded-tide.name": { "description": "月份名稱。", "message": "鎏金潮" },
+    "calendar.month.long-sail.name": { "description": "月份名稱。", "message": "長帆" },
+    "calendar.month.cinderfall.name": { "description": "月份名稱。", "message": "燼落" },
+    "calendar.month.voidbloom.name": { "description": "月份名稱。", "message": "虛空綻放" },
+    "calendar.month.iron-comet.name": { "description": "月份名稱。", "message": "鐵彗" },
+    "calendar.month.pale-orbit.name": { "description": "月份名稱。", "message": "蒼白軌道" },
+    "calendar.month.deepwatch.name": { "description": "月份名稱。", "message": "深望" },
+    "calendar.month.homeward.name": { "description": "月份名稱。", "message": "歸航" },
+    "calendar.month.last-lantern.name": { "description": "月份名稱。", "message": "末燈" }
+  }
+}

@@ -51,6 +51,8 @@ formatting belong to presentation and localization. Simulation state stores
 stable calendar IDs and numeric time only. Scenario content selects the exact
 opening timestamp; a campaign in the modern era should author a starting year
 near 7421 rather than deriving it from the host computer's clock.
+The base calendar explicitly starts at **7421 EAC, First Light 01,
+00:00:00 EAT** with weekday index zero.
 
 ## Advancement
 
@@ -78,10 +80,14 @@ The base definitions are:
 - `Definitions/WorldTimes/standard.json` for engine cadence and catch-up;
 - `Definitions/TimeScales/tactical.json` for normal campaign-time flow; and
 - `Definitions/Calendars/voidfarer-standard.json` for calendar structure and
-  ordered month definitions.
+  ordered month definitions plus the opening year, month, day, weekday, hour,
+  minute, and second.
 
-Calendar month names are localization keys. Simulation and persistence never
-store localized month text. Definitions are parsed strictly, bounded,
+Calendar names, EAC/EAT labels, date/time layouts, month names, and weekday
+names are localization keys. `EacEatTimestampFormatter` in the application
+presentation layer produces localized date, time, or combined timestamp text;
+it does not alter authoritative state. Simulation and persistence never store
+localized calendar text. Definitions are parsed strictly, bounded,
 canonicalized, fingerprinted, and exposed through `IWorldContentCatalog`.
 
 ## Date queries
@@ -93,9 +99,9 @@ calendar model also authors a seven-day week for weekday display. All of these
 values remain content rather than simulation constants. Leap years, irregular
 era rules, and conversion between calendar definitions are not implemented.
 
-The base `voidfarer-standard.json` authors `startingYear` as `7421`, placing
-the default campaign clock in the modern EAC era. Changing this value or any
-other calendar unit changes the compiled semantic content fingerprint.
+The base `voidfarer-standard.json` authors the complete opening timestamp.
+Changing an opening component or any calendar unit changes the compiled
+semantic content fingerprint.
 
 ## Persistence
 
@@ -104,8 +110,10 @@ remainder, `CalendarId`, and `TimeScaleId`. Loading resolves the referenced
 definitions from the content-locked snapshot. Campaign validation rejects
 missing, stale, mismatched, or structurally invalid clock definitions.
 
-The prototype accepts only the current save schema; schema 11 saves require an
-explicit migration before they can be loaded.
+The prototype accepts only the current save schema. No migration is shipped
+for the pre-EAC base fingerprint or schema 11 saves. They are intentionally
+treated as unsupported prototype data unless a caller separately retains the
+matching old content snapshot and supplies an explicit migration path.
 
 ## Planned extensions
 

@@ -25,6 +25,9 @@ public sealed partial class GameContentCompiler
         new CalendarId(value.Id), 1, value.Revision, value.NameKey, value.DescriptionKey,
         value.Integers["secondsPerMinute"], value.Integers["minutesPerHour"],
         value.Integers["hoursPerDay"], value.Integers["daysPerWeek"], value.Integers["startingYear"],
+        value.Integers["startingMonth"], value.Integers["startingDay"],
+        value.Integers["startingDayOfWeekIndex"], value.Integers["startingHour"],
+        value.Integers["startingMinute"], value.Integers["startingSecond"],
         [.. value.Calendar!.Months.Select(month => new CalendarMonthDefinition(
             month.CalendarMonthId, month.NameKey, month.Days))]);
 
