@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using Spelljammer.Simulation.Characters;
+using Spelljammer.Simulation.Combat;
 using Spelljammer.Simulation.Content;
 using Spelljammer.Simulation.Encounters;
 using Spelljammer.Simulation.Items;

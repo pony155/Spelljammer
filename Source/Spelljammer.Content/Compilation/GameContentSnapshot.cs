@@ -29,7 +29,7 @@ public sealed record ContentPackIdentity(ContentId Id, SemanticVersion Version, 
 /// The snapshot includes provenance tracking (which pack each definition came from) and
 /// a canonical semantic content representation for versioning and integrity checking.
 /// </remarks>
-public sealed class GameContentSnapshot : ICharacterContentCatalog
+public sealed class GameContentSnapshot : IGameContentCatalog
 {
     private readonly FrozenDictionary<ContentId, ContentDefinition> definitionsById;
     private readonly FrozenDictionary<ContentId, ContentId> provenanceById;

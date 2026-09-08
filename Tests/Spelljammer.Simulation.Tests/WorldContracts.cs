@@ -20,11 +20,11 @@ internal static partial class SimulationContracts
             [ship]);
         Equal(0, initial.Advance(8).AdvancedTicks, "Paused ship simulation advanced authoritative time.");
 
-        Command second = Command("command.test.second", CommandKind.Course, ship.Id.Value, ship.Id.Value, 20, 2);
-        Command first = Command("command.test.first", CommandKind.Course, ship.Id.Value, ship.Id.Value, 10, 1);
+        WorldCommand second = CreateWorldCommand("command.test.second", WorldCommandKind.Course, ship.Id.Value, ship.Id.Value, 20, 2);
+        WorldCommand first = CreateWorldCommand("command.test.first", WorldCommandKind.Course, ship.Id.Value, ship.Id.Value, 10, 1);
         World queued = initial.SetShipPause(false).Enqueue(second).World.Enqueue(first).World;
         Equal(first.Id, queued.Commands[0].Id, "Equal-tick commands were not stably priority ordered.");
-        CommandResult stale = queued.Enqueue(first with { Id = new ContentId("command.test.stale"), TargetTick = -1 });
+        WorldCommandResult stale = queued.Enqueue(first with { Id = new ContentId("command.test.stale"), TargetTick = -1 });
         False(stale.Accepted, "A stale command entered the authoritative queue.");
         True(ReferenceEquals(queued, stale.World), "A rejected command replaced the world instance.");
         World prepared = queued.Advance(2).World;
@@ -33,7 +33,7 @@ internal static partial class SimulationContracts
             "Scheduled actions did not preserve their transaction phases.");
 
         World cancellationCandidate = initial.SetShipPause(false).Enqueue(first).World;
-        CommandResult cancelled = cancellationCandidate.Cancel(first.Id);
+        WorldCommandResult cancelled = cancellationCandidate.Cancel(first.Id);
         True(cancelled.Accepted && cancelled.World.CommandHistory.Single().CancelledTick == 0,
             "Pre-commit cancellation was not retained in the replay log.");
 
@@ -142,12 +142,12 @@ internal static partial class SimulationContracts
             ShipPaused = false,
             ReadyActors = [attackerId],
         };
-        Command attack = Command("command.test.reaction", CommandKind.PersonalRanged, attackerId.Value, defenderId.Value, 10, 1) with { Amount = 8 };
+        WorldCommand attack = CreateWorldCommand("command.test.reaction", WorldCommandKind.PersonalRanged, attackerId.Value, defenderId.Value, 10, 1) with { Amount = 8 };
         World unresolved = world.Enqueue(attack).World.CommitReadyPlan().Advance(2).World;
         Equal(10, unresolved.PersonalEncounter!.Actors[defenderId].Health,
             "A combat command without the domain resolver changed target health.");
         True(unresolved.Events.Any(value =>
-                value.Kind == CommandKind.PersonalRanged &&
+                value.Kind == WorldCommandKind.PersonalRanged &&
                 !value.Succeeded &&
                 value.ResultCode == "command.personal-combat-resolver-required"),
             "A missing combat resolver did not produce the stable rejection event.");
@@ -156,7 +156,7 @@ internal static partial class SimulationContracts
         PersonalActorState after = world.PersonalEncounter!.Actors[defenderId];
         Equal(6, after.Health, "A reserved reaction did not mitigate the committed attack.");
         Equal(0, after.ReservedReactionPoints, "A reaction was not consumed atomically.");
-        True(world.Events.Any(value => value.Kind == CommandKind.PersonalRanged && value.Succeeded),
+        True(world.Events.Any(value => value.Kind == WorldCommandKind.PersonalRanged && value.Succeeded),
             "Committed personal action was not preserved in the replay event stream.");
     }
 
@@ -185,9 +185,9 @@ internal static partial class SimulationContracts
         }
     }
 
-    private static Command Command(
+    private static WorldCommand CreateWorldCommand(
         string id,
-        CommandKind kind,
+        WorldCommandKind kind,
         ContentId issuer,
         ContentId target,
         int priority,

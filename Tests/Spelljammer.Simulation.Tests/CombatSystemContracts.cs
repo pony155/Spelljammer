@@ -27,9 +27,9 @@ internal static partial class SimulationContracts
             ImmutableHashSet<ContentId>.Empty,
             false,
             false);
-        Command command = Command(
+        WorldCommand command = CreateWorldCommand(
             "command.combat.contract",
-            CommandKind.PersonalMelee,
+            WorldCommandKind.PersonalMelee,
             actorId.Value,
             targetId.Value,
             10,
@@ -61,7 +61,7 @@ internal static partial class SimulationContracts
 
     private sealed class ContractCombatActionSystem : ICharacterCombatActionSystem
     {
-        public CommandKind CommandKind => CommandKind.PersonalMelee;
+        public WorldCommandKind Kind => WorldCommandKind.PersonalMelee;
 
         public PersonalCombatResolution Resolve(PersonalCombatContext context) => new(
             true,
@@ -77,7 +77,7 @@ internal static partial class SimulationContracts
 
     private sealed class InvalidContractCombatActionSystem : ICharacterCombatActionSystem
     {
-        public CommandKind CommandKind => CommandKind.PersonalMelee;
+        public WorldCommandKind Kind => WorldCommandKind.PersonalMelee;
 
         public PersonalCombatResolution Resolve(PersonalCombatContext context) => new(
             true,

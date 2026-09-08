@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using Spelljammer.Simulation.Combat;
 using Spelljammer.Simulation.Content;
 
 namespace Spelljammer.Simulation.Items;

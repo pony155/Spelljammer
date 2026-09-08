@@ -241,7 +241,7 @@ Implement:
 - attack preview with range, LOS, cover, and known modifiers; and
 - bounded area and cone cell selection for later Effect delivery.
 
-Replace the simple `Command.Amount` personal-damage path with the existing
+Replace the simple `WorldCommand.Amount` personal-damage path with the existing
 melee, ranged, spell, psionic, and Effect systems. Encounter commit should pass
 map-derived range and cover into action eligibility, resolve the emitted Effect
 batch, and publish the returned Health, Armor, Shield, and Status state back to

@@ -1,9 +1,10 @@
 using System.Collections.Immutable;
+using Spelljammer.Simulation.Characters;
 using Spelljammer.Simulation.Content;
 using Spelljammer.Simulation.Items;
 using Spelljammer.Simulation.Effects;
 
-namespace Spelljammer.Simulation.Characters;
+namespace Spelljammer.Simulation.Combat;
 
 /// <summary>Mutable-per-instance condition for a weapon whose rules remain content-owned.</summary>
 public sealed record MeleeWeaponState(

@@ -7,59 +7,6 @@ using Spelljammer.Simulation.Ships;
 
 namespace Spelljammer.Simulation.World;
 
-public static class WorldTime
-{
-    public const int TicksPerSecond = 20;
-    public const int MaximumCatchUpTicks = 8;
-}
-
-/// <summary>A deterministic fixed-point scalar used by authoritative world geometry.</summary>
-public readonly record struct FixedScalar : IComparable<FixedScalar>
-{
-    public const long Scale = 1_000;
-    public const long MaximumMagnitude = 1_000_000_000 * Scale;
-
-    public FixedScalar(long raw)
-    {
-        if (raw is < -MaximumMagnitude or > MaximumMagnitude)
-        {
-            throw new ArgumentOutOfRangeException(nameof(raw));
-        }
-
-        Raw = raw;
-    }
-
-    public long Raw { get; }
-    public int CompareTo(FixedScalar other) => Raw.CompareTo(other.Raw);
-    public static FixedScalar FromInt(int value) => new(checked(value * Scale));
-    public static FixedScalar operator +(FixedScalar left, FixedScalar right) => new(checked(left.Raw + right.Raw));
-    public static FixedScalar operator -(FixedScalar left, FixedScalar right) => new(checked(left.Raw - right.Raw));
-    public static FixedScalar operator *(FixedScalar value, int multiplier) => new(checked(value.Raw * multiplier));
-}
-
-/// <summary>A deterministic two-dimensional vector used by authoritative world geometry.</summary>
-public readonly record struct FixedVector2(FixedScalar X, FixedScalar Y)
-{
-    public static FixedVector2 Zero => new(new FixedScalar(0), new FixedScalar(0));
-    public static FixedVector2 operator +(FixedVector2 left, FixedVector2 right) => new(left.X + right.X, left.Y + right.Y);
-    public static FixedVector2 operator -(FixedVector2 left, FixedVector2 right) => new(left.X - right.X, left.Y - right.Y);
-}
-
-public sealed record WorldSnapshot(
-    ulong Seed,
-    ContentFingerprint ContentFingerprint,
-    long Tick,
-    bool ShipPaused,
-    bool PersonalPaused,
-    ImmutableArray<ShipState> Ships,
-    PersonalEncounterState? PersonalEncounter,
-    ImmutableArray<ActorId> ReadyActors,
-    ImmutableArray<ScheduledAction> Actions,
-    ImmutableArray<CommandLogEntry> RecentCommands,
-    ImmutableArray<Event> RecentEvents);
-
-public sealed record AdvanceResult(World World, WorldSnapshot Snapshot, int AdvancedTicks);
-
 public sealed record World(
     ulong Seed,
     ContentFingerprint ContentFingerprint,
@@ -70,11 +17,11 @@ public sealed record World(
     bool PersonalPaused,
     ImmutableDictionary<ShipId, ShipState> Ships,
     PersonalEncounterState? PersonalEncounter,
-    ImmutableArray<Command> Commands,
-    ImmutableArray<CommandLogEntry> CommandHistory,
+    ImmutableArray<WorldCommand> Commands,
+    ImmutableArray<WorldCommandLogEntry> CommandHistory,
     ImmutableArray<ScheduledAction> ScheduledActions,
     ImmutableArray<ActorId> ReadyActors,
-    ImmutableArray<Event> Events)
+    ImmutableArray<WorldEvent> Events)
 {
     public const int MaximumCommands = 256;
     public const int MaximumCommandHistory = 512;
@@ -116,7 +63,7 @@ public sealed record World(
 
     public World CommitReadyPlan() => this with { PersonalPaused = false };
 
-    public CommandResult Enqueue(Command command)
+    public WorldCommandResult Enqueue(WorldCommand command)
     {
         if (command.TargetTick < Tick)
         {
@@ -139,22 +86,22 @@ public sealed record World(
             return Rejected(this, "command.actor-not-ready");
         }
 
-        ImmutableArray<Command> queued =
+        ImmutableArray<WorldCommand> queued =
             [.. Commands.Append(command).OrderBy(value => value.TargetTick).ThenBy(value => value.Priority)
                 .ThenBy(value => value.IssuerId).ThenBy(value => value.Sequence).ThenBy(value => value.Id)];
-        return new CommandResult(this with
+        return new WorldCommandResult(this with
         {
             Commands = queued,
-            CommandHistory = CommandHistory.Add(new CommandLogEntry(Tick, command, null)),
+            CommandHistory = CommandHistory.Add(new WorldCommandLogEntry(Tick, command, null)),
         }, true, string.Empty);
     }
 
-    public CommandResult Cancel(ContentId commandId)
+    public WorldCommandResult Cancel(ContentId commandId)
     {
-        Command? queued = Commands.FirstOrDefault(value => value.Id == commandId);
+        WorldCommand? queued = Commands.FirstOrDefault(value => value.Id == commandId);
         if (queued is not null)
         {
-            return new CommandResult(this with
+            return new WorldCommandResult(this with
             {
                 Commands = Commands.Remove(queued),
                 CommandHistory = MarkCancelled(CommandHistory, commandId, Tick),
@@ -168,14 +115,14 @@ public sealed record World(
         }
 
         ScheduledAction interrupted = schedule with { Phase = ScheduledActionPhase.Interrupted };
-        return new CommandResult(this with
+        return new WorldCommandResult(this with
         {
             ScheduledActions = ScheduledActions.Replace(schedule, interrupted),
             CommandHistory = MarkCancelled(CommandHistory, commandId, Tick),
         }, true, string.Empty);
     }
 
-    public AdvanceResult Advance(
+    public WorldAdvanceResult Advance(
         int requestedTicks,
         IPersonalCombatResolver? personalCombatResolver = null)
     {
@@ -193,7 +140,7 @@ public sealed record World(
             advanced++;
         }
 
-        return new AdvanceResult(world, world.Snapshot(), advanced);
+        return new WorldAdvanceResult(world, world.Snapshot(), advanced);
     }
 
     public WorldSnapshot Snapshot() => new(
@@ -213,9 +160,9 @@ public sealed record World(
     {
         long nextTick = Tick + 1;
         World world = this with { Tick = nextTick };
-        Command[] due = [.. world.Commands.Where(value => value.TargetTick <= nextTick)];
+        WorldCommand[] due = [.. world.Commands.Where(value => value.TargetTick <= nextTick)];
         world = world with { Commands = [.. world.Commands.Except(due)] };
-        foreach (Command command in due)
+        foreach (WorldCommand command in due)
         {
             world = world.DeclareAndReserve(command);
         }
@@ -259,7 +206,7 @@ public sealed record World(
         return world;
     }
 
-    private World DeclareAndReserve(Command command)
+    private World DeclareAndReserve(WorldCommand command)
     {
         if (ScheduledActions.Length >= MaximumSchedules)
         {
@@ -268,7 +215,7 @@ public sealed record World(
 
         ResourceId? resourceId = null;
         int reserved = 0;
-        if (command.Kind == CommandKind.Fire && TryShip(command.IssuerId, out ShipState? ship))
+        if (command.Kind == WorldCommandKind.Fire && TryShip(command.IssuerId, out ShipState? ship))
         {
             InstalledModuleState? battery = ship!.Modules.SingleOrDefault(value => value.Weapon is not null);
             if (battery?.Weapon is null || battery.Condition == ModuleCondition.Disabled ||
@@ -320,7 +267,7 @@ public sealed record World(
         return committed;
     }
 
-    private World CommitShip(Command command, ResourceId? reservedResource, int reservedAmount)
+    private World CommitShip(WorldCommand command, ResourceId? reservedResource, int reservedAmount)
     {
         if (!TryShip(command.IssuerId, out ShipState? actor))
         {
@@ -330,7 +277,7 @@ public sealed record World(
         ShipState ship = actor!;
         switch (command.Kind)
         {
-            case CommandKind.Scan:
+            case WorldCommandKind.Scan:
                 if (!TryShip(command.TargetId, out ShipState? scanned))
                 {
                     return AddEvent(command, false, 0, "command.target-stale");
@@ -346,17 +293,17 @@ public sealed record World(
                         : ImmutableHashSet<ActorId>.Empty);
                 ship = ship with { Contacts = ship.Contacts.SetItem(scanned.Id, contact) };
                 break;
-            case CommandKind.Course:
-            case CommandKind.Thrust:
+            case WorldCommandKind.Course:
+            case WorldCommandKind.Thrust:
                 ship = ship with { Velocity = command.Vector };
                 break;
-            case CommandKind.Turn:
+            case WorldCommandKind.Turn:
                 ship = ship with { HeadingMilliDegrees = NormalizeHeading(ship.HeadingMilliDegrees + command.Amount) };
                 break;
-            case CommandKind.Brake:
+            case WorldCommandKind.Brake:
                 ship = ship with { Velocity = FixedVector2.Zero };
                 break;
-            case CommandKind.Intercept:
+            case WorldCommandKind.Intercept:
                 if (!TryShip(command.TargetId, out ShipState? intercepted))
                 {
                     return AddEvent(command, false, 0, "command.target-stale");
@@ -364,28 +311,28 @@ public sealed record World(
 
                 ship = ship with { Velocity = Direction(ship.Position, intercepted!.Position) };
                 break;
-            case CommandKind.Fire:
+            case WorldCommandKind.Fire:
                 return CommitFire(command, ship, reservedResource, reservedAmount);
-            case CommandKind.Ram:
+            case WorldCommandKind.Ram:
                 return CommitRam(command, ship);
-            case CommandKind.RaiseShield:
-            case CommandKind.LowerShield:
-                bool raised = command.Kind == CommandKind.RaiseShield;
+            case WorldCommandKind.RaiseShield:
+            case WorldCommandKind.LowerShield:
+                bool raised = command.Kind == WorldCommandKind.RaiseShield;
                 ship = ship with
                 {
                     Modules = [.. ship.Modules.Select(value => value.Definition.ShieldValue > 0 ? value with { ShieldRaised = raised } : value)],
                 };
                 break;
-            case CommandKind.Defend:
+            case WorldCommandKind.Defend:
                 ship = ship with { Defending = true };
                 break;
-            case CommandKind.DamageControl:
+            case WorldCommandKind.DamageControl:
                 ship = RepairModule(ship, command.OptionId);
                 break;
-            case CommandKind.Signal:
+            case WorldCommandKind.Signal:
                 ship = ship with { PersistentEvidence = ship.PersistentEvidence.Add(new ContentId("evidence.ship.signal")) };
                 break;
-            case CommandKind.Retreat:
+            case WorldCommandKind.Retreat:
                 ship = ship with { Disengaged = true, PersistentEvidence = ship.PersistentEvidence.Add(new ContentId("evidence.ship.escape")) };
                 break;
             default:
@@ -395,7 +342,7 @@ public sealed record World(
         return (this with { Ships = Ships.SetItem(ship.Id, ship) }).AddEvent(command, true, command.Amount, string.Empty);
     }
 
-    private World CommitFire(Command command, ShipState attacker, ResourceId? resourceId, int resourceCost)
+    private World CommitFire(WorldCommand command, ShipState attacker, ResourceId? resourceId, int resourceCost)
     {
         if (!TryShip(command.TargetId, out ShipState? target) || resourceId is null ||
             !attacker.Contacts.TryGetValue(target!.Id, out ShipContactState? contact) || !contact.HasFiringSolution)
@@ -438,7 +385,7 @@ public sealed record World(
         }).AddEvent(command, true, damage.Event.HullDamage, string.Empty);
     }
 
-    private World CommitRam(Command command, ShipState attacker)
+    private World CommitRam(WorldCommand command, ShipState attacker)
     {
         if (!TryShip(command.TargetId, out ShipState? target) || ShipGeometry.Range(attacker.Position, target!.Position) != ShipRange.Contact)
         {
@@ -454,7 +401,7 @@ public sealed record World(
     }
 
     private World CommitPersonal(
-        Command command,
+        WorldCommand command,
         IPersonalCombatResolver? personalCombatResolver)
     {
         if (PersonalEncounter is null || !ActorIdFrom(command.IssuerId, out ActorId actorId) ||
@@ -467,7 +414,7 @@ public sealed record World(
         PersonalEncounterState encounter = PersonalEncounter;
         PersonalActorState updated = actor;
         int eventAmount = command.Amount;
-        if (command.Kind == CommandKind.PersonalEndActivation)
+        if (command.Kind == WorldCommandKind.PersonalEndActivation)
         {
             updated = updated with { Turn = updated.Turn.EndActivation() };
             encounter = encounter with { Actors = encounter.Actors.SetItem(actorId, updated) };
@@ -498,7 +445,7 @@ public sealed record World(
 
         switch (command.Kind)
         {
-            case CommandKind.PersonalMove:
+            case WorldCommandKind.PersonalMove:
                 if (!CellIdFrom(command.TargetId, out CellId destination))
                 {
                     return AddEvent(command, false, 0, "command.target-stale");
@@ -515,16 +462,16 @@ public sealed record World(
 
                 updated = updated with { CellId = destination };
                 break;
-            case CommandKind.PersonalDefend:
+            case WorldCommandKind.PersonalDefend:
                 updated = updated with { Defending = true };
                 break;
-            case CommandKind.PersonalReserveReaction:
+            case WorldCommandKind.PersonalReserveReaction:
                 updated = updated with { ReservedReactionPoints = 1, ReactionExpiresTick = Tick + WorldTime.TicksPerSecond };
                 break;
-            case CommandKind.PersonalSurrender:
+            case WorldCommandKind.PersonalSurrender:
                 updated = updated with { Surrendered = true };
                 break;
-            case CommandKind.PersonalRetreat:
+            case WorldCommandKind.PersonalRetreat:
                 if (!encounter.Board.Definition.RetreatCellIds.Contains(updated.CellId))
                 {
                     return AddEvent(command, false, 0, "command.retreat-unavailable");
@@ -532,7 +479,7 @@ public sealed record World(
 
                 encounter = encounter with { Retreated = true };
                 break;
-            case CommandKind.PersonalMedicine:
+            case WorldCommandKind.PersonalMedicine:
                 if (!ActorIdFrom(command.TargetId, out ActorId patientId) || !encounter.Actors.TryGetValue(patientId, out PersonalActorState? patient))
                 {
                     return AddEvent(command, false, 0, "command.target-stale");
@@ -546,7 +493,7 @@ public sealed record World(
                     }),
                 };
                 break;
-            case CommandKind.PersonalInteract:
+            case WorldCommandKind.PersonalInteract:
                 if (command.OptionId is ContentId objectiveId && ObjectiveIdFrom(objectiveId, out ObjectiveId objective) &&
                     encounter.Objectives.ContainsKey(objective))
                 {
@@ -557,13 +504,13 @@ public sealed record World(
                     };
                 }
                 break;
-            case CommandKind.PersonalEngineering:
+            case WorldCommandKind.PersonalEngineering:
                 encounter = encounter with { ExplorationChanges = encounter.ExplorationChanges.Add(new ContentId("exploration.ruin.defense-disabled")) };
                 break;
-            case CommandKind.PersonalMelee:
-            case CommandKind.PersonalRanged:
-            case CommandKind.PersonalSpell:
-            case CommandKind.PersonalPsionic:
+            case WorldCommandKind.PersonalMelee:
+            case WorldCommandKind.PersonalRanged:
+            case WorldCommandKind.PersonalSpell:
+            case WorldCommandKind.PersonalPsionic:
                 if (!ActorIdFrom(command.TargetId, out ActorId targetId) || !encounter.Actors.TryGetValue(targetId, out PersonalActorState? target))
                 {
                     return AddEvent(command, false, 0, "command.target-stale");
@@ -769,9 +716,9 @@ public sealed record World(
         };
     }
 
-    private World AddEvent(Command command, bool succeeded, int amount, string code)
+    private World AddEvent(WorldCommand command, bool succeeded, int amount, string code)
     {
-        Event value = new(
+        WorldEvent value = new(
             new ContentId($"event.voyage.sequence-{RandomSequence % 1_000_000}"),
             Tick,
             command.IssuerId,
@@ -780,11 +727,11 @@ public sealed record World(
             succeeded,
             amount,
             code);
-        ImmutableArray<Event> events = Events.Length == MaximumEvents ? Events.RemoveAt(0).Add(value) : Events.Add(value);
+        ImmutableArray<WorldEvent> events = Events.Length == MaximumEvents ? Events.RemoveAt(0).Add(value) : Events.Add(value);
         return this with { Events = events, RandomSequence = RandomSequence + 1 };
     }
 
-    private bool TargetExists(Command command) =>
+    private bool TargetExists(WorldCommand command) =>
         command.TargetId == command.IssuerId || Ships.Keys.Any(value => value.Value == command.TargetId) ||
         PersonalEncounter?.Actors.Keys.Any(value => value.Value == command.TargetId) == true ||
         PersonalEncounter?.Board.Cells.Keys.Any(value => value.Value == command.TargetId) == true ||
@@ -794,28 +741,28 @@ public sealed record World(
         ActorIdFrom(issuerId, out ActorId actorId) && ReadyActors.Contains(actorId) &&
         PersonalEncounter?.Actors.TryGetValue(actorId, out PersonalActorState? actor) == true && actor.ActionPoints > 0;
 
-    private static ContentId PersonalActionId(CommandKind kind) => kind switch
+    private static ContentId PersonalActionId(WorldCommandKind kind) => kind switch
     {
-        CommandKind.PersonalMove => new("action.personal.move"),
-        CommandKind.PersonalDefend => new("action.personal.defend"),
-        CommandKind.PersonalReserveReaction => new("action.personal.reserve-reaction"),
-        CommandKind.PersonalMelee => new("action.personal.melee"),
-        CommandKind.PersonalRanged => new("action.personal.ranged"),
-        CommandKind.PersonalSpell => new("action.personal.spell"),
-        CommandKind.PersonalPsionic => new("action.personal.psionic"),
-        CommandKind.PersonalEngineering => new("action.personal.engineering"),
-        CommandKind.PersonalMedicine => new("action.personal.medicine"),
-        CommandKind.PersonalInteract => new("action.personal.interact"),
-        CommandKind.PersonalSurrender => new("action.personal.surrender"),
-        CommandKind.PersonalRetreat => new("action.personal.retreat"),
+        WorldCommandKind.PersonalMove => new("action.personal.move"),
+        WorldCommandKind.PersonalDefend => new("action.personal.defend"),
+        WorldCommandKind.PersonalReserveReaction => new("action.personal.reserve-reaction"),
+        WorldCommandKind.PersonalMelee => new("action.personal.melee"),
+        WorldCommandKind.PersonalRanged => new("action.personal.ranged"),
+        WorldCommandKind.PersonalSpell => new("action.personal.spell"),
+        WorldCommandKind.PersonalPsionic => new("action.personal.psionic"),
+        WorldCommandKind.PersonalEngineering => new("action.personal.engineering"),
+        WorldCommandKind.PersonalMedicine => new("action.personal.medicine"),
+        WorldCommandKind.PersonalInteract => new("action.personal.interact"),
+        WorldCommandKind.PersonalSurrender => new("action.personal.surrender"),
+        WorldCommandKind.PersonalRetreat => new("action.personal.retreat"),
         _ => throw new KeyNotFoundException("The command is not a personal action."),
     };
 
-    private static bool IsPersonalCombat(CommandKind kind) => kind is
-        CommandKind.PersonalMelee or
-        CommandKind.PersonalRanged or
-        CommandKind.PersonalSpell or
-        CommandKind.PersonalPsionic;
+    private static bool IsPersonalCombat(WorldCommandKind kind) => kind is
+        WorldCommandKind.PersonalMelee or
+        WorldCommandKind.PersonalRanged or
+        WorldCommandKind.PersonalSpell or
+        WorldCommandKind.PersonalPsionic;
 
     private static bool HasStableEncounterIdentity(PersonalActorState original, PersonalActorState resolved) =>
         original.Id == resolved.Id &&
@@ -840,7 +787,7 @@ public sealed record World(
         return false;
     }
 
-    private static bool IsPersonal(CommandKind kind) => kind >= CommandKind.PersonalMove;
+    private static bool IsPersonal(WorldCommandKind kind) => kind >= WorldCommandKind.PersonalMove;
 
     private static int NormalizeHeading(int value)
     {
@@ -901,8 +848,8 @@ public sealed record World(
         return -1;
     }
 
-    private static ImmutableArray<CommandLogEntry> MarkCancelled(
-        ImmutableArray<CommandLogEntry> history,
+    private static ImmutableArray<WorldCommandLogEntry> MarkCancelled(
+        ImmutableArray<WorldCommandLogEntry> history,
         ContentId commandId,
         long tick)
     {
@@ -910,35 +857,5 @@ public sealed record World(
         return index < 0 ? history : history.SetItem(index, history[index] with { CancelledTick = tick });
     }
 
-    private static CommandResult Rejected(World world, string code) => new(world, false, code);
-}
-
-public static class OpponentPlanner
-{
-    public const int MaximumCandidates = 8;
-
-    public static Command Plan(ShipState opponent, ShipState player, long tick, ulong sequence)
-    {
-        bool canFire = opponent.Contacts.TryGetValue(player.Id, out ShipContactState? contact) && contact.HasFiringSolution &&
-            opponent.Modules.Any(value => value.WeaponReadiness == WeaponReadiness.Ready);
-        CommandKind kind = canFire ? CommandKind.Fire : CommandKind.Intercept;
-        ContentId target = player.Id.Value;
-        if (opponent.Hull <= opponent.Frame.MaximumHull / 4)
-        {
-            kind = CommandKind.Retreat;
-            target = opponent.Id.Value;
-        }
-
-        return new Command(
-            new ContentId($"command.opponent.sequence-{sequence % 1_000_000}"),
-            kind,
-            tick,
-            100,
-            opponent.Id.Value,
-            target,
-            FixedVector2.Zero,
-            4,
-            null,
-            sequence);
-    }
+    private static WorldCommandResult Rejected(World world, string code) => new(world, false, code);
 }

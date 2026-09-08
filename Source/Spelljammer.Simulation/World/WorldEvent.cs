@@ -2,12 +2,12 @@ using Spelljammer.Simulation.Content;
 
 namespace Spelljammer.Simulation.World;
 
-public sealed record Event(
+public sealed record WorldEvent(
     ContentId Id,
     long Tick,
     ContentId SourceId,
     ContentId TargetId,
-    CommandKind Kind,
+    WorldCommandKind Kind,
     bool Succeeded,
     int Amount,
     string ResultCode);

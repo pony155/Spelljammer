@@ -319,7 +319,7 @@ public static partial class CampaignSaveCodec
         CleanedUp = encounter.CleanedUp,
     };
 
-    private static CommandDto ToDto(Command value) => new()
+    private static CommandDto ToDto(WorldCommand value) => new()
     {
         Id = value.Id.ToString(),
         Kind = (int)value.Kind,

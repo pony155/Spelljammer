@@ -8,13 +8,13 @@ remains owned by the separate `Spelljammer.Simulation.Ships` namespace.
 
 The coordinator does not contain weapon formulas, spell rules, or psionic
 rules. Those remain in focused action systems such as `MeleeWeaponSystem`,
-`RangedWeaponSystem`, `SpellActionSystem`, and the psionic systems.
+`RangedWeaponSystem`, `SpellActionSystem`, and `PsionicActionSystem`.
 
 ## Implemented boundary
 
 `CombatSystem` implements `IPersonalCombatResolver`, which lets `World`
 schedule and commit character combat without calculating combat outcomes.
-Each supported `CommandKind` is registered through an
+Each supported `WorldCommandKind` is registered through an
 `ICharacterCombatActionSystem` adapter.
 
 The coordinator and result contracts live in `Spelljammer.Simulation.Combat`.

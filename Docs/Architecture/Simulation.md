@@ -24,15 +24,19 @@ simulation.
 The authoritative source is separated by responsibility:
 
 ```text
-World/       world state, commands, scheduled actions, and events
-Encounters/  encounter state, tactical board, and encounter lifecycle
-Combat/      character-combat coordination and resolution contracts
-Ships/       ship state and ship-combat rules
+Characters/  character state, creation, progression, resources, and recruitment
+Combat/      character-combat definitions, action systems, and resolution contracts
+Content/     stable content IDs, common definition metadata, and aggregate catalog
+Effects/     Effect and Status definitions, state, queries, and systems
+Encounters/  encounter definitions, state, tactical board, and lifecycle
+Items/       item definitions, inventory state, equipment, and mutations
+Ships/       ship definitions, state, loadout, power, damage, and combat geometry
+World/       world state, time, geometry, commands, scheduled actions, and events
 ```
 
-Public world types use concise names such as `World`, `Command`, `Event`, and
-`ScheduledAction`; their `Spelljammer.Simulation.World` namespace supplies the
-domain context.
+Public world contracts are named `World`, `WorldCommand`, `WorldEvent`,
+`WorldSnapshot`, and `ScheduledAction`. The explicit `World` prefix prevents
+command and event types from colliding with framework or UI abstractions.
 
 ## Personal combat authority
 
@@ -66,7 +70,7 @@ Gameplay consumers depend on narrow read-only catalog views:
 - `IEncounterContentCatalog` for boards and encounter definitions; and
 - `IShipContentCatalog` for ship frames, modules, and weapons.
 
-`ICharacterContentCatalog` composes these interfaces for application
+`IGameContentCatalog` composes these interfaces for application
 composition and persistence. Gameplay systems should request only the narrowest
 view they consume.
 

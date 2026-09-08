@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using Spelljammer.Content.Compilation;
 using Spelljammer.Content.Manifests;
 using Spelljammer.Simulation.Characters;
+using Spelljammer.Simulation.Combat;
 using Spelljammer.Simulation.Content;
 using Spelljammer.Simulation.Encounters;
 using Spelljammer.Simulation.Ships;
@@ -46,7 +47,7 @@ public static partial class CampaignSaveCodec
             ships,
             encounter,
             [.. payload.World.Commands.Select(FromDto)],
-            [.. payload.World.CommandHistory.Select(value => new CommandLogEntry(
+            [.. payload.World.CommandHistory.Select(value => new WorldCommandLogEntry(
                 value.SubmittedTick, FromDto(value.Command), value.CancelledTick))],
             [.. payload.World.ScheduledActions.Select(value => new ScheduledAction(
                 FromDto(value.Command),
@@ -57,9 +58,9 @@ public static partial class CampaignSaveCodec
                 value.ReservedAmount,
                 [.. value.History.Select(ParseEnum<ScheduledActionPhase>)]))],
             [.. payload.World.ReadyActorIds.Select(value => new ActorId(value))],
-            [.. payload.World.Events.Select(value => new Event(
+            [.. payload.World.Events.Select(value => new WorldEvent(
                 new ContentId(value.Id), value.Tick, new ContentId(value.SourceId), new ContentId(value.TargetId),
-                ParseEnum<CommandKind>(value.Kind), value.Succeeded, value.Amount, value.ResultCode))]);
+                ParseEnum<WorldCommandKind>(value.Kind), value.Succeeded, value.Amount, value.ResultCode))]);
 
         CampaignContentLock activeLock = savedLock.EffectiveFingerprint == content.Fingerprint &&
             savedLock.SaveSchemaVersion == CampaignSaveVersions.SaveSchema
@@ -314,8 +315,8 @@ public static partial class CampaignSaveCodec
         ? result
         : throw new InvalidOperationException("Item state contains an invalid identifier.");
 
-    private static Command FromDto(CommandDto value) => new(
-        new ContentId(value.Id), ParseEnum<CommandKind>(value.Kind), value.TargetTick, value.Priority,
+    private static WorldCommand FromDto(CommandDto value) => new(
+        new ContentId(value.Id), ParseEnum<WorldCommandKind>(value.Kind), value.TargetTick, value.Priority,
         new ContentId(value.IssuerId), new ContentId(value.TargetId),
         new FixedVector2(new FixedScalar(value.VectorX), new FixedScalar(value.VectorY)), value.Amount,
         value.OptionId is null ? null : new ContentId(value.OptionId), value.Sequence);

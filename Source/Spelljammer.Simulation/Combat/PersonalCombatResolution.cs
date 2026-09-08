@@ -8,7 +8,7 @@ namespace Spelljammer.Simulation.Combat;
 /// Immutable input supplied to the personal-combat authority when a scheduled combat command commits.
 /// </summary>
 public sealed record PersonalCombatContext(
-    Command Command,
+    WorldCommand Command,
     PersonalEncounterState Encounter,
     PersonalActorState Actor,
     PersonalActorState Target,

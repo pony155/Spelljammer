@@ -24,7 +24,7 @@ public static class CombatRejectionCodes
 /// </summary>
 public interface ICharacterCombatActionSystem
 {
-    CommandKind CommandKind { get; }
+    WorldCommandKind Kind { get; }
 
     PersonalCombatResolution Resolve(PersonalCombatContext context);
 }
@@ -36,34 +36,34 @@ public interface ICharacterCombatActionSystem
 /// </summary>
 public sealed class CombatSystem : IPersonalCombatResolver
 {
-    private static readonly ImmutableHashSet<CommandKind> SupportedCommandKinds =
+    private static readonly ImmutableHashSet<WorldCommandKind> SupportedWorldCommandKinds =
     [
-        CommandKind.PersonalMelee,
-        CommandKind.PersonalRanged,
-        CommandKind.PersonalSpell,
-        CommandKind.PersonalPsionic,
+        WorldCommandKind.PersonalMelee,
+        WorldCommandKind.PersonalRanged,
+        WorldCommandKind.PersonalSpell,
+        WorldCommandKind.PersonalPsionic,
     ];
 
-    private readonly ImmutableDictionary<CommandKind, ICharacterCombatActionSystem> actionSystems;
+    private readonly ImmutableDictionary<WorldCommandKind, ICharacterCombatActionSystem> actionSystems;
 
     public CombatSystem(IEnumerable<ICharacterCombatActionSystem> actionSystems)
     {
         ArgumentNullException.ThrowIfNull(actionSystems);
         ICharacterCombatActionSystem[] registrations = [.. actionSystems];
-        if (registrations.Length > SupportedCommandKinds.Count ||
-            registrations.Any(value => value is null || !SupportedCommandKinds.Contains(value.CommandKind)) ||
-            registrations.Select(value => value.CommandKind).Distinct().Count() != registrations.Length)
+        if (registrations.Length > SupportedWorldCommandKinds.Count ||
+            registrations.Any(value => value is null || !SupportedWorldCommandKinds.Contains(value.Kind)) ||
+            registrations.Select(value => value.Kind).Distinct().Count() != registrations.Length)
         {
             throw new ArgumentException("Character combat action-system registrations are invalid.", nameof(actionSystems));
         }
 
-        this.actionSystems = registrations.ToImmutableDictionary(value => value.CommandKind);
+        this.actionSystems = registrations.ToImmutableDictionary(value => value.Kind);
     }
 
     public PersonalCombatResolution Resolve(PersonalCombatContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
-        if (!SupportedCommandKinds.Contains(context.Command.Kind))
+        if (!SupportedWorldCommandKinds.Contains(context.Command.Kind))
         {
             return Reject(context, CombatRejectionCodes.ActionUnknown);
         }

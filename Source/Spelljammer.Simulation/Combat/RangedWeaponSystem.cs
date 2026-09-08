@@ -1,9 +1,10 @@
 using System.Collections.Immutable;
+using Spelljammer.Simulation.Characters;
 using Spelljammer.Simulation.Content;
 using Spelljammer.Simulation.Items;
 using Spelljammer.Simulation.Effects;
 
-namespace Spelljammer.Simulation.Characters;
+namespace Spelljammer.Simulation.Combat;
 
 /// <summary>Per-instance ranged weapon state, separate from immutable content rules.</summary>
 public sealed record RangedWeaponState(

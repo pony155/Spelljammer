@@ -7,6 +7,7 @@ using Spelljammer.Content.Diagnostics;
 using Spelljammer.Content.Manifests;
 using Spelljammer.Content.Sources;
 using Spelljammer.Simulation.Characters;
+using Spelljammer.Simulation.Combat;
 using Spelljammer.Simulation.Content;
 using Spelljammer.Simulation.Encounters;
 using Spelljammer.Simulation.Items;
@@ -363,33 +364,33 @@ internal static partial class ContentContracts
         CharacterState human = roster.Characters.Single(value => value.RaceId == new RaceId("race.human"));
         True(somnari.Capabilities.Access.Contains(new AccessId("access.psionics")), "Mindwake omitted innate psionic access.");
         True(somnari.Capabilities.Feats.Contains(mindlinkId), "Mindwake omitted its innate active Mindlink Feat.");
-        MindlinkResult noAccess = MindlinkSystem.Invite(human, somnari, mindlinkId, true, 10, snapshot);
+        MindlinkResult noAccess = PsionicActionSystem.Invite(human, somnari, mindlinkId, true, 10, snapshot);
         Equal(ActionRejectionCodes.AccessRequired, noAccess.RejectionCode, "Mindlink bypassed psionic access.");
 
-        MindlinkResult invited = MindlinkSystem.Invite(somnari, human, mindlinkId, true, 11, snapshot);
+        MindlinkResult invited = PsionicActionSystem.Invite(somnari, human, mindlinkId, true, 11, snapshot);
         True(invited.Accepted, invited.RejectionCode);
-        MindlinkResult declined = MindlinkSystem.Respond(invited.Link!, human.Id, false);
+        MindlinkResult declined = PsionicActionSystem.Respond(invited.Link!, human.Id, false);
         Equal(MindlinkPhase.Rejected, declined.Link!.Phase, "Mindlink rejection was not explicit.");
         Equal(0, declined.Actor.Evidence.Length, "Rejected Mindlink leaked protected evidence.");
-        MindlinkResult accepted = MindlinkSystem.Respond(invited.Link!, human.Id, true);
-        MindlinkResult reserved = MindlinkSystem.Reserve(accepted.Link!);
+        MindlinkResult accepted = PsionicActionSystem.Respond(invited.Link!, human.Id, true);
+        MindlinkResult reserved = PsionicActionSystem.Reserve(accepted.Link!);
         Equal(0, reserved.Actor.CharacterResources.GetCurrentValue(CharacterResourceIds.Strain), "Mindlink reservation mutated published Strain.");
-        MindlinkResult active = MindlinkSystem.Commit(reserved.Link!);
-        MindlinkResult replay = MindlinkSystem.Commit(reserved.Link!);
+        MindlinkResult active = PsionicActionSystem.Commit(reserved.Link!);
+        MindlinkResult replay = PsionicActionSystem.Commit(reserved.Link!);
         Equal(active.Actor.CharacterResources.GetCurrentValue(CharacterResourceIds.Strain), replay.Actor.CharacterResources.GetCurrentValue(CharacterResourceIds.Strain),
             "Mindlink replay changed deterministic strain publication.");
         Equal(4, active.Actor.CharacterResources.GetCurrentValue(CharacterResourceIds.Strain), "Mindlink charged the wrong initial Strain.");
         True(active.Actor.Evidence.Any(value => value.SourceId == mindlinkId.Value), "Mindlink commit omitted observable evidence.");
         True(active.Effects.Any(value => value.EffectId == new EffectId("effect.psionics.shared-channel")),
             "Mindlink omitted its shared-channel Effect request.");
-        MindlinkResult sustained = MindlinkSystem.Sustain(active.Actor, active.Link!, 12);
+        MindlinkResult sustained = PsionicActionSystem.Sustain(active.Actor, active.Link!, 12);
         Equal(5, sustained.Actor.CharacterResources.GetCurrentValue(CharacterResourceIds.Strain), "Mindlink sustain charged the wrong Strain.");
-        MindlinkResult revoked = MindlinkSystem.Revoke(sustained.Actor, sustained.Link!, human.Id);
+        MindlinkResult revoked = PsionicActionSystem.Revoke(sustained.Actor, sustained.Link!, human.Id);
         True(revoked.Effects.Any(value => value.EffectId == new EffectId("effect.psionics.remove-shared-channel")),
             "Revoked Mindlink omitted its shared-channel removal request.");
 
         CharacterState awakened = CompleteTraining(human, new TrainingProjectId("training.psionics.awakening"), snapshot);
-        MindlinkResult unknown = MindlinkSystem.Invite(awakened, somnari, mindlinkId, true, 13, snapshot);
+        MindlinkResult unknown = PsionicActionSystem.Invite(awakened, somnari, mindlinkId, true, 13, snapshot);
         Equal(ActionRejectionCodes.FeatUnknown, unknown.RejectionCode, "Mindlink bypassed active-Feat knowledge.");
         CharacterState trained = CompleteTraining(awakened, new TrainingProjectId("training.psionics.mindlink"), snapshot);
         True(trained.Capabilities.Feats.Contains(mindlinkId), "Trained Mindlink Feat was not published.");
@@ -398,9 +399,9 @@ internal static partial class ContentContracts
         True(snapshot.TryGetFeat(mindlinkId, out FeatDefinition? definition) && definition!.PsionicRules is not null &&
             snapshot.TryGetSkill(definition.PsionicRules.ResistanceSkillId, out _, out _),
             "Mindlink's reviewed resistance reference was not linked to the active fingerprint.");
-        True(MindlinkSystem.Invite(trained, somnari, mindlinkId, true, 14, snapshot).Accepted,
+        True(PsionicActionSystem.Invite(trained, somnari, mindlinkId, true, 14, snapshot).Accepted,
             "A trained Mindlink user could not declare the same action as an innate user.");
-        MindlinkResult released = MindlinkSystem.Release(replay.Actor, replay.Link!);
+        MindlinkResult released = PsionicActionSystem.Release(replay.Actor, replay.Link!);
         Equal(MindlinkPhase.Released, released.Link!.Phase, "Mindlink release did not close the active channel.");
     }
 
@@ -472,7 +473,7 @@ internal static partial class ContentContracts
         WeaponDefinition definition,
         MeleeWeaponState? meleeState,
         RangedWeaponState? rangedState,
-        ICharacterContentCatalog catalog)
+        IGameContentCatalog catalog)
     {
         InventoryContainer container = character.Items.InventoryContainers.Single();
         ItemInstanceId instanceId = new(definition is MeleeWeaponDefinition

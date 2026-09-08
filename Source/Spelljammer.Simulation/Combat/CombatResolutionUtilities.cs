@@ -1,8 +1,9 @@
 using System.Collections.Immutable;
+using Spelljammer.Simulation.Characters;
 using Spelljammer.Simulation.Content;
 using Spelljammer.Simulation.Effects;
 
-namespace Spelljammer.Simulation.Characters;
+namespace Spelljammer.Simulation.Combat;
 
 internal readonly record struct ImmediateEffectAmount(EffectId EffectId, int Amount);
 
