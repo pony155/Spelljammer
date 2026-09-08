@@ -218,7 +218,9 @@ public sealed record VoyageWorld(
         }, true, string.Empty);
     }
 
-    public VoyageAdvanceResult Advance(int requestedTicks)
+    public VoyageAdvanceResult Advance(
+        int requestedTicks,
+        IPersonalCombatResolver? personalCombatResolver = null)
     {
         int ticks = Math.Clamp(requestedTicks, 0, VoyageTime.MaximumCatchUpTicks);
         VoyageWorld world = this;
@@ -230,7 +232,7 @@ public sealed record VoyageWorld(
                 break;
             }
 
-            world = world.AdvanceOneTick();
+            world = world.AdvanceOneTick(personalCombatResolver);
             advanced++;
         }
 
@@ -250,7 +252,7 @@ public sealed record VoyageWorld(
         CommandHistory.Length <= 64 ? CommandHistory : CommandHistory[^64..],
         Events.Length <= 64 ? Events : Events[^64..]);
 
-    private VoyageWorld AdvanceOneTick()
+    private VoyageWorld AdvanceOneTick(IPersonalCombatResolver? personalCombatResolver)
     {
         long nextTick = Tick + 1;
         VoyageWorld world = this with { Tick = nextTick };
@@ -291,7 +293,7 @@ public sealed record VoyageWorld(
 
             if (schedule.CommitTick <= nextTick && schedule.Phase < ScheduledActionPhase.Committed)
             {
-                world = world.Commit(schedule);
+                world = world.Commit(schedule, personalCombatResolver);
             }
         }
 
@@ -338,10 +340,12 @@ public sealed record VoyageWorld(
         return this with { ScheduledActions = ScheduledActions.Add(action) };
     }
 
-    private VoyageWorld Commit(ScheduledAction schedule)
+    private VoyageWorld Commit(
+        ScheduledAction schedule,
+        IPersonalCombatResolver? personalCombatResolver)
     {
         VoyageWorld committed = IsPersonal(schedule.Command.Kind)
-            ? CommitPersonal(schedule.Command)
+            ? CommitPersonal(schedule.Command, personalCombatResolver)
             : CommitShip(schedule.Command, schedule.ReservedResourceId, schedule.ReservedAmount);
         int index = IndexOf(committed.ScheduledActions, value => value.Command.Id == schedule.Command.Id);
         if (index >= 0)
@@ -492,7 +496,9 @@ public sealed record VoyageWorld(
         }).AddEvent(command, true, targetDamage.Event.HullDamage, string.Empty);
     }
 
-    private VoyageWorld CommitPersonal(VoyageCommand command)
+    private VoyageWorld CommitPersonal(
+        VoyageCommand command,
+        IPersonalCombatResolver? personalCombatResolver)
     {
         if (PersonalEncounter is null || !ActorIdFrom(command.IssuerId, out ActorId actorId) ||
             !PersonalEncounter.Actors.TryGetValue(actorId, out PersonalActorState? actor) ||
@@ -503,6 +509,7 @@ public sealed record VoyageWorld(
 
         PersonalEncounterState encounter = PersonalEncounter;
         PersonalActorState updated = actor;
+        int eventAmount = command.Amount;
         if (command.Kind == VoyageCommandKind.PersonalEndActivation)
         {
             updated = updated with { Turn = updated.Turn.EndActivation() };
@@ -513,19 +520,23 @@ public sealed record VoyageWorld(
                 .AddEvent(command, true, 0, string.Empty);
         }
 
-        int apCost;
-        try
+        bool isCombat = IsPersonalCombat(command.Kind);
+        int apCost = 0;
+        if (!isCombat)
         {
-            apCost = updated.Turn.GetActionPointCost(PersonalActionId(command.Kind));
-        }
-        catch (KeyNotFoundException)
-        {
-            return AddEvent(command, false, 0, "command.action-unknown");
-        }
+            try
+            {
+                apCost = updated.Turn.GetActionPointCost(PersonalActionId(command.Kind));
+            }
+            catch (KeyNotFoundException)
+            {
+                return AddEvent(command, false, 0, "command.action-unknown");
+            }
 
-        if (!updated.Turn.CanSpendActionPoints(apCost))
-        {
-            return AddEvent(command, false, 0, "command.action-points-insufficient");
+            if (!updated.Turn.CanSpendActionPoints(apCost))
+            {
+                return AddEvent(command, false, 0, "command.action-points-insufficient");
+            }
         }
 
         switch (command.Kind)
@@ -601,44 +612,96 @@ public sealed record VoyageWorld(
                     return AddEvent(command, false, 0, "command.target-stale");
                 }
 
-                int damage = Math.Max(1, command.Amount);
-                bool reacted = target.ReservedReactionPoints > 0 && target.ReactionExpiresTick >= Tick;
-                if (reacted)
+                if (targetId == actorId || personalCombatResolver is null)
                 {
-                    damage = Math.Max(1, damage / 2);
-                    target = target with { ReservedReactionPoints = 0, ReactionExpiresTick = 0 };
+                    return AddEvent(
+                        command,
+                        false,
+                        0,
+                        personalCombatResolver is null
+                            ? "command.personal-combat-resolver-required"
+                            : "command.target-illegal");
+                }
+
+                PersonalCombatResolution resolution;
+                try
+                {
+                    resolution = personalCombatResolver.Resolve(new PersonalCombatContext(
+                        command,
+                        encounter,
+                        actor,
+                        target!,
+                        Tick,
+                        Seed,
+                        RandomSequence));
+                }
+                catch (Exception exception) when (exception is ArgumentException or InvalidOperationException)
+                {
+                    return AddEvent(command, false, 0, "command.personal-combat-resolution-failed");
+                }
+
+                if (!resolution.Accepted)
+                {
+                    return AddEvent(
+                        command,
+                        false,
+                        0,
+                        string.IsNullOrWhiteSpace(resolution.RejectionCode)
+                            ? "command.personal-combat-result-invalid"
+                            : resolution.RejectionCode);
+                }
+
+                if (!HasStableEncounterIdentity(actor, resolution.Actor) ||
+                    !HasStableEncounterIdentity(target, resolution.Target) ||
+                    resolution.Actor.ActionPoints < 0 ||
+                    resolution.Actor.ActionPoints > actor.ActionPoints ||
+                    resolution.EventAmount < 0)
+                {
+                    return AddEvent(command, false, 0, "command.personal-combat-result-invalid");
                 }
 
                 bool wasIncapacitated = target.IsIncapacitated;
-                int healthDamage = target.Defending ? Math.Max(1, damage / 2) : damage;
-                CharacterResourceSet targetResources = target.CharacterResources.ApplyResourceDamage(
-                    CharacterResourceIds.Health, healthDamage);
-                ImmutableArray<InjuryState> injuries = target.Injuries;
-                if (targetResources.GetCurrentValue(CharacterResourceIds.Health) == 0 && !wasIncapacitated)
+                PersonalActorState resolvedTarget = resolution.Target;
+                if (resolvedTarget.IsIncapacitated && !wasIncapacitated &&
+                    !resolvedTarget.Injuries.Any(value => value.Severity == InjurySeverity.Incapacitating))
                 {
-                    injuries = injuries.Add(new InjuryState(new ContentId("injury.combat.incapacitated"), InjurySeverity.Incapacitating, false));
+                    resolvedTarget = resolvedTarget with
+                    {
+                        Injuries = resolvedTarget.Injuries.Add(new InjuryState(
+                            new ContentId("injury.combat.incapacitated"),
+                            InjurySeverity.Incapacitating,
+                            false)),
+                    };
                 }
 
+                updated = resolution.Actor;
                 encounter = encounter with
                 {
-                    Actors = encounter.Actors.SetItem(targetId, target with
-                    {
-                        CharacterResources = targetResources,
-                        Injuries = injuries,
-                    }),
-                    DamagedObjects = command.OptionId is ContentId objectId ? encounter.DamagedObjects.Add(objectId) : encounter.DamagedObjects,
+                    Actors = encounter.Actors.SetItem(targetId, resolvedTarget),
+                    DamagedObjects = resolution.DamagedObjectId is ContentId objectId
+                        ? encounter.DamagedObjects.Add(objectId)
+                        : encounter.DamagedObjects,
                 };
+                eventAmount = resolution.EventAmount;
+                apCost = 0;
                 break;
             default:
                 return AddEvent(command, false, 0, "command.action-unknown");
         }
 
-        updated = updated with { Turn = updated.Turn.SpendActionPoints(apCost) };
+        if (!isCombat)
+        {
+            updated = updated with { Turn = updated.Turn.SpendActionPoints(apCost) };
+        }
         encounter = encounter with { Actors = encounter.Actors.SetItem(actorId, updated) };
         ImmutableArray<ActorId> ready = updated.ActionPoints == 0 ? ReadyActors.Remove(actorId) : ReadyActors;
         bool pause = ready.Any(id => encounter.Actors[id].TeamId == PlayerTeamId);
         return (this with { PersonalEncounter = encounter, ReadyActors = ready, PersonalPaused = pause })
-            .AddEvent(command, true, command.Amount, string.Empty);
+            .AddEvent(
+                command,
+                true,
+                eventAmount,
+                string.Empty);
     }
 
     private VoyageWorld UpdateShips()
@@ -790,6 +853,20 @@ public sealed record VoyageWorld(
         VoyageCommandKind.PersonalRetreat => new("action.personal.retreat"),
         _ => throw new KeyNotFoundException("The command is not a personal action."),
     };
+
+    private static bool IsPersonalCombat(VoyageCommandKind kind) => kind is
+        VoyageCommandKind.PersonalMelee or
+        VoyageCommandKind.PersonalRanged or
+        VoyageCommandKind.PersonalSpell or
+        VoyageCommandKind.PersonalPsionic;
+
+    private static bool HasStableEncounterIdentity(PersonalActorState original, PersonalActorState resolved) =>
+        original.Id == resolved.Id &&
+        original.TeamId == resolved.TeamId &&
+        original.CharacterId == resolved.CharacterId &&
+        original.CellId == resolved.CellId &&
+        original.Surrendered == resolved.Surrendered &&
+        original.Prisoner == resolved.Prisoner;
 
     private bool TryShip(ContentId id, out ShipState? ship)
     {

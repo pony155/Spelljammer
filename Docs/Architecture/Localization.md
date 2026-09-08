@@ -39,12 +39,12 @@ RTL support remain planned.
 
 | Area | Authority |
 | --- | --- |
-| Product ownership and sandbox direction | [Design concept vision](../DesignConcept/Vision.md) |
+| Product ownership and sandbox direction | [Concept vision](../Concept/Vision.md) |
 | UI layout, actions, semantics, and managed boundary | [SpriteForge UI system](https://github.com/pony155/SpriteForge/blob/main/Engine/Docs/UISystem.md) |
 | Unicode shaping, font fallback, glyph coverage, and bidi limits | [SpriteForge font system](https://github.com/pony155/SpriteForge/blob/main/Engine/Docs/FontSystem.md) |
 | Stable asset identity and transactional publication | [SpriteForge asset system](https://github.com/pony155/SpriteForge/blob/main/Engine/Docs/AssetSystem.md) |
 | Deterministic simulation and replay commands | [SpriteForge command system](https://github.com/pony155/SpriteForge/blob/main/Engine/Docs/CommandSystem.md) |
-| Application lifecycle and service ordering | [SpriteForge framework](https://github.com/pony155/SpriteForge/blob/main/Engine/Docs/Frameworkd.md) |
+| Application lifecycle and service ordering | [SpriteForge framework](https://github.com/pony155/SpriteForge/blob/main/Engine/Docs/Framework.md) |
 | Dialogue, UI, and accessibility audio routing | [SpriteForge audio system](https://github.com/pony155/SpriteForge/blob/main/Engine/Docs/AudioSystem.md) |
 
 ## Goals

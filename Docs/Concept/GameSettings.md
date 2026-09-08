@@ -211,7 +211,8 @@ the current campaign model does not yet serialize a game-settings record. A
 load validates the stored settings version and every stable option ID before
 reconstructing campaign state. Unknown campaign rules cannot be replaced with
 defaults silently. The existing envelope and migration boundary are documented
-in [`../Architecture/CampaignSaves.md`](../Architecture/CampaignSaves.md).
+in the
+[`Spelljammer.Persistence` source briefing](../../Source/Spelljammer.Persistence/README.md).
 
 Settings writes follow the same safety principles as campaign saves: write one
 same-directory temporary artifact, flush it, validate it, and replace only the

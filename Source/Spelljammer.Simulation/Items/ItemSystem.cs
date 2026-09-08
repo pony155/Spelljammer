@@ -516,8 +516,8 @@ public static class ItemSystem
                         }
                         break;
                     case RangedWeaponDefinition ranged when item.RangedWeaponState is not null && item.MeleeWeaponState is null &&
-                        catalog is ICharacterContentCatalog characterCatalog:
-                        item.RangedWeaponState.Validate(ranged, characterCatalog);
+                        catalog is ICombatContentCatalog combatCatalog:
+                        item.RangedWeaponState.Validate(ranged, combatCatalog);
                         if (item.CurrentDurability != item.RangedWeaponState.CurrentDurability)
                         {
                             throw new InvalidOperationException();

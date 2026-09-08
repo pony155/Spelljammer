@@ -40,7 +40,7 @@ public static class RaceCapabilities
     /// <returns>The soul anchor recovery action if available; null otherwise.</returns>
     public static ActionDefinition? CreateSoulAnchorRecoveryAction(
         CharacterState character,
-        ICharacterContentCatalog catalog)
+        ICharacterDefinitionCatalog catalog)
     {
         if (!HasEffect(character, catalog, SoulAnchorEffect))
         {
@@ -67,7 +67,7 @@ public static class RaceCapabilities
 
     public static ImmutableArray<TrailInterpretation> InterpretObservedTrails(
         CharacterState character,
-        ICharacterContentCatalog catalog,
+        ICharacterDefinitionCatalog catalog,
         IReadOnlyList<ObservedRouteEvidence> observedEvidence)
     {
         ArgumentNullException.ThrowIfNull(observedEvidence);
@@ -89,7 +89,7 @@ public static class RaceCapabilities
         ];
     }
 
-    private static bool HasEffect(CharacterState character, ICharacterContentCatalog catalog, EffectId effectId)
+    private static bool HasEffect(CharacterState character, ICharacterDefinitionCatalog catalog, EffectId effectId)
     {
         if (character.ContentFingerprint != catalog.Fingerprint)
         {

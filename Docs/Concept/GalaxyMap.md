@@ -4,9 +4,9 @@
 
 This document defines the planned procedural galaxy, star-system, route,
 discovery, and map-persistence systems. They are not implemented yet. The
-current prototype uses a deterministic 4 × 4 sector grid with six sector kinds;
-that grid proves the voyage command and resource loop but is not the final
-galaxy representation.
+retired deterministic 4-by-4 expedition grid has been removed; new galaxy work
+must publish bounded graph state into the authoritative voyage and persistence
+boundaries rather than revive that parallel prototype.
 Optional late-campaign threats that can transform this graph are defined in
 [`Endgame_Crisis.md`](Endgame_Crisis.md).
 Seeded situations that occur while crossing its routes are defined in

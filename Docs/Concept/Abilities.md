@@ -9,7 +9,7 @@ remain planned. Those character rules are defined in [`Races.md`](Races.md);
 learned capabilities and action resolution are defined in [`Skills.md`](Skills.md).
 The planned data definitions, runtime registry, and character-state layout are
 specified in
-[`../Architecture/CharacterCapabilities.md`](../Architecture/CharacterCapabilities.md).
+the [simulation content-view contract](../Architecture/Simulation.md#content-views).
 
 ## Purpose
 

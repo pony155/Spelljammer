@@ -34,7 +34,7 @@ public sealed record RangedWeaponState(
             0);
     }
 
-    public void Validate(RangedWeaponDefinition definition, ICharacterContentCatalog catalog)
+    public void Validate(RangedWeaponDefinition definition, ICombatContentCatalog catalog)
     {
         ArgumentNullException.ThrowIfNull(definition);
         ArgumentNullException.ThrowIfNull(catalog);
@@ -151,7 +151,7 @@ public static class RangedWeaponSystem
     public static RangedAttackEligibilityResult CheckAttackEligibility(
         CharacterState? actor,
         RangedAttackRequest request,
-        ICharacterContentCatalog catalog)
+        ICombatContentCatalog catalog)
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(catalog);
@@ -272,7 +272,7 @@ public static class RangedWeaponSystem
 
     public static RangedAttackResult ResolveAttack(
         RangedAttackReservation reservation,
-        ICharacterContentCatalog catalog)
+        ICombatContentCatalog catalog)
     {
         ArgumentNullException.ThrowIfNull(reservation);
         ArgumentNullException.ThrowIfNull(catalog);
@@ -304,7 +304,11 @@ public static class RangedWeaponSystem
         for (int shotIndex = 0; shotIndex < reservation.Action.ShotCount; shotIndex++)
         {
             ulong sequence = reservation.Request.RandomSequence + (ulong)(shotIndex * 2);
-            int roll = DeterministicRange(reservation.Request.RandomSeed, sequence, 1, 100);
+            int roll = CombatResolutionUtilities.DeterministicRange(
+                reservation.Request.RandomSeed,
+                sequence,
+                1,
+                100);
             int totalAccuracy = AddBounded(roll, reservation.SkillValue);
             totalAccuracy = AddBounded(totalAccuracy, reservation.Action.HitModifier);
             totalAccuracy = AddBounded(totalAccuracy, reservation.Request.SituationalHitModifier);
@@ -317,7 +321,7 @@ public static class RangedWeaponSystem
             int armorDamage = 0;
             if (hit)
             {
-                int baseDamage = DeterministicRange(
+                int baseDamage = CombatResolutionUtilities.DeterministicRange(
                     reservation.Request.RandomSeed,
                     sequence + 1,
                     reservation.Weapon.DamageMinimum,
@@ -387,7 +391,7 @@ public static class RangedWeaponSystem
     public static EffectResolution ResolveEffects(
         RangedAttackResolution resolution,
         EffectTargetState target,
-        ICharacterContentCatalog catalog,
+        ICombatContentCatalog catalog,
         StatusSystemLimits limits)
     {
         ArgumentNullException.ThrowIfNull(resolution);
@@ -399,46 +403,22 @@ public static class RangedWeaponSystem
         int healthDamage,
         int armorDamage)
     {
-        ImmutableArray<EffectRequest>.Builder effects = ImmutableArray.CreateBuilder<EffectRequest>();
-        AddDamage(CombatEffectIds.ArmorDamage, armorDamage);
-        AddDamage(CombatEffectIds.PhysicalDamage, healthDamage);
-        foreach (EffectApplicationDefinition application in reservation.Action.Effects)
-        {
-            effects.Add(new EffectRequest(
-                EffectInvocationId.Derive(
-                    reservation.Request.RandomSeed,
-                    reservation.Request.RandomSequence + (ulong)effects.Count,
-                    application.EffectId.Value),
-                application,
-                reservation.OriginalActor.Id.Value,
-                reservation.Request.Target!.Id.Value));
-        }
-
-        return effects.ToImmutable();
-
-        void AddDamage(EffectId effectId, int amount)
-        {
-            if (amount <= 0)
-            {
-                return;
-            }
-
-            effects.Add(new EffectRequest(
-                EffectInvocationId.Derive(
-                    reservation.Request.RandomSeed,
-                    reservation.Request.RandomSequence + (ulong)effects.Count,
-                    effectId.Value),
-                EffectApplicationDefinition.InstantTarget(effectId),
-                reservation.OriginalActor.Id.Value,
-                reservation.Request.Target!.Id.Value,
-                AmountOverride: amount));
-        }
+        return CombatResolutionUtilities.BuildEffectRequests(
+            [
+                new ImmediateEffectAmount(CombatEffectIds.ArmorDamage, armorDamage),
+                new ImmediateEffectAmount(CombatEffectIds.PhysicalDamage, healthDamage),
+            ],
+            reservation.Action.Effects,
+            reservation.OriginalActor.Id.Value,
+            reservation.Request.Target!.Id.Value,
+            reservation.Request.RandomSeed,
+            reservation.Request.RandomSequence);
     }
 
     public static RangedReloadResult Reload(
         CharacterState? actor,
         RangedReloadRequest request,
-        ICharacterContentCatalog catalog)
+        ICombatContentCatalog catalog)
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(catalog);
@@ -560,7 +540,7 @@ public static class RangedWeaponSystem
         CharacterState actor,
         ItemInstanceId weaponItemInstanceId,
         int amount,
-        ICharacterContentCatalog catalog)
+        ICombatContentCatalog catalog)
     {
         ArgumentNullException.ThrowIfNull(actor);
         ArgumentNullException.ThrowIfNull(catalog);
@@ -577,7 +557,7 @@ public static class RangedWeaponSystem
     private static bool TryResolveWeapon(
         CharacterState actor,
         ItemInstanceId itemInstanceId,
-        ICharacterContentCatalog catalog,
+        ICombatContentCatalog catalog,
         out ItemInstance? item,
         out RangedWeaponDefinition? weapon,
         out RangedWeaponState? state,
@@ -621,16 +601,6 @@ public static class RangedWeaponSystem
 
         rejection = ActionRejectionCodes.None;
         return true;
-    }
-
-    private static int DeterministicRange(ulong seed, ulong sequence, int minimum, int maximum)
-    {
-        ulong value = seed + (sequence + 1) * 0x9e3779b97f4a7c15UL;
-        value = (value ^ (value >> 30)) * 0xbf58476d1ce4e5b9UL;
-        value = (value ^ (value >> 27)) * 0x94d049bb133111ebUL;
-        value ^= value >> 31;
-        ulong width = (ulong)((long)maximum - minimum + 1);
-        return minimum + (int)(value % width);
     }
 
     private static int AddBounded(int left, int right) =>

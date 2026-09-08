@@ -1,0 +1,42 @@
+using Spelljammer.Simulation.Content;
+
+namespace Spelljammer.Simulation.Encounters;
+
+/// <summary>
+/// Immutable input supplied to the personal-combat authority when a scheduled combat command commits.
+/// </summary>
+public sealed record PersonalCombatContext(
+    VoyageCommand Command,
+    PersonalEncounterState Encounter,
+    PersonalActorState Actor,
+    PersonalActorState Target,
+    long Tick,
+    ulong WorldSeed,
+    ulong RandomSequence);
+
+/// <summary>
+/// Atomic actor/target state produced by a melee, ranged, spell, or psionic action system.
+/// </summary>
+public sealed record PersonalCombatResolution(
+    bool Accepted,
+    string RejectionCode,
+    PersonalActorState Actor,
+    PersonalActorState Target,
+    int EventAmount,
+    ContentId? DamagedObjectId = null)
+{
+    public static PersonalCombatResolution Rejected(
+        PersonalActorState actor,
+        PersonalActorState target,
+        string rejectionCode) =>
+        new(false, rejectionCode, actor, target, 0);
+}
+
+/// <summary>
+/// Resolves personal combat commands through the typed weapon, spell, psionic, status, and effect systems.
+/// VoyageWorld schedules and commits the returned transaction but does not calculate combat damage.
+/// </summary>
+public interface IPersonalCombatResolver
+{
+    PersonalCombatResolution Resolve(PersonalCombatContext context);
+}

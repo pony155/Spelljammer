@@ -41,6 +41,10 @@ The related `Spelljammer.Simulation.Content` namespace contains the validated
 stable-ID wrappers and immutable definitions that may cross into authoritative
 gameplay. It has no loader or filesystem dependency.
 
-`GameContentCompiler` builds an entire candidate before returning a snapshot.
+`GameContentCompiler` is the public compilation facade. Its partial
+implementations are separated by pipeline responsibility: localization,
+pack ordering, source processing, linking, validation dispatch, definition
+validation, definition compilation, and snapshot construction. It builds an
+entire candidate before returning a snapshot.
 `GameContentRegistry` publishes only successful candidates, so callers can
 retain the prior snapshot after any content or I/O failure.

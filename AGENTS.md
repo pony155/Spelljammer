@@ -22,7 +22,7 @@ implemented state and label future-facing design as planned.
 
 `Docs/Archive/LargeScaleRtsConcept.md` predates the current sandbox direction.
 Treat it as historical exploration; it is not the authority for new gameplay
-work. Current product direction lives under `Docs/DesignConcept`.
+work. Current product direction lives under `Docs/Concept`.
 
 ## Repository and engine boundary
 
@@ -118,15 +118,19 @@ smallest playable vertical slice before broadening the simulation surface.
 
 | Path | Responsibility |
 | --- | --- |
-| `Source/Spelljammer.App/` | Current WPF shell, native interop, and expedition presentation host. |
-| `Source/Spelljammer.Simulation/` | Headless authoritative voyage state, seeded sector generation, and typed commands. |
+| `Source/Spelljammer.App/` | Current WPF shell, native UI/audio interop, settings, and character-creation presentation. |
+| `Source/Spelljammer.Simulation/` | Headless authoritative voyage, character, item, Effect, and encounter state. |
+| `Source/Spelljammer.Content/` | Gameplay-pack parsing, validation, linking, immutable snapshots, and fingerprints. |
+| `Source/Spelljammer.Persistence/` | Content-locked campaign encoding, migration, validation, and recovery. |
+| `Source/Spelljammer.Settings/` | Local preference encoding, validation, publication, and recovery. |
+| `Source/Spelljammer.Storage/` | Shared durable staging, atomic replacement, recovery, and exact-path cleanup. |
 | `Source/Spelljammer.Localization/` | Game-owned catalog runtime, formatting, identity, and limits. |
 | `Tools/Spelljammer.Localization.Compiler/` | Offline source-catalog parser and compiler. |
 | `Content/Packs/base/` | Built-in gameplay definitions and their authored localization catalogs. |
 | `Content/Localization/` | Pinned locale-data inputs and notices. |
 | `Tests/Spelljammer.Localization.Tests/` | Headless localization contracts and corruption/formatting coverage. |
 | `Tests/Spelljammer.Simulation.Tests/` | Compile-only determinism, rejection, bounds, and resource-loop contracts. |
-| `Docs/DesignConcept/` | Current product direction and playable-slice scope. |
+| `Docs/Concept/` | Current product direction and playable-slice scope. |
 | `Docs/Architecture/` | Implemented and planned subsystem architecture. |
 | `Docs/Archive/` | Historical design material that is not current product authority. |
 | `Build/` | Focused CMake declarations included by the standalone root project. |

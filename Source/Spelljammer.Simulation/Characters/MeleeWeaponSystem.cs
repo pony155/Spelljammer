@@ -101,7 +101,7 @@ public static class MeleeWeaponSystem
     public static MeleeAttackEligibilityResult CheckEligibility(
         CharacterState? actor,
         MeleeAttackRequest request,
-        ICharacterContentCatalog catalog)
+        ICombatContentCatalog catalog)
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(catalog);
@@ -208,7 +208,7 @@ public static class MeleeWeaponSystem
             null);
     }
 
-    public static MeleeAttackResult Resolve(MeleeAttackReservation reservation, ICharacterContentCatalog catalog)
+    public static MeleeAttackResult Resolve(MeleeAttackReservation reservation, ICombatContentCatalog catalog)
     {
         ArgumentNullException.ThrowIfNull(reservation);
         ArgumentNullException.ThrowIfNull(catalog);
@@ -223,7 +223,9 @@ public static class MeleeWeaponSystem
             return RejectedResolution(reservation, ActionRejectionCodes.ContentMismatch);
         }
 
-        int attackRoll = DeterministicRoll(reservation.Request.RandomSeed, reservation.Request.RandomSequence);
+        int attackRoll = CombatResolutionUtilities.DeterministicRoll(
+            reservation.Request.RandomSeed,
+            reservation.Request.RandomSequence);
         int statusAccuracy = StatusQueries.GetModifier(
             reservation.OriginalActor.Statuses, StatusModifierType.ModifyAccuracy, catalog);
         int totalAccuracy = AddBounded(
@@ -235,7 +237,7 @@ public static class MeleeWeaponSystem
         int penetration = 0;
         if (hit)
         {
-            int damageRoll = DeterministicRange(
+            int damageRoll = CombatResolutionUtilities.DeterministicRange(
                 reservation.Request.RandomSeed,
                 reservation.Request.RandomSequence + 1,
                 reservation.Weapon.DamageMinimum,
@@ -312,7 +314,7 @@ public static class MeleeWeaponSystem
     public static EffectResolution ResolveEffects(
         MeleeAttackResolution resolution,
         EffectTargetState target,
-        ICharacterContentCatalog catalog,
+        ICombatContentCatalog catalog,
         StatusSystemLimits limits)
     {
         ArgumentNullException.ThrowIfNull(resolution);
@@ -324,53 +326,16 @@ public static class MeleeWeaponSystem
         int healthDamage,
         int armorDamage)
     {
-        ImmutableArray<EffectRequest>.Builder effects = ImmutableArray.CreateBuilder<EffectRequest>();
-        AddDamage(CombatEffectIds.ArmorDamage, armorDamage);
-        AddDamage(CombatEffectIds.PhysicalDamage, healthDamage);
-        foreach (EffectApplicationDefinition application in reservation.Action.Effects)
-        {
-            effects.Add(new EffectRequest(
-                EffectInvocationId.Derive(
-                    reservation.Request.RandomSeed,
-                    reservation.Request.RandomSequence + (ulong)effects.Count,
-                    application.EffectId.Value),
-                application,
-                reservation.OriginalActor.Id.Value,
-                reservation.Request.Target!.Id.Value));
-        }
-
-        return effects.ToImmutable();
-
-        void AddDamage(EffectId effectId, int amount)
-        {
-            if (amount <= 0)
-            {
-                return;
-            }
-
-            effects.Add(new EffectRequest(
-                EffectInvocationId.Derive(
-                    reservation.Request.RandomSeed,
-                    reservation.Request.RandomSequence + (ulong)effects.Count,
-                    effectId.Value),
-                EffectApplicationDefinition.InstantTarget(effectId),
-                reservation.OriginalActor.Id.Value,
-                reservation.Request.Target!.Id.Value,
-                AmountOverride: amount));
-        }
-    }
-
-    private static int DeterministicRoll(ulong seed, ulong sequence) =>
-        DeterministicRange(seed, sequence, 1, 100);
-
-    private static int DeterministicRange(ulong seed, ulong sequence, int minimum, int maximum)
-    {
-        ulong value = seed + (sequence + 1) * 0x9e3779b97f4a7c15UL;
-        value = (value ^ (value >> 30)) * 0xbf58476d1ce4e5b9UL;
-        value = (value ^ (value >> 27)) * 0x94d049bb133111ebUL;
-        value ^= value >> 31;
-        ulong width = (ulong)((long)maximum - minimum + 1);
-        return minimum + (int)(value % width);
+        return CombatResolutionUtilities.BuildEffectRequests(
+            [
+                new ImmediateEffectAmount(CombatEffectIds.ArmorDamage, armorDamage),
+                new ImmediateEffectAmount(CombatEffectIds.PhysicalDamage, healthDamage),
+            ],
+            reservation.Action.Effects,
+            reservation.OriginalActor.Id.Value,
+            reservation.Request.Target!.Id.Value,
+            reservation.Request.RandomSeed,
+            reservation.Request.RandomSequence);
     }
 
     private static int AddBounded(int left, int right) =>

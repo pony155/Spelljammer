@@ -51,7 +51,7 @@ public static class SpellActionSystem
         ulong randomSeed,
         ulong randomSequence,
         long tick,
-        ICharacterContentCatalog catalog)
+        ICombatContentCatalog catalog)
     {
         ArgumentNullException.ThrowIfNull(actor);
         ArgumentNullException.ThrowIfNull(target);
@@ -152,7 +152,7 @@ public static class SpellActionSystem
         return Accepted(action.OriginalActor, action with { Phase = SpellActionPhase.Interrupted, ReservedMana = 0 });
     }
 
-    public static SpellActionResult Resolve(SpellActionState action, ICharacterContentCatalog catalog)
+    public static SpellActionResult Resolve(SpellActionState action, ICombatContentCatalog catalog)
     {
         if (action.Phase != SpellActionPhase.Prepared)
         {
@@ -165,7 +165,7 @@ public static class SpellActionSystem
             return Rejected(action.OriginalActor, ActionRejectionCodes.ContentMismatch, action);
         }
 
-        int roll = DeterministicRoll(action.RandomSeed, action.RandomSequence);
+        int roll = CombatResolutionUtilities.DeterministicRoll(action.RandomSeed, action.RandomSequence);
         bool succeeded = skill + roll >= 20;
         return Accepted(action.OriginalActor, action with
         {
@@ -195,7 +195,7 @@ public static class SpellActionSystem
         }
 
         ImmutableArray<EffectRequest> effects = action.Succeeded
-            ? BuildEffectRequests(
+            ? CombatResolutionUtilities.BuildEffectRequests(
                 action.Definition.Effects,
                 action.OriginalActor.Id.Value,
                 action.Target.Id.Value,
@@ -234,15 +234,6 @@ public static class SpellActionSystem
             ? Accepted(action.OriginalActor, action with { Phase = to })
             : Rejected(action.OriginalActor, "command.action-phase-invalid", action);
 
-    private static int DeterministicRoll(ulong seed, ulong sequence)
-    {
-        ulong value = seed + (sequence + 1) * 0x9e3779b97f4a7c15UL;
-        value = (value ^ (value >> 30)) * 0xbf58476d1ce4e5b9UL;
-        value = (value ^ (value >> 27)) * 0x94d049bb133111ebUL;
-        value ^= value >> 31;
-        return 1 + (int)(value % 100);
-    }
-
     private static SpellActionResult Accepted(
         CharacterState actor,
         SpellActionState action,
@@ -252,17 +243,6 @@ public static class SpellActionSystem
     private static SpellActionResult Rejected(CharacterState actor, string code, SpellActionState? action = null) =>
         new(actor, action, false, code, []);
 
-    private static ImmutableArray<EffectRequest> BuildEffectRequests(
-        ImmutableArray<EffectApplicationDefinition> applications,
-        ContentId sourceId,
-        ContentId targetId,
-        ulong seed,
-        ulong sequence) =>
-        [.. applications.Select((application, index) => new EffectRequest(
-            EffectInvocationId.Derive(seed, sequence + (ulong)index, application.EffectId.Value),
-            application,
-            sourceId,
-            targetId))];
 }
 
 public enum MindlinkPhase : byte
@@ -301,7 +281,7 @@ public static class MindlinkSystem
         FeatId featId,
         bool isInRange,
         long tick,
-        ICharacterContentCatalog catalog)
+        ICombatContentCatalog catalog)
     {
         if (actor.ContentFingerprint != catalog.Fingerprint || target.ContentFingerprint != catalog.Fingerprint)
         {
@@ -388,7 +368,7 @@ public static class MindlinkSystem
         }
 
         PsionicFeatRules rules = link.Definition.PsionicRules!;
-        ImmutableArray<EffectRequest> effects = BuildEffectRequests(
+        ImmutableArray<EffectRequest> effects = CombatResolutionUtilities.BuildEffectRequests(
             link.Definition.Effects,
             link.OriginalActor.Id.Value,
             link.TargetId.Value,
@@ -456,18 +436,6 @@ public static class MindlinkSystem
         MindlinkState link,
         ImmutableArray<EffectRequest> effects = default) =>
         new(actor, link, true, ActionRejectionCodes.None, effects.IsDefault ? [] : effects);
-
-    private static ImmutableArray<EffectRequest> BuildEffectRequests(
-        ImmutableArray<EffectApplicationDefinition> applications,
-        ContentId sourceId,
-        ContentId targetId,
-        ulong seed,
-        ulong sequence) =>
-        [.. applications.Select((application, index) => new EffectRequest(
-            EffectInvocationId.Derive(seed, sequence + (ulong)index, application.EffectId.Value),
-            application,
-            sourceId,
-            targetId))];
 
     private static MindlinkResult Rejected(CharacterState actor, string code, MindlinkState? link = null) =>
         new(actor, link, false, code, []);

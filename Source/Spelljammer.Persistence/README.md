@@ -3,11 +3,14 @@
 This headless project owns the versioned, content-locked campaign save format,
 bounded preflight and reconstruction, transactional campaign publication,
 durable same-directory replacement, recovery artifacts, and explicit
-migrations. See
-[`../../Docs/Architecture/CampaignSaves.md`](../../Docs/Architecture/CampaignSaves.md)
-for the implemented contract.
+migrations. The public `CampaignSaveCodec` facade delegates envelope,
+content-lock, write-mapping, and read-mapping work to focused partial
+implementations without changing the save schema.
 
-It deliberately has no WPF, localization, SpriteForge, or native dependency.
+Durable stage, read-back validation, atomic replacement, and recovery mechanics
+come from the game-owned `Spelljammer.Storage` project. Persistence retains
+ownership of campaign encoding, validation, limits, and diagnostics. It has no
+WPF, localization, SpriteForge, or native dependency.
 Callers supply the immutable `GameContentSnapshot` selected for a load; saved
 stable IDs are resolved and runtime indices are reconstructed only inside that
 validated boundary.

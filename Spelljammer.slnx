@@ -5,6 +5,7 @@
   <Project Path="Source/Spelljammer.Persistence/Spelljammer.Persistence.csproj" />
   <Project Path="Source/Spelljammer.Settings/Spelljammer.Settings.csproj" />
   <Project Path="Source/Spelljammer.Simulation/Spelljammer.Simulation.csproj" />
+  <Project Path="Source/Spelljammer.Storage/Spelljammer.Storage.csproj" />
   <Project Path="Tests/Spelljammer.Localization.Tests/Spelljammer.Localization.Tests.csproj" />
   <Project Path="Tests/Spelljammer.Persistence.Tests/Spelljammer.Persistence.Tests.csproj" />
   <Project Path="Tests/Spelljammer.Settings.Tests/Spelljammer.Settings.Tests.csproj" />

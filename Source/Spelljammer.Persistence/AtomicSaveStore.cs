@@ -1,84 +1,38 @@
 using Spelljammer.Content.Compilation;
+using Spelljammer.Storage;
 
 namespace Spelljammer.Persistence;
 
-/// <summary>
-/// Abstract file system interface for campaign save operations (for testing and alternate backends).
-/// </summary>
-public interface ICampaignSaveFileSystem
-{
-    /// <summary>Checks if a file exists at the given path.</summary>
-    bool Exists(string path);
+/// <summary>Campaign-save specialization of the shared transactional file-system boundary.</summary>
+public interface ICampaignSaveFileSystem : IAtomicFileSystem;
 
-    /// <summary>Gets the size of a file in bytes.</summary>
-    long GetLength(string path);
-
-    /// <summary>Reads entire file contents into memory.</summary>
-    byte[] ReadAllBytes(string path);
-
-    /// <summary>Writes data to a new file with durability guarantees (write-through).</summary>
-    void WriteDurable(string path, ReadOnlySpan<byte> bytes);
-
-    /// <summary>Moves/renames a file from source to destination.</summary>
-    void Move(string source, string destination);
-
-    /// <summary>Atomically replaces destination with source, optionally keeping a backup recovery file.</summary>
-    void Replace(string source, string destination, string? recoveryPath);
-
-    /// <summary>Deletes a file.</summary>
-    void Delete(string path);
-}
-
-/// <summary>
-/// Physical file system implementation for campaign save operations using Windows APIs.
-/// </summary>
-public sealed class PhysicalCampaignSaveFileSystem : ICampaignSaveFileSystem
-{
-    /// <inheritdoc/>
-    public bool Exists(string path) => File.Exists(path);
-
-    /// <inheritdoc/>
-    public long GetLength(string path) => new FileInfo(path).Length;
-
-    /// <inheritdoc/>
-    public byte[] ReadAllBytes(string path) => File.ReadAllBytes(path);
-
-    /// <inheritdoc/>
-    public void WriteDurable(string path, ReadOnlySpan<byte> bytes)
-    {
-        using FileStream stream = new(path, FileMode.CreateNew, FileAccess.Write, FileShare.None, 64 * 1024,
-            FileOptions.WriteThrough);
-        stream.Write(bytes);
-        stream.Flush(true);
-    }
-
-    /// <inheritdoc/>
-    public void Move(string source, string destination) => File.Move(source, destination);
-
-    /// <inheritdoc/>
-    public void Replace(string source, string destination, string? recoveryPath) =>
-        File.Replace(source, destination, recoveryPath, true);
-
-    /// <inheritdoc/>
-    public void Delete(string path) => File.Delete(path);
-}
+/// <summary>Physical campaign-save file system retained as a compatibility-friendly construction type.</summary>
+public sealed class PhysicalCampaignSaveFileSystem : PhysicalAtomicFileSystem, ICampaignSaveFileSystem;
 
 /// <summary>
 /// The result of a campaign save write operation with diagnostic and recovery information.
 /// </summary>
-/// <param name="Succeeded">Whether the save was successfully written and verified.</param>
-/// <param name="Diagnostic">Diagnostic code indicating outcome or failure reason.</param>
-/// <param name="TargetPath">The path where the save file was written or attempted to be written.</param>
-/// <param name="RecoveryPath">The path to the recovery backup, if one was created and needs cleanup.</param>
 public sealed record SaveWriteResult(
     bool Succeeded,
     SaveDiagnosticCode Diagnostic,
     string TargetPath,
     string? RecoveryPath);
 
-public sealed class CampaignSaveStore(ICampaignSaveFileSystem? fileSystem = null)
+public sealed class CampaignSaveStore
 {
-    private readonly ICampaignSaveFileSystem files = fileSystem ?? new PhysicalCampaignSaveFileSystem();
+    private readonly ICampaignSaveFileSystem files;
+    private readonly AtomicFileStore<SaveDiagnosticCode> atomicFiles;
+
+    public CampaignSaveStore(ICampaignSaveFileSystem? fileSystem = null)
+    {
+        files = fileSystem ?? new PhysicalCampaignSaveFileSystem();
+        atomicFiles = new AtomicFileStore<SaveDiagnosticCode>(
+            files,
+            SaveDiagnosticCode.None,
+            SaveDiagnosticCode.IoFailure,
+            SaveDiagnosticCode.Oversized,
+            SaveDiagnosticCode.IoFailure);
+    }
 
     public CampaignReadResult Read(
         string sourcePath,
@@ -87,7 +41,7 @@ public sealed class CampaignSaveStore(ICampaignSaveFileSystem? fileSystem = null
         CampaignMigrationRegistry? migrations = null)
     {
         ArgumentNullException.ThrowIfNull(content);
-        string source = ResolveTarget(sourcePath);
+        string source = AtomicFileStore<SaveDiagnosticCode>.ResolveFile(sourcePath);
         try
         {
             if (!files.Exists(source))
@@ -120,148 +74,46 @@ public sealed class CampaignSaveStore(ICampaignSaveFileSystem? fileSystem = null
 
     public SaveWriteResult Save(string targetPath, ReadOnlyMemory<byte> bytes)
     {
-        string target = ResolveTarget(targetPath);
-        string? directory = Path.GetDirectoryName(target);
-        if (directory is null || !Directory.Exists(directory))
-        {
-            return new SaveWriteResult(false, SaveDiagnosticCode.IoFailure, target, null);
-        }
-
-        string temporary = Path.Combine(directory, $".{Path.GetFileName(target)}.tmp-{Guid.NewGuid():N}");
-        string recovery = target + ".recovery";
-        try
-        {
-            files.WriteDurable(temporary, bytes.Span);
-            byte[] staged = files.ReadAllBytes(temporary);
-            SaveDiagnosticCode validation = CampaignSaveCodec.ValidateEnvelope(staged);
-            if (validation != SaveDiagnosticCode.None)
+        AtomicFileResult<SaveDiagnosticCode> result = atomicFiles.Write(
+            targetPath,
+            bytes,
+            candidate =>
             {
-                return new SaveWriteResult(false, validation, target, null);
-            }
-
-            if (files.Exists(target))
-            {
-                files.Replace(temporary, target, recovery);
-                return new SaveWriteResult(true, SaveDiagnosticCode.None, target, recovery);
-            }
-
-            files.Move(temporary, target);
-            return new SaveWriteResult(true, SaveDiagnosticCode.None, target, null);
-        }
-        catch (IOException)
-        {
-            return new SaveWriteResult(false, SaveDiagnosticCode.IoFailure, target, files.Exists(recovery) ? recovery : null);
-        }
-        catch (UnauthorizedAccessException)
-        {
-            return new SaveWriteResult(false, SaveDiagnosticCode.IoFailure, target, files.Exists(recovery) ? recovery : null);
-        }
-        finally
-        {
-            if (files.Exists(temporary))
-            {
-                try
-                {
-                    files.Delete(temporary);
-                }
-                catch (IOException)
-                {
-                    // The exact orphan is retained for a later bounded cleanup attempt.
-                }
-                catch (UnauthorizedAccessException)
-                {
-                    // The exact orphan is retained for a later bounded cleanup attempt.
-                }
-            }
-        }
+                SaveDiagnosticCode diagnostic = CampaignSaveCodec.ValidateEnvelope(candidate);
+                return new AtomicValidation<SaveDiagnosticCode>(
+                    diagnostic == SaveDiagnosticCode.None,
+                    diagnostic,
+                    candidate);
+            },
+            createDirectory: false);
+        return new SaveWriteResult(
+            result.Succeeded,
+            result.Diagnostic,
+            result.TargetPath,
+            result.RecoveryPath);
     }
 
     public SaveWriteResult Recover(string targetPath)
     {
-        string target = ResolveTarget(targetPath);
-        string recovery = target + ".recovery";
-        try
-        {
-            if (!files.Exists(recovery))
+        AtomicFileResult<SaveDiagnosticCode> result = atomicFiles.Recover(
+            targetPath,
+            CampaignSaveLimits.MaximumSaveBytes,
+            candidate =>
             {
-                return new SaveWriteResult(false, SaveDiagnosticCode.IoFailure, target, null);
-            }
-
-            byte[] bytes = files.ReadAllBytes(recovery);
-            SaveDiagnosticCode validation = CampaignSaveCodec.ValidateEnvelope(bytes);
-            if (validation != SaveDiagnosticCode.None)
-            {
-                return new SaveWriteResult(false, validation, target, recovery);
-            }
-
-            string directory = Path.GetDirectoryName(target)!;
-            string temporary = Path.Combine(directory, $".{Path.GetFileName(target)}.recover-{Guid.NewGuid():N}");
-            try
-            {
-                files.WriteDurable(temporary, bytes);
-                if (files.Exists(target))
-                {
-                    files.Replace(temporary, target, null);
-                }
-                else
-                {
-                    files.Move(temporary, target);
-                }
-            }
-            finally
-            {
-                if (files.Exists(temporary))
-                {
-                    files.Delete(temporary);
-                }
-            }
-
-            return new SaveWriteResult(true, SaveDiagnosticCode.None, target, recovery);
-        }
-        catch (IOException)
-        {
-            return new SaveWriteResult(false, SaveDiagnosticCode.IoFailure, target, files.Exists(recovery) ? recovery : null);
-        }
-        catch (UnauthorizedAccessException)
-        {
-            return new SaveWriteResult(false, SaveDiagnosticCode.IoFailure, target, files.Exists(recovery) ? recovery : null);
-        }
+                SaveDiagnosticCode diagnostic = CampaignSaveCodec.ValidateEnvelope(candidate);
+                return new AtomicValidation<SaveDiagnosticCode>(
+                    diagnostic == SaveDiagnosticCode.None,
+                    diagnostic,
+                    candidate);
+            });
+        return new SaveWriteResult(
+            result.Succeeded,
+            result.Diagnostic,
+            result.TargetPath,
+            result.RecoveryPath);
     }
 
-    public bool CleanupRecovery(string targetPath)
-    {
-        string recovery = ResolveTarget(targetPath) + ".recovery";
-        if (!files.Exists(recovery))
-        {
-            return true;
-        }
-
-        try
-        {
-            files.Delete(recovery);
-            return true;
-        }
-        catch (IOException)
-        {
-            return false;
-        }
-        catch (UnauthorizedAccessException)
-        {
-            return false;
-        }
-    }
-
-    private static string ResolveTarget(string path)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(path);
-        string full = Path.GetFullPath(path);
-        if (Path.EndsInDirectorySeparator(full))
-        {
-            throw new ArgumentException("A save target must be a file.", nameof(path));
-        }
-
-        return full;
-    }
+    public bool CleanupRecovery(string targetPath) => atomicFiles.CleanupRecovery(targetPath);
 
     private static CampaignReadResult FailedRead(SaveDiagnosticCode diagnostic) => new(
         null,

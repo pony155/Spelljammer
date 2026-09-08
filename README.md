@@ -12,34 +12,22 @@ stars and from systemic roguelikes, while its universe, terminology,
 characters, rules, content, code, artwork, and sound remain original.
 
 > [!IMPORTANT]
-> Spelljammer is at a playable-prototype stage, not a content-complete game.
-> The current shell exposes a small deterministic expedition loop and a native
-> renderer demonstration. A headless eleven-character candidate roster and
-> content-bounded protagonist/NPC recruitment model now exist with trained and innate supernatural access, Magic Missile, and
-> consensual Mindlink execution. Milestone 5 adds a headless modular ship
-> engagement and six-zone personal encounter slice, but these are not yet
-> connected to the WPF shell. Milestone 6 adds headless content-locked campaign
-> saves, validation, recovery, and migration. A first localized SpriteForge UI
-> game-settings dialog now persists bounded local preferences transactionally,
-> and the application now opens on a background-art main menu whose current
-> actions are Game Settings and Quit Game. The expedition prototype remains in
-> source but is not currently reachable from that menu. WPF save controls,
-> campaign-rule settings, crew
-> schedules and relationships, trading, procedural ship interiors, and a full
-> game UI remain planned.
+> Spelljammer is at an early vertical-slice stage, not a content-complete game.
+> The current shell exposes the main menu, game settings, audio options, and
+> character creation. Headless systems implement the eleven-character roster,
+> protagonist/NPC recruitment, typed personal combat, modular ship encounters,
+> content-locked saves, and data-driven gameplay definitions. These systems are
+> not yet composed into a complete playable campaign. The retired 4-by-4
+> expedition and native renderer demonstration have been removed so new
+> gameplay follows one authoritative `VoyageWorld` path.
 
-## Current prototype
-
-Each new chart creates a deterministic 4 × 4 region from an explicit seed.
-Travel consumes fuel and can damage the hull; time consumes supplies. A sector
-can be salvaged only once, recovered cargo can patch the hull, and a successful
-run requires returning to the free anchorage with at least eight cargo.
+## Current implementation
 
 Implemented foundations include:
 
-- a headless `Spelljammer.Simulation` project with immutable expedition state,
-  typed commands, stable sector identities, explicit rejection reasons, bounded
-  maps, and seed-derived hazards and rewards;
+- a headless `Spelljammer.Simulation` project with immutable voyage,
+  character, item, encounter, Status, and Effect state, typed commands, stable
+  identities, explicit rejection reasons, and bounded collections;
 - a bounded gameplay-content foundation with validated stable IDs, strict JSON
   pack loading, deterministic dependency ordering, immutable snapshots,
   canonical SHA-256 fingerprints, transactional publication, and production
@@ -70,9 +58,9 @@ Implemented foundations include:
   seed; campaign construction and launch remain planned;
 - authored equipment, a six-zone Glass Observatory ruin, a Wayfarer ship frame,
   Arcane and Industrial module packages, and two cannon configurations;
-- a .NET 10, C# 14, Windows x64 WPF host that presents the expedition loop;
-- a child Win32 viewport rendered through SpriteForge's native D3D12 sprite
-  renderer and a narrow managed/native interop layer;
+- a .NET 10, C# 14, Windows x64 WPF host for the current menu, settings, and
+  character-creation flows;
+- a narrow managed/native interop layer for SpriteForge UI and audio;
 - versioned game-owned localization catalogs, typed message formatting,
   explicit fallback, pinned plural/number profiles, pseudo-locales, and offline
   catalog tooling; and
@@ -94,51 +82,51 @@ Implemented foundations include:
   outcomes testable and debuggable.
 
 These are product goals, not claims that every system is implemented. See
-[`Docs/DesignConcept/Vision.md`](Docs/DesignConcept/Vision.md) and
-[`Docs/DesignConcept/VerticalSlice.md`](Docs/DesignConcept/VerticalSlice.md).
+[`Docs/Concept/Vision.md`](Docs/Concept/Vision.md).
 Player preferences, accessibility, campaign rules, and their persistence
 boundaries are defined in
-[`Docs/DesignConcept/GameSettings.md`](Docs/DesignConcept/GameSettings.md). The planned
+[`Docs/Concept/GameSettings.md`](Docs/Concept/GameSettings.md). The planned
 Arcane-Industrial setting, including dieselpunk and atompunk technology, is
-defined in [`Docs/DesignConcept/History.md`](Docs/DesignConcept/History.md). The planned
+defined in [`Docs/Concept/History.md`](Docs/Concept/History.md). The planned
 crew races, heritages, physiology, and character-generation boundaries are
-defined in [`Docs/DesignConcept/Races.md`](Docs/DesignConcept/Races.md). The
+defined in [`Docs/Concept/Races.md`](Docs/Concept/Races.md). The
 classless capability model is split into
-[`Docs/DesignConcept/Abilities.md`](Docs/DesignConcept/Abilities.md) and
-[`Docs/DesignConcept/Skills.md`](Docs/DesignConcept/Skills.md); learned and Racial
+[`Docs/Concept/Abilities.md`](Docs/Concept/Abilities.md) and
+[`Docs/Concept/Skills.md`](Docs/Concept/Skills.md); learned and Racial
 Feat rules are defined in [`Docs/Concept/Feats.md`](Docs/Concept/Feats.md), and
 the protagonist, NPC recruitment, and active-roster limit are defined in
 [`Docs/Concept/Crew.md`](Docs/Concept/Crew.md).
 Implemented first-slice and planned personal weapons, armor, tools, and relics are defined in
-[`Docs/DesignConcept/Equipments.md`](Docs/DesignConcept/Equipments.md).
+[`Docs/Concept/Equipments.md`](Docs/Concept/Equipments.md).
 Planned spellcasting rules,
 the authored spell catalog, and psionics systems are defined in
-[`Docs/DesignConcept/Spells.md`](Docs/DesignConcept/Spells.md), and
-[`Docs/DesignConcept/Psionics.md.md`](Docs/DesignConcept/Psionics.md.md).
+[`Docs/Concept/Spells.md`](Docs/Concept/Spells.md), and
+[`Docs/Concept/Psionics.md`](Docs/Concept/Psionics.md).
 Ship engagements, boarding, ruin expeditions, EVA fighting, injuries, and
 tactical resolution are defined in
-[`Docs/DesignConcept/Battle.md`](Docs/DesignConcept/Battle.md). First-slice and planned ship frames,
+[`Docs/Concept/Battle.md`](Docs/Concept/Battle.md). First-slice and planned ship frames,
 modules, networks, damage, and refits are defined in
-[`Docs/DesignConcept/Ships.md`](Docs/DesignConcept/Ships.md). The versioned procedural galaxy
+[`Docs/Concept/Ships.md`](Docs/Concept/Ships.md). The versioned procedural galaxy
 graph, Starways, system generation, and discovery model are defined in
-[`Docs/DesignConcept/GalaxyMap.md`](Docs/DesignConcept/GalaxyMap.md). Seeded random
+[`Docs/Concept/GalaxyMap.md`](Docs/Concept/GalaxyMap.md). Seeded random
 events during interstellar travel are defined in
-[`Docs/DesignConcept/Events.md`](Docs/DesignConcept/Events.md). Planned faction
+[`Docs/Concept/Events.md`](Docs/Concept/Events.md). Planned faction
 membership, standing, diplomacy, territory, laws, markets, and conflict are
-defined in [`Docs/DesignConcept/Factions.md`](Docs/DesignConcept/Factions.md). Optional
+defined in [`Docs/Concept/Factions.md`](Docs/Concept/Factions.md). Optional
 late-campaign threats, escalation, alternative resolutions, and aftermath are
 defined in
-[`Docs/DesignConcept/Endgame_Crisis.md`](Docs/DesignConcept/Endgame_Crisis.md).
+[`Docs/Concept/Endgame_Crisis.md`](Docs/Concept/Endgame_Crisis.md).
 
 ## Repository layout
 
 | Path | Purpose |
 | --- | --- |
-| [`Source/Spelljammer.App/`](Source/Spelljammer.App/README.md) | WPF host, current main menu and settings presentation, retained expedition prototype, and SpriteForge interop. |
-| `Source/Spelljammer.Simulation/` | Headless authoritative expedition and character-capability state and commands. |
+| [`Source/Spelljammer.App/`](Source/Spelljammer.App/README.md) | WPF host, current main menu, settings and character-creation presentation, and SpriteForge interop. |
+| `Source/Spelljammer.Simulation/` | Headless authoritative voyage, character, item, Effect, and encounter state and commands. |
 | `Source/Spelljammer.Content/` | Pack loading, validation, immutable registries, and semantic fingerprints. |
 | `Source/Spelljammer.Persistence/` | Content-locked campaign saves, validation, recovery, and migrations. |
 | `Source/Spelljammer.Settings/` | Local player preferences, validation, transactional publication, and durable persistence. |
+| `Source/Spelljammer.Storage/` | Shared durable staging, atomic replacement, recovery, and exact-file cleanup primitives. |
 | `Source/Spelljammer.Localization/` | Game-owned localization runtime and message formatter. |
 | `Tools/Spelljammer.Content.Compiler/` | Offline gameplay-pack validation tool. |
 | `Tools/Spelljammer.Localization.Compiler/` | Source-catalog compiler and validation tools. |
@@ -149,24 +137,19 @@ defined in
 | `Tests/Spelljammer.Content.Tests/` | Compile-only gameplay content and rollback contracts plus frozen v1 fixtures. |
 | `Tests/Spelljammer.Persistence.Tests/` | Compile-only save, preflight, replacement, recovery, and migration contracts. |
 | `Tests/Spelljammer.Settings.Tests/` | Compile-only settings codec, rollback, recovery, and cleanup contracts. |
-| `Docs/DesignConcept/` | Current vision and playable-slice scope. |
+| `Docs/Concept/` | Current vision and playable-slice scope. |
 | `Docs/Architecture/` | Implemented and planned subsystem boundaries. |
 | `Docs/Archive/` | Historical explorations; not current product authority. |
 | `Build/` | Focused CMake declarations included by the root project. |
 
-Planned implementation contracts are documented in
-[`Docs/Architecture/ContentPacks.md`](Docs/Architecture/ContentPacks.md),
-[`Docs/Architecture/CharacterCapabilities.md`](Docs/Architecture/CharacterCapabilities.md),
-[`Docs/Architecture/CampaignSaves.md`](Docs/Architecture/CampaignSaves.md),
+Implemented and planned contracts are documented in the
+[`Spelljammer.Content` source briefing](Source/Spelljammer.Content/README.md),
+[`Spelljammer.Persistence` source briefing](Source/Spelljammer.Persistence/README.md),
+[`Docs/Architecture/Simulation.md`](Docs/Architecture/Simulation.md),
 [`Docs/Architecture/GameSettings.md`](Docs/Architecture/GameSettings.md),
 [`Docs/Architecture/MainMenu.md`](Docs/Architecture/MainMenu.md),
 [`Docs/Architecture/Modding.md`](Docs/Architecture/Modding.md), and
-[`Docs/Architecture/ImplementationRoadmap.md`](Docs/Architecture/ImplementationRoadmap.md).
-The frozen version 1 identity, serialization, bounds, and diagnostic contracts
-are in
-[`Docs/Architecture/ContentContractsV1.md`](Docs/Architecture/ContentContractsV1.md)
-and
-[`Docs/Architecture/ContentLimitsAndDiagnostics.md`](Docs/Architecture/ContentLimitsAndDiagnostics.md).
+[`Docs/Architecture/BattleMapRoadMap.md`](Docs/Architecture/BattleMapRoadMap.md).
 
 ## Build and run
 

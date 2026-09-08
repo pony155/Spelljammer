@@ -35,7 +35,7 @@ public sealed record RecruitmentResult(CrewRoster? Roster, RecruitmentFailure Fa
 /// </summary>
 public static class CrewRecruitmentSystem
 {
-    public static RecruitmentResult Create(CharacterState protagonist, ICharacterContentCatalog catalog)
+    public static RecruitmentResult Create(CharacterState protagonist, ICharacterDefinitionCatalog catalog)
     {
         ArgumentNullException.ThrowIfNull(protagonist);
         ArgumentNullException.ThrowIfNull(catalog);
@@ -70,7 +70,7 @@ public static class CrewRecruitmentSystem
     public static RecruitmentResult Recruit(
         CrewRoster roster,
         CharacterState npc,
-        ICharacterContentCatalog catalog)
+        ICharacterDefinitionCatalog catalog)
     {
         ArgumentNullException.ThrowIfNull(roster);
         ArgumentNullException.ThrowIfNull(npc);
@@ -123,7 +123,7 @@ public static class CrewRecruitmentSystem
 
     private static bool TryValidateCharacter(
         CharacterState character,
-        ICharacterContentCatalog catalog,
+        ICharacterDefinitionCatalog catalog,
         out RecruitmentFailure failure)
     {
         if (!catalog.TryGetCharacter(character.Id, out CharacterDefinition? definition))

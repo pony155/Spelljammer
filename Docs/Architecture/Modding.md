@@ -8,10 +8,13 @@ mod directory, package manager, executable-script host, or user-facing mod
 loader exists. Existing localization source files are build inputs, not
 evidence that runtime gameplay mods already work.
 
-The content pipeline is defined in [`ContentPacks.md`](ContentPacks.md).
+The content pipeline is summarized in the
+[`Spelljammer.Content` source briefing](../../Source/Spelljammer.Content/README.md).
 Character definitions and access grants are defined in
-[`CharacterCapabilities.md`](CharacterCapabilities.md). The implemented save
-contract is defined in [`CampaignSaves.md`](CampaignSaves.md).
+the [Abilities](../Concept/Abilities.md), [Skills](../Concept/Skills.md), and
+[Feats](../Concept/Feats.md) concepts. The implemented save contract is
+summarized in the
+[`Spelljammer.Persistence` source briefing](../../Source/Spelljammer.Persistence/README.md).
 
 ## Initial scope
 
@@ -172,9 +175,9 @@ explain-id <stable-id>
 These command names and positional arguments are the version 1 author-tooling
 contract. Commands are offline, noninteractive, deterministic, and return zero
 only when validation succeeds. Machine-readable diagnostics use the records
-defined in
-[`ContentLimitsAndDiagnostics.md`](ContentLimitsAndDiagnostics.md) and
-accompany concise console output.
+defined by the bounded diagnostics described in the
+[`Spelljammer.Content` source briefing](../../Source/Spelljammer.Content/README.md)
+and accompany concise console output.
 
 A pack report lists definition counts, namespaces, dependencies, references,
 unused localization keys, consumed limits, and semantic fingerprint. Validation

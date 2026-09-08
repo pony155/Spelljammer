@@ -86,7 +86,7 @@ public sealed class CharacterCapabilities
     /// <returns>True if the ability was found and retrieved; otherwise, false.</returns>
     public bool TryGetAbility(
         AbilityId id,
-        ICharacterContentCatalog catalog,
+        ICharacterDefinitionCatalog catalog,
         out short value,
         out CapabilityLookupFailure failure)
     {
@@ -122,7 +122,7 @@ public sealed class CharacterCapabilities
     /// <returns>True if the skill was found and retrieved; otherwise, false.</returns>
     public bool TryGetSkill(
         SkillId id,
-        ICharacterContentCatalog catalog,
+        ICharacterDefinitionCatalog catalog,
         out byte value,
         out CapabilityLookupFailure failure)
     {
@@ -145,7 +145,7 @@ public sealed class CharacterCapabilities
         return true;
     }
 
-    public CharacterCapabilitySnapshot Snapshot(ICharacterContentCatalog catalog)
+    public CharacterCapabilitySnapshot Snapshot(ICharacterDefinitionCatalog catalog)
     {
         if (catalog.Fingerprint != Fingerprint || catalog.Abilities.Length != abilityValues.Length ||
             catalog.Skills.Length != skillValues.Length)
@@ -174,7 +174,7 @@ public sealed class CharacterCapabilities
             [.. GrantSources.OrderBy(value => value.CapabilityId).ThenBy(value => value.SourceId)]);
     }
 
-    public static CharacterCapabilities Restore(CharacterCapabilitySnapshot snapshot, ICharacterContentCatalog catalog)
+    public static CharacterCapabilities Restore(CharacterCapabilitySnapshot snapshot, ICharacterDefinitionCatalog catalog)
     {
         ArgumentNullException.ThrowIfNull(snapshot);
         ArgumentNullException.ThrowIfNull(catalog);
@@ -346,7 +346,7 @@ public sealed record CharacterState(
     /// Thrown when the state has a content mismatch, invalid references, negative
     /// resources or progress, or exceeds a bounded collection.
     /// </exception>
-    public void ValidateForContent(ICharacterContentCatalog catalog)
+    public void ValidateForContent(ICharacterStateCatalog catalog)
     {
         ArgumentNullException.ThrowIfNull(catalog);
         if (ContentFingerprint != catalog.Fingerprint || Capabilities.Fingerprint != ContentFingerprint)
