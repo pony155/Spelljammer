@@ -14,6 +14,9 @@ public interface ICharacterContentCatalog
     ImmutableArray<EquipmentDefinition> Equipment { get; }
     ImmutableArray<MeleeWeaponDefinition> MeleeWeapons { get; }
     ImmutableArray<MeleeWeaponActionDefinition> MeleeWeaponActions { get; }
+    ImmutableArray<RangedWeaponDefinition> RangedWeapons { get; }
+    ImmutableArray<AmmunitionDefinition> Ammunition { get; }
+    ImmutableArray<RangedWeaponActionDefinition> RangedWeaponActions { get; }
     ImmutableArray<BoardCellDefinition> BoardCells { get; }
     ImmutableArray<ZoneLinkDefinition> ZoneLinks { get; }
     ImmutableArray<PersonalBoardDefinition> PersonalBoards { get; }
@@ -35,6 +38,9 @@ public interface ICharacterContentCatalog
     bool TryGetEquipment(EquipmentId id, out EquipmentDefinition? definition);
     bool TryGetMeleeWeapon(MeleeWeaponId id, out MeleeWeaponDefinition? definition);
     bool TryGetMeleeWeaponAction(MeleeWeaponActionId id, out MeleeWeaponActionDefinition? definition);
+    bool TryGetRangedWeapon(RangedWeaponId id, out RangedWeaponDefinition? definition);
+    bool TryGetAmmunition(AmmunitionId id, out AmmunitionDefinition? definition);
+    bool TryGetRangedWeaponAction(RangedWeaponActionId id, out RangedWeaponActionDefinition? definition);
     bool TryGetBoardCell(CellId id, out BoardCellDefinition? definition);
     bool TryGetZoneLink(LinkId id, out ZoneLinkDefinition? definition);
     bool TryGetPersonalBoard(PersonalBoardId id, out PersonalBoardDefinition? definition);

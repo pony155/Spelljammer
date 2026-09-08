@@ -31,6 +31,8 @@
     "skill.enchantment.description": {"description":"Skill summary.","message":"Design, bind, identify, maintain, and remove persistent magical effects."},
     "skill.engineering.name": {"description":"Skill display name.","message":"Engineering"},
     "skill.engineering.description": {"description":"Skill summary.","message":"Diagnose, operate, maintain, and repair ship machinery and infrastructure."},
+    "skill.firearms.name": {"description":"Skill display name.","message":"Firearms"},
+    "skill.firearms.description": {"description":"Skill summary.","message":"Operate pistols, rifles, shotguns, and other character-scale ranged weapons."},
     "skill.eva.name": {"description":"Skill display name.","message":"EVA"},
     "skill.eva.description": {"description":"Skill summary.","message":"Operate suits, tethers, handholds, and propellant while working outside a hull."},
     "skill.gunnery.name": {"description":"Skill display name.","message":"Gunnery"},

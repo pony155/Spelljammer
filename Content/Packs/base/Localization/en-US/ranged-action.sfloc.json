@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "locale": "en-US",
+  "namespace": "ranged-action",
+  "fallbacks": [],
+  "textDirection": "ltr",
+  "messages": {
+    "ranged-action.standard-shot.name": { "description": "Standard shot action display name.", "message": "Standard Shot" },
+    "ranged-action.standard-shot.description": { "description": "Standard shot action summary.", "message": "Fire one controlled shot." },
+    "ranged-action.aimed-shot.name": { "description": "Aimed shot action display name.", "message": "Aimed Shot" },
+    "ranged-action.aimed-shot.description": { "description": "Aimed shot action summary.", "message": "Spend additional time and effort for a more accurate shot." },
+    "ranged-action.reload-magazine.name": { "description": "Reload action display name.", "message": "Reload Magazine" },
+    "ranged-action.reload-magazine.description": { "description": "Reload action summary.", "message": "Load compatible ammunition into the weapon''s magazine." }
+  }
+}

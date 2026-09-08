@@ -665,6 +665,10 @@ public sealed class GameContentCompiler
                     {
                         CheckReference(definition, meleeWeaponId, DefinitionKind.MeleeWeapon, byId, "/meleeWeaponId", diagnostics);
                     }
+                    if (definition.Strings.TryGetValue("rangedWeaponId", out string? rangedWeaponId))
+                    {
+                        CheckReference(definition, rangedWeaponId, DefinitionKind.RangedWeapon, byId, "/rangedWeaponId", diagnostics);
+                    }
                     break;
                 case DefinitionKind.MeleeWeapon:
                     CheckReference(definition, definition.Strings["skillId"], DefinitionKind.Skill, byId, "/skillId", diagnostics);
@@ -672,6 +676,13 @@ public sealed class GameContentCompiler
                     CheckReferences(definition, definition.Arrays["actionIds"], DefinitionKind.MeleeWeaponAction, byId, "/actionIds", diagnostics);
                     break;
                 case DefinitionKind.MeleeWeaponAction:
+                    CheckPrimitives(definition, definition.Arrays["effectIds"], "/effectIds", diagnostics);
+                    break;
+                case DefinitionKind.RangedWeapon:
+                    CheckReference(definition, definition.Strings["skillId"], DefinitionKind.Skill, byId, "/skillId", diagnostics);
+                    CheckReferences(definition, definition.Arrays["actionIds"], DefinitionKind.RangedWeaponAction, byId, "/actionIds", diagnostics);
+                    break;
+                case DefinitionKind.RangedWeaponAction:
                     CheckPrimitives(definition, definition.Arrays["effectIds"], "/effectIds", diagnostics);
                     break;
                 case DefinitionKind.BoardCell:
@@ -771,6 +782,15 @@ public sealed class GameContentCompiler
                     break;
                 case DefinitionKind.MeleeWeaponAction:
                     ValidateMeleeWeaponAction(definition, diagnostics);
+                    break;
+                case DefinitionKind.RangedWeapon:
+                    ValidateRangedWeapon(definition, diagnostics);
+                    break;
+                case DefinitionKind.Ammunition:
+                    ValidateAmmunition(definition, diagnostics);
+                    break;
+                case DefinitionKind.RangedWeaponAction:
+                    ValidateRangedWeaponAction(definition, diagnostics);
                     break;
                 case DefinitionKind.BoardCell when definition.Integers["q"] is < -1_024 or > 1_024 ||
                     definition.Integers["r"] is < -1_024 or > 1_024 || definition.Integers["capacity"] is < 1 or > 8 ||
@@ -873,6 +893,9 @@ public sealed class GameContentCompiler
                 case DefinitionKind.MeleeWeapon:
                     RequireNonempty(definition, "actionIds", diagnostics);
                     break;
+                case DefinitionKind.RangedWeapon:
+                    RequireNonempty(definition, "actionIds", diagnostics);
+                    break;
                 case DefinitionKind.ZoneLink:
                     if (definition.Strings["fromCellId"] == definition.Strings["toCellId"])
                     {
@@ -959,6 +982,9 @@ public sealed class GameContentCompiler
         ImmutableArray<EquipmentDefinition> equipment = [.. sources.Where(value => value.Kind == DefinitionKind.Equipment).OrderBy(value => value.Id).Select(CompileEquipment)];
         ImmutableArray<MeleeWeaponDefinition> meleeWeapons = [.. sources.Where(value => value.Kind == DefinitionKind.MeleeWeapon).OrderBy(value => value.Id).Select(CompileMeleeWeapon)];
         ImmutableArray<MeleeWeaponActionDefinition> meleeWeaponActions = [.. sources.Where(value => value.Kind == DefinitionKind.MeleeWeaponAction).OrderBy(value => value.Id).Select(CompileMeleeWeaponAction)];
+        ImmutableArray<RangedWeaponDefinition> rangedWeapons = [.. sources.Where(value => value.Kind == DefinitionKind.RangedWeapon).OrderBy(value => value.Id).Select(CompileRangedWeapon)];
+        ImmutableArray<AmmunitionDefinition> ammunition = [.. sources.Where(value => value.Kind == DefinitionKind.Ammunition).OrderBy(value => value.Id).Select(CompileAmmunition)];
+        ImmutableArray<RangedWeaponActionDefinition> rangedWeaponActions = [.. sources.Where(value => value.Kind == DefinitionKind.RangedWeaponAction).OrderBy(value => value.Id).Select(CompileRangedWeaponAction)];
         ImmutableArray<BoardCellDefinition> boardCells = [.. sources.Where(value => value.Kind == DefinitionKind.BoardCell).OrderBy(value => value.Id).Select(CompileBoardCell)];
         ImmutableArray<ZoneLinkDefinition> zoneLinks = [.. sources.Where(value => value.Kind == DefinitionKind.ZoneLink).OrderBy(value => value.Id).Select(CompileZoneLink)];
         ImmutableArray<PersonalBoardDefinition> personalBoards = [.. sources.Where(value => value.Kind == DefinitionKind.PersonalBoard).OrderBy(value => value.Id).Select(CompilePersonalBoard)];
@@ -968,13 +994,14 @@ public sealed class GameContentCompiler
         ImmutableArray<ShipWeaponConfigurationDefinition> shipWeapons = [.. sources.Where(value => value.Kind == DefinitionKind.ShipWeaponConfiguration).OrderBy(value => value.Id).Select(CompileShipWeapon)];
         ImmutableArray<ContentPackIdentity> identities = [.. packs.Select(pack => new ContentPackIdentity(
             pack.Manifest.Id, pack.Manifest.Version, pack.Manifest.ContentRevision))];
-        ContentDefinition[] all = [.. abilities, .. skills, .. levelProgressionTables, .. characterResourceProfiles, .. access, .. backgrounds, .. characters, .. scenarios, .. feats, .. heritages, .. races, .. training, .. equipment, .. meleeWeapons, .. meleeWeaponActions, .. boardCells, .. zoneLinks, .. personalBoards, .. encounters, .. shipFrames, .. shipModules, .. shipWeapons];
+        ContentDefinition[] all = [.. abilities, .. skills, .. levelProgressionTables, .. characterResourceProfiles, .. access, .. backgrounds, .. characters, .. scenarios, .. feats, .. heritages, .. races, .. training, .. equipment, .. meleeWeapons, .. meleeWeaponActions, .. rangedWeapons, .. ammunition, .. rangedWeaponActions, .. boardCells, .. zoneLinks, .. personalBoards, .. encounters, .. shipFrames, .. shipModules, .. shipWeapons];
         (byte[] canonicalBytes, ContentFingerprint fingerprint) = CanonicalSemanticWriter.Write(identities, all);
         Dictionary<ContentId, ContentId> provenance = sources.ToDictionary(
             source => source.Id,
             source => new ContentId(source.PackId));
         GameContentSnapshot snapshot = new(fingerprint, identities, abilities, skills, levelProgressionTables, characterResourceProfiles, access, backgrounds, characters, scenarios, feats, heritages, races, training,
-            equipment, meleeWeapons, meleeWeaponActions, boardCells, zoneLinks, personalBoards, encounters, shipFrames, shipModules, shipWeapons,
+            equipment, meleeWeapons, meleeWeaponActions, rangedWeapons, ammunition, rangedWeaponActions,
+            boardCells, zoneLinks, personalBoards, encounters, shipFrames, shipModules, shipWeapons,
             [.. canonicalBytes], provenance);
         return new ContentCompilationResult(snapshot, diagnostics.ToImmutable(), null);
     }
@@ -1113,7 +1140,8 @@ public sealed class GameContentCompiler
         new ResourceId(value.Strings["resourceId"]), value.Integers["resourceCapacity"],
         Sort(value.Arrays["actionIds"]).Select(item => new ContentId(item)).ToImmutableArray(),
         Sort(value.Arrays["effectIds"]).Select(item => new ContentId(item)).ToImmutableArray(),
-        value.Strings.TryGetValue("meleeWeaponId", out string? meleeWeaponId) ? new MeleeWeaponId(meleeWeaponId) : null);
+        value.Strings.TryGetValue("meleeWeaponId", out string? meleeWeaponId) ? new MeleeWeaponId(meleeWeaponId) : null,
+        value.Strings.TryGetValue("rangedWeaponId", out string? rangedWeaponId) ? new RangedWeaponId(rangedWeaponId) : null);
 
     private static MeleeWeaponDefinition CompileMeleeWeapon(SourceDefinition value) => new(
         new MeleeWeaponId(value.Id), 1, value.Revision, value.NameKey, value.DescriptionKey,
@@ -1165,6 +1193,91 @@ public sealed class GameContentCompiler
     {
         "one-handed" => MeleeWeaponHands.OneHanded,
         "two-handed" => MeleeWeaponHands.TwoHanded,
+        _ => throw new ArgumentOutOfRangeException(nameof(value)),
+    };
+
+    private static RangedWeaponDefinition CompileRangedWeapon(SourceDefinition value) => new(
+        new RangedWeaponId(value.Id), 1, value.Revision, value.NameKey, value.DescriptionKey,
+        ParseRangedWeaponFamily(value.Strings["family"]),
+        ParseRangedWeaponTechnology(value.Strings["technology"]),
+        ParseRangedWeaponHands(value.Strings["hands"]),
+        new SkillId(value.Strings["skillId"]),
+        value.Integers["damageMinimum"], value.Integers["damageMaximum"],
+        value.Integers["armorDamagePercentage"], value.Integers["armorPenetrationPercentage"],
+        value.Integers["staminaCost"], value.Integers["optimalRange"], value.Integers["maximumRange"],
+        value.Integers["weightGrams"], value.Integers["maximumDurability"], value.Integers["value"],
+        value.Strings.TryGetValue("ammunitionType", out string? ammunitionType)
+            ? ParseAmmunitionType(ammunitionType)
+            : null,
+        value.Integers.GetValueOrDefault("magazineCapacity"),
+        value.Integers.GetValueOrDefault("energyCapacity"), value.Integers.GetValueOrDefault("energyPerShot"),
+        value.Integers.GetValueOrDefault("heatCapacity"), value.Integers.GetValueOrDefault("heatPerShot"),
+        Sort(value.Arrays["traits"]),
+        Sort(value.Arrays["actionIds"]).Select(item => new RangedWeaponActionId(item)).ToImmutableArray());
+
+    private static AmmunitionDefinition CompileAmmunition(SourceDefinition value) => new(
+        new AmmunitionId(value.Id), 1, value.Revision, value.NameKey, value.DescriptionKey,
+        ParseAmmunitionType(value.Strings["ammunitionType"]),
+        ParseRangedWeaponTechnology(value.Strings["technology"]),
+        value.Integers["damagePercentage"], value.Integers["armorDamagePercentage"],
+        value.Integers["armorPenetrationModifier"], value.Integers["rangeModifier"],
+        value.Integers["stackSize"], value.Integers["weightGrams"], value.Integers["value"],
+        Sort(value.Arrays["traits"]));
+
+    private static RangedWeaponActionDefinition CompileRangedWeaponAction(SourceDefinition value) => new(
+        new RangedWeaponActionId(value.Id), 1, value.Revision, value.NameKey, value.DescriptionKey,
+        value.Strings["kind"] == "reload" ? RangedWeaponActionKind.Reload : RangedWeaponActionKind.Attack,
+        value.Integers["actionPointCost"], value.Integers["staminaCostModifier"],
+        value.Integers["hitModifier"], value.Integers["damagePercentage"],
+        value.Integers["ammunitionCost"], value.Integers["shotCount"],
+        value.Integers["energyCostModifier"], value.Integers["heatModifier"],
+        value.Integers["durabilityCost"], value.Integers["rangePenaltyPerUnit"],
+        value.Integers["damageFalloffPerUnitPercentage"], value.Integers["reloadAmount"],
+        Sort(value.Arrays["effectIds"]).Select(item => new ContentId(item)).ToImmutableArray());
+
+    private static RangedWeaponFamily ParseRangedWeaponFamily(string value) => value switch
+    {
+        "bow" => RangedWeaponFamily.Bow,
+        "crossbow" => RangedWeaponFamily.Crossbow,
+        "pistol" => RangedWeaponFamily.Pistol,
+        "rifle" => RangedWeaponFamily.Rifle,
+        "shotgun" => RangedWeaponFamily.Shotgun,
+        "heavy" => RangedWeaponFamily.Heavy,
+        "launcher" => RangedWeaponFamily.Launcher,
+        "special" => RangedWeaponFamily.Special,
+        _ => throw new ArgumentOutOfRangeException(nameof(value)),
+    };
+
+    private static RangedWeaponTechnology ParseRangedWeaponTechnology(string value) => value switch
+    {
+        "conventional" => RangedWeaponTechnology.Conventional,
+        "ballistic" => RangedWeaponTechnology.Ballistic,
+        "laser" => RangedWeaponTechnology.Laser,
+        "plasma" => RangedWeaponTechnology.Plasma,
+        "arcane" => RangedWeaponTechnology.Arcane,
+        _ => throw new ArgumentOutOfRangeException(nameof(value)),
+    };
+
+    private static RangedWeaponHands ParseRangedWeaponHands(string value) => value switch
+    {
+        "one-handed" => RangedWeaponHands.OneHanded,
+        "two-handed" => RangedWeaponHands.TwoHanded,
+        _ => throw new ArgumentOutOfRangeException(nameof(value)),
+    };
+
+    private static AmmunitionType ParseAmmunitionType(string value) => value switch
+    {
+        "arrow" => AmmunitionType.Arrow,
+        "crossbow-bolt" => AmmunitionType.CrossbowBolt,
+        "pistol-round" => AmmunitionType.PistolRound,
+        "rifle-round" => AmmunitionType.RifleRound,
+        "shotgun-shell" => AmmunitionType.ShotgunShell,
+        "grenade" => AmmunitionType.Grenade,
+        "rocket" => AmmunitionType.Rocket,
+        "mini-nuke" => AmmunitionType.MiniNuke,
+        "flamethrower-fuel" => AmmunitionType.FlamethrowerFuel,
+        "laser-cell" => AmmunitionType.LaserCell,
+        "plasma-cell" => AmmunitionType.PlasmaCell,
         _ => throw new ArgumentOutOfRangeException(nameof(value)),
     };
 
@@ -1439,6 +1552,96 @@ public sealed class GameContentCompiler
         }
     }
 
+    private static void ValidateRangedWeapon(SourceDefinition definition, DiagnosticSink diagnostics)
+    {
+        string family = definition.Strings["family"];
+        string technology = definition.Strings["technology"];
+        bool enumInvalid = family is not ("bow" or "crossbow" or "pistol" or "rifle" or "shotgun" or "heavy" or "launcher" or "special") ||
+            technology is not ("conventional" or "ballistic" or "laser" or "plasma" or "arcane") ||
+            definition.Strings["hands"] is not ("one-handed" or "two-handed") ||
+            !IsRangedCombinationAllowed(family, technology);
+        int energyCapacity = definition.Integers.GetValueOrDefault("energyCapacity");
+        int energyPerShot = definition.Integers.GetValueOrDefault("energyPerShot");
+        int heatCapacity = definition.Integers.GetValueOrDefault("heatCapacity");
+        int heatPerShot = definition.Integers.GetValueOrDefault("heatPerShot");
+        int magazineCapacity = definition.Integers.GetValueOrDefault("magazineCapacity");
+        bool hasAmmunition = definition.Strings.ContainsKey("ammunitionType");
+        bool numberInvalid = definition.Integers["damageMinimum"] is < 0 or > 1_000_000 ||
+            definition.Integers["damageMaximum"] < definition.Integers["damageMinimum"] ||
+            definition.Integers["damageMaximum"] > 1_000_000 ||
+            definition.Integers["armorDamagePercentage"] is < 0 or > 1_000 ||
+            definition.Integers["armorPenetrationPercentage"] is < 0 or > 100 ||
+            definition.Integers["staminaCost"] is < 0 or > 1_000_000 ||
+            definition.Integers["optimalRange"] is < 0 or > 1_000_000 ||
+            definition.Integers["maximumRange"] < definition.Integers["optimalRange"] ||
+            definition.Integers["maximumRange"] > 1_000_000 ||
+            definition.Integers["weightGrams"] is < 0 or > 1_000_000 ||
+            definition.Integers["maximumDurability"] is < 1 or > 1_000_000 ||
+            definition.Integers["value"] is < 0 or > 1_000_000 ||
+            magazineCapacity is < 0 or > 1_000_000 ||
+            energyCapacity is < 0 or > 1_000_000 || energyPerShot < 0 || energyPerShot > energyCapacity ||
+            heatCapacity is < 0 or > 1_000_000 || heatPerShot < 0 || heatPerShot > heatCapacity ||
+            (!hasAmmunition && magazineCapacity != 0) || (hasAmmunition && energyCapacity != 0);
+        if (enumInvalid || numberInvalid)
+        {
+            OutOfRange(definition, enumInvalid ? "/family" : "/damageMinimum", diagnostics);
+        }
+    }
+
+    private static void ValidateAmmunition(SourceDefinition definition, DiagnosticSink diagnostics)
+    {
+        bool enumInvalid = !IsAmmunitionType(definition.Strings["ammunitionType"]) ||
+            definition.Strings["technology"] is not ("conventional" or "ballistic" or "laser" or "plasma" or "arcane");
+        bool numberInvalid = definition.Integers["damagePercentage"] is < 1 or > 1_000 ||
+            definition.Integers["armorDamagePercentage"] is < 0 or > 1_000 ||
+            definition.Integers["armorPenetrationModifier"] is < -100 or > 100 ||
+            definition.Integers["rangeModifier"] is < -1_000_000 or > 1_000_000 ||
+            definition.Integers["stackSize"] is < 1 or > 1_000_000 ||
+            definition.Integers["weightGrams"] is < 0 or > 1_000_000 ||
+            definition.Integers["value"] is < 0 or > 1_000_000;
+        if (enumInvalid || numberInvalid)
+        {
+            OutOfRange(definition, enumInvalid ? "/ammunitionType" : "/damagePercentage", diagnostics);
+        }
+    }
+
+    private static void ValidateRangedWeaponAction(SourceDefinition definition, DiagnosticSink diagnostics)
+    {
+        string kind = definition.Strings["kind"];
+        bool commonInvalid = kind is not ("attack" or "reload") ||
+            definition.Integers["actionPointCost"] is < 1 or > 1_000_000 ||
+            definition.Integers["staminaCostModifier"] is < -1_000_000 or > 1_000_000 ||
+            definition.Integers["hitModifier"] is < -10_000 or > 10_000 ||
+            definition.Integers["ammunitionCost"] is < 0 or > 1_000_000 ||
+            definition.Integers["energyCostModifier"] is < -1_000_000 or > 1_000_000 ||
+            definition.Integers["heatModifier"] is < -1_000_000 or > 1_000_000 ||
+            definition.Integers["durabilityCost"] is < 0 or > 1_000_000 ||
+            definition.Integers["rangePenaltyPerUnit"] is < 0 or > 10_000 ||
+            definition.Integers["damageFalloffPerUnitPercentage"] is < 0 or > 100 ||
+            definition.Integers["reloadAmount"] is < 0 or > 1_000_000;
+        bool kindInvalid = kind == "attack"
+            ? definition.Integers["damagePercentage"] is < 1 or > 1_000 ||
+              definition.Integers["shotCount"] is < 1 or > 1_000 || definition.Integers["reloadAmount"] != 0
+            : definition.Integers["damagePercentage"] != 0 || definition.Integers["shotCount"] != 0 ||
+              definition.Integers["ammunitionCost"] != 0 || definition.Integers["reloadAmount"] < 1;
+        if (commonInvalid || kindInvalid)
+        {
+            OutOfRange(definition, "/kind", diagnostics);
+        }
+    }
+
+    private static bool IsRangedCombinationAllowed(string family, string technology) => family switch
+    {
+        "bow" or "crossbow" => technology is "conventional" or "arcane",
+        "pistol" or "rifle" or "heavy" => technology is "ballistic" or "laser" or "plasma",
+        "shotgun" or "launcher" or "special" => technology == "ballistic",
+        _ => false,
+    };
+
+    private static bool IsAmmunitionType(string value) => value is
+        "arrow" or "crossbow-bolt" or "pistol-round" or "rifle-round" or "shotgun-shell" or
+        "grenade" or "rocket" or "mini-nuke" or "flamethrower-fuel" or "laser-cell" or "plasma-cell";
+
     private static void ValidateRace(SourceDefinition race, IReadOnlyDictionary<string, SourceDefinition> byId, DiagnosticSink diagnostics)
     {
         foreach (string featId in race.Arrays["grantedFeatIds"])
@@ -1691,6 +1894,9 @@ public sealed class GameContentCompiler
         DefinitionKind.Equipment => "equipment.",
         DefinitionKind.MeleeWeapon => "melee-weapon.",
         DefinitionKind.MeleeWeaponAction => "melee-action.",
+        DefinitionKind.RangedWeapon => "ranged-weapon.",
+        DefinitionKind.Ammunition => "ammunition.",
+        DefinitionKind.RangedWeaponAction => "ranged-action.",
         DefinitionKind.BoardCell => "cell.",
         DefinitionKind.ZoneLink => "link.",
         DefinitionKind.PersonalBoard => "board.",

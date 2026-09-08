@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "locale": "en-US",
+  "namespace": "ammunition",
+  "fallbacks": [],
+  "textDirection": "ltr",
+  "messages": {
+    "ammunition.pistol.standard.name": { "description": "Standard pistol ammunition display name.", "message": "Standard Pistol Round" },
+    "ammunition.pistol.standard.description": { "description": "Standard pistol ammunition summary.", "message": "A common ballistic cartridge with balanced combat performance." }
+  }
+}

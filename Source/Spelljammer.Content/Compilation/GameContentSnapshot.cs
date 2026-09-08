@@ -46,6 +46,9 @@ public sealed class GameContentSnapshot : ICharacterContentCatalog
         ImmutableArray<EquipmentDefinition> equipment,
         ImmutableArray<MeleeWeaponDefinition> meleeWeapons,
         ImmutableArray<MeleeWeaponActionDefinition> meleeWeaponActions,
+        ImmutableArray<RangedWeaponDefinition> rangedWeapons,
+        ImmutableArray<AmmunitionDefinition> ammunition,
+        ImmutableArray<RangedWeaponActionDefinition> rangedWeaponActions,
         ImmutableArray<BoardCellDefinition> boardCells,
         ImmutableArray<ZoneLinkDefinition> zoneLinks,
         ImmutableArray<PersonalBoardDefinition> personalBoards,
@@ -73,6 +76,9 @@ public sealed class GameContentSnapshot : ICharacterContentCatalog
         Equipment = equipment;
         MeleeWeapons = meleeWeapons;
         MeleeWeaponActions = meleeWeaponActions;
+        RangedWeapons = rangedWeapons;
+        Ammunition = ammunition;
+        RangedWeaponActions = rangedWeaponActions;
         BoardCells = boardCells;
         ZoneLinks = zoneLinks;
         PersonalBoards = personalBoards;
@@ -100,6 +106,9 @@ public sealed class GameContentSnapshot : ICharacterContentCatalog
         EquipmentRegistry = new TypedDefinitionRegistry<EquipmentId, EquipmentDefinition>(fingerprint, equipment, definition => definition.EquipmentId);
         MeleeWeaponRegistry = new TypedDefinitionRegistry<MeleeWeaponId, MeleeWeaponDefinition>(fingerprint, meleeWeapons, definition => definition.MeleeWeaponId);
         MeleeWeaponActionRegistry = new TypedDefinitionRegistry<MeleeWeaponActionId, MeleeWeaponActionDefinition>(fingerprint, meleeWeaponActions, definition => definition.MeleeWeaponActionId);
+        RangedWeaponRegistry = new TypedDefinitionRegistry<RangedWeaponId, RangedWeaponDefinition>(fingerprint, rangedWeapons, definition => definition.RangedWeaponId);
+        AmmunitionRegistry = new TypedDefinitionRegistry<AmmunitionId, AmmunitionDefinition>(fingerprint, ammunition, definition => definition.AmmunitionId);
+        RangedWeaponActionRegistry = new TypedDefinitionRegistry<RangedWeaponActionId, RangedWeaponActionDefinition>(fingerprint, rangedWeaponActions, definition => definition.RangedWeaponActionId);
         BoardCellRegistry = new TypedDefinitionRegistry<CellId, BoardCellDefinition>(fingerprint, boardCells, definition => definition.CellId);
         ZoneLinkRegistry = new TypedDefinitionRegistry<LinkId, ZoneLinkDefinition>(fingerprint, zoneLinks, definition => definition.LinkId);
         PersonalBoardRegistry = new TypedDefinitionRegistry<PersonalBoardId, PersonalBoardDefinition>(fingerprint, personalBoards, definition => definition.PersonalBoardId);
@@ -123,6 +132,9 @@ public sealed class GameContentSnapshot : ICharacterContentCatalog
             .Concat(equipment)
             .Concat(meleeWeapons)
             .Concat(meleeWeaponActions)
+            .Concat(rangedWeapons)
+            .Concat(ammunition)
+            .Concat(rangedWeaponActions)
             .Concat(boardCells)
             .Concat(zoneLinks)
             .Concat(personalBoards)
@@ -151,6 +163,9 @@ public sealed class GameContentSnapshot : ICharacterContentCatalog
     public ImmutableArray<EquipmentDefinition> Equipment { get; }
     public ImmutableArray<MeleeWeaponDefinition> MeleeWeapons { get; }
     public ImmutableArray<MeleeWeaponActionDefinition> MeleeWeaponActions { get; }
+    public ImmutableArray<RangedWeaponDefinition> RangedWeapons { get; }
+    public ImmutableArray<AmmunitionDefinition> Ammunition { get; }
+    public ImmutableArray<RangedWeaponActionDefinition> RangedWeaponActions { get; }
     public ImmutableArray<BoardCellDefinition> BoardCells { get; }
     public ImmutableArray<ZoneLinkDefinition> ZoneLinks { get; }
     public ImmutableArray<PersonalBoardDefinition> PersonalBoards { get; }
@@ -174,6 +189,9 @@ public sealed class GameContentSnapshot : ICharacterContentCatalog
     public TypedDefinitionRegistry<EquipmentId, EquipmentDefinition> EquipmentRegistry { get; }
     public TypedDefinitionRegistry<MeleeWeaponId, MeleeWeaponDefinition> MeleeWeaponRegistry { get; }
     public TypedDefinitionRegistry<MeleeWeaponActionId, MeleeWeaponActionDefinition> MeleeWeaponActionRegistry { get; }
+    public TypedDefinitionRegistry<RangedWeaponId, RangedWeaponDefinition> RangedWeaponRegistry { get; }
+    public TypedDefinitionRegistry<AmmunitionId, AmmunitionDefinition> AmmunitionRegistry { get; }
+    public TypedDefinitionRegistry<RangedWeaponActionId, RangedWeaponActionDefinition> RangedWeaponActionRegistry { get; }
     public TypedDefinitionRegistry<CellId, BoardCellDefinition> BoardCellRegistry { get; }
     public TypedDefinitionRegistry<LinkId, ZoneLinkDefinition> ZoneLinkRegistry { get; }
     public TypedDefinitionRegistry<PersonalBoardId, PersonalBoardDefinition> PersonalBoardRegistry { get; }
@@ -207,6 +225,9 @@ public sealed class GameContentSnapshot : ICharacterContentCatalog
     public bool TryGetEquipment(EquipmentId id, out EquipmentDefinition? definition) => EquipmentRegistry.TryGet(id, out definition);
     public bool TryGetMeleeWeapon(MeleeWeaponId id, out MeleeWeaponDefinition? definition) => MeleeWeaponRegistry.TryGet(id, out definition);
     public bool TryGetMeleeWeaponAction(MeleeWeaponActionId id, out MeleeWeaponActionDefinition? definition) => MeleeWeaponActionRegistry.TryGet(id, out definition);
+    public bool TryGetRangedWeapon(RangedWeaponId id, out RangedWeaponDefinition? definition) => RangedWeaponRegistry.TryGet(id, out definition);
+    public bool TryGetAmmunition(AmmunitionId id, out AmmunitionDefinition? definition) => AmmunitionRegistry.TryGet(id, out definition);
+    public bool TryGetRangedWeaponAction(RangedWeaponActionId id, out RangedWeaponActionDefinition? definition) => RangedWeaponActionRegistry.TryGet(id, out definition);
     public bool TryGetBoardCell(CellId id, out BoardCellDefinition? definition) => BoardCellRegistry.TryGet(id, out definition);
     public bool TryGetZoneLink(LinkId id, out ZoneLinkDefinition? definition) => ZoneLinkRegistry.TryGet(id, out definition);
     public bool TryGetPersonalBoard(PersonalBoardId id, out PersonalBoardDefinition? definition) => PersonalBoardRegistry.TryGet(id, out definition);
@@ -237,6 +258,9 @@ public sealed class GameContentSnapshot : ICharacterContentCatalog
         AddEntries(entries, "Equipment", Equipment, definition => definition.Id);
         AddEntries(entries, "MeleeWeapon", MeleeWeapons, definition => definition.Id);
         AddEntries(entries, "MeleeWeaponAction", MeleeWeaponActions, definition => definition.Id);
+        AddEntries(entries, "RangedWeapon", RangedWeapons, definition => definition.Id);
+        AddEntries(entries, "Ammunition", Ammunition, definition => definition.Id);
+        AddEntries(entries, "RangedWeaponAction", RangedWeaponActions, definition => definition.Id);
         AddEntries(entries, "BoardCell", BoardCells, definition => definition.Id);
         AddEntries(entries, "ZoneLink", ZoneLinks, definition => definition.Id);
         AddEntries(entries, "PersonalBoard", PersonalBoards, definition => definition.Id);

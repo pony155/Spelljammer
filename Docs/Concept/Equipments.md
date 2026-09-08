@@ -71,6 +71,11 @@ family, technology, durability, energy behavior, AP, accuracy, and armor
 interaction are specified in
 [`../Architecture/MeleeWeaponSystem.md`](../Architecture/MeleeWeaponSystem.md).
 
+Ranged equipment similarly links to separate weapon, ammunition, and action
+definitions. Static magazine, heat, energy, range, and compatibility rules are
+kept apart from each weapon instance's loaded ammunition, condition, and heat;
+see [`../Architecture/RangedWeaponSystem.md`](../Architecture/RangedWeaponSystem.md).
+
 ## Technology and magic
 
 Arcane is the overall magical practice; Aether is the non-material medium that

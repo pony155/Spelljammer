@@ -220,6 +220,10 @@ internal static class CanonicalSemanticWriter
                 {
                     properties["meleeWeaponId"] = output => WriteString(output, meleeWeaponId.ToString());
                 }
+                if (value.RangedWeaponId is RangedWeaponId rangedWeaponId)
+                {
+                    properties["rangedWeaponId"] = output => WriteString(output, rangedWeaponId.ToString());
+                }
                 break;
             case MeleeWeaponDefinition value:
                 properties["abilityId"] = output => WriteString(output, value.AbilityId.ToString());
@@ -254,6 +258,61 @@ internal static class CanonicalSemanticWriter
                 properties["energyCostModifier"] = output => output.Append(value.EnergyCostModifier);
                 properties["hitModifier"] = output => output.Append(value.HitModifier);
                 properties["rangeModifier"] = output => output.Append(value.RangeModifier);
+                properties["staminaCostModifier"] = output => output.Append(value.StaminaCostModifier);
+                break;
+            case RangedWeaponDefinition value:
+                properties["actionIds"] = output => WriteIds(output, value.ActionIds.Select(id => id.Value));
+                if (value.AmmunitionType is AmmunitionType ammunitionType)
+                {
+                    properties["ammunitionType"] = output => WriteString(output, WriteAmmunitionType(ammunitionType));
+                }
+                properties["armorDamagePercentage"] = output => output.Append(value.ArmorDamagePercentage);
+                properties["armorPenetrationPercentage"] = output => output.Append(value.ArmorPenetrationPercentage);
+                properties["damageMaximum"] = output => output.Append(value.DamageMaximum);
+                properties["damageMinimum"] = output => output.Append(value.DamageMinimum);
+                properties["energyCapacity"] = output => output.Append(value.EnergyCapacity);
+                properties["energyPerShot"] = output => output.Append(value.EnergyPerShot);
+                properties["family"] = output => WriteString(output, WriteRangedFamily(value.Family));
+                properties["hands"] = output => WriteString(output, value.Hands == RangedWeaponHands.OneHanded ? "one-handed" : "two-handed");
+                properties["heatCapacity"] = output => output.Append(value.HeatCapacity);
+                properties["heatPerShot"] = output => output.Append(value.HeatPerShot);
+                properties["magazineCapacity"] = output => output.Append(value.MagazineCapacity);
+                properties["maximumDurability"] = output => output.Append(value.MaximumDurability);
+                properties["maximumRange"] = output => output.Append(value.MaximumRange);
+                properties["optimalRange"] = output => output.Append(value.OptimalRange);
+                properties["skillId"] = output => WriteString(output, value.SkillId.ToString());
+                properties["staminaCost"] = output => output.Append(value.StaminaCost);
+                properties["technology"] = output => WriteString(output, WriteRangedTechnology(value.Technology));
+                properties["traits"] = output => WriteStrings(output, value.Traits);
+                properties["value"] = output => output.Append(value.Value);
+                properties["weightGrams"] = output => output.Append(value.WeightGrams);
+                break;
+            case AmmunitionDefinition value:
+                properties["ammunitionType"] = output => WriteString(output, WriteAmmunitionType(value.AmmunitionType));
+                properties["armorDamagePercentage"] = output => output.Append(value.ArmorDamagePercentage);
+                properties["armorPenetrationModifier"] = output => output.Append(value.ArmorPenetrationModifier);
+                properties["damagePercentage"] = output => output.Append(value.DamagePercentage);
+                properties["rangeModifier"] = output => output.Append(value.RangeModifier);
+                properties["stackSize"] = output => output.Append(value.StackSize);
+                properties["technology"] = output => WriteString(output, WriteRangedTechnology(value.Technology));
+                properties["traits"] = output => WriteStrings(output, value.Traits);
+                properties["value"] = output => output.Append(value.Value);
+                properties["weightGrams"] = output => output.Append(value.WeightGrams);
+                break;
+            case RangedWeaponActionDefinition value:
+                properties["actionPointCost"] = output => output.Append(value.ActionPointCost);
+                properties["ammunitionCost"] = output => output.Append(value.AmmunitionCost);
+                properties["damageFalloffPerUnitPercentage"] = output => output.Append(value.DamageFalloffPerUnitPercentage);
+                properties["damagePercentage"] = output => output.Append(value.DamagePercentage);
+                properties["durabilityCost"] = output => output.Append(value.DurabilityCost);
+                properties["effectIds"] = output => WriteIds(output, value.EffectIds);
+                properties["energyCostModifier"] = output => output.Append(value.EnergyCostModifier);
+                properties["heatModifier"] = output => output.Append(value.HeatModifier);
+                properties["hitModifier"] = output => output.Append(value.HitModifier);
+                properties["kind"] = output => WriteString(output, value.Kind == RangedWeaponActionKind.Attack ? "attack" : "reload");
+                properties["rangePenaltyPerUnit"] = output => output.Append(value.RangePenaltyPerUnit);
+                properties["reloadAmount"] = output => output.Append(value.ReloadAmount);
+                properties["shotCount"] = output => output.Append(value.ShotCount);
                 properties["staminaCostModifier"] = output => output.Append(value.StaminaCostModifier);
                 break;
             case BoardCellDefinition value:
@@ -361,13 +420,16 @@ internal static class CanonicalSemanticWriter
         EquipmentDefinition => 12,
         MeleeWeaponDefinition => 13,
         MeleeWeaponActionDefinition => 14,
-        BoardCellDefinition => 15,
-        ZoneLinkDefinition => 16,
-        PersonalBoardDefinition => 17,
-        EncounterDefinition => 18,
-        ShipFrameDefinition => 19,
-        ShipModuleDefinition => 20,
-        ShipWeaponConfigurationDefinition => 21,
+        RangedWeaponDefinition => 15,
+        AmmunitionDefinition => 16,
+        RangedWeaponActionDefinition => 17,
+        BoardCellDefinition => 18,
+        ZoneLinkDefinition => 19,
+        PersonalBoardDefinition => 20,
+        EncounterDefinition => 21,
+        ShipFrameDefinition => 22,
+        ShipModuleDefinition => 23,
+        ShipWeaponConfigurationDefinition => 24,
         _ => throw new ArgumentOutOfRangeException(nameof(definition)),
     };
 
@@ -390,6 +452,45 @@ internal static class CanonicalSemanticWriter
         MeleeWeaponTechnology.Powered => "powered",
         MeleeWeaponTechnology.Arcane => "arcane",
         _ => throw new ArgumentOutOfRangeException(nameof(technology)),
+    };
+
+    private static string WriteRangedFamily(RangedWeaponFamily family) => family switch
+    {
+        RangedWeaponFamily.Bow => "bow",
+        RangedWeaponFamily.Crossbow => "crossbow",
+        RangedWeaponFamily.Pistol => "pistol",
+        RangedWeaponFamily.Rifle => "rifle",
+        RangedWeaponFamily.Shotgun => "shotgun",
+        RangedWeaponFamily.Heavy => "heavy",
+        RangedWeaponFamily.Launcher => "launcher",
+        RangedWeaponFamily.Special => "special",
+        _ => throw new ArgumentOutOfRangeException(nameof(family)),
+    };
+
+    private static string WriteRangedTechnology(RangedWeaponTechnology technology) => technology switch
+    {
+        RangedWeaponTechnology.Conventional => "conventional",
+        RangedWeaponTechnology.Ballistic => "ballistic",
+        RangedWeaponTechnology.Laser => "laser",
+        RangedWeaponTechnology.Plasma => "plasma",
+        RangedWeaponTechnology.Arcane => "arcane",
+        _ => throw new ArgumentOutOfRangeException(nameof(technology)),
+    };
+
+    private static string WriteAmmunitionType(AmmunitionType ammunitionType) => ammunitionType switch
+    {
+        AmmunitionType.Arrow => "arrow",
+        AmmunitionType.CrossbowBolt => "crossbow-bolt",
+        AmmunitionType.PistolRound => "pistol-round",
+        AmmunitionType.RifleRound => "rifle-round",
+        AmmunitionType.ShotgunShell => "shotgun-shell",
+        AmmunitionType.Grenade => "grenade",
+        AmmunitionType.Rocket => "rocket",
+        AmmunitionType.MiniNuke => "mini-nuke",
+        AmmunitionType.FlamethrowerFuel => "flamethrower-fuel",
+        AmmunitionType.LaserCell => "laser-cell",
+        AmmunitionType.PlasmaCell => "plasma-cell",
+        _ => throw new ArgumentOutOfRangeException(nameof(ammunitionType)),
     };
 
     private static void WriteStrings(StringBuilder builder, IEnumerable<string> values)

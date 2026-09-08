@@ -41,7 +41,8 @@ internal static class DefinitionParser
             [DefinitionKind.TrainingProject] = new(
                 ["requiredSkillIds", "workUnits", "progressCap", "facilityId", "resourceId", "resourceCost", "safetyId", "grantedFeatIds"], []),
             [DefinitionKind.Equipment] = new(
-                ["slotId", "initialStateId", "resourceId", "resourceCapacity", "actionIds", "effectIds"], ["meleeWeaponId"]),
+                ["slotId", "initialStateId", "resourceId", "resourceCapacity", "actionIds", "effectIds"],
+                ["meleeWeaponId", "rangedWeaponId"]),
             [DefinitionKind.MeleeWeapon] = new(
                 ["family", "technology", "hands", "skillId", "abilityId", "damageMinimum", "damageMaximum", "armorDamagePercentage",
                  "armorPenetrationPercentage", "staminaCost", "range", "weightGrams", "maximumDurability", "value",
@@ -52,6 +53,18 @@ internal static class DefinitionParser
                 ["actionPointCost", "staminaCostModifier", "hitModifier", "damagePercentage",
                  "armorDamagePercentage", "armorPenetrationModifier", "rangeModifier", "energyCostModifier",
                  "durabilityCost", "effectIds"], []),
+            [DefinitionKind.RangedWeapon] = new(
+                ["family", "technology", "hands", "skillId", "damageMinimum", "damageMaximum",
+                 "armorDamagePercentage", "armorPenetrationPercentage", "staminaCost", "optimalRange", "maximumRange",
+                 "weightGrams", "maximumDurability", "value", "traits", "actionIds"],
+                ["ammunitionType", "magazineCapacity", "energyCapacity", "energyPerShot", "heatCapacity", "heatPerShot"]),
+            [DefinitionKind.Ammunition] = new(
+                ["ammunitionType", "technology", "damagePercentage", "armorDamagePercentage",
+                 "armorPenetrationModifier", "rangeModifier", "stackSize", "weightGrams", "value", "traits"], []),
+            [DefinitionKind.RangedWeaponAction] = new(
+                ["kind", "actionPointCost", "staminaCostModifier", "hitModifier", "damagePercentage",
+                 "ammunitionCost", "shotCount", "energyCostModifier", "heatModifier", "durabilityCost",
+                 "rangePenaltyPerUnit", "damageFalloffPerUnitPercentage", "reloadAmount", "effectIds"], []),
             [DefinitionKind.BoardCell] = new(
                 ["zoneId", "q", "r", "capacity", "cover", "visibility", "atmosphereId", "gravityId", "hazardTags"], []),
             [DefinitionKind.ZoneLink] = new(["fromCellId", "toCellId", "accessId", "oneWay", "allowsRetreat"], []),
@@ -84,6 +97,9 @@ internal static class DefinitionParser
             ["Equipment"] = DefinitionKind.Equipment,
             ["MeleeWeapons"] = DefinitionKind.MeleeWeapon,
             ["MeleeWeaponActions"] = DefinitionKind.MeleeWeaponAction,
+            ["RangedWeapons"] = DefinitionKind.RangedWeapon,
+            ["Ammunition"] = DefinitionKind.Ammunition,
+            ["RangedWeaponActions"] = DefinitionKind.RangedWeaponAction,
             ["BoardCells"] = DefinitionKind.BoardCell,
             ["ZoneLinks"] = DefinitionKind.ZoneLink,
             ["PersonalBoards"] = DefinitionKind.PersonalBoard,
@@ -215,7 +231,8 @@ internal static class DefinitionParser
 
         foreach ((string field, string value) in strings)
         {
-            bool valid = field is "activation" or "activeKind" or "family" or "technology" or "hands"
+            bool valid = field is "activation" or "activeKind" or "family" or "technology" or "hands" or
+                "ammunitionType" or "kind"
                 ? SourceValidation.IsIdSegment(value)
                 : ContentId.IsCanonical(value);
             if (!valid)

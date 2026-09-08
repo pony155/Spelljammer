@@ -47,6 +47,18 @@ public static class ActionRejectionCodes
     /// <summary>The selected target is beyond the action's effective range.</summary>
     public const string TargetOutOfRange = "command.target-out-of-range";
 
+    /// <summary>The ranged weapon has no compatible ammunition loaded.</summary>
+    public const string AmmunitionRequired = "command.ammunition-required";
+
+    /// <summary>The selected ammunition cannot be used by this weapon.</summary>
+    public const string AmmunitionIncompatible = "command.ammunition-incompatible";
+
+    /// <summary>The weapon cannot accept more ammunition.</summary>
+    public const string MagazineFull = "command.magazine-full";
+
+    /// <summary>The weapon must cool before it can fire again.</summary>
+    public const string EquipmentOverheated = "command.equipment-overheated";
+
     /// <summary>The action requires a specific context that is not present.</summary>
     public const string ContextRequired = "command.context-required";
 

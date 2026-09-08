@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "locale": "en-US",
+  "namespace": "ranged-weapon",
+  "fallbacks": [],
+  "textDirection": "ltr",
+  "messages": {
+    "ranged-weapon.service-pistol.name": { "description": "Service pistol rules display name.", "message": "Service Pistol" },
+    "ranged-weapon.service-pistol.description": { "description": "Service pistol rules summary.", "message": "A reliable magazine-fed sidearm issued to shipboard crews." }
+  }
+}

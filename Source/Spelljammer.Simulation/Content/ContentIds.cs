@@ -480,6 +480,39 @@ public readonly record struct MeleeWeaponActionId : IComparable<MeleeWeaponActio
     public override string ToString() => Value.ToString();
 }
 
+/// <summary>A strongly-typed identifier for ranged weapon rules.</summary>
+public readonly record struct RangedWeaponId : IComparable<RangedWeaponId>
+{
+    public RangedWeaponId(ContentId value) => Value = TypedContentId.RequirePrefix(value, "ranged-weapon.");
+    public RangedWeaponId(string value) : this(new ContentId(value)) { }
+    public ContentId Value { get; }
+    public bool IsValid => Value.IsValid;
+    public int CompareTo(RangedWeaponId other) => Value.CompareTo(other.Value);
+    public override string ToString() => Value.ToString();
+}
+
+/// <summary>A strongly-typed identifier for an action supplied by a ranged weapon.</summary>
+public readonly record struct RangedWeaponActionId : IComparable<RangedWeaponActionId>
+{
+    public RangedWeaponActionId(ContentId value) => Value = TypedContentId.RequirePrefix(value, "ranged-action.");
+    public RangedWeaponActionId(string value) : this(new ContentId(value)) { }
+    public ContentId Value { get; }
+    public bool IsValid => Value.IsValid;
+    public int CompareTo(RangedWeaponActionId other) => Value.CompareTo(other.Value);
+    public override string ToString() => Value.ToString();
+}
+
+/// <summary>A strongly-typed identifier for ammunition rules.</summary>
+public readonly record struct AmmunitionId : IComparable<AmmunitionId>
+{
+    public AmmunitionId(ContentId value) => Value = TypedContentId.RequirePrefix(value, "ammunition.");
+    public AmmunitionId(string value) : this(new ContentId(value)) { }
+    public ContentId Value { get; }
+    public bool IsValid => Value.IsValid;
+    public int CompareTo(AmmunitionId other) => Value.CompareTo(other.Value);
+    public override string ToString() => Value.ToString();
+}
+
 /// <summary>A strongly-typed identifier for a ship instance or definition.</summary>
 public readonly record struct ShipId : IComparable<ShipId>
 {

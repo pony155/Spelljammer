@@ -339,6 +339,13 @@ the target's Armor while Armor Damage reduces Armor as a separate result. See
 resolution contract. Critical hits, weapon requirements, and damage scaling
 from Skill remain planned.
 
+The implemented ranged slice uses an authored governing Skill for accuracy;
+the Service Pistol uses Firearms. Action, situation, cover, and distance
+modifiers contribute to the hit check. Weapon damage is then modified by
+ammunition and action percentages, with authored damage falloff beyond optimal
+range. See [`RangedWeaponSystem.md`](RangedWeaponSystem.md) for ammunition,
+heat, magazine, reload, and multi-shot resolution boundaries.
+
 Throwing governs accuracy, effective range, scatter, and placement for
 grenades, knives, bombs, alchemical weapons, and magical charges. Strength may
 separately affect the range of heavy thrown objects.

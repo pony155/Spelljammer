@@ -4424,3 +4424,53 @@ Ranged Combat Equipment
 ```
 
 This separation should remain the foundation of the Ranged Weapon System.
+
+---
+
+# 76. Implementation Status
+
+The first data-driven ranged weapon slice is implemented. Authored JSON uses
+the repository's camel-case convention while keeping separate
+`RangedWeaponDefinition`, `AmmunitionDefinition`,
+`RangedWeaponActionDefinition`, and `RangedWeaponState` responsibilities.
+
+Weapon definitions own family, technology, handedness, governing Skill,
+base damage and armor behavior, Stamina cost, optimal and maximum
+range, weight, durability, value, optional ammunition or internal energy,
+optional heat, traits, and allowed actions. The content compiler enforces the
+family-and-technology compatibility table in section 4 and rejects weapons
+that model both replaceable ammunition and internal energy.
+
+Ammunition definitions use integer percentages for multiplicative damage and
+Armor Damage modifiers. Armor Penetration and range modifiers are additive.
+Action definitions own AP, Stamina and hit modifiers, shot count, ammunition
+consumption, energy and heat adjustments, durability cost, range penalties,
+damage falloff, reload quantity, and effects. Attack and reload actions have
+different validated field requirements.
+
+`RangedWeaponSystem` validates actor ownership, content fingerprint, equipment
+linkage, action membership, target legality, range, cover, AP, Stamina,
+ammunition, energy, heat, durability, and Skill before reserving an
+attack. Each shot uses an explicit seed and sequence, including multi-shot
+actions. Damage modifiers are applied in the order specified by section 52,
+and burst results reduce Armor between resolved hits. Accepted attempts spend
+their costs even when every shot misses; rejected attempts leave all input
+state unchanged.
+
+Reloading is a separate transactional operation. It validates ammunition
+compatibility, prevents replacement of a non-empty incompatible magazine,
+respects magazine capacity and available inventory quantity, and commits AP
+and Stamina only when ammunition is loaded. `Cool` provides an explicit bounded
+heat transition for the owning encounter system.
+
+The base pack demonstrates the contract with the Ballistic Service Pistol,
+Standard Pistol Rounds, Standard Shot, Aimed Shot, and Reload Magazine. Other
+families, technologies, ammunition payloads, burst fire, area attacks, and
+environmental interactions are schema-supported concepts that still require
+authored definitions and effect-system integration.
+
+Encounter actors and campaign saves still retain the older generic equipment
+state. Persisting `RangedWeaponState`, applying returned Health and Armor
+damage to encounter targets, inventory-stack ownership, AI action selection,
+line-of-fire, and terrain effects require a coordinated encounter/save schema
+migration and remain planned.

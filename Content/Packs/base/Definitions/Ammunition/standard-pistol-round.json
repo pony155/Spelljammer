@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "revision": 1,
+  "id": "ammunition.pistol.standard",
+  "nameKey": "ammunition.pistol.standard.name",
+  "descriptionKey": "ammunition.pistol.standard.description",
+  "ammunitionType": "pistol-round",
+  "technology": "ballistic",
+  "damagePercentage": 100,
+  "armorDamagePercentage": 100,
+  "armorPenetrationModifier": 0,
+  "rangeModifier": 0,
+  "stackSize": 50,
+  "weightGrams": 12,
+  "value": 2,
+  "traits": ["standard"]
+}

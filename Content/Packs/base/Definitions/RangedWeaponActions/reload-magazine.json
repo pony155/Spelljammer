@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "revision": 1,
+  "id": "ranged-action.reload-magazine",
+  "nameKey": "ranged-action.reload-magazine.name",
+  "descriptionKey": "ranged-action.reload-magazine.description",
+  "kind": "reload",
+  "actionPointCost": 4,
+  "staminaCostModifier": -2,
+  "hitModifier": 0,
+  "damagePercentage": 0,
+  "ammunitionCost": 0,
+  "shotCount": 0,
+  "energyCostModifier": 0,
+  "heatModifier": 0,
+  "durabilityCost": 0,
+  "rangePenaltyPerUnit": 0,
+  "damageFalloffPerUnitPercentage": 0,
+  "reloadAmount": 6,
+  "effectIds": []
+}

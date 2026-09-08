@@ -268,7 +268,8 @@ public sealed record EquipmentDefinition(
     int ResourceCapacity,
     ImmutableArray<ContentId> ActionIds,
     ImmutableArray<ContentId> EffectIds,
-    MeleeWeaponId? MeleeWeaponId)
+    MeleeWeaponId? MeleeWeaponId,
+    RangedWeaponId? RangedWeaponId)
     : ContentDefinition(EquipmentId.Value, SchemaVersion, Revision, NameKey, DescriptionKey);
 
 public enum MeleeWeaponFamily : byte
@@ -344,6 +345,127 @@ public sealed record MeleeWeaponActionDefinition(
     int DurabilityCost,
     ImmutableArray<ContentId> EffectIds)
     : ContentDefinition(MeleeWeaponActionId.Value, SchemaVersion, Revision, NameKey, DescriptionKey);
+
+public enum RangedWeaponFamily : byte
+{
+    Bow,
+    Crossbow,
+    Pistol,
+    Rifle,
+    Shotgun,
+    Heavy,
+    Launcher,
+    Special,
+}
+
+public enum RangedWeaponTechnology : byte
+{
+    Conventional,
+    Ballistic,
+    Laser,
+    Plasma,
+    Arcane,
+}
+
+public enum RangedWeaponHands : byte
+{
+    OneHanded,
+    TwoHanded,
+}
+
+public enum AmmunitionType : byte
+{
+    Arrow,
+    CrossbowBolt,
+    PistolRound,
+    RifleRound,
+    ShotgunShell,
+    Grenade,
+    Rocket,
+    MiniNuke,
+    FlamethrowerFuel,
+    LaserCell,
+    PlasmaCell,
+}
+
+public enum RangedWeaponActionKind : byte
+{
+    Attack,
+    Reload,
+}
+
+/// <summary>Static ranged weapon properties; instance condition and loaded ammunition are stored separately.</summary>
+public sealed record RangedWeaponDefinition(
+    RangedWeaponId RangedWeaponId,
+    int SchemaVersion,
+    int Revision,
+    string NameKey,
+    string DescriptionKey,
+    RangedWeaponFamily Family,
+    RangedWeaponTechnology Technology,
+    RangedWeaponHands Hands,
+    SkillId SkillId,
+    int DamageMinimum,
+    int DamageMaximum,
+    int ArmorDamagePercentage,
+    int ArmorPenetrationPercentage,
+    int StaminaCost,
+    int OptimalRange,
+    int MaximumRange,
+    int WeightGrams,
+    int MaximumDurability,
+    int Value,
+    AmmunitionType? AmmunitionType,
+    int MagazineCapacity,
+    int EnergyCapacity,
+    int EnergyPerShot,
+    int HeatCapacity,
+    int HeatPerShot,
+    ImmutableArray<string> Traits,
+    ImmutableArray<RangedWeaponActionId> ActionIds)
+    : ContentDefinition(RangedWeaponId.Value, SchemaVersion, Revision, NameKey, DescriptionKey);
+
+/// <summary>Static ammunition modifiers and logistics properties.</summary>
+public sealed record AmmunitionDefinition(
+    AmmunitionId AmmunitionId,
+    int SchemaVersion,
+    int Revision,
+    string NameKey,
+    string DescriptionKey,
+    AmmunitionType AmmunitionType,
+    RangedWeaponTechnology Technology,
+    int DamagePercentage,
+    int ArmorDamagePercentage,
+    int ArmorPenetrationModifier,
+    int RangeModifier,
+    int StackSize,
+    int WeightGrams,
+    int Value,
+    ImmutableArray<string> Traits)
+    : ContentDefinition(AmmunitionId.Value, SchemaVersion, Revision, NameKey, DescriptionKey);
+
+/// <summary>Action-owned ranged attack or reload costs and behavior.</summary>
+public sealed record RangedWeaponActionDefinition(
+    RangedWeaponActionId RangedWeaponActionId,
+    int SchemaVersion,
+    int Revision,
+    string NameKey,
+    string DescriptionKey,
+    RangedWeaponActionKind Kind,
+    int ActionPointCost,
+    int StaminaCostModifier,
+    int HitModifier,
+    int DamagePercentage,
+    int AmmunitionCost,
+    int ShotCount,
+    int EnergyCostModifier,
+    int HeatModifier,
+    int DurabilityCost,
+    int RangePenaltyPerUnit,
+    int DamageFalloffPerUnitPercentage,
+    int ReloadAmount,
+    ImmutableArray<ContentId> EffectIds)
+    : ContentDefinition(RangedWeaponActionId.Value, SchemaVersion, Revision, NameKey, DescriptionKey);
 
 public sealed record BoardCellDefinition(
     CellId CellId,

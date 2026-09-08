@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "revision": 1,
+  "id": "ranged-action.aimed-shot",
+  "nameKey": "ranged-action.aimed-shot.name",
+  "descriptionKey": "ranged-action.aimed-shot.description",
+  "kind": "attack",
+  "actionPointCost": 7,
+  "staminaCostModifier": 1,
+  "hitModifier": 20,
+  "damagePercentage": 110,
+  "ammunitionCost": 1,
+  "shotCount": 1,
+  "energyCostModifier": 0,
+  "heatModifier": 0,
+  "durabilityCost": 1,
+  "rangePenaltyPerUnit": 2,
+  "damageFalloffPerUnitPercentage": 5,
+  "reloadAmount": 0,
+  "effectIds": ["effect.equipment.attack"]
+}

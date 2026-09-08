@@ -40,6 +40,7 @@ internal static class ContentContracts
         RaceCapabilitiesRespectTheirBoundaries();
         Milestone5EncounterAndShipContentIsLinked();
         MeleeWeaponsAreDataDrivenAndAtomic();
+        RangedWeaponsUseAmmunitionAndReloadAtomically();
         Console.WriteLine("Content and character capability contracts passed.");
         return 0;
     }
@@ -152,6 +153,100 @@ internal static class ContentContracts
         Equal(weaponState, request.WeaponState, "Eligibility mutated weapon state before commit.");
     }
 
+    private static void RangedWeaponsUseAmmunitionAndReloadAtomically()
+    {
+        (GameContentSnapshot snapshot, RosterSnapshot roster) = BaseRoster();
+        Equal(1, snapshot.RangedWeaponRegistry.Count, "The base ranged weapon was not published.");
+        Equal(1, snapshot.AmmunitionRegistry.Count, "The base ammunition definition was not published.");
+        Equal(3, snapshot.RangedWeaponActionRegistry.Count, "The base ranged action set is incomplete.");
+
+        EquipmentId equipmentId = new("equipment.personal.service-pistol");
+        True(snapshot.TryGetEquipment(equipmentId, out EquipmentDefinition? equipment), "Service pistol equipment is missing.");
+        Equal(new RangedWeaponId("ranged-weapon.service-pistol"), equipment!.RangedWeaponId!.Value,
+            "Equipment did not link to its ranged weapon rules.");
+        True(snapshot.TryGetRangedWeapon(equipment.RangedWeaponId.Value, out RangedWeaponDefinition? weapon),
+            "Service pistol ranged rules are missing.");
+        True(snapshot.TryGetAmmunition(new AmmunitionId("ammunition.pistol.standard"),
+            out AmmunitionDefinition? ammunition), "Standard pistol ammunition is missing.");
+        Equal(RangedWeaponFamily.Pistol, weapon!.Family, "Ranged family was not compiled from JSON.");
+        Equal(RangedWeaponTechnology.Ballistic, weapon.Technology, "Ranged technology was not compiled from JSON.");
+
+        CharacterState actor = roster.Characters.First() with
+        {
+            EquipmentIds = roster.Characters.First().EquipmentIds.Add(equipmentId.Value),
+        };
+        CharacterState target = roster.Characters.First(value => value.Id != actor.Id);
+        ScenarioDefinition scenario = snapshot.Scenarios.Single(value => value.ScenarioId == actor.ScenarioId);
+        True(snapshot.TryGetCharacterResourceProfile(scenario.CharacterResourceProfileId!.Value,
+            out CharacterResourceProfileDefinition? profile), "Character resource profile is missing.");
+        CharacterTurnState turn = CharacterTurnState.Create(profile!.TurnRules).RestoreActionPoints(profile.TurnRules.BaseActionPoints);
+        RangedWeaponState weaponState = RangedWeaponState.Create(weapon, ammunition);
+        RangedAttackRequest request = new(
+            actor.Id,
+            equipmentId,
+            new RangedWeaponActionId("ranged-action.standard-shot"),
+            new RangedTarget(target.Id, true, true, 6, 0, 5, 0),
+            turn,
+            weaponState,
+            100,
+            0x51deUL,
+            4);
+
+        RangedAttackEligibilityResult eligible = RangedWeaponSystem.CheckAttackEligibility(actor, request, snapshot);
+        True(eligible.Accepted, eligible.RejectionCode);
+        RangedAttackResult first = RangedWeaponSystem.ResolveAttack(eligible.Reservation!, snapshot);
+        RangedAttackResult second = RangedWeaponSystem.ResolveAttack(eligible.Reservation!, snapshot);
+        True(first.Accepted && first.Hit, first.RejectionCode);
+        Equal(first.Resolution!, second.Resolution!, "Ranged resolution was not deterministic.");
+        Equal(weaponState.CurrentAmmunition - 1, first.WeaponState.CurrentAmmunition,
+            "Accepted fire did not consume authored ammunition.");
+        Equal(turn.CurrentActionPoints - eligible.Reservation!.ActionPointCost, first.TurnState.CurrentActionPoints,
+            "The ranged action's AP cost was not committed.");
+        True(first.Resolution!.TotalHealthDamage > 0, "A successful ranged attack produced no Health damage.");
+
+        RangedWeaponState empty = weaponState with { LoadedAmmunitionId = null, CurrentAmmunition = 0 };
+        RangedAttackRequest unloadedRequest = request with { WeaponState = empty };
+        RangedAttackEligibilityResult unloaded = RangedWeaponSystem.CheckAttackEligibility(actor, unloadedRequest, snapshot);
+        False(unloaded.Accepted, "An unloaded ranged weapon was fired.");
+        Equal(ActionRejectionCodes.AmmunitionRequired, unloaded.RejectionCode,
+            "An unloaded weapon returned the wrong rejection.");
+        Equal(actor, eligible.Reservation.OriginalActor, "Attack eligibility mutated the actor before commit.");
+        Equal(turn, request.TurnState, "Attack eligibility mutated AP before commit.");
+        Equal(weaponState, request.WeaponState, "Attack eligibility mutated weapon state before commit.");
+
+        RangedReloadRequest reloadRequest = new(
+            actor.Id,
+            equipmentId,
+            new RangedWeaponActionId("ranged-action.reload-magazine"),
+            ammunition!.AmmunitionId,
+            10,
+            turn,
+            empty);
+        RangedReloadResult reloaded = RangedWeaponSystem.Reload(actor, reloadRequest, snapshot);
+        True(reloaded.Accepted, reloaded.RejectionCode);
+        Equal(weapon.MagazineCapacity, reloaded.LoadedAmount, "Reload ignored magazine capacity.");
+        Equal(10 - weapon.MagazineCapacity, reloaded.RemainingAmmunition,
+            "Reload did not return the remaining inventory ammunition.");
+        Equal(ammunition.AmmunitionId, reloaded.WeaponState.LoadedAmmunitionId!.Value,
+            "Reload did not publish the loaded ammunition identity.");
+
+        RangedReloadRequest fullRequest = reloadRequest with { WeaponState = weaponState };
+        RangedReloadResult full = RangedWeaponSystem.Reload(actor, fullRequest, snapshot);
+        False(full.Accepted, "A full magazine accepted more ammunition.");
+        Equal(ActionRejectionCodes.MagazineFull, full.RejectionCode, "Full-magazine rejection was unstable.");
+        Equal(weaponState, full.WeaponState, "Rejected reload mutated weapon state.");
+        Equal(turn, full.TurnState, "Rejected reload spent AP.");
+
+        Dictionary<string, byte[]> invalidFiles = ReadFiles(Path.Combine(Milestone2Root, "base"));
+        ReplaceText(invalidFiles, "Definitions/RangedWeapons/service-pistol.json",
+            "\"technology\": \"ballistic\"", "\"technology\": \"arcane\"");
+        ContentCompilationResult invalidCombination = new GameContentCompiler().Compile(
+            [new MemoryPackSource(invalidFiles, [])], GameVersion);
+        Equal(ContentDiagnosticCodes.ValueOutOfRange,
+            invalidCombination.Diagnostics.FirstOrDefault()?.Code ?? "<none>",
+            "An invalid Pistol/Arcane family-technology combination was published.");
+    }
+
     private static ShipState CreateContentShip(GameContentSnapshot snapshot, ShipFrameDefinition frame, string path, ShipId shipId)
     {
         ContentId pathId = new($"ship.path.{path}");
@@ -252,7 +347,7 @@ internal static class ContentContracts
             snapshot.Fingerprint.ToString(),
             "The base Ability and Skill fingerprint changed.");
         Equal(6, snapshot.AbilityRegistry.Count, "The base Ability roster is incomplete.");
-        Equal(29, snapshot.SkillRegistry.Count, "The base Skill roster is incomplete.");
+        Equal(30, snapshot.SkillRegistry.Count, "The base Skill roster is incomplete.");
         string[] expectedAbilitys =
         [
             "ability.agility", "ability.intelligence", "ability.perception",
@@ -262,7 +357,7 @@ internal static class ContentContracts
         [
             "skill.acrobatics", "skill.alchemy", "skill.ancient-lore", "skill.archery", "skill.astrogation",
             "skill.athletics", "skill.command", "skill.cooking", "skill.crafting", "skill.deception",
-            "skill.defense", "skill.enchantment", "skill.engineering", "skill.eva", "skill.gunnery",
+            "skill.defense", "skill.enchantment", "skill.engineering", "skill.eva", "skill.firearms", "skill.gunnery",
             "skill.insight", "skill.language-literacy", "skill.magic", "skill.medicine", "skill.melee",
             "skill.merchant", "skill.negotiation", "skill.piloting", "skill.psionics", "skill.rigging",
             "skill.salvage", "skill.sensors", "skill.stealth", "skill.xenology",
@@ -364,7 +459,7 @@ internal static class ContentContracts
             expectedFingerprints.RootElement.GetProperty("basePlusStarwrightsSha256").GetString()!,
             withMod.Snapshot!.Fingerprint.ToString(),
             "The additive fixture fingerprint changed.");
-        Equal(30, withMod.Snapshot.SkillRegistry.Count, "The additive Skill did not enter the generic registry.");
+        Equal(31, withMod.Snapshot.SkillRegistry.Count, "The additive Skill did not enter the generic registry.");
         True(withMod.Snapshot.SkillRegistry.TryGet(new SkillId("skill.mod.starwrights.gravimetry"), out _),
             "The namespaced Skill was not available through typed lookup.");
         Equal(withMod.Snapshot.Fingerprint, repeated.Snapshot!.Fingerprint,
