@@ -432,7 +432,7 @@ engineering calculations.
 
 ## Design boundaries
 
-- Magic requires training or an explicit Racial Feat; it is not a substitute
+- Magic requires training or an explicit race- or heritage-granted Feat; it is not a substitute
   for every skill or social decision.
 - Atompunk technology is advanced but controlled: nuclear weapons, radiation,
   and reactor disasters appear only as authored high-consequence content, not

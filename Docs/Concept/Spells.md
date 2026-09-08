@@ -28,7 +28,7 @@ requiring a second layer of simulation. See [`History.md`](History.md).
 Characters have no mage class. To cast, a character needs:
 
 1. `access.magic`, from `feat.access.magic` (Spellcasting Training) or a
-   Racial Feat that explicitly grants it;
+   race- or heritage-granted Feat that explicitly grants it;
 2. the spell's active `FeatId` in their Feats collection; and
 3. enough Mana and a legal target.
 

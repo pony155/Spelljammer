@@ -51,6 +51,14 @@ World/       world state, time, geometry, commands, scheduled actions, and event
 Public world contracts are named `World`, `WorldCommand`, `WorldEvent`,
 `WorldSnapshot`, and `ScheduledAction`. The explicit `World` prefix prevents
 command and event types from colliding with framework or UI abstractions.
+The immutable `World` record is implemented as one partial type split by
+responsibility: `World.cs` owns state creation and snapshots,
+`World.Commands.cs` owns queueing and cancellation,
+`World.Advancement.cs` owns fixed-tick scheduling,
+`World.ShipCommands.cs` owns ship transitions, and
+`World.PersonalCommands.cs` owns encounter transitions and the personal
+timeline. This is a source-level separation only; it does not create parallel
+world state or alter the public simulation contract.
 
 ## Personal combat authority
 

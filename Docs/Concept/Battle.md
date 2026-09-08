@@ -7,9 +7,10 @@ orders with tactical pause, continuous fixed-point movement, modular damage,
 and a bounded personal hex encounter with Turn Meters, Action Points, injuries,
 objectives, surrender, and retreat. Personal actors use the shared five-resource
 state, data-driven stamina speed bands and per-action AP costs, and versioned
-save serialization. The WPF host still presents the expedition prototype;
-boarding transitions, EVA, settlements, threshold statuses, and the broader
-catalog in this document remain planned.
+save serialization. The WPF host currently presents the main menu, settings,
+and character-creation flows; it does not yet present the headless combat
+framework. Boarding transitions, EVA, settlements, threshold statuses, and the
+broader catalog in this document remain planned.
 
 Battle is one possible way to resolve an encounter, not a separate campaign
 genre. Exploration, negotiation, stealth, rescue, sabotage, surrender, and
@@ -22,7 +23,8 @@ retreat remain valid before and during combat.
 - Let ship layout, ruin structure, cover, atmosphere, gravity, visibility,
   hazards, and objectives matter as much as raw damage.
 - Make crew abilities, skills, equipment, positions, learned active Feats,
-  access Feats, and Racial Feats produce understandable tactical options.
+  access Feats, and race- or heritage-granted Feats produce understandable
+  tactical options.
 - Connect ship-to-ship fire, module damage, boarding, internal defense, and
   disengagement without discarding consequences between scales.
 - Support Arcane, Industrial, and hybrid equipment without making one path the
@@ -428,7 +430,8 @@ because they left the local battle graph.
 
 Projectile recoil, hull penetration, suit puncture, and loose equipment use
 explicit tags. Magic and Psionics still require their access Feats or innate
-Racial Feats and do not ignore vacuum, range, line of effect, or Psionics Strain.
+race- or heritage-granted Feats and do not ignore vacuum, range, line of effect,
+or Psionics Strain.
 
 ## Settlement and surface conflicts
 

@@ -23,7 +23,7 @@ internal static partial class ContentContracts
         ContentCompilationResult compiled = CompileDirectory(Path.Combine(Milestone2Root, "base"));
         True(compiled.Succeeded, Primary(compiled));
         GameContentSnapshot snapshot = compiled.Snapshot!;
-        Equal(21, snapshot.ItemRegistry.Count, "The unified item catalog is incomplete.");
+        Equal(20, snapshot.ItemRegistry.Count, "The unified item catalog is incomplete.");
         Equal(6, snapshot.BoardCellRegistry.Count, "The authored ruin does not contain six cells.");
         Equal(5, snapshot.ZoneLinkRegistry.Count, "The authored ruin link graph is incomplete.");
         Equal(1, snapshot.PersonalBoardRegistry.Count, "The first personal board was not published.");

@@ -427,7 +427,7 @@ consequences; they do not create a second incompatible combat system.
 
 Objectives expose their likely contribution, risk, deadline, and dependencies.
 Hidden consequences require discoverable evidence rather than arbitrary
-reversals. No single character Race, Heritage, Racial Feat, skill, spell, ship path,
+reversals. No single character Race, Heritage, race- or heritage-granted Feat, skill, spell, ship path,
 or faction membership is mandatory for all viable resolutions.
 
 ## Escalation and fairness

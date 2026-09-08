@@ -743,7 +743,7 @@ and includes both kinds in the canonical content fingerprint. Effect payloads
 are compiled into resource, damage, status application/removal, modifier,
 shield, or event types instead of one nullable catch-all record. The base pack
 defines the combat damage operations and the Effects referenced by spells,
-psionics, equipment, and racial Feats, including the persistent Mindlinked
+psionics, equipment, and race- or heritage-granted Feats, including the persistent Mindlinked
 Status.
 
 Character and personal-encounter actor state persist Status instances through

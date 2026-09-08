@@ -130,7 +130,7 @@ defined in
 | `Source/Spelljammer.Localization/` | Game-owned localization runtime and message formatter. |
 | `Tools/Spelljammer.Content.Compiler/` | Offline gameplay-pack validation tool. |
 | `Tools/Spelljammer.Localization.Compiler/` | Source-catalog compiler and validation tools. |
-| `Content/Packs/base/` | Built-in capability, Race, Heritage, learned and Racial Feat, training, and first-roster definitions with localization. |
+| `Content/Packs/base/` | Built-in capability, Race, Heritage, learned and race- or heritage-granted Feat, training, and first-roster definitions with localization. |
 | `Content/Localization/` | Pinned locale-data inputs and third-party notices. |
 | `Tests/Spelljammer.Simulation.Tests/` | Compile-only deterministic simulation contracts. |
 | `Tests/Spelljammer.Localization.Tests/` | Compile-only localization contracts. |

@@ -1,1 +1,0 @@
-{"schemaVersion":1,"revision":1,"id":"equipment.medical-kit","nameKey":"equipment.personal.field-medkit.name","descriptionKey":"equipment.personal.field-medkit.description","kind":"gear","weightHundredthsOfPound":250,"value":75,"tags":["medical"],"occupiedSlotIds":["equipment-slot.utility"],"actionIds":["action.personal.medicine"],"effectIds":["effect.equipment.treatment"]}

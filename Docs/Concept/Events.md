@@ -3,9 +3,9 @@
 ## Status
 
 This document defines the planned event system for interstellar voyages. It is
-not implemented. The current expedition prototype derives fixed sector hazards
-and salvage from a seed but does not schedule event definitions, choices,
-checks, delayed consequences, or event instances.
+not implemented. The retired expedition prototype and its fixed sector hazards
+have been removed. The current simulation does not yet schedule travel-event
+definitions, choices, checks, delayed consequences, or event instances.
 
 Travel events are seeded random situations that can occur while a ship crosses
 a Starway, waits in deep space, approaches a system, or reacts to an ongoing
@@ -27,7 +27,8 @@ boundaries are defined in [`GameSettings.md`](GameSettings.md).
   and campaign state.
 - Give the player meaningful choices such as investigate, assist, evade,
   negotiate, repair, exploit, conceal, or continue the voyage.
-- Allow Abilities, Skills, Racial Feats, Feats, equipment, ship modules, supplies,
+- Allow Abilities, Skills, race- or heritage-granted Feats, learned Feats,
+  equipment, ship modules, supplies,
   and learned information to create additional approaches rather than one
   mandatory answer.
 - Persist injuries, damage, cargo, discoveries, obligations, witnesses,
@@ -72,7 +73,8 @@ An event definition can require or modify weight from:
 - installed modules, armor coverage, current Energy Shield Value and raised
   state, damage, faults, heat, signature, fuel, air, provisions, medicine,
   spare parts, cargo, and free capacity;
-- crew count, positions, Skills, access Feats, Racial Feats, injuries,
+- crew count, positions, Skills, access Feats, race- or heritage-granted Feats,
+  injuries,
   fatigue, needs, and current duties;
 - known factions, agreements, warrants, standing, witnesses, rumors, charts,
   scripts, Ancient Lore, and discovered sites;
@@ -127,7 +129,7 @@ Each choice declares:
 - facts required for the choice to be visible and facts required for it to be
   enabled;
 - required ship capability, module, item, position authority, Skill, Feat,
-  Racial Feat, known language, script, spell, or psionics active Feat;
+  race- or heritage-granted Feat, known language, script, spell, or psionics active Feat;
 - immediate costs, reservations, duration, exposure, and cancellation rules;
 - contextual Ability and Skill approaches rather than a character class;
 - deterministic outcome bands and the information the player may preview;
@@ -271,7 +273,7 @@ Content validation rejects:
 
 - duplicate or invalid Event and choice IDs;
 - missing localization, condition, check, effect, encounter, faction, route,
-  item, module, Skill, Feat, Racial Feat, spell, or psionics references;
+  item, module, Skill, Feat, race- or heritage-granted Feat, spell, or psionics references;
 - negative or excessive weights, costs, delays, cooldowns, or occurrence counts;
 - events with no reachable resolution or no safe response when one is required;
 - choice costs without atomic reservation and rollback rules;

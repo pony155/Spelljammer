@@ -233,6 +233,13 @@ public static class CampaignMigrationService
         PersonalEncounterState? encounter = source.World.PersonalEncounter is null
             ? null
             : RebindEncounter(source.World.PersonalEncounter, newContent);
+        if (!newContent.TryGetWorldTime(source.World.TimeDefinition.WorldTimeId, out WorldTimeDefinition? timeDefinition) ||
+            !newContent.TryGetCalendar(source.World.Calendar.CalendarId, out CalendarDefinition? calendar) ||
+            !newContent.TryGetTimeScale(source.World.TimeScale.TimeScaleId, out TimeScaleDefinition? timeScale))
+        {
+            throw new InvalidOperationException("Destination world-time content is missing.");
+        }
+
         CampaignContentLock contentLock = CampaignContentLock.Create(
             newContent, source.ContentLock.AppliedMigrationIds.Append(migrationId));
         return source with
@@ -242,6 +249,9 @@ public static class CampaignMigrationService
             World = source.World with
             {
                 ContentFingerprint = newContent.Fingerprint,
+                TimeDefinition = timeDefinition!,
+                Calendar = calendar!,
+                TimeScale = timeScale!,
                 Ships = ships,
                 PersonalEncounter = encounter,
             },
