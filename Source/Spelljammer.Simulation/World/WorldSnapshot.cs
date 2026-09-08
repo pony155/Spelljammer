@@ -8,6 +8,10 @@ namespace Spelljammer.Simulation.World;
 public sealed record WorldSnapshot(
     ulong Seed,
     ContentFingerprint ContentFingerprint,
+    WorldTimeDefinition TimeDefinition,
+    CalendarDefinition Calendar,
+    TimeScaleDefinition TimeScale,
+    CampaignClockState Clock,
     long Tick,
     bool ShipPaused,
     bool PersonalPaused,

@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "revision": 1,
+  "id": "time-scale.tactical",
+  "nameKey": "time-scale.tactical.name",
+  "descriptionKey": "time-scale.tactical.description",
+  "worldSecondsNumerator": 1,
+  "simulationTicksDenominator": 20
+}

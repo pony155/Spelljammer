@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "revision": 1,
+  "id": "calendar.voidfarer-standard",
+  "nameKey": "calendar.voidfarer-standard.name",
+  "descriptionKey": "calendar.voidfarer-standard.description",
+  "secondsPerMinute": 60,
+  "minutesPerHour": 60,
+  "hoursPerDay": 24,
+  "daysPerWeek": 7,
+  "startingYear": 327,
+  "months": [
+    { "id": "calendar.month.first-light", "nameKey": "calendar.month.first-light.name", "days": 30 },
+    { "id": "calendar.month.emberwake", "nameKey": "calendar.month.emberwake.name", "days": 30 },
+    { "id": "calendar.month.starcurrent", "nameKey": "calendar.month.starcurrent.name", "days": 30 },
+    { "id": "calendar.month.gilded-tide", "nameKey": "calendar.month.gilded-tide.name", "days": 30 },
+    { "id": "calendar.month.long-sail", "nameKey": "calendar.month.long-sail.name", "days": 30 },
+    { "id": "calendar.month.cinderfall", "nameKey": "calendar.month.cinderfall.name", "days": 30 },
+    { "id": "calendar.month.voidbloom", "nameKey": "calendar.month.voidbloom.name", "days": 30 },
+    { "id": "calendar.month.iron-comet", "nameKey": "calendar.month.iron-comet.name", "days": 30 },
+    { "id": "calendar.month.pale-orbit", "nameKey": "calendar.month.pale-orbit.name", "days": 30 },
+    { "id": "calendar.month.deepwatch", "nameKey": "calendar.month.deepwatch.name", "days": 30 },
+    { "id": "calendar.month.homeward", "nameKey": "calendar.month.homeward.name", "days": 30 },
+    { "id": "calendar.month.last-lantern", "nameKey": "calendar.month.last-lantern.name", "days": 30 }
+  ]
+}

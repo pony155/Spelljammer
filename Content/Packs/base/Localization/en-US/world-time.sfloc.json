@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "locale": "en-US",
+  "namespace": "world-time",
+  "fallbacks": [],
+  "textDirection": "ltr",
+  "messages": {
+    "world-time.standard.name": {
+      "description": "Display name for the standard authoritative simulation cadence.",
+      "message": "Standard Simulation Time"
+    },
+    "world-time.standard.description": {
+      "description": "Description of the standard fixed-tick simulation cadence.",
+      "message": "Advances authoritative gameplay at a fixed cadence with bounded catch-up."
+    }
+  }
+}

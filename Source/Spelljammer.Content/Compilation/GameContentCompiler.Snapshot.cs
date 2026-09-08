@@ -22,6 +22,12 @@ public sealed partial class GameContentCompiler
         IReadOnlyList<SourceDefinition> sources,
         DiagnosticSink diagnostics)
     {
+        ImmutableArray<WorldTimeDefinition> worldTimes = [.. sources.Where(value => value.Kind == DefinitionKind.WorldTime)
+            .OrderBy(value => value.Id).Select(CompileWorldTime)];
+        ImmutableArray<CalendarDefinition> calendars = [.. sources.Where(value => value.Kind == DefinitionKind.Calendar)
+            .OrderBy(value => value.Id).Select(CompileCalendar)];
+        ImmutableArray<TimeScaleDefinition> timeScales = [.. sources.Where(value => value.Kind == DefinitionKind.TimeScale)
+            .OrderBy(value => value.Id).Select(CompileTimeScale)];
         ImmutableArray<AbilityDefinition> abilities = [.. sources.Where(value => value.Kind == DefinitionKind.Ability).OrderBy(value => value.Id).Select(CompileAbility)];
         ImmutableArray<SkillDefinition> skills = [.. sources.Where(value => value.Kind == DefinitionKind.Skill).OrderBy(value => value.Id).Select(CompileSkill)];
         ImmutableArray<LevelProgressionTableDefinition> levelProgressionTables = [.. sources
@@ -57,12 +63,12 @@ public sealed partial class GameContentCompiler
         ImmutableArray<ShipWeaponConfigurationDefinition> shipWeapons = [.. sources.Where(value => value.Kind == DefinitionKind.ShipWeaponConfiguration).OrderBy(value => value.Id).Select(CompileShipWeapon)];
         ImmutableArray<ContentPackIdentity> identities = [.. packs.Select(pack => new ContentPackIdentity(
             pack.Manifest.Id, pack.Manifest.Version, pack.Manifest.ContentRevision))];
-        ContentDefinition[] all = [.. abilities, .. skills, .. levelProgressionTables, .. characterResourceProfiles, .. access, .. backgrounds, .. characters, .. scenarios, .. feats, .. heritages, .. races, .. training, .. equipment, .. meleeWeapons, .. meleeWeaponActions, .. rangedWeapons, .. ammunition, .. rangedWeaponActions, .. effects, .. statuses, .. boardCells, .. zoneLinks, .. personalBoards, .. encounters, .. shipFrames, .. shipModules, .. shipWeapons];
+        ContentDefinition[] all = [.. worldTimes, .. calendars, .. timeScales, .. abilities, .. skills, .. levelProgressionTables, .. characterResourceProfiles, .. access, .. backgrounds, .. characters, .. scenarios, .. feats, .. heritages, .. races, .. training, .. equipment, .. meleeWeapons, .. meleeWeaponActions, .. rangedWeapons, .. ammunition, .. rangedWeaponActions, .. effects, .. statuses, .. boardCells, .. zoneLinks, .. personalBoards, .. encounters, .. shipFrames, .. shipModules, .. shipWeapons];
         (byte[] canonicalBytes, ContentFingerprint fingerprint) = CanonicalSemanticWriter.Write(identities, all);
         Dictionary<ContentId, ContentId> provenance = sources.ToDictionary(
             source => source.Id,
             source => new ContentId(source.PackId));
-        GameContentSnapshot snapshot = new(fingerprint, identities, abilities, skills, levelProgressionTables, characterResourceProfiles, access, backgrounds, characters, scenarios, feats, heritages, races, training,
+        GameContentSnapshot snapshot = new(fingerprint, identities, worldTimes, calendars, timeScales, abilities, skills, levelProgressionTables, characterResourceProfiles, access, backgrounds, characters, scenarios, feats, heritages, races, training,
             equipment, meleeWeapons, meleeWeaponActions, rangedWeapons, ammunition, rangedWeaponActions, effects, statuses,
             boardCells, zoneLinks, personalBoards, encounters, shipFrames, shipModules, shipWeapons,
             [.. canonicalBytes], provenance);

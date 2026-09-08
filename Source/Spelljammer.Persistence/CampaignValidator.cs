@@ -40,6 +40,21 @@ public static class CampaignValidator
         missingId = null;
         World world = campaign.World;
         CampaignContentLock expectedLock = CampaignContentLock.Create(content);
+        if (world.TimeDefinition is null ||
+            !content.TryGetWorldTime(world.TimeDefinition.WorldTimeId, out WorldTimeDefinition? activeTimeDefinition))
+        {
+            missingId = world.TimeDefinition?.Id;
+            return false;
+        }
+
+        if (world.Calendar is null || world.TimeScale is null || world.Clock is null ||
+            !content.TryGetCalendar(world.Clock.CalendarId, out CalendarDefinition? activeCalendar) ||
+            !content.TryGetTimeScale(world.Clock.TimeScaleId, out TimeScaleDefinition? activeTimeScale))
+        {
+            missingId = world.Calendar?.Id ?? world.TimeScale?.Id;
+            return false;
+        }
+
         if (Encoding.UTF8.GetByteCount(campaign.GameBuild) is 0 or > CampaignState.MaximumGameBuildBytes ||
             campaign.ContentLock.BaseContentRevision != expectedLock.BaseContentRevision ||
             !campaign.ContentLock.Packs.SequenceEqual(expectedLock.Packs) ||
@@ -52,6 +67,12 @@ public static class CampaignValidator
             campaign.ContentLock.SaveSchemaVersion != CampaignSaveVersions.SaveSchema ||
             campaign.ContentLock.AppliedMigrationIds.Length > CampaignSaveLimits.MaximumCollectionEntries ||
             campaign.ContentLock.AppliedMigrationIds.Distinct().Count() != campaign.ContentLock.AppliedMigrationIds.Length ||
+            world.TimeDefinition != activeTimeDefinition ||
+            world.Calendar != activeCalendar || world.TimeScale != activeTimeScale ||
+            world.Clock.CalendarId != world.Calendar.CalendarId ||
+            world.Clock.TimeScaleId != world.TimeScale.TimeScaleId ||
+            world.Clock.ElapsedWorldSeconds < 0 || world.Clock.FractionRemainder < 0 ||
+            world.Clock.FractionRemainder >= world.TimeScale.SimulationTicksDenominator ||
             world.ContentFingerprint != content.Fingerprint || world.Tick < 0 ||
             world.Ships.Count is 0 or > CampaignSaveLimits.MaximumShips ||
             campaign.Characters.Length is 0 or > CampaignSaveLimits.MaximumCharacters ||
@@ -192,6 +213,9 @@ public static class CampaignValidator
         }
 
         Add(campaign.CurrentLocationId);
+        Add(campaign.World.TimeDefinition.Id);
+        Add(campaign.World.Calendar.Id);
+        Add(campaign.World.TimeScale.Id);
 
         foreach (CharacterState character in campaign.Characters)
         {

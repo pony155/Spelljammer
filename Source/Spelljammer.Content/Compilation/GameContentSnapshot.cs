@@ -37,6 +37,9 @@ public sealed class GameContentSnapshot : IGameContentCatalog
     internal GameContentSnapshot(
         ContentFingerprint fingerprint,
         ImmutableArray<ContentPackIdentity> packs,
+        ImmutableArray<WorldTimeDefinition> worldTimes,
+        ImmutableArray<CalendarDefinition> calendars,
+        ImmutableArray<TimeScaleDefinition> timeScales,
         ImmutableArray<AbilityDefinition> abilities,
         ImmutableArray<SkillDefinition> skills,
         ImmutableArray<LevelProgressionTableDefinition> levelProgressionTables,
@@ -69,6 +72,9 @@ public sealed class GameContentSnapshot : IGameContentCatalog
     {
         Fingerprint = fingerprint;
         Packs = packs;
+        WorldTimes = worldTimes;
+        Calendars = calendars;
+        TimeScales = timeScales;
         Abilities = abilities;
         Skills = skills;
         LevelProgressionTables = levelProgressionTables;
@@ -99,6 +105,12 @@ public sealed class GameContentSnapshot : IGameContentCatalog
         ShipModules = shipModules;
         ShipWeaponConfigurations = shipWeaponConfigurations;
         CanonicalSemanticContent = canonicalSemanticContent;
+        WorldTimeRegistry = new TypedDefinitionRegistry<WorldTimeId, WorldTimeDefinition>(
+            fingerprint, worldTimes, definition => definition.WorldTimeId);
+        CalendarRegistry = new TypedDefinitionRegistry<CalendarId, CalendarDefinition>(
+            fingerprint, calendars, definition => definition.CalendarId);
+        TimeScaleRegistry = new TypedDefinitionRegistry<TimeScaleId, TimeScaleDefinition>(
+            fingerprint, timeScales, definition => definition.TimeScaleId);
         AbilityRegistry = new TypedDefinitionRegistry<AbilityId, AbilityDefinition>(
             fingerprint, abilities, definition => definition.AbilityId);
         SkillRegistry = new TypedDefinitionRegistry<SkillId, SkillDefinition>(
@@ -131,7 +143,10 @@ public sealed class GameContentSnapshot : IGameContentCatalog
         ShipModuleRegistry = new TypedDefinitionRegistry<ModuleId, ShipModuleDefinition>(fingerprint, shipModules, definition => definition.ModuleId);
         ShipWeaponConfigurationRegistry = new TypedDefinitionRegistry<ShipWeaponConfigurationId, ShipWeaponConfigurationDefinition>(fingerprint, shipWeaponConfigurations, definition => definition.ShipWeaponConfigurationId);
 
-        definitionsById = abilities.Cast<ContentDefinition>()
+        definitionsById = worldTimes.Cast<ContentDefinition>()
+            .Concat(calendars)
+            .Concat(timeScales)
+            .Concat(abilities)
             .Concat(skills)
             .Concat(levelProgressionTables)
             .Concat(characterResourceProfiles)
@@ -164,6 +179,9 @@ public sealed class GameContentSnapshot : IGameContentCatalog
 
     public ContentFingerprint Fingerprint { get; }
     public ImmutableArray<ContentPackIdentity> Packs { get; }
+    public ImmutableArray<WorldTimeDefinition> WorldTimes { get; }
+    public ImmutableArray<CalendarDefinition> Calendars { get; }
+    public ImmutableArray<TimeScaleDefinition> TimeScales { get; }
     public ImmutableArray<AbilityDefinition> Abilities { get; }
     public ImmutableArray<SkillDefinition> Skills { get; }
     public ImmutableArray<LevelProgressionTableDefinition> LevelProgressionTables { get; }
@@ -193,6 +211,9 @@ public sealed class GameContentSnapshot : IGameContentCatalog
     public ImmutableArray<ShipModuleDefinition> ShipModules { get; }
     public ImmutableArray<ShipWeaponConfigurationDefinition> ShipWeaponConfigurations { get; }
     public ImmutableArray<byte> CanonicalSemanticContent { get; }
+    public TypedDefinitionRegistry<WorldTimeId, WorldTimeDefinition> WorldTimeRegistry { get; }
+    public TypedDefinitionRegistry<CalendarId, CalendarDefinition> CalendarRegistry { get; }
+    public TypedDefinitionRegistry<TimeScaleId, TimeScaleDefinition> TimeScaleRegistry { get; }
     public TypedDefinitionRegistry<AbilityId, AbilityDefinition> AbilityRegistry { get; }
     public TypedDefinitionRegistry<SkillId, SkillDefinition> SkillRegistry { get; }
     public TypedDefinitionRegistry<LevelProgressionTableId, LevelProgressionTableDefinition> LevelProgressionTableRegistry { get; }
@@ -220,6 +241,15 @@ public sealed class GameContentSnapshot : IGameContentCatalog
     public TypedDefinitionRegistry<ShipFrameId, ShipFrameDefinition> ShipFrameRegistry { get; }
     public TypedDefinitionRegistry<ModuleId, ShipModuleDefinition> ShipModuleRegistry { get; }
     public TypedDefinitionRegistry<ShipWeaponConfigurationId, ShipWeaponConfigurationDefinition> ShipWeaponConfigurationRegistry { get; }
+
+    public bool TryGetWorldTime(WorldTimeId id, out WorldTimeDefinition? definition) =>
+        WorldTimeRegistry.TryGet(id, out definition);
+
+    public bool TryGetCalendar(CalendarId id, out CalendarDefinition? definition) =>
+        CalendarRegistry.TryGet(id, out definition);
+
+    public bool TryGetTimeScale(TimeScaleId id, out TimeScaleDefinition? definition) =>
+        TimeScaleRegistry.TryGet(id, out definition);
 
     public bool TryGetAbility(AbilityId id, out AbilityDefinition? definition, out int index) =>
         TryGetIndexed(AbilityRegistry, id, out definition, out index);
@@ -268,6 +298,9 @@ public sealed class GameContentSnapshot : IGameContentCatalog
     public RegistryInspectionSnapshot Inspect()
     {
         List<RegistryInspectionEntry> entries = [];
+        AddEntries(entries, "WorldTime", WorldTimes, definition => definition.Id);
+        AddEntries(entries, "Calendar", Calendars, definition => definition.Id);
+        AddEntries(entries, "TimeScale", TimeScales, definition => definition.Id);
         AddEntries(entries, "Ability", Abilities, definition => definition.Id);
         AddEntries(entries, "Skill", Skills, definition => definition.Id);
         AddEntries(entries, "LevelProgressionTable", LevelProgressionTables, definition => definition.Id);

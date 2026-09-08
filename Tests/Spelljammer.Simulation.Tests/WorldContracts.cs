@@ -10,15 +10,72 @@ using Spelljammer.Simulation.World;
 
 internal static partial class SimulationContracts
 {
+    private static readonly WorldTimeDefinition TestWorldTime = new(
+        new WorldTimeId("world-time.test.standard"), 1, 1,
+        "world-time.test.standard.name", "world-time.test.standard.description", 20, 8);
+    private static readonly CalendarDefinition TestCalendar = new(
+        new CalendarId("calendar.test.standard"), 1, 1,
+        "calendar.test.standard.name", "calendar.test.standard.description",
+        60, 60, 24, 7, 327,
+        [
+            new CalendarMonthDefinition(new CalendarMonthId("calendar.month.test-first"), "calendar.month.test-first.name", 30),
+            new CalendarMonthDefinition(new CalendarMonthId("calendar.month.test-second"), "calendar.month.test-second.name", 30),
+        ]);
+    private static readonly TimeScaleDefinition TestTimeScale = new(
+        new TimeScaleId("time-scale.test.tactical"), 1, 1,
+        "time-scale.test.tactical.name", "time-scale.test.tactical.description", 1, 20);
+
+    private static void CampaignClockAndCalendarAreDeterministic()
+    {
+        CampaignClockState initial = CampaignClockState.Create(TestCalendar.CalendarId, TestTimeScale.TimeScaleId);
+        CampaignClockState batched = CampaignClockSystem.Advance(initial, TestTimeScale, 20);
+        CampaignClockState stepped = initial;
+        for (int index = 0; index < 20; index++)
+        {
+            stepped = CampaignClockSystem.Advance(stepped, TestTimeScale, 1);
+        }
+
+        Equal(new CampaignClockState(1, 0, TestCalendar.CalendarId, TestTimeScale.TimeScaleId), batched,
+            "Twenty tactical ticks did not advance exactly one world second.");
+        Equal(batched, stepped, "Batched clock advancement changed the deterministic remainder.");
+
+        CampaignClockState secondMonth = initial with
+        {
+            ElapsedWorldSeconds = TestCalendar.SecondsPerDay * 30,
+        };
+        WorldDateTime monthBoundary = WorldTimeQueries.GetDateTime(secondMonth, TestCalendar);
+        Equal(327L, monthBoundary.Year, "Month rollover changed the campaign year.");
+        Equal(2, monthBoundary.Month, "Calendar did not advance to the second authored month.");
+        Equal(1, monthBoundary.Day, "Month rollover did not begin on day one.");
+
+        CampaignClockState secondYear = initial with
+        {
+            ElapsedWorldSeconds = TestCalendar.SecondsPerDay * TestCalendar.DaysPerYear,
+        };
+        WorldDateTime yearBoundary = WorldTimeQueries.GetDateTime(secondYear, TestCalendar);
+        Equal(328L, yearBoundary.Year, "Calendar year rollover was not derived from authored months.");
+        Equal(1, yearBoundary.Month, "Calendar year rollover did not return to the first month.");
+        Equal(1, yearBoundary.Day, "Calendar year rollover did not begin on day one.");
+    }
+
     private static void FixedTickCadenceAndOrderingAreDeterministic()
     {
         ShipState ship = CreateShip(new ShipId("ship.first-voyage.player"), new TeamId("team.player"), "ship.path.arcane");
         World initial = World.Create(
             0x5eedUL,
             new ContentFingerprint(new string('a', 64)),
+            TestWorldTime,
+            TestCalendar,
+            TestTimeScale,
             ship.TeamId,
             [ship]);
         Equal(0, initial.Advance(8).AdvancedTicks, "Paused ship simulation advanced authoritative time.");
+        World bounded = initial with
+        {
+            TimeDefinition = TestWorldTime with { MaximumCatchUpTicks = 2 },
+            ShipPaused = false,
+        };
+        Equal(2, bounded.Advance(8).AdvancedTicks, "World ignored its data-driven catch-up limit.");
 
         WorldCommand second = CreateWorldCommand("command.test.second", WorldCommandKind.Course, ship.Id.Value, ship.Id.Value, 20, 2);
         WorldCommand first = CreateWorldCommand("command.test.first", WorldCommandKind.Course, ship.Id.Value, ship.Id.Value, 10, 1);
@@ -47,6 +104,7 @@ internal static partial class SimulationContracts
         WorldSnapshot batchedSnapshot = batched.Snapshot();
         WorldSnapshot steppedSnapshot = stepped.Snapshot();
         Equal(batchedSnapshot.Tick, steppedSnapshot.Tick, "Render cadence changed the committed tick.");
+        Equal(batchedSnapshot.Clock, steppedSnapshot.Clock, "Render cadence changed campaign time.");
         Equal(batchedSnapshot.Ships[0].Position, steppedSnapshot.Ships[0].Position,
             "Render cadence changed fixed-point movement.");
         True(batchedSnapshot.RecentEvents.SequenceEqual(steppedSnapshot.RecentEvents),
@@ -138,7 +196,15 @@ internal static partial class SimulationContracts
             false,
             false);
         ShipState ship = CreateShip(new ShipId("ship.first-voyage.personal"), defender.TeamId, "ship.path.arcane");
-        World world = World.Create(17, new ContentFingerprint(new string('b', 64)), defender.TeamId, [ship], encounter) with {
+        World world = World.Create(
+            17,
+            new ContentFingerprint(new string('b', 64)),
+            TestWorldTime,
+            TestCalendar,
+            TestTimeScale,
+            defender.TeamId,
+            [ship],
+            encounter) with {
             ShipPaused = false,
             ReadyActors = [attackerId],
         };

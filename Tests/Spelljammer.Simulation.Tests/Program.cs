@@ -12,6 +12,7 @@ internal static partial class SimulationContracts
     public static int Run()
     {
         FixedTickCadenceAndOrderingAreDeterministic();
+        CampaignClockAndCalendarAreDeterministic();
         TacticalBoardAndEncounterCleanupAreBounded();
         ShipLoadoutPowerAndDamageAreAtomic();
         CombatSystemRoutesAndRejectsAtomically();

@@ -30,6 +30,19 @@ public sealed partial class GameContentCompiler
 
             switch (definition.Kind)
             {
+                case DefinitionKind.WorldTime when
+                    definition.Integers["ticksPerSecond"] is < 1 or > 1_000 ||
+                    definition.Integers["maximumCatchUpTicks"] is < 1 or > 100_000:
+                    OutOfRange(definition, "/ticksPerSecond", diagnostics);
+                    break;
+                case DefinitionKind.Calendar:
+                    ValidateCalendar(definition, diagnostics);
+                    break;
+                case DefinitionKind.TimeScale when
+                    definition.Integers["worldSecondsNumerator"] is < 1 or > 1_000_000_000 ||
+                    definition.Integers["simulationTicksDenominator"] is < 1 or > 1_000_000:
+                    OutOfRange(definition, "/worldSecondsNumerator", diagnostics);
+                    break;
                 case DefinitionKind.Ability:
                     ValidateAbility(definition, diagnostics);
                     break;
@@ -244,6 +257,43 @@ public sealed partial class GameContentCompiler
             diagnostics.Limit("graph-edges");
         }
 
+        SourceDefinition[] worldTimes = [.. ordered.Where(value => value.Kind == DefinitionKind.WorldTime)];
+        if (worldTimes.Length > 1)
+        {
+            SourceDefinition duplicate = worldTimes[1];
+            diagnostics.Add(
+                ContentDiagnosticCodes.SemanticInvalid,
+                duplicate.PackId,
+                duplicate.RelativePath,
+                duplicate.Id.ToString(),
+                "/id");
+        }
+
         return !diagnostics.HasErrors;
+    }
+
+    private static void ValidateCalendar(SourceDefinition definition, DiagnosticSink diagnostics)
+    {
+        if (definition.Integers["secondsPerMinute"] is < 1 or > 3_600 ||
+            definition.Integers["minutesPerHour"] is < 1 or > 1_000 ||
+            definition.Integers["hoursPerDay"] is < 1 or > 1_000 ||
+            definition.Integers["daysPerWeek"] is < 1 or > 1_000 ||
+            definition.Integers["startingYear"] is < -1_000_000 or > 1_000_000 ||
+            definition.Calendar is not CalendarSourceDto { Months.Length: > 0 and <= 100 } calendar ||
+            calendar.Months.Any(month => month.Days is < 1 or > 1_000))
+        {
+            OutOfRange(definition, "/months", diagnostics);
+            return;
+        }
+
+        if (calendar.Months.Select(month => month.CalendarMonthId).Distinct().Count() != calendar.Months.Length)
+        {
+            diagnostics.Add(
+                ContentDiagnosticCodes.CollectionDuplicate,
+                definition.PackId,
+                definition.RelativePath,
+                definition.Id.ToString(),
+                "/months");
+        }
     }
 }

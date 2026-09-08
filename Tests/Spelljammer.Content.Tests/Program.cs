@@ -29,6 +29,7 @@ internal static partial class ContentContracts
         EveryFrozenDiagnosticCaseIsRecognized();
         FailedReplacementPreservesPublishedSnapshot();
         BaseAbilitysAndSkillsAreTypedAndIndexed();
+        WorldTimeIsDataDriven();
         LevelProgressionTablesAreDataDriven();
         CharacterResourcesAreBoundedAndDirectional();
         Milestone2InvalidCasesAreRecognized();

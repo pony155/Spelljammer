@@ -24,7 +24,7 @@ public static class CampaignSaveVersions
     /// <summary>
     /// Current version of the save schema.
     /// </summary>
-    public const ushort SaveSchema = 11;
+    public const ushort SaveSchema = 12;
 
     /// <summary>Version of the world generation algorithm used in this save.</summary>
     public const int WorldGenerator = 1;

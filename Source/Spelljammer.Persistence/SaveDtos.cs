@@ -40,6 +40,7 @@ internal sealed class CampaignPayloadDto
 internal sealed class WorldDto
 {
     public ulong Seed { get; set; }
+    public CampaignClockDto Clock { get; set; } = new();
     public long Tick { get; set; }
     public ulong RandomSequence { get; set; }
     public string PlayerTeamId { get; set; } = string.Empty;
@@ -52,6 +53,14 @@ internal sealed class WorldDto
     public ScheduledActionDto[] ScheduledActions { get; set; } = [];
     public string[] ReadyActorIds { get; set; } = [];
     public EventDto[] Events { get; set; } = [];
+}
+
+internal sealed class CampaignClockDto
+{
+    public long ElapsedWorldSeconds { get; set; }
+    public int FractionRemainder { get; set; }
+    public string CalendarId { get; set; } = string.Empty;
+    public string TimeScaleId { get; set; } = string.Empty;
 }
 
 internal sealed class ShipDto

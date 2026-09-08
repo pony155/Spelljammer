@@ -88,6 +88,18 @@ public sealed partial class GameContentCompiler
             {
                 CheckLocalizationKey(definition, definition.NameKey, "/nameKey", keys, diagnostics);
                 CheckLocalizationKey(definition, definition.DescriptionKey, "/descriptionKey", keys, diagnostics);
+                if (definition.Calendar is CalendarSourceDto calendar)
+                {
+                    for (int index = 0; index < calendar.Months.Length; index++)
+                    {
+                        CheckLocalizationKey(
+                            definition,
+                            calendar.Months[index].NameKey,
+                            $"/months/{index}/nameKey",
+                            keys,
+                            diagnostics);
+                    }
+                }
             }
         }
 

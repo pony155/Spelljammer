@@ -26,6 +26,12 @@ Character resource profiles define Health, Stamina, Mana, Resolve, Strain,
 Turn Meter, Action Points, stamina speed bands, and stable personal-action AP
 costs. These values are compiled and fingerprinted with the rest of gameplay
 content rather than supplied by simulation fallbacks.
+World-time definitions similarly own the fixed ticks-per-second cadence and
+the bounded catch-up limit used by each authoritative `World`.
+Time-scale definitions provide deterministic rational conversion from ticks to
+campaign seconds, while calendar definitions provide ordered localized months
+and all date-unit sizes. The compiled snapshot exposes all three through
+`IWorldContentCatalog`.
 
 Public namespaces are:
 

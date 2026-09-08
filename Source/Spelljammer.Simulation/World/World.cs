@@ -10,6 +10,10 @@ namespace Spelljammer.Simulation.World;
 public sealed record World(
     ulong Seed,
     ContentFingerprint ContentFingerprint,
+    WorldTimeDefinition TimeDefinition,
+    CalendarDefinition Calendar,
+    TimeScaleDefinition TimeScale,
+    CampaignClockState Clock,
     long Tick,
     ulong RandomSequence,
     TeamId PlayerTeamId,
@@ -32,19 +36,33 @@ public sealed record World(
     public static World Create(
         ulong seed,
         ContentFingerprint fingerprint,
+        WorldTimeDefinition timeDefinition,
+        CalendarDefinition calendar,
+        TimeScaleDefinition timeScale,
         TeamId playerTeamId,
         IEnumerable<ShipState> ships,
         PersonalEncounterState? encounter = null)
     {
+        ArgumentNullException.ThrowIfNull(timeDefinition);
+        ArgumentNullException.ThrowIfNull(calendar);
+        ArgumentNullException.ThrowIfNull(timeScale);
         ImmutableDictionary<ShipId, ShipState> shipMap = ships.ToImmutableDictionary(value => value.Id);
-        if (shipMap.Count is 0 or > 32 || encounter?.Actors.Count > MaximumReadyActors)
+        if (timeDefinition.TicksPerSecond <= 0 || timeDefinition.MaximumCatchUpTicks <= 0 ||
+            calendar.SecondsPerMinute <= 0 || calendar.MinutesPerHour <= 0 || calendar.HoursPerDay <= 0 ||
+            calendar.DaysPerWeek <= 0 || calendar.Months.IsDefaultOrEmpty ||
+            timeScale.WorldSecondsNumerator <= 0 || timeScale.SimulationTicksDenominator <= 0 ||
+            shipMap.Count is 0 or > 32 || encounter?.Actors.Count > MaximumReadyActors)
         {
-            throw new InvalidOperationException("World capacity is invalid.");
+            throw new InvalidOperationException("World configuration or capacity is invalid.");
         }
 
         return new World(
             seed,
             fingerprint,
+            timeDefinition,
+            calendar,
+            timeScale,
+            CampaignClockState.Create(calendar.CalendarId, timeScale.TimeScaleId),
             0,
             0,
             playerTeamId,
@@ -126,7 +144,7 @@ public sealed record World(
         int requestedTicks,
         IPersonalCombatResolver? personalCombatResolver = null)
     {
-        int ticks = Math.Clamp(requestedTicks, 0, WorldTime.MaximumCatchUpTicks);
+        int ticks = Math.Clamp(requestedTicks, 0, TimeDefinition.MaximumCatchUpTicks);
         World world = this;
         int advanced = 0;
         for (int index = 0; index < ticks; index++)
@@ -146,6 +164,10 @@ public sealed record World(
     public WorldSnapshot Snapshot() => new(
         Seed,
         ContentFingerprint,
+        TimeDefinition,
+        Calendar,
+        TimeScale,
+        Clock,
         Tick,
         ShipPaused,
         PersonalPaused,
@@ -159,7 +181,11 @@ public sealed record World(
     private World AdvanceOneTick(IPersonalCombatResolver? personalCombatResolver)
     {
         long nextTick = Tick + 1;
-        World world = this with { Tick = nextTick };
+        World world = this with
+        {
+            Tick = nextTick,
+            Clock = CampaignClockSystem.Advance(Clock, TimeScale, 1),
+        };
         WorldCommand[] due = [.. world.Commands.Where(value => value.TargetTick <= nextTick)];
         world = world with { Commands = [.. world.Commands.Except(due)] };
         foreach (WorldCommand command in due)
@@ -466,7 +492,11 @@ public sealed record World(
                 updated = updated with { Defending = true };
                 break;
             case WorldCommandKind.PersonalReserveReaction:
-                updated = updated with { ReservedReactionPoints = 1, ReactionExpiresTick = Tick + WorldTime.TicksPerSecond };
+                updated = updated with
+                {
+                    ReservedReactionPoints = 1,
+                    ReactionExpiresTick = Tick + TimeDefinition.TicksPerSecond,
+                };
                 break;
             case WorldCommandKind.PersonalSurrender:
                 updated = updated with { Surrendered = true };

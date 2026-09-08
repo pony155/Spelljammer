@@ -266,6 +266,9 @@ public sealed partial class GameContentCompiler
 
     private static string Prefix(DefinitionKind kind) => kind switch
     {
+        DefinitionKind.WorldTime => "world-time.",
+        DefinitionKind.Calendar => "calendar.",
+        DefinitionKind.TimeScale => "time-scale.",
         DefinitionKind.Ability => "ability.",
         DefinitionKind.Skill => "skill.",
         DefinitionKind.LevelProgressionTable => "level-progression.",

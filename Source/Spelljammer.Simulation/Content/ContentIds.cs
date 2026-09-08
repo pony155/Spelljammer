@@ -228,6 +228,58 @@ public readonly record struct CharacterResourceProfileId : IComparable<Character
     public override string ToString() => Value.ToString();
 }
 
+/// <summary>Identifies data-driven authoritative world timing rules.</summary>
+public readonly record struct WorldTimeId : IComparable<WorldTimeId>
+{
+    public WorldTimeId(ContentId value) => Value = TypedContentId.RequirePrefix(value, "world-time.");
+    public WorldTimeId(string value) : this(new ContentId(value)) { }
+    public ContentId Value { get; }
+    public bool IsValid => Value.IsValid;
+    public int CompareTo(WorldTimeId other) => Value.CompareTo(other.Value);
+    public override string ToString() => Value.ToString();
+    public static bool TryParse(string? value, out WorldTimeId id) =>
+        TypedContentId.TryParse(value, "world-time.", out id);
+}
+
+/// <summary>Identifies a data-driven campaign calendar.</summary>
+public readonly record struct CalendarId : IComparable<CalendarId>
+{
+    public CalendarId(ContentId value) => Value = TypedContentId.RequirePrefix(value, "calendar.");
+    public CalendarId(string value) : this(new ContentId(value)) { }
+    public ContentId Value { get; }
+    public bool IsValid => Value.IsValid;
+    public int CompareTo(CalendarId other) => Value.CompareTo(other.Value);
+    public override string ToString() => Value.ToString();
+    public static bool TryParse(string? value, out CalendarId id) =>
+        TypedContentId.TryParse(value, "calendar.", out id);
+}
+
+/// <summary>Identifies an ordered month within a campaign calendar.</summary>
+public readonly record struct CalendarMonthId : IComparable<CalendarMonthId>
+{
+    public CalendarMonthId(ContentId value) => Value = TypedContentId.RequirePrefix(value, "calendar.month.");
+    public CalendarMonthId(string value) : this(new ContentId(value)) { }
+    public ContentId Value { get; }
+    public bool IsValid => Value.IsValid;
+    public int CompareTo(CalendarMonthId other) => Value.CompareTo(other.Value);
+    public override string ToString() => Value.ToString();
+    public static bool TryParse(string? value, out CalendarMonthId id) =>
+        TypedContentId.TryParse(value, "calendar.month.", out id);
+}
+
+/// <summary>Identifies a data-driven mapping from simulation ticks to world time.</summary>
+public readonly record struct TimeScaleId : IComparable<TimeScaleId>
+{
+    public TimeScaleId(ContentId value) => Value = TypedContentId.RequirePrefix(value, "time-scale.");
+    public TimeScaleId(string value) : this(new ContentId(value)) { }
+    public ContentId Value { get; }
+    public bool IsValid => Value.IsValid;
+    public int CompareTo(TimeScaleId other) => Value.CompareTo(other.Value);
+    public override string ToString() => Value.ToString();
+    public static bool TryParse(string? value, out TimeScaleId id) =>
+        TypedContentId.TryParse(value, "time-scale.", out id);
+}
+
 /// <summary>
 /// A strongly-typed identifier for an access privilege or ability category.
 /// </summary>

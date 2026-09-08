@@ -4499,7 +4499,7 @@ authored definitions. A hit now emits deterministic armor-damage and
 physical-damage `EffectRequest` values plus action-authored Effects;
 `ResolveEffects` applies the batch atomically through the shared Effect system.
 
-Encounter actors and campaign save schema 11 persist the item instance and its
+Encounter actors and campaign save schema 12 persist the item instance and its
 `RangedWeaponState`. Publishing the resolved Effect target snapshot back into
 encounter actor state, AI action selection, line-of-fire, and terrain effects
 remain planned.

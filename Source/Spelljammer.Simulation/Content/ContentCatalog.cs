@@ -2,6 +2,7 @@ using Spelljammer.Simulation.Characters;
 using Spelljammer.Simulation.Combat;
 using Spelljammer.Simulation.Encounters;
 using Spelljammer.Simulation.Ships;
+using Spelljammer.Simulation.World;
 
 namespace Spelljammer.Simulation.Content;
 
@@ -19,4 +20,5 @@ public interface IGameContentCatalog :
     ICharacterCreationCatalog,
     ICombatContentCatalog,
     IEncounterContentCatalog,
-    IShipContentCatalog;
+    IShipContentCatalog,
+    IWorldContentCatalog;

@@ -30,6 +30,25 @@ public static partial class CampaignSaveCodec
         PersonalEncounterState? encounter = payload.World.PersonalEncounter is null
             ? null
             : FromDto(payload.World.PersonalEncounter, content);
+        if (content.WorldTimes.Length != 1)
+        {
+            throw new InvalidOperationException("Exactly one world-time definition is required to restore a campaign.");
+        }
+
+        WorldTimeDefinition timeDefinition = content.WorldTimes[0];
+        CalendarId calendarId = new(payload.World.Clock.CalendarId);
+        TimeScaleId timeScaleId = new(payload.World.Clock.TimeScaleId);
+        if (!content.TryGetCalendar(calendarId, out CalendarDefinition? calendar) ||
+            !content.TryGetTimeScale(timeScaleId, out TimeScaleDefinition? timeScale))
+        {
+            throw new InvalidOperationException("Campaign calendar or time-scale definition is missing.");
+        }
+
+        CampaignClockState clock = new(
+            payload.World.Clock.ElapsedWorldSeconds,
+            payload.World.Clock.FractionRemainder,
+            calendarId,
+            timeScaleId);
 
         RequireCount(payload.World.Commands.Length, World.MaximumCommands);
         RequireCount(payload.World.CommandHistory.Length, World.MaximumCommandHistory);
@@ -39,6 +58,10 @@ public static partial class CampaignSaveCodec
         World world = new(
             payload.World.Seed,
             content.Fingerprint,
+            timeDefinition,
+            calendar!,
+            timeScale!,
+            clock,
             payload.World.Tick,
             payload.World.RandomSequence,
             new TeamId(payload.World.PlayerTeamId),

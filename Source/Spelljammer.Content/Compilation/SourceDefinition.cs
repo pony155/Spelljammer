@@ -5,6 +5,9 @@ namespace Spelljammer.Content.Compilation;
 
 internal enum DefinitionKind : byte
 {
+    WorldTime,
+    Calendar,
+    TimeScale,
     Ability,
     Skill,
     LevelProgressionTable,
@@ -49,6 +52,7 @@ internal sealed record SourceDefinition(
     IReadOnlyDictionary<string, ImmutableArray<int>> IntegerArrays,
     AbilitySourceDto? Ability,
     SkillSourceDto? Skill,
+    CalendarSourceDto? Calendar,
     StatusSourceDto? Status,
     ImmutableArray<LevelProgressionEntry> LevelProgressionEntries);
 
@@ -63,6 +67,13 @@ internal sealed record SkillSourceDto(
     int Maximum,
     ContentId ProgressionCurveId,
     ImmutableArray<ContentId> ActionTags);
+
+internal sealed record CalendarMonthSourceDto(
+    CalendarMonthId CalendarMonthId,
+    string NameKey,
+    int Days);
+
+internal sealed record CalendarSourceDto(ImmutableArray<CalendarMonthSourceDto> Months);
 
 internal sealed record StatusModifierSourceDto(string Type, int Amount);
 

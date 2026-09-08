@@ -12,11 +12,67 @@ using Spelljammer.Simulation.Content;
 using Spelljammer.Simulation.Encounters;
 using Spelljammer.Simulation.Items;
 using Spelljammer.Simulation.Effects;
+using Spelljammer.Simulation.World;
 using MeleeWeaponDefinition = Spelljammer.Simulation.Items.MeleeWeaponDefinition;
 using RangedWeaponDefinition = Spelljammer.Simulation.Items.RangedWeaponDefinition;
 
 internal static partial class ContentContracts
 {
+    private static void WorldTimeIsDataDriven()
+    {
+        Dictionary<string, byte[]> files = ReadFiles(Path.Combine(Milestone2Root, "base"));
+        ContentCompilationResult result = new GameContentCompiler().Compile(
+            [new MemoryPackSource(files, [])], GameVersion);
+        True(result.Succeeded, Primary(result));
+        GameContentSnapshot snapshot = result.Snapshot!;
+        Equal(1, snapshot.WorldTimeRegistry.Count, "The world-time definition was not published.");
+        True(snapshot.TryGetWorldTime(new WorldTimeId("world-time.standard"), out WorldTimeDefinition? time),
+            "Typed world-time lookup failed.");
+        Equal(20, time!.TicksPerSecond, "The fixed-tick cadence did not come from JSON.");
+        Equal(8, time.MaximumCatchUpTicks, "The catch-up limit did not come from JSON.");
+        Equal(1, snapshot.CalendarRegistry.Count, "The campaign calendar was not published.");
+        True(snapshot.TryGetCalendar(new CalendarId("calendar.voidfarer-standard"), out CalendarDefinition? calendar),
+            "Typed calendar lookup failed.");
+        Equal(327L, calendar!.StartingYear, "The starting campaign year did not come from JSON.");
+        Equal(12, calendar.Months.Length, "The authored calendar months were not preserved.");
+        Equal(new CalendarMonthId("calendar.month.first-light"), calendar.Months[0].CalendarMonthId,
+            "Calendar month order changed during compilation.");
+        Equal(1, snapshot.TimeScaleRegistry.Count, "The tactical time scale was not published.");
+        True(snapshot.TryGetTimeScale(new TimeScaleId("time-scale.tactical"), out TimeScaleDefinition? timeScale),
+            "Typed time-scale lookup failed.");
+        Equal(1, timeScale!.WorldSecondsNumerator, "The world-time numerator did not come from JSON.");
+        Equal(20, timeScale.SimulationTicksDenominator, "The simulation-tick denominator did not come from JSON.");
+
+        Dictionary<string, byte[]> invalid = Clone(files);
+        ReplaceText(invalid, "Definitions/WorldTimes/standard.json",
+            "\"ticksPerSecond\": 20",
+            "\"ticksPerSecond\": 0");
+        ContentCompilationResult rejected = new GameContentCompiler().Compile(
+            [new MemoryPackSource(invalid, [])], GameVersion);
+        Equal(ContentDiagnosticCodes.ValueOutOfRange, rejected.Diagnostics.FirstOrDefault()?.Code ?? "<none>",
+            "An invalid fixed-tick cadence was accepted.");
+
+        Dictionary<string, byte[]> invalidCalendar = Clone(files);
+        ReplaceText(invalidCalendar, "Definitions/Calendars/voidfarer-standard.json",
+            "\"days\": 30",
+            "\"days\": 0");
+        ContentCompilationResult rejectedCalendar = new GameContentCompiler().Compile(
+            [new MemoryPackSource(invalidCalendar, [])], GameVersion);
+        Equal(ContentDiagnosticCodes.ValueOutOfRange,
+            rejectedCalendar.Diagnostics.FirstOrDefault()?.Code ?? "<none>",
+            "A calendar with zero-day months was accepted.");
+
+        Dictionary<string, byte[]> invalidTimeScale = Clone(files);
+        ReplaceText(invalidTimeScale, "Definitions/TimeScales/tactical.json",
+            "\"simulationTicksDenominator\": 20",
+            "\"simulationTicksDenominator\": 0");
+        ContentCompilationResult rejectedTimeScale = new GameContentCompiler().Compile(
+            [new MemoryPackSource(invalidTimeScale, [])], GameVersion);
+        Equal(ContentDiagnosticCodes.ValueOutOfRange,
+            rejectedTimeScale.Diagnostics.FirstOrDefault()?.Code ?? "<none>",
+            "A zero-denominator time scale was accepted.");
+    }
+
     private static void LevelProgressionTablesAreDataDriven()
     {
         Dictionary<string, byte[]> files = ReadFiles(Path.Combine(Milestone2Root, "base"));

@@ -17,6 +17,21 @@ namespace Spelljammer.Content.Compilation;
 
 public sealed partial class GameContentCompiler
 {
+    private static WorldTimeDefinition CompileWorldTime(SourceDefinition value) => new(
+        new WorldTimeId(value.Id), 1, value.Revision, value.NameKey, value.DescriptionKey,
+        value.Integers["ticksPerSecond"], value.Integers["maximumCatchUpTicks"]);
+
+    private static CalendarDefinition CompileCalendar(SourceDefinition value) => new(
+        new CalendarId(value.Id), 1, value.Revision, value.NameKey, value.DescriptionKey,
+        value.Integers["secondsPerMinute"], value.Integers["minutesPerHour"],
+        value.Integers["hoursPerDay"], value.Integers["daysPerWeek"], value.Integers["startingYear"],
+        [.. value.Calendar!.Months.Select(month => new CalendarMonthDefinition(
+            month.CalendarMonthId, month.NameKey, month.Days))]);
+
+    private static TimeScaleDefinition CompileTimeScale(SourceDefinition value) => new(
+        new TimeScaleId(value.Id), 1, value.Revision, value.NameKey, value.DescriptionKey,
+        value.Integers["worldSecondsNumerator"], value.Integers["simulationTicksDenominator"]);
+
     private static AbilityDefinition CompileAbility(SourceDefinition value) => new(
         new AbilityId(value.Id), 1, value.Revision, value.NameKey, value.DescriptionKey,
         (short)value.Ability!.Minimum, (short)value.Ability.Maximum, (short)value.Ability.DefaultValue,

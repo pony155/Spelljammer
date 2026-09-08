@@ -64,6 +64,22 @@ internal static class CanonicalSemanticWriter
 
         switch (definition)
         {
+            case WorldTimeDefinition value:
+                properties["maximumCatchUpTicks"] = output => output.Append(value.MaximumCatchUpTicks);
+                properties["ticksPerSecond"] = output => output.Append(value.TicksPerSecond);
+                break;
+            case CalendarDefinition value:
+                properties["daysPerWeek"] = output => output.Append(value.DaysPerWeek);
+                properties["hoursPerDay"] = output => output.Append(value.HoursPerDay);
+                properties["minutesPerHour"] = output => output.Append(value.MinutesPerHour);
+                properties["months"] = output => WriteCalendarMonths(output, value.Months);
+                properties["secondsPerMinute"] = output => output.Append(value.SecondsPerMinute);
+                properties["startingYear"] = output => output.Append(value.StartingYear);
+                break;
+            case TimeScaleDefinition value:
+                properties["simulationTicksDenominator"] = output => output.Append(value.SimulationTicksDenominator);
+                properties["worldSecondsNumerator"] = output => output.Append(value.WorldSecondsNumerator);
+                break;
             case AbilityDefinition value:
                 properties["defaultValue"] = output => output.Append(value.DefaultValue);
                 properties["maximum"] = output => output.Append(value.Maximum);
@@ -491,6 +507,9 @@ internal static class CanonicalSemanticWriter
         ShipFrameDefinition => 24,
         ShipModuleDefinition => 25,
         ShipWeaponConfigurationDefinition => 26,
+        WorldTimeDefinition => 27,
+        CalendarDefinition => 28,
+        TimeScaleDefinition => 29,
         _ => throw new ArgumentOutOfRangeException(nameof(definition)),
     };
 
@@ -741,6 +760,30 @@ internal static class CanonicalSemanticWriter
                 .Append(",\"requiredExperience\":").Append(entry.RequiredExperience)
                 .Append(",\"skillPoints\":").Append(entry.SkillPoints)
                 .Append('}');
+        }
+
+        builder.Append(']');
+    }
+
+    private static void WriteCalendarMonths(
+        StringBuilder builder,
+        IEnumerable<CalendarMonthDefinition> months)
+    {
+        builder.Append('[');
+        bool first = true;
+        foreach (CalendarMonthDefinition month in months)
+        {
+            if (!first)
+            {
+                builder.Append(',');
+            }
+
+            first = false;
+            builder.Append("{\"days\":").Append(month.Days).Append(",\"id\":");
+            WriteString(builder, month.CalendarMonthId.ToString());
+            builder.Append(",\"nameKey\":");
+            WriteString(builder, month.NameKey);
+            builder.Append('}');
         }
 
         builder.Append(']');

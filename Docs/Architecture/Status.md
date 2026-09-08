@@ -747,7 +747,7 @@ psionics, equipment, and racial Feats, including the persistent Mindlinked
 Status.
 
 Character and personal-encounter actor state persist Status instances through
-campaign save schema 11. The prototype accepts only the current schema;
+campaign save schema 12. The prototype accepts only the current schema;
 superseded `activeEffects`, `ActiveCapabilityEffect`, and encounter-level
 `ActiveEffectState` data are no longer persistence or simulation contracts.
 Melee and ranged hit resolution emits deterministic Effect requests for armor

@@ -31,6 +31,7 @@ internal static partial class PersistenceContracts
         True(loaded.Succeeded, loaded.Diagnostic.ToString());
         Equal(campaign.World.Seed, loaded.Campaign!.World.Seed, "World seed did not round-trip.");
         Equal(campaign.World.Tick, loaded.Campaign.World.Tick, "World tick did not round-trip.");
+        Equal(campaign.World.Clock, loaded.Campaign.World.Clock, "Campaign clock did not round-trip.");
         Equal(campaign.CurrentLocationId, loaded.Campaign.CurrentLocationId, "Current location did not round-trip.");
         Equal(campaign.ProtagonistId, loaded.Campaign.ProtagonistId, "Protagonist identity did not round-trip.");
         Equal(campaign.Characters.Length, loaded.Campaign.Characters.Length, "Roster did not round-trip.");

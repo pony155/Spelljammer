@@ -11,10 +11,19 @@ encounters, typed commands, scheduled action phases, replay history, and
 bounded events. Accepted transitions publish replacement immutable state.
 Rejected commands preserve the prior world and return stable rejection codes.
 
-Simulation advances at 20 fixed ticks per second and processes at most eight
-catch-up ticks per call. Command order is deterministic by target tick,
-priority, issuer ID, sequence, and command ID. Random outcomes use explicit
-world or action seeds and owned sequence values.
+Simulation cadence and catch-up policy come from the fingerprinted
+`WorldTimeDefinition` selected when a `World` is created. The world also owns a
+`CampaignClockState`; each accepted simulation tick advances campaign seconds
+through a fingerprinted `TimeScaleDefinition`. A `CalendarDefinition` and
+pure `WorldTimeQueries` projection provide the world date without duplicating
+year, month, or day in mutable state. See [World time](WorldTime.md).
+
+The base pack authors these rules under `Definitions/WorldTimes`,
+`Definitions/TimeScales`, and `Definitions/Calendars`. Changing cadence,
+campaign-time rate, or calendar structure does not require recompiling
+simulation code. Command order is deterministic by target tick, priority,
+issuer ID, sequence, and command ID. Random outcomes use explicit world or
+action seeds and owned sequence values.
 
 The retired `ExpeditionSimulation` prototype, its 4-by-4 chart, and its WPF
 host have been removed. New gameplay must integrate with `World` or a
@@ -68,7 +77,9 @@ Gameplay consumers depend on narrow read-only catalog views:
 - `ICharacterCreationCatalog` for creation plus initial inventory validation;
 - `ICombatContentCatalog` for items, weapons, Feats, Statuses, and Effects;
 - `IEncounterContentCatalog` for boards and encounter definitions; and
-- `IShipContentCatalog` for ship frames, modules, and weapons.
+- `IShipContentCatalog` for ship frames, modules, and weapons; and
+- `IWorldContentCatalog` for fixed-tick, campaign time-scale, and calendar
+  definitions.
 
 `IGameContentCatalog` composes these interfaces for application
 composition and persistence. Gameplay systems should request only the narrowest

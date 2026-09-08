@@ -29,6 +29,13 @@ public static partial class CampaignSaveCodec
     private static WorldDto ToDto(World world) => new()
     {
         Seed = world.Seed,
+        Clock = new CampaignClockDto
+        {
+            ElapsedWorldSeconds = world.Clock.ElapsedWorldSeconds,
+            FractionRemainder = world.Clock.FractionRemainder,
+            CalendarId = world.Clock.CalendarId.ToString(),
+            TimeScaleId = world.Clock.TimeScaleId.ToString(),
+        },
         Tick = world.Tick,
         RandomSequence = world.RandomSequence,
         PlayerTeamId = world.PlayerTeamId.ToString(),

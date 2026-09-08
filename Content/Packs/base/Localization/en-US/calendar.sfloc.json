@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "locale": "en-US",
+  "namespace": "calendar",
+  "fallbacks": [],
+  "textDirection": "ltr",
+  "messages": {
+    "calendar.voidfarer-standard.name": { "description": "Display name for the standard campaign calendar.", "message": "Voidfarer Calendar" },
+    "calendar.voidfarer-standard.description": { "description": "Description of the standard campaign calendar.", "message": "A twelve-month calendar used by voidfaring crews and ports." },
+    "calendar.month.first-light.name": { "description": "Calendar month name.", "message": "First Light" },
+    "calendar.month.emberwake.name": { "description": "Calendar month name.", "message": "Emberwake" },
+    "calendar.month.starcurrent.name": { "description": "Calendar month name.", "message": "Starcurrent" },
+    "calendar.month.gilded-tide.name": { "description": "Calendar month name.", "message": "Gilded Tide" },
+    "calendar.month.long-sail.name": { "description": "Calendar month name.", "message": "Long Sail" },
+    "calendar.month.cinderfall.name": { "description": "Calendar month name.", "message": "Cinderfall" },
+    "calendar.month.voidbloom.name": { "description": "Calendar month name.", "message": "Voidbloom" },
+    "calendar.month.iron-comet.name": { "description": "Calendar month name.", "message": "Iron Comet" },
+    "calendar.month.pale-orbit.name": { "description": "Calendar month name.", "message": "Pale Orbit" },
+    "calendar.month.deepwatch.name": { "description": "Calendar month name.", "message": "Deepwatch" },
+    "calendar.month.homeward.name": { "description": "Calendar month name.", "message": "Homeward" },
+    "calendar.month.last-lantern.name": { "description": "Calendar month name.", "message": "Last Lantern" }
+  }
+}

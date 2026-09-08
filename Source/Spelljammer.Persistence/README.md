@@ -16,7 +16,7 @@ stable IDs are resolved and runtime indices are reconstructed only inside that
 validated boundary.
 
 The codec accepts only the current save schema (11); older schema conversion is
-not retained during this prototype phase. Schema 11 preserves campaign and encounter character resources, turn state,
+not retained during this prototype phase. Schema 12 preserves campaign time, campaign and encounter character resources, turn state,
 and complete item-instance ownership: containers, equipped slots, durability,
 melee energy, ranged ammunition, energy, and heat, and stackable inventory
 entries. It also persists authored Status instances, including source, target,
