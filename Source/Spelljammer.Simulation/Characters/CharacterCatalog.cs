@@ -5,7 +5,7 @@ using RangedWeaponDefinition = Spelljammer.Simulation.Items.RangedWeaponDefiniti
 using EquipmentDefinition = Spelljammer.Simulation.Items.EquipmentDefinition;
 using ItemDefinition = Spelljammer.Simulation.Items.ItemDefinition;
 using Spelljammer.Simulation.Items;
-using Spelljammer.Simulation.Statuses;
+using Spelljammer.Simulation.Effects;
 
 namespace Spelljammer.Simulation.Characters;
 

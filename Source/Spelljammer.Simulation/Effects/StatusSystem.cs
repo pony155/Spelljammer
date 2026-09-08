@@ -1,7 +1,7 @@
 using System.Collections.Immutable;
 using Spelljammer.Simulation.Content;
 
-namespace Spelljammer.Simulation.Statuses;
+namespace Spelljammer.Simulation.Effects;
 
 public sealed record StatusSystemLimits(
     int MaximumInstancesPerTarget,

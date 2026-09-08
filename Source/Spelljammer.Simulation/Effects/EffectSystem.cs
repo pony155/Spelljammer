@@ -4,7 +4,7 @@ using System.Text;
 using Spelljammer.Simulation.Characters;
 using Spelljammer.Simulation.Content;
 
-namespace Spelljammer.Simulation.Statuses;
+namespace Spelljammer.Simulation.Effects;
 
 public sealed record EffectRequest(
     EffectId EffectId,

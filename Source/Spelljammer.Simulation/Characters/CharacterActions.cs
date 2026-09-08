@@ -1,6 +1,6 @@
 using System.Collections.Immutable;
 using Spelljammer.Simulation.Content;
-using Spelljammer.Simulation.Statuses;
+using Spelljammer.Simulation.Effects;
 
 namespace Spelljammer.Simulation.Characters;
 

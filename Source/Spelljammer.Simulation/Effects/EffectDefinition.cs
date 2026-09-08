@@ -1,6 +1,6 @@
 using Spelljammer.Simulation.Content;
 
-namespace Spelljammer.Simulation.Statuses;
+namespace Spelljammer.Simulation.Effects;
 
 public enum EffectType : byte
 {

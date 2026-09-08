@@ -10,7 +10,7 @@ using Spelljammer.Simulation.Characters;
 using Spelljammer.Simulation.Content;
 using Spelljammer.Simulation.Encounters;
 using Spelljammer.Simulation.Items;
-using Spelljammer.Simulation.Statuses;
+using Spelljammer.Simulation.Effects;
 using MeleeWeaponDefinition = Spelljammer.Simulation.Items.MeleeWeaponDefinition;
 using RangedWeaponDefinition = Spelljammer.Simulation.Items.RangedWeaponDefinition;
 

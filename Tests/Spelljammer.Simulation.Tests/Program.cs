@@ -4,7 +4,7 @@ using Spelljammer.Simulation.Characters;
 using Spelljammer.Simulation.Content;
 using Spelljammer.Simulation.Encounters;
 using Spelljammer.Simulation.Items;
-using Spelljammer.Simulation.Statuses;
+using Spelljammer.Simulation.Effects;
 
 return SimulationContracts.Run();
 

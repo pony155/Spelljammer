@@ -1,4 +1,4 @@
-namespace Spelljammer.Simulation.Statuses;
+namespace Spelljammer.Simulation.Effects;
 
 public static class StatusRejectionCodes
 {

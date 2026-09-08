@@ -725,7 +725,7 @@ This structure keeps Status definitions reusable across combat, abilities, weapo
 # 13. Implementation Status
 
 The first headless implementation is available under
-`Source/Spelljammer.Simulation/Statuses`. It separates immutable
+`Source/Spelljammer.Simulation/Effects`. It separates immutable
 `EffectDefinition` and `StatusDefinition` content from `EffectRequest` and
 `StatusInstance` runtime state. Status application, removal, timed turn
 advancement, refresh, extend, intensity stacking, stronger-wins replacement,
