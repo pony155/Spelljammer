@@ -2,17 +2,18 @@
 
 ## Status and scope
 
-This document defines the planned item-system foundation for Spelljammer. The
-first implementation slice is deliberately Equipment-first: it must support
-equipping, unequipping, transferring, and persisting distinct pieces of
-equipment without coupling inventory identity to WPF, rendering, or localized
-text.
+This document defines the item-system foundation for Spelljammer. The first
+implemented slice is deliberately Equipment-first: it supports validation and
+atomic state replacement for equipping, unequipping, and transferring distinct
+pieces of equipment without coupling inventory identity to WPF, rendering, or
+localized text.
 
 Existing melee and ranged weapon rules remain their own authoritative combat
-definitions. This system supplies the item identity, ownership, placement, and
-per-instance state that those rules need. Consumables, materials, trade goods,
-crafting, merchants, loot generation, and ground containers are planned
-extensions rather than implemented features.
+definitions. The implemented item core supplies isolated definition, ownership,
+placement, and per-instance state contracts; wiring those weapon rules and
+their persisted resource state into item instances remains planned.
+Consumables, materials, trade goods, crafting, merchants, loot generation, and
+ground containers are planned extensions rather than implemented features.
 
 ## Core model
 
@@ -339,11 +340,28 @@ not mutate inventory or loadout state directly.
 
 ## Equipment-first implementation plan
 
-1. Add typed IDs and compiled definitions for Item, abstract Equipment,
-   abstract Weapon, MeleeWeapon, RangedWeapon, Armor, Gear, and equipment
-   slots.
-2. Introduce saveable `ItemInstance`, `InventoryContainer`, and
-   `EquipmentLoadout` state with versioned DTOs and validation.
+Implemented in `Source/Spelljammer.Simulation/Items/ItemSystem.cs`:
+
+- immutable `ItemDefinition` / `EquipmentDefinition` / `WeaponDefinition`
+  inheritance types, including melee, ranged, armor, and gear definitions;
+- stable GUID instance and container IDs; bounded `ItemInstance`,
+  `InventoryContainer`, and `EquipmentLoadout` state;
+- a definition catalog boundary, complete-state validation, deterministic state
+  normalization, and atomic `Equip`, `Unequip`, and `Transfer` operations;
+- all-or-nothing ownership, slot, and fixed-point weight-capacity checks;
+- removal of every loadout assignment when an item is transferred.
+
+The definition catalog is currently supplied directly to the simulation core.
+Compiling authored item JSON into that catalog, content snapshots, save DTOs,
+and migration from the existing weapon/equipment records are separate work and
+must be delivered together to preserve existing content and saves.
+
+Remaining implementation work:
+
+1. Add typed IDs and compiled content definitions for items and authored
+   equipment slots.
+2. Add versioned save DTOs for `ItemInstance`, `InventoryContainer`, and
+   `EquipmentLoadout`.
 3. Migrate the current encounter `PersonalLoadout` from definition IDs to item
    instance IDs while retaining content-fingerprint validation.
 4. Connect equipped melee and ranged instances to their persistent durability,

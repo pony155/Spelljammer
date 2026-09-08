@@ -3,6 +3,7 @@ using Spelljammer.Simulation;
 using Spelljammer.Simulation.Characters;
 using Spelljammer.Simulation.Content;
 using Spelljammer.Simulation.Encounters;
+using Spelljammer.Simulation.Items;
 
 return SimulationContracts.Run();
 
@@ -17,6 +18,7 @@ internal static class SimulationContracts
         TacticalBoardAndEncounterCleanupAreBounded();
         ShipLoadoutPowerAndDamageAreAtomic();
         PersonalReactionsAndConsequencesPersist();
+        ItemInventoryAndEquipmentLoadoutAreAtomic();
         Console.WriteLine("Space expedition simulation contracts passed.");
         return 0;
     }
@@ -347,6 +349,69 @@ internal static class SimulationContracts
 
     private static CharacterResourceState Resource(ResourceId id, int current, int maximum, int recovery, bool accumulates) =>
         new(id, current, maximum, recovery, accumulates, [], []);
+
+    private static void ItemInventoryAndEquipmentLoadoutAreAtomic()
+    {
+        ContentId owner = new("character.test.item-owner");
+        ContentId otherOwner = new("character.test.item-recipient");
+        ContentId mainHand = new("equipment-slot.main-hand");
+        ContentId offHand = new("equipment-slot.off-hand");
+        ContentId head = new("equipment-slot.head");
+        InventoryContainerId sourceId = new(Guid.Parse("11111111-1111-1111-1111-111111111111"));
+        InventoryContainerId destinationId = new(Guid.Parse("22222222-2222-2222-2222-222222222222"));
+        ItemInstanceId bladeId = new(Guid.Parse("33333333-3333-3333-3333-333333333333"));
+        ItemInstanceId helmId = new(Guid.Parse("44444444-4444-4444-4444-444444444444"));
+        ItemInstanceId competingBladeId = new(Guid.Parse("55555555-5555-5555-5555-555555555555"));
+        Spelljammer.Simulation.Items.MeleeWeaponDefinition blade = new(
+            new ContentId("item.test.boarding-blade"), 1, 1, "item.test.blade.name", "item.test.blade.description",
+            125, 80, [], [mainHand, offHand], [new ContentId("action.test.slash")]);
+        ArmorDefinition helm = new(
+            new ContentId("item.test.helm"), 1, 1, "item.test.helm.name", "item.test.helm.description",
+            80, 50, [], [head], 2, 100, [], ["head"], []);
+        ItemDefinitionCatalog catalog = new([blade, helm], [mainHand, offHand, head]);
+        ItemSystemState initial = new(
+        [
+            new ItemInstance(bladeId, blade.Id, sourceId, 100, null, null, 1),
+            new ItemInstance(helmId, helm.Id, sourceId, 100, null, null, 1),
+            new ItemInstance(competingBladeId, blade.Id, sourceId, 100, null, null, 1),
+        ],
+        [
+            new InventoryContainer(sourceId, owner, 500, 4, [bladeId, helmId, competingBladeId]),
+            new InventoryContainer(destinationId, otherOwner, 500, 4, []),
+        ],
+        [
+            new EquipmentLoadout(owner, []),
+            new EquipmentLoadout(otherOwner, []),
+        ]);
+
+        ItemSystemResult created = ItemSystem.Create(initial, catalog);
+        True(created.Accepted, created.RejectionCode);
+
+        ItemSystemResult equipped = ItemSystem.Equip(created.State, owner, sourceId, bladeId, catalog);
+        True(equipped.Accepted, equipped.RejectionCode);
+        Equal(2, equipped.State.EquipmentLoadouts.Single(value => value.OwnerId == owner).SlotAssignments.Length,
+            "Two-handed equipment did not claim both required slots.");
+
+        ItemSystemResult duplicateEquip = ItemSystem.Equip(equipped.State, owner, sourceId, helmId, catalog);
+        True(duplicateEquip.Accepted, duplicateEquip.RejectionCode);
+        ItemSystemResult conflictingEquip = ItemSystem.Equip(duplicateEquip.State, owner, sourceId, competingBladeId, catalog);
+        False(conflictingEquip.Accepted, "Conflicting two-handed equipment occupied the same slots.");
+        Equal(ItemRejectionCodes.SlotConflict, conflictingEquip.RejectionCode, "Slot-conflict rejection was not stable.");
+        True(ReferenceEquals(duplicateEquip.State, conflictingEquip.State), "A rejected equip replaced authoritative state.");
+
+        ItemSystemResult transferred = ItemSystem.Transfer(duplicateEquip.State, bladeId, destinationId, catalog);
+        True(transferred.Accepted, transferred.RejectionCode);
+        Equal(destinationId, transferred.State.ItemInstances.Single(value => value.InstanceId == bladeId).OwnerContainerId,
+            "Transfer did not change the item's authoritative owner.");
+        False(transferred.State.EquipmentLoadouts.Single(value => value.OwnerId == owner).SlotAssignments
+            .Any(value => value.ItemInstanceId == bladeId),
+            "Transfer left the transferred item equipped in the source owner's loadout.");
+
+        ItemSystemResult wrongOwnerEquip = ItemSystem.Equip(transferred.State, owner, sourceId, bladeId, catalog);
+        False(wrongOwnerEquip.Accepted, "An item in another container was equipped by the source owner.");
+        Equal(ItemRejectionCodes.OwnershipMismatch, wrongOwnerEquip.RejectionCode, "Ownership rejection was not stable.");
+        True(ReferenceEquals(transferred.State, wrongOwnerEquip.State), "A rejected item command replaced authoritative state.");
+    }
 
     private static void True(bool condition, string message)
     {
