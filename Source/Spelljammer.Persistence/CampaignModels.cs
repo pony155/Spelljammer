@@ -6,6 +6,7 @@ using Spelljammer.Content.Manifests;
 using Spelljammer.Simulation.Characters;
 using Spelljammer.Simulation.Content;
 using Spelljammer.Simulation.Encounters;
+using Spelljammer.Simulation.World;
 
 namespace Spelljammer.Persistence;
 

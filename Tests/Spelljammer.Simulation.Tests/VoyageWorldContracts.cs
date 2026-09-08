@@ -1,9 +1,12 @@
 using System.Collections.Immutable;
 using Spelljammer.Simulation.Characters;
+using Spelljammer.Simulation.Combat;
 using Spelljammer.Simulation.Content;
 using Spelljammer.Simulation.Encounters;
 using Spelljammer.Simulation.Items;
+using Spelljammer.Simulation.Ships;
 using Spelljammer.Simulation.Effects;
+using Spelljammer.Simulation.World;
 
 internal static partial class SimulationContracts
 {

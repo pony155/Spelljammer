@@ -14,6 +14,7 @@ internal static partial class SimulationContracts
         FixedTickCadenceAndOrderingAreDeterministic();
         TacticalBoardAndEncounterCleanupAreBounded();
         ShipLoadoutPowerAndDamageAreAtomic();
+        CombatSystemRoutesAndRejectsAtomically();
         PersonalCombatResolutionIsCommittedAtomically();
         ItemInventoryAndEquipmentLoadoutAreAtomic();
         StatusLifecycleAndConflictsAreAtomic();

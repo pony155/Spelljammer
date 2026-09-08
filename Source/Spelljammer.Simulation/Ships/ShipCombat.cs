@@ -1,7 +1,8 @@
 using System.Collections.Immutable;
 using Spelljammer.Simulation.Content;
+using Spelljammer.Simulation.World;
 
-namespace Spelljammer.Simulation.Encounters;
+namespace Spelljammer.Simulation.Ships;
 
 public enum ModuleCondition : byte
 {

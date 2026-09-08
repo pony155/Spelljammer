@@ -1,8 +1,11 @@
 using System.Collections.Immutable;
 using Spelljammer.Simulation.Characters;
+using Spelljammer.Simulation.Combat;
 using Spelljammer.Simulation.Content;
+using Spelljammer.Simulation.Encounters;
+using Spelljammer.Simulation.Ships;
 
-namespace Spelljammer.Simulation.Encounters;
+namespace Spelljammer.Simulation.World;
 
 public static class VoyageTime
 {
@@ -10,81 +13,37 @@ public static class VoyageTime
     public const int MaximumCatchUpTicks = 8;
 }
 
-public enum VoyageCommandKind : byte
+/// <summary>A deterministic fixed-point scalar used by authoritative world geometry.</summary>
+public readonly record struct FixedScalar : IComparable<FixedScalar>
 {
-    Scan,
-    Course,
-    Thrust,
-    Turn,
-    Brake,
-    Intercept,
-    Fire,
-    Ram,
-    RaiseShield,
-    LowerShield,
-    Defend,
-    DamageControl,
-    Signal,
-    Retreat,
-    PersonalMove,
-    PersonalDefend,
-    PersonalReserveReaction,
-    PersonalMelee,
-    PersonalRanged,
-    PersonalSpell,
-    PersonalPsionic,
-    PersonalEngineering,
-    PersonalMedicine,
-    PersonalInteract,
-    PersonalSurrender,
-    PersonalRetreat,
-    PersonalEndActivation,
+    public const long Scale = 1_000;
+    public const long MaximumMagnitude = 1_000_000_000 * Scale;
+
+    public FixedScalar(long raw)
+    {
+        if (raw is < -MaximumMagnitude or > MaximumMagnitude)
+        {
+            throw new ArgumentOutOfRangeException(nameof(raw));
+        }
+
+        Raw = raw;
+    }
+
+    public long Raw { get; }
+    public int CompareTo(FixedScalar other) => Raw.CompareTo(other.Raw);
+    public static FixedScalar FromInt(int value) => new(checked(value * Scale));
+    public static FixedScalar operator +(FixedScalar left, FixedScalar right) => new(checked(left.Raw + right.Raw));
+    public static FixedScalar operator -(FixedScalar left, FixedScalar right) => new(checked(left.Raw - right.Raw));
+    public static FixedScalar operator *(FixedScalar value, int multiplier) => new(checked(value.Raw * multiplier));
 }
 
-public enum ScheduledActionPhase : byte
+/// <summary>A deterministic two-dimensional vector used by authoritative world geometry.</summary>
+public readonly record struct FixedVector2(FixedScalar X, FixedScalar Y)
 {
-    Declared,
-    Validated,
-    Reserved,
-    Preparing,
-    Committed,
-    Recovering,
-    Completed,
-    Interrupted,
+    public static FixedVector2 Zero => new(new FixedScalar(0), new FixedScalar(0));
+    public static FixedVector2 operator +(FixedVector2 left, FixedVector2 right) => new(left.X + right.X, left.Y + right.Y);
+    public static FixedVector2 operator -(FixedVector2 left, FixedVector2 right) => new(left.X - right.X, left.Y - right.Y);
 }
-
-public sealed record VoyageCommand(
-    ContentId Id,
-    VoyageCommandKind Kind,
-    long TargetTick,
-    int Priority,
-    ContentId IssuerId,
-    ContentId TargetId,
-    FixedVector2 Vector,
-    int Amount,
-    ContentId? OptionId,
-    ulong Sequence);
-
-public sealed record ScheduledAction(
-    VoyageCommand Command,
-    ScheduledActionPhase Phase,
-    long CommitTick,
-    long RecoverTick,
-    ResourceId? ReservedResourceId,
-    int ReservedAmount,
-    ImmutableArray<ScheduledActionPhase> History);
-
-public sealed record VoyageEvent(
-    ContentId Id,
-    long Tick,
-    ContentId SourceId,
-    ContentId TargetId,
-    VoyageCommandKind Kind,
-    bool Succeeded,
-    int Amount,
-    string ResultCode);
-
-public sealed record VoyageCommandLogEntry(long SubmittedTick, VoyageCommand Command, long? CancelledTick);
 
 public sealed record VoyageWorldSnapshot(
     ulong Seed,
@@ -98,8 +57,6 @@ public sealed record VoyageWorldSnapshot(
     ImmutableArray<ScheduledAction> Actions,
     ImmutableArray<VoyageCommandLogEntry> RecentCommands,
     ImmutableArray<VoyageEvent> RecentEvents);
-
-public sealed record VoyageCommandResult(VoyageWorld World, bool Accepted, string RejectionCode);
 
 public sealed record VoyageAdvanceResult(VoyageWorld World, VoyageWorldSnapshot Snapshot, int AdvancedTicks);
 
@@ -620,7 +577,7 @@ public sealed record VoyageWorld(
                         0,
                         personalCombatResolver is null
                             ? "command.personal-combat-resolver-required"
-                            : "command.target-illegal");
+                            : CombatRejectionCodes.TargetIllegal);
                 }
 
                 PersonalCombatResolution resolution;
@@ -637,7 +594,7 @@ public sealed record VoyageWorld(
                 }
                 catch (Exception exception) when (exception is ArgumentException or InvalidOperationException)
                 {
-                    return AddEvent(command, false, 0, "command.personal-combat-resolution-failed");
+                    return AddEvent(command, false, 0, CombatRejectionCodes.ResolutionFailed);
                 }
 
                 if (!resolution.Accepted)
@@ -647,7 +604,7 @@ public sealed record VoyageWorld(
                         false,
                         0,
                         string.IsNullOrWhiteSpace(resolution.RejectionCode)
-                            ? "command.personal-combat-result-invalid"
+                            ? CombatRejectionCodes.ResultInvalid
                             : resolution.RejectionCode);
                 }
 
@@ -657,7 +614,7 @@ public sealed record VoyageWorld(
                     resolution.Actor.ActionPoints > actor.ActionPoints ||
                     resolution.EventAmount < 0)
                 {
-                    return AddEvent(command, false, 0, "command.personal-combat-result-invalid");
+                    return AddEvent(command, false, 0, CombatRejectionCodes.ResultInvalid);
                 }
 
                 bool wasIncapacitated = target.IsIncapacitated;

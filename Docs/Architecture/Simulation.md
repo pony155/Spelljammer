@@ -21,6 +21,18 @@ host have been removed. New gameplay must integrate with `VoyageWorld` or a
 more focused authoritative subsystem rather than recreate a parallel
 simulation.
 
+The authoritative source is separated by responsibility:
+
+```text
+World/       world state, commands, scheduled actions, and events
+Encounters/  encounter state, tactical board, and encounter lifecycle
+Combat/      character-combat coordination and resolution contracts
+Ships/       ship state and ship-combat rules
+```
+
+The public type names retain the `Voyage` prefix where it clarifies their
+scope, while their namespaces follow these ownership boundaries.
+
 ## Personal combat authority
 
 `VoyageWorld` schedules personal actions but does not calculate weapon,
@@ -28,6 +40,11 @@ spell, psionic, Status, or Effect results. At commit time, melee, ranged,
 spell, and psionic commands require an `IPersonalCombatResolver`. The resolver
 uses the typed combat systems and returns one `PersonalCombatResolution`
 containing the committed actor and target states.
+
+The implemented [`CombatSystem`](CombatSystem.md) is the standard resolver. It
+routes each character-combat command to a registered
+`ICharacterCombatActionSystem`, validates the replacement states, and rejects
+partial or structurally invalid results before `VoyageWorld` commits them.
 
 The world validates actor and target identities before publishing that result.
 A missing, rejected, or structurally invalid resolution leaves encounter state

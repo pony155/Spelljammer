@@ -10,6 +10,8 @@ using Spelljammer.Persistence;
 using Spelljammer.Simulation.Characters;
 using Spelljammer.Simulation.Content;
 using Spelljammer.Simulation.Encounters;
+using Spelljammer.Simulation.Ships;
+using Spelljammer.Simulation.World;
 using Spelljammer.Simulation.Items;
 using Spelljammer.Simulation.Effects;
 
