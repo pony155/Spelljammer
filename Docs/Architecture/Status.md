@@ -747,9 +747,9 @@ psionics, equipment, and racial Feats, including the persistent Mindlinked
 Status.
 
 Character and personal-encounter actor state persist Status instances through
-campaign save schema 11. Schema 7 through 10 `activeEffects` fields are accepted
-only as legacy input and discarded during migration; `ActiveCapabilityEffect`
-and encounter-level `ActiveEffectState` are no longer simulation contracts.
+campaign save schema 11. The prototype accepts only the current schema;
+superseded `activeEffects`, `ActiveCapabilityEffect`, and encounter-level
+`ActiveEffectState` data are no longer persistence or simulation contracts.
 Melee and ranged hit resolution emits deterministic Effect requests for armor
 and Health damage plus authored action Effects, and exposes an atomic
 `ResolveEffects` boundary. Spells and psionic actions emit the same request

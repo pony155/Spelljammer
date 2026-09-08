@@ -44,7 +44,7 @@ public static partial class CampaignSaveCodec
         }
 
         if (metadata.Discriminator != DocumentDiscriminator ||
-            contentLock.SaveSchemaVersion is < CampaignSaveVersions.OldestSupportedSaveSchema or > CampaignSaveVersions.SaveSchema ||
+            contentLock.SaveSchemaVersion != CampaignSaveVersions.SaveSchema ||
             contentLock.GeneratorVersion != CampaignSaveVersions.WorldGenerator ||
             contentLock.FormulaVersion != CampaignSaveVersions.Formula ||
             contentLock.EffectVersion != CampaignSaveVersions.Effect)
@@ -56,10 +56,7 @@ public static partial class CampaignSaveCodec
         ImmutableHashSet<ContentId> availablePacks = content.Packs.Select(value => value.Id).ToImmutableHashSet();
         ImmutableArray<ContentId> missingPacks = [.. contentLock.Packs.Select(value => value.Id)
             .Where(id => !availablePacks.Contains(id)).Distinct().Order()];
-        IEnumerable<ContentId> resolvedRequired = contentLock.SaveSchemaVersion < CampaignSaveVersions.ItemInstanceSaveSchema
-            ? required.Select(id => MapLegacyItemDefinitionId(id.ToString()))
-            : required;
-        ImmutableArray<ContentId> missingDefinitions = [.. resolvedRequired.Where(id => !content.TryGetDefinition(id, out _)).Distinct().Order()];
+        ImmutableArray<ContentId> missingDefinitions = [.. required.Where(id => !content.TryGetDefinition(id, out _)).Distinct().Order()];
         if (!missingPacks.IsEmpty || !missingDefinitions.IsEmpty)
         {
             return new ContentPreflightResult(ContentPreflightKind.Missing, SaveDiagnosticCode.MissingContent,
@@ -71,10 +68,7 @@ public static partial class CampaignSaveCodec
         if (packsExact && contentLock.ManifestFingerprint == available.ManifestFingerprint &&
             contentLock.SemanticFingerprint == content.Fingerprint && contentLock.EffectiveFingerprint == content.Fingerprint)
         {
-            ContentPreflightKind kind = contentLock.SaveSchemaVersion == CampaignSaveVersions.SaveSchema
-                ? ContentPreflightKind.Exact
-                : ContentPreflightKind.Compatible;
-            return new ContentPreflightResult(kind, SaveDiagnosticCode.None, contentLock, [], [], []);
+            return new ContentPreflightResult(ContentPreflightKind.Exact, SaveDiagnosticCode.None, contentLock, [], [], []);
         }
 
         if (compatibility?.Any(rule => rule.SourceFingerprint == contentLock.EffectiveFingerprint &&
@@ -156,8 +150,7 @@ public static partial class CampaignSaveCodec
 
         ushort envelope = BinaryPrimitives.ReadUInt16LittleEndian(span.Slice(8, 2));
         ushort schema = BinaryPrimitives.ReadUInt16LittleEndian(span.Slice(10, 2));
-        if (envelope != CampaignSaveVersions.Envelope ||
-            schema is < CampaignSaveVersions.OldestSupportedSaveSchema or > CampaignSaveVersions.SaveSchema)
+        if (envelope != CampaignSaveVersions.Envelope || schema != CampaignSaveVersions.SaveSchema)
         {
             return Fail(out diagnostic, SaveDiagnosticCode.Unsupported);
         }
@@ -210,8 +203,7 @@ public static partial class CampaignSaveCodec
 
     private static void ValidateJsonShape(ReadOnlySpan<byte> json)
     {
-        Utf8JsonReader reader = new(json, new JsonReaderOptions
-        {
+        Utf8JsonReader reader = new(json, new JsonReaderOptions {
             AllowTrailingCommas = false,
             CommentHandling = JsonCommentHandling.Disallow,
             MaxDepth = CampaignSaveLimits.MaximumNestingDepth,

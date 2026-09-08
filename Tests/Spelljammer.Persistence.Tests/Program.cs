@@ -23,7 +23,6 @@ internal static partial class PersistenceContracts
     public static int Run()
     {
         ExactCampaignRoundTripsCanonically();
-        SchemaSevenEquipmentMigratesToItemInstances();
         CorruptionAndMissingContentFailPreflight();
         CompatibilityIsExplicitAndLoadable();
         FailedLoadPreservesActiveCampaign();

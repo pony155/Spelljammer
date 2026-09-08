@@ -1,9 +1,4 @@
-using System.Buffers.Binary;
 using System.Collections.Immutable;
-using System.Security.Cryptography;
-using System.Text;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using Spelljammer.Content.Compilation;
 using Spelljammer.Content.Manifests;
 using Spelljammer.Simulation.Characters;
@@ -26,12 +21,12 @@ public static partial class CampaignSaveCodec
         RequireCount(payload.Characters.Length, CampaignSaveLimits.MaximumCharacters);
         RequireCount(payload.World.Ships.Length, CampaignSaveLimits.MaximumShips);
         ImmutableArray<CharacterState> characters = [.. payload.Characters
-            .Select(value => FromDto(value, content, addCompatibleDefinitions, savedLock.SaveSchemaVersion)).OrderBy(value => value.Id)];
+            .Select(value => FromDto(value, content, addCompatibleDefinitions)).OrderBy(value => value.Id)];
         ImmutableDictionary<ShipId, ShipState> ships = payload.World.Ships.Select(value => FromDto(value, content))
             .ToImmutableDictionary(value => value.Id);
         PersonalEncounterState? encounter = payload.World.PersonalEncounter is null
             ? null
-            : FromDto(payload.World.PersonalEncounter, content, savedLock.SaveSchemaVersion);
+            : FromDto(payload.World.PersonalEncounter, content);
 
         RequireCount(payload.World.Commands.Length, VoyageWorld.MaximumCommands);
         RequireCount(payload.World.CommandHistory.Length, VoyageWorld.MaximumCommandHistory);
@@ -108,8 +103,7 @@ public static partial class CampaignSaveCodec
         }).OrderBy(module => module.InstanceId)];
         ImmutableDictionary<ResourceId, int> resources = ValueDictionary(value.Resources)
             .ToImmutableDictionary(pair => new ResourceId(pair.Key), pair => pair.Value);
-        ImmutableDictionary<ShipId, ShipContactState> contacts = value.Contacts.Select(contact =>
-        {
+        ImmutableDictionary<ShipId, ShipContactState> contacts = value.Contacts.Select(contact => {
             RequireCount(contact.WitnessIds.Length, CampaignSaveLimits.MaximumCharacters);
             ShipContactState state = new(
                 new ShipId(contact.ShipId), new ContentId(contact.KnowledgeId), contact.LastObservedTick,
@@ -129,14 +123,12 @@ public static partial class CampaignSaveCodec
     private static CharacterState FromDto(
         CharacterDto value,
         GameContentSnapshot content,
-        bool addCompatibleDefinitions,
-        ushort saveSchemaVersion)
+        bool addCompatibleDefinitions)
     {
         RequireCount(value.Capabilities.Abilities.Length, CampaignSaveLimits.MaximumCollectionEntries);
         RequireCount(value.Capabilities.Skills.Length, CampaignSaveLimits.MaximumCollectionEntries);
         RequireCount(value.Capabilities.GrantSources.Length, CharacterCapabilities.MaximumSetEntries);
         RequireCount(value.Statuses.Length, CharacterState.MaximumStatuses);
-        RequireCount(value.LegacyActiveEffects?.Length ?? 0, CampaignSaveLimits.MaximumCollectionEntries);
         ImmutableArray<AbilityValueSnapshot> abilities =
             [.. value.Capabilities.Abilities.Select(item => new AbilityValueSnapshot(new AbilityId(item.Id), item.Value))];
         ImmutableArray<SkillValueSnapshot> skills =
@@ -163,9 +155,7 @@ public static partial class CampaignSaveCodec
         CharacterCapabilities capabilities = CharacterCapabilities.Restore(snapshot, content);
         ImmutableDictionary<ContentId, int> resources = ValueDictionary(value.Resources);
         ImmutableDictionary<ContentId, int> training = ValueDictionary(value.TrainingProgress);
-        ItemSystemState items = saveSchemaVersion < CampaignSaveVersions.ItemInstanceSaveSchema
-            ? MigrateLegacyItems(new ContentId(value.Id), value.LegacyEquipmentDefinitionIds ?? [], content)
-            : FromDto(value.Items);
+        ItemSystemState items = FromDto(value.Items);
         CharacterState character = new(
             new CharacterId(value.Id), content.Fingerprint, new ScenarioId(value.ScenarioId), new RaceId(value.RaceId),
             new HeritageId(value.HeritageId), new BackgroundId(value.BackgroundId), new ContentId(value.PositionId), capabilities,
@@ -174,8 +164,7 @@ public static partial class CampaignSaveCodec
             items,
             resources.ToImmutableDictionary(pair => new ResourceId(pair.Key), pair => pair.Value),
             training.ToImmutableDictionary(pair => new TrainingProjectId(pair.Key), pair => pair.Value),
-            value.CanAct)
-        {
+            value.CanAct) {
             CharacterResources = CharacterResourceSet.Restore(value.CharacterResources.Select(FromDto)),
             Statuses = new StatusState([.. value.Statuses.Select(FromDto)]),
             Evidence = [.. value.Evidence.Select(evidence => new ObservableCapabilityEvidence(
@@ -187,8 +176,7 @@ public static partial class CampaignSaveCodec
 
     private static PersonalEncounterState FromDto(
         PersonalEncounterDto value,
-        GameContentSnapshot content,
-        ushort saveSchemaVersion)
+        GameContentSnapshot content)
     {
         if (!content.TryGetEncounter(new EncounterId(value.Id), out EncounterDefinition? encounterDefinition) ||
             !content.TryGetPersonalBoard(new PersonalBoardId(value.BoardId), out PersonalBoardDefinition? boardDefinition) ||
@@ -196,8 +184,6 @@ public static partial class CampaignSaveCodec
         {
             throw new InvalidOperationException("Encounter definition is missing or mismatched.");
         }
-
-        RequireCount(value.LegacyActiveEffects?.Length ?? 0, CampaignSaveLimits.MaximumCollectionEntries);
 
         BoardValidationResult boardResult = TacticalBoard.Create(
             boardDefinition,
@@ -219,17 +205,14 @@ public static partial class CampaignSaveCodec
             RequireCount(actorDto.Statuses.Length, PersonalEncounterState.MaximumStatusesPerActor);
             CellId cellId = new(actorDto.CellId);
             ActorId actorId = new(actorDto.Id);
-            ItemSystemState items = saveSchemaVersion < CampaignSaveVersions.ItemInstanceSaveSchema
-                ? MigrateLegacyItems(new ContentId(actorDto.Id), (actorDto.Equipment ?? []).Select(item => item.EquipmentId), content)
-                : FromDto(actorDto.Items);
+            ItemSystemState items = FromDto(actorDto.Items);
 
             PersonalActorState actor = new(
                 actorId, new TeamId(actorDto.TeamId), actorDto.CharacterId is null ? null : new CharacterId(actorDto.CharacterId),
                 cellId, FromDto(actorDto.Turn), CharacterResourceSet.Restore(actorDto.CharacterResources.Select(FromDto)), actorDto.Defending,
                 actorDto.Surrendered, actorDto.Prisoner, items,
                 [.. actorDto.Injuries.Select(injury => new InjuryState(
-                    new ContentId(injury.Id), ParseEnum<InjurySeverity>(injury.Severity), injury.Stabilized))])
-            {
+                    new ContentId(injury.Id), ParseEnum<InjurySeverity>(injury.Severity), injury.Stabilized))]) {
                 ReservedReactionPoints = actorDto.ReservedReactionPoints,
                 ReactionExpiresTick = actorDto.ReactionExpiresTick,
                 Statuses = new StatusState([.. actorDto.Statuses.Select(FromDto)]),
@@ -250,8 +233,7 @@ public static partial class CampaignSaveCodec
         return encounter;
     }
 
-    private static StatusInstanceDto ToDto(StatusInstance value) => new()
-    {
+    private static StatusInstanceDto ToDto(StatusInstance value) => new() {
         InstanceId = value.InstanceId.ToString(),
         DefinitionId = value.DefinitionId.ToString(),
         DefinitionRevision = value.DefinitionRevision,
@@ -318,72 +300,12 @@ public static partial class CampaignSaveCodec
                 return new EquipmentLoadout(new ContentId(loadout.OwnerId),
                     [.. loadout.SlotAssignments.Select(assignment => new SlotAssignment(
                         new ContentId(assignment.SlotId), new ItemInstanceId(ParseGuid(assignment.ItemInstanceId))))]);
-            })])
-        {
+            })]) {
             InventoryEntries = [.. value.InventoryEntries.Select(entry => new InventoryEntry(
                 new InventoryEntryId(ParseGuid(entry.EntryId)),
                 new InventoryContainerId(ParseGuid(entry.OwnerContainerId)),
                 new ItemStack(new ContentId(entry.DefinitionId), entry.Quantity)))],
         };
-    }
-
-    private static ItemSystemState MigrateLegacyItems(
-        ContentId ownerId,
-        IEnumerable<string> legacyDefinitionIds,
-        GameContentSnapshot content)
-    {
-        string[] legacyIds = [.. legacyDefinitionIds];
-        RequireCount(legacyIds.Length, CampaignSaveLimits.MaximumCollectionEntries);
-        ContentId[] definitionIds = [.. legacyIds.Select(MapLegacyItemDefinitionId)];
-        ItemDefinition[] definitions = [.. definitionIds.Select(id => content.TryGetItem(id, out ItemDefinition? definition)
-            ? definition! : throw new InvalidOperationException("Legacy item definition cannot be migrated."))];
-        InventoryContainerId containerId = new(DeriveSaveGuid(ownerId, "inventory", 0));
-        ImmutableArray<ItemInstance> instances = [.. definitions.Select((definition, index) => new ItemInstance(
-            new ItemInstanceId(DeriveSaveGuid(ownerId, definition.Id.ToString(), index)),
-            definition.Id,
-            containerId,
-            definition switch
-            {
-                ArmorDefinition armor => armor.DurabilityMaximum,
-                MeleeWeaponDefinition melee => melee.MaximumDurability,
-                RangedWeaponDefinition ranged => ranged.MaximumDurability,
-                _ => null,
-            },
-            null,
-            null,
-            1,
-            definition is MeleeWeaponDefinition meleeDefinition ? MeleeWeaponState.Create(meleeDefinition) : null,
-            definition is RangedWeaponDefinition rangedDefinition ? RangedWeaponState.Create(rangedDefinition) : null))];
-        int maximumWeight = (int)Math.Clamp(definitions.Sum(definition => (long)definition.WeightHundredthsOfPound), 1, int.MaxValue);
-        ItemSystemResult result = ItemSystem.Create(new ItemSystemState(
-            instances,
-            [new InventoryContainer(containerId, ownerId, maximumWeight, Math.Max(1, instances.Length),
-                [.. instances.Select(item => item.InstanceId)])],
-            [new EquipmentLoadout(ownerId, [])]), content);
-        foreach (ItemInstance item in instances)
-        {
-            if (!result.Accepted)
-            {
-                throw new InvalidOperationException("Legacy item state cannot be migrated.");
-            }
-
-            result = ItemSystem.Equip(result.State, ownerId, containerId, item.InstanceId, content);
-        }
-
-        return result.Accepted ? result.State : throw new InvalidOperationException("Legacy item state cannot be migrated.");
-    }
-
-    private static ContentId MapLegacyItemDefinitionId(string id) => new(id switch
-    {
-        "equipment.personal.boarding-blade" => "melee-weapon.boarding-blade",
-        "equipment.personal.service-pistol" => "ranged-weapon.service-pistol",
-        _ => id,
-    });
-
-    private static Guid DeriveSaveGuid(ContentId ownerId, string purpose, int ordinal)
-    {
-        byte[] digest = SHA256.HashData(Encoding.UTF8.GetBytes($"save-v8:{ownerId}:{purpose}:{ordinal}"));
-        return new Guid(digest.AsSpan(0, 16));
     }
 
     private static Guid ParseGuid(string value) => Guid.TryParse(value, out Guid result) && result != Guid.Empty

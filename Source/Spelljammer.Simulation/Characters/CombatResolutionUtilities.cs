@@ -68,6 +68,6 @@ internal static class CombatResolutionUtilities
                 targetId));
         }
 
-        return requests.MoveToImmutable();
+        return requests.ToImmutable();
     }
 }

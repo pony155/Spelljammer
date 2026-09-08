@@ -21,11 +21,9 @@ public static class CampaignSaveVersions
     public const ushort Envelope = 1;
 
     /// <summary>
-    /// Version of the save schema. Version 11 removes superseded active-effect state in favor of Status instances.
+    /// Current version of the save schema.
     /// </summary>
     public const ushort SaveSchema = 11;
-    public const ushort OldestSupportedSaveSchema = 7;
-    public const ushort ItemInstanceSaveSchema = 8;
 
     /// <summary>Version of the world generation algorithm used in this save.</summary>
     public const int WorldGenerator = 1;
@@ -171,8 +169,7 @@ public static class SaveDiagnosticCodes
     /// <summary>Localization key for migration failure.</summary>
     public const string MigrationFailed = "save.migration-failed";
 
-    public static string Stable(SaveDiagnosticCode code) => code switch
-    {
+    public static string Stable(SaveDiagnosticCode code) => code switch {
         SaveDiagnosticCode.None => string.Empty,
         SaveDiagnosticCode.Corrupt => Corrupt,
         SaveDiagnosticCode.Oversized => Oversized,

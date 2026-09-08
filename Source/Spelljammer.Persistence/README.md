@@ -15,10 +15,9 @@ Callers supply the immutable `GameContentSnapshot` selected for a load; saved
 stable IDs are resolved and runtime indices are reconstructed only inside that
 validated boundary.
 
-Save schema 11 preserves campaign and encounter character resources, turn state,
+The codec accepts only the current save schema (11); older schema conversion is
+not retained during this prototype phase. Schema 11 preserves campaign and encounter character resources, turn state,
 and complete item-instance ownership: containers, equipped slots, durability,
 melee energy, ranged ammunition, energy, and heat, and stackable inventory
 entries. It also persists authored Status instances, including source, target,
-duration, stacks, potency, and definition revision. Superseded character and
-encounter `activeEffects` records from schemas 7 through 10 remain readable but
-are discarded during deterministic migration; ongoing mechanics use Statuses.
+duration, stacks, potency, and definition revision.

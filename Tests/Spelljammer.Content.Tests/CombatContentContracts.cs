@@ -89,7 +89,10 @@ internal static partial class ContentContracts
         MeleeAttackResult first = MeleeWeaponSystem.Resolve(eligible.Reservation!, snapshot);
         MeleeAttackResult second = MeleeWeaponSystem.Resolve(eligible.Reservation!, snapshot);
         True(first.Accepted && first.Hit, first.RejectionCode);
-        Equal(first.Resolution!, second.Resolution!, "Melee resolution was not deterministic.");
+        Equal(first.Resolution! with { Effects = [] }, second.Resolution! with { Effects = [] },
+            "Melee resolution was not deterministic.");
+        True(first.Resolution.Effects.SequenceEqual(second.Resolution.Effects),
+            "Melee effect requests were not deterministic.");
         Equal(turn.CurrentActionPoints - eligible.Reservation!.ActionPointCost, first.TurnState.CurrentActionPoints,
             "The action-owned AP cost was not committed.");
         Equal(actor.CharacterResources.GetCurrentValue(CharacterResourceIds.Stamina) - eligible.Reservation.StaminaCost,
@@ -112,8 +115,7 @@ internal static partial class ContentContracts
             meleeEffects.State.Resources.GetCurrentValue(CharacterResourceIds.Health),
             "Melee Effect resolution did not apply its computed Health damage.");
 
-        MeleeAttackRequest tooFar = request with
-        {
+        MeleeAttackRequest tooFar = request with {
             Target = request.Target! with { Distance = weapon.Range + 1 },
         };
         MeleeAttackEligibilityResult rejected = MeleeWeaponSystem.CheckEligibility(actor, tooFar, snapshot);
@@ -171,10 +173,12 @@ internal static partial class ContentContracts
         RangedAttackResult first = RangedWeaponSystem.ResolveAttack(eligible.Reservation!, snapshot);
         RangedAttackResult second = RangedWeaponSystem.ResolveAttack(eligible.Reservation!, snapshot);
         True(first.Accepted && first.Hit, first.RejectionCode);
-        Equal(first.Resolution! with { Shots = [] }, second.Resolution! with { Shots = [] },
+        Equal(first.Resolution! with { Shots = [], Effects = [] }, second.Resolution! with { Shots = [], Effects = [] },
             "Ranged resolution summary was not deterministic.");
         True(first.Resolution.Shots.SequenceEqual(second.Resolution.Shots),
             "Per-shot ranged resolution was not deterministic.");
+        True(first.Resolution.Effects.SequenceEqual(second.Resolution.Effects),
+            "Ranged effect requests were not deterministic.");
         True(first.Actor.TryGetItem(weaponItemInstanceId, out ItemInstance? committedRangedItem),
             "Committed ranged item is missing.");
         Equal(weaponState.CurrentAmmunition - 1, committedRangedItem!.RangedWeaponState!.CurrentAmmunition,

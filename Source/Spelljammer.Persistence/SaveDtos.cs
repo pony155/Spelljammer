@@ -1,5 +1,3 @@
-using System.Text.Json.Serialization;
-
 namespace Spelljammer.Persistence;
 
 internal sealed class SavePreflightDto
@@ -115,16 +113,10 @@ internal sealed class CharacterDto
     public string[] LanguageIds { get; set; } = [];
     public string[] ScriptIds { get; set; } = [];
     public ItemSystemDto Items { get; set; } = new();
-    [JsonPropertyName("equipmentIds")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string[]? LegacyEquipmentDefinitionIds { get; set; }
     public ValueDto[] Resources { get; set; } = [];
     public CharacterResourceDto[] CharacterResources { get; set; } = [];
     public ValueDto[] TrainingProgress { get; set; } = [];
     public bool CanAct { get; set; }
-    [JsonPropertyName("activeEffects")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public CapabilityEffectDto[]? LegacyActiveEffects { get; set; }
     public StatusInstanceDto[] Statuses { get; set; } = [];
     public CapabilityEvidenceDto[] Evidence { get; set; } = [];
 }
@@ -201,17 +193,6 @@ internal sealed class GrantDto
     public int SourceKind { get; set; }
 }
 
-internal sealed class CapabilityEffectDto
-{
-    public string EffectId { get; set; } = string.Empty;
-    public string SourceId { get; set; } = string.Empty;
-    public string ActorId { get; set; } = string.Empty;
-    public string TargetId { get; set; } = string.Empty;
-    public long StartTick { get; set; }
-    public long EndTick { get; set; }
-    public string ScopeId { get; set; } = string.Empty;
-}
-
 internal sealed class CapabilityEvidenceDto
 {
     public string EvidenceId { get; set; } = string.Empty;
@@ -232,9 +213,6 @@ internal sealed class PersonalEncounterDto
     public string[] DamagedObjectIds { get; set; } = [];
     public bool Retreated { get; set; }
     public bool CleanedUp { get; set; }
-    [JsonPropertyName("activeEffects")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public EncounterEffectDto[]? LegacyActiveEffects { get; set; }
 }
 
 internal sealed class PersonalActorDto
@@ -251,8 +229,6 @@ internal sealed class PersonalActorDto
     public int ReservedReactionPoints { get; set; }
     public long ReactionExpiresTick { get; set; }
     public ItemSystemDto Items { get; set; } = new();
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public EquipmentStateDto[]? Equipment { get; set; }
     public InjuryDto[] Injuries { get; set; } = [];
     public StatusInstanceDto[] Statuses { get; set; } = [];
 }
@@ -267,14 +243,6 @@ internal sealed class StatusInstanceDto
     public int RemainingDuration { get; set; }
     public int Stacks { get; set; }
     public int Potency { get; set; }
-}
-
-internal sealed class EquipmentStateDto
-{
-    public string SlotId { get; set; } = string.Empty;
-    public string EquipmentId { get; set; } = string.Empty;
-    public int Condition { get; set; }
-    public int ResourceRemaining { get; set; }
 }
 
 internal sealed class ItemSystemDto
@@ -356,15 +324,6 @@ internal sealed class ObjectiveDto
 {
     public string Id { get; set; } = string.Empty;
     public int State { get; set; }
-}
-
-internal sealed class EncounterEffectDto
-{
-    public string Id { get; set; } = string.Empty;
-    public string SourceId { get; set; } = string.Empty;
-    public string TargetId { get; set; } = string.Empty;
-    public long ExpiresTick { get; set; }
-    public int Stacks { get; set; }
 }
 
 internal sealed class CommandDto
