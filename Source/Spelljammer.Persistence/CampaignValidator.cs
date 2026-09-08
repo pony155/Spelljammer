@@ -105,10 +105,7 @@ public static class CampaignValidator
                 character.Resources.Values.Any(value => value < 0) ||
                 character.TrainingProgress.Count > CharacterCapabilities.MaximumSetEntries ||
                 character.TrainingProgress.Any(value => value.Value < 0 || !content.TryGetTrainingProject(value.Key, out _)) ||
-                character.ActiveEffects.Length > CampaignSaveLimits.MaximumCollectionEntries ||
                 character.Evidence.Length > CampaignSaveLimits.MaximumRetainedEvents ||
-                character.ActiveEffects.Any(value => !characterIds.Contains(value.ActorId) ||
-                    !characterIds.Contains(value.TargetId) || value.EndTick < value.StartTick) ||
                 character.Evidence.Any(value => !characterIds.Contains(value.ActorId) ||
                     !characterIds.Contains(value.TargetId) || value.Tick < 0))
             {
@@ -257,8 +254,7 @@ public static class CampaignValidator
         if (!content.TryGetEncounter(encounter.Id, out EncounterDefinition? definition) ||
             definition!.PersonalBoardId != encounter.Board.Definition.PersonalBoardId ||
             encounter.Actors.Count > encounter.Board.Definition.MaximumOccupants ||
-            encounter.Objectives.Count > CampaignSaveLimits.MaximumCollectionEntries ||
-            encounter.ActiveEffects.Length > PersonalEncounterState.MaximumActiveEffects)
+            encounter.Objectives.Count > CampaignSaveLimits.MaximumCollectionEntries)
         {
             missingId = encounter.Id.Value;
             return false;
@@ -287,8 +283,8 @@ public static class CampaignValidator
                 StatusResult statuses = StatusSystem.Create(
                     actor.Statuses,
                     content,
-                    new StatusSystemLimits(PersonalEncounterState.MaximumActiveEffects, 1_000_000,
-                        PersonalEncounterState.MaximumActiveEffects));
+                    new StatusSystemLimits(PersonalEncounterState.MaximumStatusesPerActor, 1_000_000,
+                        PersonalEncounterState.MaximumStatusesPerActor));
                 if (!statuses.Accepted || actor.Statuses.Instances.Any(value => value.TargetId != actor.Id.Value))
                 {
                     return false;
@@ -303,7 +299,6 @@ public static class CampaignValidator
         ImmutableArray<ActorId> occupants = [.. encounter.Board.Occupants.Values.SelectMany(value => value).Order()];
         return occupants.SequenceEqual(encounter.Actors.Keys.Order()) &&
             encounter.Actors.Values.All(actor => encounter.Board.Occupants.GetValueOrDefault(actor.CellId, []).Contains(actor.Id)) &&
-            encounter.Board.Definition.RequiredObjectiveIds.All(encounter.Objectives.ContainsKey) &&
-            encounter.ActiveEffects.All(effect => encounter.Actors.ContainsKey(effect.TargetId) && effect.Stacks is >= 1 and <= 16);
+            encounter.Board.Definition.RequiredObjectiveIds.All(encounter.Objectives.ContainsKey);
     }
 }

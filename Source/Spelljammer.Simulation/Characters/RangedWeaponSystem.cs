@@ -118,7 +118,7 @@ public sealed record RangedAttackResolution(
     int TotalHealthDamage,
     int TotalArmorDamage,
     ImmutableArray<RangedShotResolution> Shots,
-    ImmutableArray<ContentId> AppliedEffectIds);
+    ImmutableArray<EffectRequest> Effects);
 
 public sealed record RangedAttackResult(
     CharacterState Actor,
@@ -379,9 +379,60 @@ public static class RangedWeaponSystem
             totalHealthDamage,
             totalArmorDamage,
             shots.MoveToImmutable(),
-            anyHit ? reservation.Action.EffectIds : []);
+            anyHit ? BuildEffects(reservation, totalHealthDamage, totalArmorDamage) : []);
         return new RangedAttackResult(
             committedActor, committedTurn, true, anyHit, ActionRejectionCodes.None, resolution);
+    }
+
+    public static EffectResolution ResolveEffects(
+        RangedAttackResolution resolution,
+        EffectTargetState target,
+        ICharacterContentCatalog catalog,
+        StatusSystemLimits limits)
+    {
+        ArgumentNullException.ThrowIfNull(resolution);
+        return EffectSystem.Resolve(target, resolution.Effects, catalog, limits);
+    }
+
+    private static ImmutableArray<EffectRequest> BuildEffects(
+        RangedAttackReservation reservation,
+        int healthDamage,
+        int armorDamage)
+    {
+        ImmutableArray<EffectRequest>.Builder effects = ImmutableArray.CreateBuilder<EffectRequest>();
+        AddDamage(CombatEffectIds.ArmorDamage, armorDamage);
+        AddDamage(CombatEffectIds.PhysicalDamage, healthDamage);
+        foreach (EffectApplicationDefinition application in reservation.Action.Effects)
+        {
+            effects.Add(new EffectRequest(
+                EffectInvocationId.Derive(
+                    reservation.Request.RandomSeed,
+                    reservation.Request.RandomSequence + (ulong)effects.Count,
+                    application.EffectId.Value),
+                application,
+                reservation.OriginalActor.Id.Value,
+                reservation.Request.Target!.Id.Value));
+        }
+
+        return effects.ToImmutable();
+
+        void AddDamage(EffectId effectId, int amount)
+        {
+            if (amount <= 0)
+            {
+                return;
+            }
+
+            effects.Add(new EffectRequest(
+                EffectInvocationId.Derive(
+                    reservation.Request.RandomSeed,
+                    reservation.Request.RandomSequence + (ulong)effects.Count,
+                    effectId.Value),
+                EffectApplicationDefinition.InstantTarget(effectId),
+                reservation.OriginalActor.Id.Value,
+                reservation.Request.Target!.Id.Value,
+                AmountOverride: amount));
+        }
     }
 
     public static RangedReloadResult Reload(

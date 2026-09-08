@@ -151,7 +151,7 @@ internal static class CanonicalSemanticWriter
 
                 if (!value.EffectIds.IsEmpty)
                 {
-                    properties["effectIds"] = output => WriteIds(output, value.EffectIds);
+                    properties["effectIds"] = output => WriteIds(output, value.EffectIds.Select(id => id.Value));
                 }
 
                 if (!value.GrantedFeatIds.IsEmpty)
@@ -231,7 +231,7 @@ internal static class CanonicalSemanticWriter
                 break;
             case GearDefinition value:
                 properties["actionIds"] = output => WriteIds(output, value.ActionIds);
-                properties["effectIds"] = output => WriteIds(output, value.EffectIds);
+                properties["effectIds"] = output => WriteIds(output, value.EffectIds.Select(id => id.Value));
                 properties["kind"] = output => WriteString(output, "gear");
                 properties["occupiedSlotIds"] = output => WriteIds(output, value.OccupiedSlotIds);
                 properties["tags"] = output => WriteStrings(output, value.Tags);
@@ -268,7 +268,7 @@ internal static class CanonicalSemanticWriter
                 properties["armorPenetrationModifier"] = output => output.Append(value.ArmorPenetrationModifier);
                 properties["damagePercentage"] = output => output.Append(value.DamagePercentage);
                 properties["durabilityCost"] = output => output.Append(value.DurabilityCost);
-                properties["effectIds"] = output => WriteIds(output, value.EffectIds);
+                properties["effectIds"] = output => WriteIds(output, value.EffectIds.Select(id => id.Value));
                 properties["energyCostModifier"] = output => output.Append(value.EnergyCostModifier);
                 properties["hitModifier"] = output => output.Append(value.HitModifier);
                 properties["rangeModifier"] = output => output.Append(value.RangeModifier);
@@ -320,7 +320,7 @@ internal static class CanonicalSemanticWriter
                 properties["damageFalloffPerUnitPercentage"] = output => output.Append(value.DamageFalloffPerUnitPercentage);
                 properties["damagePercentage"] = output => output.Append(value.DamagePercentage);
                 properties["durabilityCost"] = output => output.Append(value.DurabilityCost);
-                properties["effectIds"] = output => WriteIds(output, value.EffectIds);
+                properties["effectIds"] = output => WriteIds(output, value.EffectIds.Select(id => id.Value));
                 properties["energyCostModifier"] = output => output.Append(value.EnergyCostModifier);
                 properties["heatModifier"] = output => output.Append(value.HeatModifier);
                 properties["hitModifier"] = output => output.Append(value.HitModifier);
@@ -331,13 +331,24 @@ internal static class CanonicalSemanticWriter
                 properties["staminaCostModifier"] = output => output.Append(value.StaminaCostModifier);
                 break;
             case EffectDefinition value:
-                properties["amount"] = output => output.Append(value.Amount);
-                properties["duration"] = output => output.Append(value.Duration);
-                properties["potency"] = output => output.Append(value.Potency);
-                properties["stacks"] = output => output.Append(value.Stacks);
-                if (value.StatusId is StatusId statusId)
+                properties["amount"] = output => output.Append(EffectAmount(value.Payload));
+                properties["duration"] = output => output.Append(
+                    value.Payload is ApplyStatusEffectPayload application ? application.Duration ?? 0 : 0);
+                properties["potency"] = output => output.Append(
+                    value.Payload is ApplyStatusEffectPayload application ? application.Potency : 0);
+                properties["stacks"] = output => output.Append(
+                    value.Payload is ApplyStatusEffectPayload application ? application.Stacks : 0);
+                if (value.Payload is ApplyStatusEffectPayload application)
                 {
-                    properties["statusId"] = output => WriteString(output, statusId.ToString());
+                    properties["statusId"] = output => WriteString(output, application.StatusId.ToString());
+                }
+                else if (value.Payload is RemoveStatusEffectPayload removal)
+                {
+                    properties["statusId"] = output => WriteString(output, removal.StatusId.ToString());
+                }
+                else if (value.Payload is EmitEventEffectPayload emitted)
+                {
+                    properties["eventId"] = output => WriteString(output, emitted.EventId.ToString());
                 }
 
                 properties["type"] = output => WriteString(output, WriteEffectType(value.Type));
@@ -690,6 +701,15 @@ internal static class CanonicalSemanticWriter
 
     private static void WriteIds(StringBuilder builder, IEnumerable<ContentId> ids) =>
         WriteStrings(builder, ids.Select(id => id.ToString()));
+
+    private static int EffectAmount(EffectPayload payload) => payload switch
+    {
+        ResourceEffectPayload value => value.Amount,
+        DamageEffectPayload value => value.Amount,
+        ModifierEffectPayload value => value.Amount,
+        GrantShieldEffectPayload value => value.Amount,
+        _ => 0,
+    };
 
     private static void WriteIntegers(StringBuilder builder, IEnumerable<int> values)
     {

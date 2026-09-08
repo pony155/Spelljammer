@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "revision": 1,
+  "id": "effect.combat.armor-damage",
+  "nameKey": "effect.combat.armor-damage.name",
+  "descriptionKey": "effect.combat.armor-damage.description",
+  "type": "armor-damage",
+  "amount": 0
+}

@@ -120,8 +120,10 @@ or support choice with a visible limit.
 ## Limits, saves, and delivery
 
 Magic cannot freely create wealth, resurrect the dead, read any mind, time
-travel, or bypass the galaxy map. Saves store known active Feat IDs and active effects
-that matter: source ID, target, remaining duration, and caster when relevant.
+travel, or bypass the galaxy map. Saves store known active Feat IDs and ongoing
+Status instances, including source, target, remaining duration, stacks, and
+potency. One-shot Effect requests are resolved transactionally and are not
+saved as a second ongoing-state model.
 
 Content validation rejects duplicate IDs, unknown access or target tags,
 negative costs, unbounded targets or durations, and effects that bypass these

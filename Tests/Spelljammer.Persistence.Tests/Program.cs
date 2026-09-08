@@ -105,12 +105,38 @@ internal static class PersistenceContracts
         {
             JsonObject character = characterNode!.AsObject();
             character["equipmentIds"] = LegacyDefinitionIds(character["items"]!);
+            string characterId = character["id"]!.GetValue<string>();
+            character["activeEffects"] = new JsonArray
+            {
+                new JsonObject
+                {
+                    ["effectId"] = "effect.legacy.capability",
+                    ["sourceId"] = "feat.legacy.source",
+                    ["actorId"] = characterId,
+                    ["targetId"] = characterId,
+                    ["startTick"] = 0,
+                    ["endTick"] = 1,
+                    ["scopeId"] = "scope.legacy",
+                },
+            };
             character.Remove("items");
         }
 
         JsonNode? encounter = payload["world"]!["personalEncounter"];
         if (encounter is not null)
         {
+            string encounterActorId = encounter["actors"]![0]!["id"]!.GetValue<string>();
+            encounter["activeEffects"] = new JsonArray
+            {
+                new JsonObject
+                {
+                    ["id"] = "effect.legacy.encounter",
+                    ["sourceId"] = "command.legacy.source",
+                    ["targetId"] = encounterActorId,
+                    ["expiresTick"] = 1,
+                    ["stacks"] = 1,
+                },
+            };
             foreach (JsonNode? actorNode in encounter["actors"]!.AsArray())
             {
                 JsonObject actor = actorNode!.AsObject();
@@ -412,11 +438,7 @@ internal static class PersistenceContracts
             ImmutableHashSet.Create(new ContentId("exploration.ruin.console-restored")),
             ImmutableHashSet.Create(new ContentId("object.ruin.ancient-defense")),
             false,
-            false)
-        {
-            ActiveEffects = [new ActiveEffectState(
-                new EffectId("effect.personal.defending"), new ContentId("command.saved.defend"), actorId, 20, 1)],
-        };
+            false);
         VoyageWorld world = VoyageWorld.Create(0x5eedUL, content.Fingerprint, new TeamId("team.player"), [loadout.Ship!], encounter);
         VoyageCommand queued = new(
             new ContentId("command.saved.course"), VoyageCommandKind.Course, 1, 10, loadout.Ship!.Id.Value,

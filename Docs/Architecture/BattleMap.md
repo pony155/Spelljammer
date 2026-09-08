@@ -1,5 +1,8 @@
 # Combat Map & Turn-Based Combat Design
 
+Implementation sequencing, current-state gaps, and phase exit criteria are
+defined in [BattleMapRoadMap.md](BattleMapRoadMap.md).
+
 ## 1. Design Goal
 
 The combat system uses a **continuous-looking procedural map with a

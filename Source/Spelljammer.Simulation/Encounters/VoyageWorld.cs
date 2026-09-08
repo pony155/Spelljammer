@@ -549,13 +549,9 @@ public sealed record VoyageWorld(
                 break;
             case VoyageCommandKind.PersonalDefend:
                 updated = updated with { Defending = true };
-                encounter = encounter.AddEffect(new ActiveEffectState(
-                    new EffectId("effect.personal.defending"), command.Id, actorId, Tick + VoyageTime.TicksPerSecond, 1));
                 break;
             case VoyageCommandKind.PersonalReserveReaction:
                 updated = updated with { ReservedReactionPoints = 1, ReactionExpiresTick = Tick + VoyageTime.TicksPerSecond };
-                encounter = encounter.AddEffect(new ActiveEffectState(
-                    new EffectId("effect.personal.reaction"), command.Id, actorId, Tick + VoyageTime.TicksPerSecond, 1));
                 break;
             case VoyageCommandKind.PersonalSurrender:
                 updated = updated with { Surrendered = true };
@@ -676,7 +672,6 @@ public sealed record VoyageWorld(
         }
 
         PersonalEncounterState encounter = PersonalEncounter;
-        encounter = encounter with { ActiveEffects = [.. encounter.ActiveEffects.Where(value => value.ExpiresTick >= Tick)] };
         ImmutableArray<ActorId>.Builder becameReady = ImmutableArray.CreateBuilder<ActorId>();
         ImmutableDictionary<ActorId, PersonalActorState>.Builder actors = encounter.Actors.ToBuilder();
         foreach (PersonalActorState actor in encounter.Actors.Values.OrderBy(value => value.Id))

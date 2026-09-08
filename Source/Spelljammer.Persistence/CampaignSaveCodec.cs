@@ -514,16 +514,6 @@ public static class CampaignSaveCodec
             CharacterResources = [.. character.CharacterResources.Values.OrderBy(value => value.ResourceId).Select(ToDto)],
             TrainingProgress = Values(character.TrainingProgress.Select(value => (value.Key.Value, value.Value))),
             CanAct = character.CanAct,
-            ActiveEffects = [.. character.ActiveEffects.Select(value => new CapabilityEffectDto
-            {
-                EffectId = value.EffectId.ToString(),
-                SourceId = value.SourceId.ToString(),
-                ActorId = value.ActorId.ToString(),
-                TargetId = value.TargetId.ToString(),
-                StartTick = value.StartTick,
-                EndTick = value.EndTick,
-                ScopeId = value.ScopeId.ToString(),
-            })],
             Statuses = [.. character.Statuses.Instances.OrderBy(value => value.InstanceId).Select(ToDto)],
             Evidence = [.. character.Evidence.Select(value => new CapabilityEvidenceDto
             {
@@ -701,14 +691,6 @@ public static class CampaignSaveCodec
         DamagedObjectIds = [.. encounter.DamagedObjects.Order().Select(value => value.ToString())],
         Retreated = encounter.Retreated,
         CleanedUp = encounter.CleanedUp,
-        ActiveEffects = [.. encounter.ActiveEffects.Select(value => new EncounterEffectDto
-        {
-            Id = value.Id.ToString(),
-            SourceId = value.SourceId.ToString(),
-            TargetId = value.TargetId.ToString(),
-            ExpiresTick = value.ExpiresTick,
-            Stacks = value.Stacks,
-        })],
     };
 
     private static CommandDto ToDto(VoyageCommand value) => new()
@@ -848,7 +830,8 @@ public static class CampaignSaveCodec
         RequireCount(value.Capabilities.Abilities.Length, CampaignSaveLimits.MaximumCollectionEntries);
         RequireCount(value.Capabilities.Skills.Length, CampaignSaveLimits.MaximumCollectionEntries);
         RequireCount(value.Capabilities.GrantSources.Length, CharacterCapabilities.MaximumSetEntries);
-        RequireCount(value.Statuses.Length, CharacterState.MaximumActiveEffects);
+        RequireCount(value.Statuses.Length, CharacterState.MaximumStatuses);
+        RequireCount(value.LegacyActiveEffects?.Length ?? 0, CampaignSaveLimits.MaximumCollectionEntries);
         ImmutableArray<AbilityValueSnapshot> abilities =
             [.. value.Capabilities.Abilities.Select(item => new AbilityValueSnapshot(new AbilityId(item.Id), item.Value))];
         ImmutableArray<SkillValueSnapshot> skills =
@@ -889,9 +872,6 @@ public static class CampaignSaveCodec
             value.CanAct)
         {
             CharacterResources = CharacterResourceSet.Restore(value.CharacterResources.Select(FromDto)),
-            ActiveEffects = [.. value.ActiveEffects.Select(effect => new ActiveCapabilityEffect(
-                new ContentId(effect.EffectId), new ContentId(effect.SourceId), new CharacterId(effect.ActorId),
-                new CharacterId(effect.TargetId), effect.StartTick, effect.EndTick, new ContentId(effect.ScopeId)))],
             Statuses = new StatusState([.. value.Statuses.Select(FromDto)]),
             Evidence = [.. value.Evidence.Select(evidence => new ObservableCapabilityEvidence(
                 new ContentId(evidence.EvidenceId), new ContentId(evidence.SourceId), new CharacterId(evidence.ActorId),
@@ -912,6 +892,8 @@ public static class CampaignSaveCodec
             throw new InvalidOperationException("Encounter definition is missing or mismatched.");
         }
 
+        RequireCount(value.LegacyActiveEffects?.Length ?? 0, CampaignSaveLimits.MaximumCollectionEntries);
+
         BoardValidationResult boardResult = TacticalBoard.Create(
             boardDefinition,
             boardDefinition.CellIds.Select(id => content.TryGetBoardCell(id, out BoardCellDefinition? cell)
@@ -929,7 +911,7 @@ public static class CampaignSaveCodec
         foreach (PersonalActorDto actorDto in value.Actors)
         {
             RequireCount(actorDto.CharacterResources.Length, CampaignSaveLimits.MaximumCollectionEntries);
-            RequireCount(actorDto.Statuses.Length, PersonalEncounterState.MaximumActiveEffects);
+            RequireCount(actorDto.Statuses.Length, PersonalEncounterState.MaximumStatusesPerActor);
             CellId cellId = new(actorDto.CellId);
             ActorId actorId = new(actorDto.Id);
             ItemSystemState items = saveSchemaVersion < CampaignSaveVersions.ItemInstanceSaveSchema
@@ -959,11 +941,7 @@ public static class CampaignSaveCodec
             ParseIds(value.ExplorationChangeIds, CampaignSaveLimits.MaximumCollectionEntries).ToImmutableHashSet(),
             ParseIds(value.DamagedObjectIds, CampaignSaveLimits.MaximumCollectionEntries).ToImmutableHashSet(),
             value.Retreated,
-            value.CleanedUp)
-        {
-            ActiveEffects = [.. value.ActiveEffects.Select(effect => new ActiveEffectState(
-                new EffectId(effect.Id), new ContentId(effect.SourceId), new ActorId(effect.TargetId), effect.ExpiresTick, effect.Stacks))],
-        };
+            value.CleanedUp);
         return encounter;
     }
 

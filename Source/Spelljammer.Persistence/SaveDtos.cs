@@ -122,7 +122,9 @@ internal sealed class CharacterDto
     public CharacterResourceDto[] CharacterResources { get; set; } = [];
     public ValueDto[] TrainingProgress { get; set; } = [];
     public bool CanAct { get; set; }
-    public CapabilityEffectDto[] ActiveEffects { get; set; } = [];
+    [JsonPropertyName("activeEffects")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public CapabilityEffectDto[]? LegacyActiveEffects { get; set; }
     public StatusInstanceDto[] Statuses { get; set; } = [];
     public CapabilityEvidenceDto[] Evidence { get; set; } = [];
 }
@@ -230,7 +232,9 @@ internal sealed class PersonalEncounterDto
     public string[] DamagedObjectIds { get; set; } = [];
     public bool Retreated { get; set; }
     public bool CleanedUp { get; set; }
-    public EncounterEffectDto[] ActiveEffects { get; set; } = [];
+    [JsonPropertyName("activeEffects")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public EncounterEffectDto[]? LegacyActiveEffects { get; set; }
 }
 
 internal sealed class PersonalActorDto

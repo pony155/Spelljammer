@@ -27,6 +27,7 @@ public sealed record StatusApplicationRequest(
     int Potency);
 
 public sealed record PendingEffect(
+    EffectInvocationId InvocationId,
     EffectId EffectId,
     ContentId SourceId,
     ContentId TargetId,
@@ -119,7 +120,7 @@ public static class StatusSystem
             }
 
             working = working.Remove(conflict);
-            AppendPending(effects, conflictDefinition.OnExpireEffectIds, conflict);
+            AppendPending(effects, conflictDefinition.OnExpireEffectIds, conflict, "expire");
         }
 
         StatusInstance? existing = working
@@ -158,7 +159,7 @@ public static class StatusSystem
                     }
 
                     applied = proposed;
-                    AppendPending(effects, resolvedDefinition.OnExpireEffectIds, existing);
+                    AppendPending(effects, resolvedDefinition.OnExpireEffectIds, existing, "expire");
                     break;
                 case StatusStackPolicy.Reject:
                     return StatusResult.Rejected(state, StatusRejectionCodes.AlreadyPresent);
@@ -174,7 +175,7 @@ public static class StatusSystem
             return StatusResult.Rejected(state, StatusRejectionCodes.CapacityExceeded);
         }
 
-        AppendPending(effects, resolvedDefinition.OnApplyEffectIds, applied);
+        AppendPending(effects, resolvedDefinition.OnApplyEffectIds, applied, "apply");
         if (effects.Count > limits.MaximumEffectsPerTransaction)
         {
             return StatusResult.Rejected(state, StatusRejectionCodes.CapacityExceeded);
@@ -212,7 +213,7 @@ public static class StatusSystem
 
         catalog.TryGetStatus(existing.DefinitionId, out StatusDefinition? definition);
         ImmutableArray<PendingEffect>.Builder effects = ImmutableArray.CreateBuilder<PendingEffect>();
-        AppendPending(effects, definition!.OnExpireEffectIds, existing);
+        AppendPending(effects, definition!.OnExpireEffectIds, existing, "expire");
         if (effects.Count > limits.MaximumEffectsPerTransaction)
         {
             return StatusResult.Rejected(state, StatusRejectionCodes.CapacityExceeded);
@@ -243,7 +244,7 @@ public static class StatusSystem
         foreach (StatusInstance instance in removed.OrderBy(value => value.InstanceId))
         {
             catalog.TryGetStatus(instance.DefinitionId, out StatusDefinition? definition);
-            AppendPending(effects, definition!.OnExpireEffectIds, instance);
+            AppendPending(effects, definition!.OnExpireEffectIds, instance, "expire");
         }
 
         if (effects.Count > limits.MaximumEffectsPerTransaction)
@@ -284,7 +285,7 @@ public static class StatusSystem
             }
 
             catalog.TryGetStatus(instance.DefinitionId, out StatusDefinition? definition);
-            AppendPending(effects, definition!.OnTickEffectIds, instance);
+            AppendPending(effects, definition!.OnTickEffectIds, instance, "tick");
             if (definition.DurationType != StatusDurationType.Timed)
             {
                 retained.Add(instance);
@@ -298,7 +299,7 @@ public static class StatusSystem
             }
             else
             {
-                AppendPending(effects, definition.OnExpireEffectIds, instance);
+                AppendPending(effects, definition.OnExpireEffectIds, instance, "expire");
             }
         }
 
@@ -377,11 +378,18 @@ public static class StatusSystem
     private static void AppendPending(
         ImmutableArray<PendingEffect>.Builder destination,
         ImmutableArray<EffectId> effectIds,
-        StatusInstance instance)
+        StatusInstance instance,
+        string lifecycle)
     {
         foreach (EffectId effectId in effectIds)
         {
             destination.Add(new PendingEffect(
+                EffectInvocationId.Derive(
+                    instance.InstanceId,
+                    effectId,
+                    lifecycle,
+                    instance.RemainingDuration,
+                    destination.Count),
                 effectId,
                 instance.SourceId,
                 instance.TargetId,

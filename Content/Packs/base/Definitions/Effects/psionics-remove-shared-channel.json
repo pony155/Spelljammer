@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "revision": 1,
+  "id": "effect.psionics.remove-shared-channel",
+  "nameKey": "effect.psionics.remove-shared-channel.name",
+  "descriptionKey": "effect.psionics.remove-shared-channel.description",
+  "type": "remove-status",
+  "amount": 0,
+  "statusId": "status.mindlinked"
+}

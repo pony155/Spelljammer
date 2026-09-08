@@ -17,5 +17,5 @@
   "rangePenaltyPerUnit": 2,
   "damageFalloffPerUnitPercentage": 5,
   "reloadAmount": 0,
-  "effectIds": ["effect.equipment.attack"]
+  "effectIds": []
 }

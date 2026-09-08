@@ -465,10 +465,10 @@ internal static class SimulationContracts
             [new StatusRestrictionDefinition(StatusRestrictionType.CannotAttack, StatusTargetRule.StatusSource, null)], []);
         EffectDefinition burningDamage = new(
             new EffectId("effect.test.burning-damage"), 1, 1, "effect.test.name", "effect.test.description",
-            EffectType.ThermalDamage, 5, null, 0, 0, 0);
+            new DamageEffectPayload(EffectType.ThermalDamage, 5));
         EffectDefinition confusionExpired = new(
             new EffectId("effect.test.confusion-expired"), 1, 1, "effect.test.name", "effect.test.description",
-            EffectType.RestoreResolve, 1, null, 0, 0, 0);
+            new ResourceEffectPayload(EffectType.RestoreResolve, CharacterResourceIds.Resolve, 1));
         confused = confused with { OnExpireEffectIds = [confusionExpired.EffectId] };
         StatusDefinition burning = Status(
             "status.test.burning", StatusStackPolicy.IntensityStack, 3, 0, null, [], [],
@@ -516,7 +516,13 @@ internal static class SimulationContracts
         EffectResolution damage = EffectSystem.Resolve(
             new EffectTargetState(target, ActorResources(), 0, 0, advanced.State),
             advanced.PendingEffects.Select(value =>
-                new EffectRequest(value.EffectId, value.SourceId, value.TargetId, null, value.Scale)),
+                new EffectRequest(
+                    value.InvocationId,
+                    EffectApplicationDefinition.InstantTarget(value.EffectId),
+                    value.SourceId,
+                    value.TargetId,
+                    value.StatusInstanceId,
+                    value.Scale)),
             catalog,
             limits);
         True(damage.Accepted, damage.RejectionCode);

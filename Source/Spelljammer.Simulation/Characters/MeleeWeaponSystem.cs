@@ -85,7 +85,7 @@ public sealed record MeleeAttackResolution(
     int HealthDamage,
     int ArmorDamage,
     int ArmorPenetrationPercentage,
-    ImmutableArray<ContentId> AppliedEffectIds);
+    ImmutableArray<EffectRequest> Effects);
 
 public sealed record MeleeAttackResult(
     CharacterState Actor,
@@ -281,7 +281,9 @@ public static class MeleeWeaponSystem
                 new ResourceId("resource.stamina"), reservation.StaminaCost),
         };
         CharacterTurnState committedTurn = reservation.Request.TurnState.SpendActionPoints(reservation.ActionPointCost);
-        ImmutableArray<ContentId> effects = hit ? reservation.Action.EffectIds : [];
+        ImmutableArray<EffectRequest> effects = hit
+            ? BuildEffects(reservation, healthDamage, armorDamage)
+            : [];
         MeleeAttackResolution resolution = new(
             committedActor.Id,
             reservation.Request.Target.Id,
@@ -305,6 +307,57 @@ public static class MeleeWeaponSystem
             hit,
             ActionRejectionCodes.None,
             resolution);
+    }
+
+    public static EffectResolution ResolveEffects(
+        MeleeAttackResolution resolution,
+        EffectTargetState target,
+        ICharacterContentCatalog catalog,
+        StatusSystemLimits limits)
+    {
+        ArgumentNullException.ThrowIfNull(resolution);
+        return EffectSystem.Resolve(target, resolution.Effects, catalog, limits);
+    }
+
+    private static ImmutableArray<EffectRequest> BuildEffects(
+        MeleeAttackReservation reservation,
+        int healthDamage,
+        int armorDamage)
+    {
+        ImmutableArray<EffectRequest>.Builder effects = ImmutableArray.CreateBuilder<EffectRequest>();
+        AddDamage(CombatEffectIds.ArmorDamage, armorDamage);
+        AddDamage(CombatEffectIds.PhysicalDamage, healthDamage);
+        foreach (EffectApplicationDefinition application in reservation.Action.Effects)
+        {
+            effects.Add(new EffectRequest(
+                EffectInvocationId.Derive(
+                    reservation.Request.RandomSeed,
+                    reservation.Request.RandomSequence + (ulong)effects.Count,
+                    application.EffectId.Value),
+                application,
+                reservation.OriginalActor.Id.Value,
+                reservation.Request.Target!.Id.Value));
+        }
+
+        return effects.ToImmutable();
+
+        void AddDamage(EffectId effectId, int amount)
+        {
+            if (amount <= 0)
+            {
+                return;
+            }
+
+            effects.Add(new EffectRequest(
+                EffectInvocationId.Derive(
+                    reservation.Request.RandomSeed,
+                    reservation.Request.RandomSequence + (ulong)effects.Count,
+                    effectId.Value),
+                EffectApplicationDefinition.InstantTarget(effectId),
+                reservation.OriginalActor.Id.Value,
+                reservation.Request.Target!.Id.Value,
+                AmountOverride: amount));
+        }
     }
 
     private static int DeterministicRoll(ulong seed, ulong sequence) =>

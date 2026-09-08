@@ -68,7 +68,7 @@ internal static class DefinitionParser
                  "ammunitionCost", "shotCount", "energyCostModifier", "heatModifier", "durabilityCost",
                  "rangePenaltyPerUnit", "damageFalloffPerUnitPercentage", "reloadAmount", "effectIds"], []),
             [DefinitionKind.Effect] = new(
-                ["type", "amount"], ["statusId", "duration", "stacks", "potency"]),
+                ["type", "amount"], ["statusId", "eventId", "duration", "stacks", "potency"]),
             [DefinitionKind.Status] = new(
                 ["category", "tags", "defaultDuration", "durationType", "stackPolicy", "maximumStacks", "priority",
                  "modifiers", "restrictions", "aiRules", "onApplyEffectIds", "onTickEffectIds", "onExpireEffectIds"],

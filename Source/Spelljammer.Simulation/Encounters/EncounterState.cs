@@ -311,13 +311,6 @@ public enum ObjectiveState : byte
     Abandoned,
 }
 
-public sealed record ActiveEffectState(
-    EffectId Id,
-    ContentId SourceId,
-    ActorId TargetId,
-    long ExpiresTick,
-    int Stacks);
-
 public sealed record PersonalEncounterState(
     EncounterId Id,
     TacticalBoard Board,
@@ -328,18 +321,7 @@ public sealed record PersonalEncounterState(
     bool Retreated,
     bool CleanedUp)
 {
-    public const int MaximumActiveEffects = 128;
-    public ImmutableArray<ActiveEffectState> ActiveEffects { get; init; } = [];
-
-    public PersonalEncounterState AddEffect(ActiveEffectState effect)
-    {
-        if (ActiveEffects.Length >= MaximumActiveEffects || effect.Stacks is < 1 or > 16)
-        {
-            throw new InvalidOperationException("Active effect capacity or stack limit was exceeded.");
-        }
-
-        return this with { ActiveEffects = ActiveEffects.Add(effect) };
-    }
+    public const int MaximumStatusesPerActor = 128;
 }
 
 public static class EncounterLifecycle

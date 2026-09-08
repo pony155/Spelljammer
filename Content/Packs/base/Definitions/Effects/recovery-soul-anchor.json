@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "revision": 1,
+  "id": "effect.recovery.soul-anchor",
+  "nameKey": "effect.recovery.soul-anchor.name",
+  "descriptionKey": "effect.recovery.soul-anchor.description",
+  "type": "emit-event",
+  "amount": 0,
+  "eventId": "event.recovery.soul-anchor"
+}

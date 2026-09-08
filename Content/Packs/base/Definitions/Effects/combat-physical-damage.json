@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "revision": 1,
+  "id": "effect.combat.physical-damage",
+  "nameKey": "effect.combat.physical-damage.name",
+  "descriptionKey": "effect.combat.physical-damage.description",
+  "type": "physical-damage",
+  "amount": 0
+}

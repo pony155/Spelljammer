@@ -22,8 +22,6 @@ public sealed class GameContentCompiler
         "progression.skill.standard",
         "action.spell.cast",
         "action.spell.identify",
-        "effect.recovery.soul-anchor",
-        "effect.tracking.observed-trail",
         "resource.health",
         "resource.stamina",
         "resource.mana",
@@ -38,8 +36,6 @@ public sealed class GameContentCompiler
         "contact.invited",
         "psionics.discipline.contact",
         "psionics.scope.deliberate-message",
-        "effect.spirit.magic-missile-impact",
-        "effect.psionics.shared-channel",
         "equipment-slot.main-hand",
         "equipment-slot.off-hand",
         "equipment-slot.body",
@@ -57,11 +53,6 @@ public sealed class GameContentCompiler
         "action.personal.engineering",
         "action.personal.medicine",
         "action.personal.spell",
-        "effect.equipment.attack",
-        "effect.equipment.armor",
-        "effect.equipment.repair",
-        "effect.equipment.treatment",
-        "effect.equipment.focus",
         "zone.ruin.entry",
         "zone.ruin.gantry",
         "zone.ruin.archive",
@@ -614,7 +605,8 @@ public sealed class GameContentCompiler
                     CheckReferences(definition, definition.Arrays["requiredAccessIds"], DefinitionKind.Access, byId, "/requiredAccessIds", diagnostics);
                     CheckReferences(definition, definition.Arrays["grantedAccessIds"], DefinitionKind.Access, byId, "/grantedAccessIds", diagnostics);
                     CheckReferences(definition, definition.Arrays["grantedFeatIds"], DefinitionKind.Feat, byId, "/grantedFeatIds", diagnostics);
-                    CheckPrimitives(definition, definition.Arrays["effectIds"], "/effectIds", diagnostics);
+                    CheckReferences(definition, definition.Arrays["effectIds"], DefinitionKind.Effect, byId,
+                        "/effectIds", diagnostics);
                     if (definition.Strings.TryGetValue("skillId", out string? featSkillId))
                     {
                         CheckReference(definition, featSkillId, DefinitionKind.Skill, byId, "/skillId", diagnostics);
@@ -667,7 +659,8 @@ public sealed class GameContentCompiler
                 case DefinitionKind.Equipment:
                     CheckPrimitives(definition, definition.Arrays["occupiedSlotIds"], "/occupiedSlotIds", diagnostics);
                     CheckPrimitives(definition, OptionalArray(definition, "actionIds"), "/actionIds", diagnostics);
-                    CheckPrimitives(definition, OptionalArray(definition, "effectIds"), "/effectIds", diagnostics);
+                    CheckReferences(definition, OptionalArray(definition, "effectIds"), DefinitionKind.Effect, byId,
+                        "/effectIds", diagnostics);
                     CheckPrimitives(definition, OptionalArray(definition, "resistanceIds"), "/resistanceIds", diagnostics);
                     break;
                 case DefinitionKind.MeleeWeapon:
@@ -677,7 +670,8 @@ public sealed class GameContentCompiler
                     CheckReferences(definition, definition.Arrays["actionIds"], DefinitionKind.MeleeWeaponAction, byId, "/actionIds", diagnostics);
                     break;
                 case DefinitionKind.MeleeWeaponAction:
-                    CheckPrimitives(definition, definition.Arrays["effectIds"], "/effectIds", diagnostics);
+                    CheckReferences(definition, definition.Arrays["effectIds"], DefinitionKind.Effect, byId,
+                        "/effectIds", diagnostics);
                     break;
                 case DefinitionKind.RangedWeapon:
                     CheckReference(definition, definition.Strings["skillId"], DefinitionKind.Skill, byId, "/skillId", diagnostics);
@@ -685,7 +679,8 @@ public sealed class GameContentCompiler
                     CheckReferences(definition, definition.Arrays["actionIds"], DefinitionKind.RangedWeaponAction, byId, "/actionIds", diagnostics);
                     break;
                 case DefinitionKind.RangedWeaponAction:
-                    CheckPrimitives(definition, definition.Arrays["effectIds"], "/effectIds", diagnostics);
+                    CheckReferences(definition, definition.Arrays["effectIds"], DefinitionKind.Effect, byId,
+                        "/effectIds", diagnostics);
                     break;
                 case DefinitionKind.Effect:
                     if (definition.Strings.TryGetValue("statusId", out string? effectStatusId))
@@ -1120,7 +1115,7 @@ public sealed class GameContentCompiler
         Sort(value.Arrays["requiredAccessIds"]).Select(item => new AccessId(item)).ToImmutableArray(),
         Sort(value.Arrays["grantedAccessIds"]).Select(item => new AccessId(item)).ToImmutableArray(),
         Sort(value.Arrays["grantedFeatIds"]).Select(item => new FeatId(item)).ToImmutableArray(),
-        Sort(value.Arrays["effectIds"]).Select(item => new ContentId(item)).ToImmutableArray(),
+        CompileEffectApplications(value.Arrays["effectIds"]),
         CompileSpellRules(value),
         CompilePsionicRules(value));
 
@@ -1180,7 +1175,7 @@ public sealed class GameContentCompiler
                 id, 1, value.Revision, value.NameKey, value.DescriptionKey,
                 value.Integers["weightHundredthsOfPound"], value.Integers["value"], tags, slots,
                 Sort(OptionalArray(value, "actionIds")).Select(item => new ContentId(item)).ToImmutableArray(),
-                Sort(OptionalArray(value, "effectIds")).Select(item => new ContentId(item)).ToImmutableArray()),
+                CompileEffectApplications(OptionalArray(value, "effectIds"))),
             _ => throw new ArgumentOutOfRangeException(nameof(value)),
         };
     }
@@ -1209,7 +1204,7 @@ public sealed class GameContentCompiler
         value.Integers["armorDamagePercentage"], value.Integers["armorPenetrationModifier"],
         value.Integers["rangeModifier"], value.Integers["energyCostModifier"],
         value.Integers["durabilityCost"],
-        Sort(value.Arrays["effectIds"]).Select(item => new ContentId(item)).ToImmutableArray());
+        CompileEffectApplications(value.Arrays["effectIds"]));
 
     private static MeleeWeaponFamily ParseMeleeWeaponFamily(string value) => value switch
     {
@@ -1277,14 +1272,41 @@ public sealed class GameContentCompiler
         value.Integers["energyCostModifier"], value.Integers["heatModifier"],
         value.Integers["durabilityCost"], value.Integers["rangePenaltyPerUnit"],
         value.Integers["damageFalloffPerUnitPercentage"], value.Integers["reloadAmount"],
-        Sort(value.Arrays["effectIds"]).Select(item => new ContentId(item)).ToImmutableArray());
+        CompileEffectApplications(value.Arrays["effectIds"]));
 
-    private static EffectDefinition CompileEffect(SourceDefinition value) => new(
-        new EffectId(value.Id), 1, value.Revision, value.NameKey, value.DescriptionKey,
-        ParseEffectType(value.Strings["type"]), value.Integers["amount"],
-        value.Strings.TryGetValue("statusId", out string? statusId) ? new StatusId(statusId) : null,
-        value.Integers.GetValueOrDefault("duration"), value.Integers.GetValueOrDefault("stacks"),
-        value.Integers.GetValueOrDefault("potency"));
+    private static ImmutableArray<EffectApplicationDefinition> CompileEffectApplications(
+        ImmutableArray<string> effectIds) =>
+        [.. Sort(effectIds).Select(value => EffectApplicationDefinition.InstantTarget(new EffectId(value)))];
+
+    private static EffectDefinition CompileEffect(SourceDefinition value)
+    {
+        EffectType type = ParseEffectType(value.Strings["type"]);
+        int amount = value.Integers["amount"];
+        int duration = value.Integers.GetValueOrDefault("duration");
+        EffectPayload payload = type switch
+        {
+            EffectType.HealHealth => new ResourceEffectPayload(type, CharacterResourceIds.Health, amount),
+            EffectType.RestoreMana => new ResourceEffectPayload(type, CharacterResourceIds.Mana, amount),
+            EffectType.RestoreStamina => new ResourceEffectPayload(type, CharacterResourceIds.Stamina, amount),
+            EffectType.RestoreResolve => new ResourceEffectPayload(type, CharacterResourceIds.Resolve, amount),
+            EffectType.ReduceStrain => new ResourceEffectPayload(type, CharacterResourceIds.Strain, amount),
+            EffectType.PhysicalDamage or EffectType.ThermalDamage or EffectType.ShockDamage or EffectType.ArcaneDamage or
+                EffectType.ArmorDamage => new DamageEffectPayload(type, amount),
+            EffectType.ApplyStatus => new ApplyStatusEffectPayload(
+                new StatusId(value.Strings["statusId"]),
+                duration == 0 ? null : duration,
+                value.Integers["stacks"],
+                value.Integers.GetValueOrDefault("potency")),
+            EffectType.RemoveStatus => new RemoveStatusEffectPayload(new StatusId(value.Strings["statusId"])),
+            EffectType.ModifyDamage or EffectType.ModifyDefense or EffectType.ModifyAccuracy or
+                EffectType.ModifyMovement or EffectType.ModifyResistance => new ModifierEffectPayload(type, amount),
+            EffectType.GrantShield => new GrantShieldEffectPayload(amount),
+            EffectType.EmitEvent => new EmitEventEffectPayload(new ContentId(value.Strings["eventId"])),
+            _ => throw new ArgumentOutOfRangeException(nameof(value)),
+        };
+        return new EffectDefinition(
+            new EffectId(value.Id), 1, value.Revision, value.NameKey, value.DescriptionKey, payload);
+    }
 
     private static StatusDefinition CompileStatus(SourceDefinition value) => new(
         new StatusId(value.Id), 1, value.Revision, value.NameKey, value.DescriptionKey,
@@ -1324,6 +1346,7 @@ public sealed class GameContentCompiler
         "modify-movement" => EffectType.ModifyMovement,
         "modify-resistance" => EffectType.ModifyResistance,
         "grant-shield" => EffectType.GrantShield,
+        "emit-event" => EffectType.EmitEvent,
         _ => throw new ArgumentOutOfRangeException(nameof(value)),
     };
 
@@ -1821,16 +1844,19 @@ public sealed class GameContentCompiler
         bool knownType = type is "heal-health" or "restore-mana" or "restore-stamina" or "restore-resolve" or
             "reduce-strain" or "physical-damage" or "thermal-damage" or "shock-damage" or "arcane-damage" or
             "armor-damage" or "apply-status" or "remove-status" or "modify-damage" or "modify-defense" or
-            "modify-accuracy" or "modify-movement" or "modify-resistance" or "grant-shield";
+            "modify-accuracy" or "modify-movement" or "modify-resistance" or "grant-shield" or "emit-event";
         int amount = definition.Integers["amount"];
         int duration = definition.Integers.GetValueOrDefault("duration");
         int stacks = definition.Integers.GetValueOrDefault("stacks");
         int potency = definition.Integers.GetValueOrDefault("potency");
         bool statusOperation = type is "apply-status" or "remove-status";
         bool applyStatus = type == "apply-status";
+        bool emitEvent = type == "emit-event";
         bool invalid = !knownType || amount is < 0 or > 1_000_000 || duration is < 0 or > 1_000_000 ||
             stacks is < 0 or > 1_000_000 || potency is < 0 or > 1_000_000 ||
             statusOperation != definition.Strings.ContainsKey("statusId") ||
+            emitEvent != definition.Strings.ContainsKey("eventId") ||
+            (statusOperation || emitEvent) && amount != 0 ||
             applyStatus && stacks < 1 || !applyStatus && (duration != 0 || stacks != 0 || potency != 0);
         if (invalid)
         {

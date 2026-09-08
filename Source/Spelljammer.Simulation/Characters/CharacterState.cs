@@ -325,18 +325,14 @@ public sealed record CharacterState(
     ImmutableDictionary<TrainingProjectId, int> TrainingProgress,
     bool CanAct = true)
 {
-    /// <summary>
-    /// Maximum number of active character effects retained in persistent state.
-    /// Encounter-local effects have their own limit.
-    /// </summary>
-    public const int MaximumActiveEffects = 128;
+    /// <summary>Maximum number of active Status instances retained for a character.</summary>
+    public const int MaximumStatuses = 128;
 
     /// <summary>
     /// Maximum number of observable evidence entries retained for a character.
     /// </summary>
     public const int MaximumEvidenceEntries = 256;
 
-    public ImmutableArray<ActiveCapabilityEffect> ActiveEffects { get; init; } = [];
     public StatusState Statuses { get; init; } = StatusState.Empty;
     public ImmutableArray<ObservableCapabilityEvidence> Evidence { get; init; } = [];
     public CharacterResourceSet CharacterResources { get; init; } = CharacterResourceSet.Empty;
@@ -373,7 +369,7 @@ public sealed record CharacterState(
             ScriptIds.Length > CharacterCapabilities.MaximumSetEntries ||
             Resources.Count > CharacterCapabilities.MaximumSetEntries ||
             TrainingProgress.Count > CharacterCapabilities.MaximumSetEntries ||
-            ActiveEffects.Length > MaximumActiveEffects ||
+            Statuses.Instances.Length > MaximumStatuses ||
             Evidence.Length > MaximumEvidenceEntries)
         {
             throw new InvalidOperationException("Character state exceeds a bounded capacity.");
@@ -399,20 +395,10 @@ public sealed record CharacterState(
             }
         }
 
-        foreach (ActiveCapabilityEffect effect in ActiveEffects)
-        {
-            if (!effect.EffectId.IsValid || !effect.SourceId.IsValid ||
-                effect.ActorId != Id || !effect.TargetId.IsValid || !effect.ScopeId.IsValid ||
-                effect.StartTick < 0 || effect.EndTick < effect.StartTick)
-            {
-                throw new InvalidOperationException("Character active effect state is invalid.");
-            }
-        }
-
         StatusResult statusValidation = StatusSystem.Create(
             Statuses,
             catalog,
-            new StatusSystemLimits(MaximumActiveEffects, 1_000_000, MaximumActiveEffects));
+            new StatusSystemLimits(MaximumStatuses, 1_000_000, MaximumStatuses));
         if (!statusValidation.Accepted || Statuses.Instances.Any(value => value.TargetId != Id.Value))
         {
             throw new InvalidOperationException("Character status state is invalid.");
@@ -465,15 +451,6 @@ public sealed record CharacterState(
         };
     }
 }
-
-public sealed record ActiveCapabilityEffect(
-    ContentId EffectId,
-    ContentId SourceId,
-    CharacterId ActorId,
-    CharacterId TargetId,
-    long StartTick,
-    long EndTick,
-    ContentId ScopeId);
 
 public sealed record ObservableCapabilityEvidence(
     ContentId EvidenceId,

@@ -21,9 +21,9 @@ public static class CampaignSaveVersions
     public const ushort Envelope = 1;
 
     /// <summary>
-    /// Version of the save schema. Version 7 persists encounter resources and the data-driven turn economy.
+    /// Version of the save schema. Version 11 removes superseded active-effect state in favor of Status instances.
     /// </summary>
-    public const ushort SaveSchema = 10;
+    public const ushort SaveSchema = 11;
     public const ushort OldestSupportedSaveSchema = 7;
     public const ushort ItemInstanceSaveSchema = 8;
 

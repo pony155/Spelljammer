@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using Spelljammer.Simulation.Content;
+using Spelljammer.Simulation.Effects;
 
 namespace Spelljammer.Simulation.Characters;
 
@@ -28,8 +29,8 @@ public sealed record TrailInterpretation(ContentId RouteId, ImmutableArray<Conte
 /// </remarks>
 public static class RaceCapabilities
 {
-    private static readonly ContentId SoulAnchorEffect = new("effect.recovery.soul-anchor");
-    private static readonly ContentId TrailSenseEffect = new("effect.tracking.observed-trail");
+    private static readonly EffectId SoulAnchorEffect = new("effect.recovery.soul-anchor");
+    private static readonly EffectId TrailSenseEffect = new("effect.tracking.observed-trail");
 
     /// <summary>
     /// Creates a soul anchor recovery action if the character has the soul anchor effect.
@@ -88,7 +89,7 @@ public static class RaceCapabilities
         ];
     }
 
-    private static bool HasEffect(CharacterState character, ICharacterContentCatalog catalog, ContentId effectId)
+    private static bool HasEffect(CharacterState character, ICharacterContentCatalog catalog, EffectId effectId)
     {
         if (character.ContentFingerprint != catalog.Fingerprint)
         {
@@ -97,7 +98,8 @@ public static class RaceCapabilities
 
         foreach (FeatId featId in character.Capabilities.Feats)
         {
-            if (catalog.TryGetFeat(featId, out FeatDefinition? feat) && feat!.EffectIds.Contains(effectId))
+            if (catalog.TryGetFeat(featId, out FeatDefinition? feat) &&
+                feat!.EffectIds.Contains(effectId))
             {
                 return true;
             }

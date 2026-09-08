@@ -16,6 +16,26 @@
     "effect.status.burning-damage.name": { "description": "Burning damage effect name.", "message": "Burning Damage" },
     "effect.status.burning-damage.description": { "description": "Burning damage effect summary.", "message": "Deals thermal damage." },
     "effect.status.apply-burning.name": { "description": "Apply Burning effect name.", "message": "Ignite" },
-    "effect.status.apply-burning.description": { "description": "Apply Burning effect summary.", "message": "Applies Burning to the target." }
+    "effect.status.apply-burning.description": { "description": "Apply Burning effect summary.", "message": "Applies Burning to the target." },
+    "status.mindlinked.name": { "description": "Mindlinked status name.", "message": "Mindlinked" },
+    "status.mindlinked.description": { "description": "Mindlinked status summary.", "message": "Maintains a deliberate psionic communication channel." },
+    "effect.combat.physical-damage.name": { "description": "Physical damage effect name.", "message": "Physical Damage" },
+    "effect.combat.physical-damage.description": { "description": "Physical damage effect summary.", "message": "Deals physical damage to Health." },
+    "effect.combat.armor-damage.name": { "description": "Armor damage effect name.", "message": "Armor Damage" },
+    "effect.combat.armor-damage.description": { "description": "Armor damage effect summary.", "message": "Damages the target's armor." },
+    "effect.equipment.focus.name": { "description": "Equipment focus effect name.", "message": "Arcane Focus" },
+    "effect.equipment.focus.description": { "description": "Equipment focus effect summary.", "message": "Marks an action as supported by an arcane focus." },
+    "effect.equipment.treatment.name": { "description": "Equipment treatment effect name.", "message": "Field Treatment" },
+    "effect.equipment.treatment.description": { "description": "Equipment treatment effect summary.", "message": "Restores Health through field treatment." },
+    "effect.recovery.soul-anchor.name": { "description": "Soul Anchor effect name.", "message": "Soul Anchor" },
+    "effect.recovery.soul-anchor.description": { "description": "Soul Anchor effect summary.", "message": "Marks the bearer as anchored for recovery rules." },
+    "effect.spirit.magic-missile-impact.name": { "description": "Magic Missile impact effect name.", "message": "Magic Missile Impact" },
+    "effect.spirit.magic-missile-impact.description": { "description": "Magic Missile impact effect summary.", "message": "Deals arcane damage to the target." },
+    "effect.psionics.shared-channel.name": { "description": "Shared psionic channel effect name.", "message": "Open Mindlink" },
+    "effect.psionics.shared-channel.description": { "description": "Shared psionic channel effect summary.", "message": "Applies Mindlinked to the target." },
+    "effect.psionics.remove-shared-channel.name": { "description": "Shared psionic channel removal effect name.", "message": "Close Mindlink" },
+    "effect.psionics.remove-shared-channel.description": { "description": "Shared psionic channel removal effect summary.", "message": "Removes Mindlinked from the target." },
+    "effect.tracking.observed-trail.name": { "description": "Observed trail effect name.", "message": "Observed Trail" },
+    "effect.tracking.observed-trail.description": { "description": "Observed trail effect summary.", "message": "Records a trail observation for navigation and tracking rules." }
   }
 }

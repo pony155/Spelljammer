@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using Spelljammer.Simulation.Content;
+using Spelljammer.Simulation.Effects;
 
 namespace Spelljammer.Simulation.Characters;
 
@@ -38,7 +39,8 @@ public sealed record SpellActionResult(
     CharacterState Actor,
     SpellActionState? Action,
     bool Accepted,
-    string RejectionCode);
+    string RejectionCode,
+    ImmutableArray<EffectRequest> Effects);
 
 public static class SpellActionSystem
 {
@@ -180,8 +182,7 @@ public static class SpellActionSystem
             return Rejected(action.OriginalActor, "command.action-phase-invalid", action);
         }
 
-        if (action.Succeeded &&
-            action.OriginalActor.ActiveEffects.Length + action.Definition.EffectIds.Length > CharacterCapabilities.MaximumSetEntries ||
+        if (action.Succeeded && action.Definition.Effects.Length > CharacterCapabilities.MaximumSetEntries ||
             action.OriginalActor.Evidence.Length >= CharacterCapabilities.MaximumSetEntries)
         {
             return Rejected(action.OriginalActor, "command.queue-capacity", action);
@@ -193,16 +194,14 @@ public static class SpellActionSystem
             return Rejected(action.OriginalActor, ActionRejectionCodes.ResourceInsufficient, action);
         }
 
-        ImmutableArray<ActiveCapabilityEffect> effects = action.Succeeded
-            ? [.. action.OriginalActor.ActiveEffects, .. action.Definition.EffectIds.Select(id => new ActiveCapabilityEffect(
-                id,
-                action.Definition.FeatId.Value,
-                action.OriginalActor.Id,
-                action.Target.Id,
-                action.Tick,
-                action.Tick + 1,
-                rules.RangeId))]
-            : action.OriginalActor.ActiveEffects;
+        ImmutableArray<EffectRequest> effects = action.Succeeded
+            ? BuildEffectRequests(
+                action.Definition.Effects,
+                action.OriginalActor.Id.Value,
+                action.Target.Id.Value,
+                action.RandomSeed,
+                action.RandomSequence)
+            : [];
         ObservableCapabilityEvidence evidence = new(
             new ContentId("evidence.spell.cast"),
             action.Definition.FeatId.Value,
@@ -215,10 +214,9 @@ public static class SpellActionSystem
             CharacterResources = action.OriginalActor.CharacterResources.SpendResource(
                 rules.ManaResourceId,
                 action.ReservedMana),
-            ActiveEffects = effects,
             Evidence = [.. action.OriginalActor.Evidence, evidence],
         };
-        return Accepted(committed, action with { Phase = SpellActionPhase.Committed });
+        return Accepted(committed, action with { Phase = SpellActionPhase.Committed }, effects);
     }
 
     public static SpellActionResult Recover(CharacterState committedActor, SpellActionState action)
@@ -245,11 +243,26 @@ public static class SpellActionSystem
         return 1 + (int)(value % 100);
     }
 
-    private static SpellActionResult Accepted(CharacterState actor, SpellActionState action) =>
-        new(actor, action, true, ActionRejectionCodes.None);
+    private static SpellActionResult Accepted(
+        CharacterState actor,
+        SpellActionState action,
+        ImmutableArray<EffectRequest> effects = default) =>
+        new(actor, action, true, ActionRejectionCodes.None, effects.IsDefault ? [] : effects);
 
     private static SpellActionResult Rejected(CharacterState actor, string code, SpellActionState? action = null) =>
-        new(actor, action, false, code);
+        new(actor, action, false, code, []);
+
+    private static ImmutableArray<EffectRequest> BuildEffectRequests(
+        ImmutableArray<EffectApplicationDefinition> applications,
+        ContentId sourceId,
+        ContentId targetId,
+        ulong seed,
+        ulong sequence) =>
+        [.. applications.Select((application, index) => new EffectRequest(
+            EffectInvocationId.Derive(seed, sequence + (ulong)index, application.EffectId.Value),
+            application,
+            sourceId,
+            targetId))];
 }
 
 public enum MindlinkPhase : byte
@@ -276,7 +289,8 @@ public sealed record MindlinkResult(
     CharacterState Actor,
     MindlinkState? Link,
     bool Accepted,
-    string RejectionCode);
+    string RejectionCode,
+    ImmutableArray<EffectRequest> Effects);
 
 public static class MindlinkSystem
 {
@@ -367,22 +381,19 @@ public static class MindlinkSystem
             return Rejected(link.OriginalActor, "command.action-phase-invalid", link);
         }
 
-        if (link.OriginalActor.ActiveEffects.Length + link.Definition.EffectIds.Length > CharacterCapabilities.MaximumSetEntries ||
+        if (link.Definition.Effects.Length > CharacterCapabilities.MaximumSetEntries ||
             link.OriginalActor.Evidence.Length >= CharacterCapabilities.MaximumSetEntries)
         {
             return Rejected(link.OriginalActor, "command.queue-capacity", link);
         }
 
         PsionicFeatRules rules = link.Definition.PsionicRules!;
-        ImmutableArray<ActiveCapabilityEffect> effects =
-            [.. link.OriginalActor.ActiveEffects, .. link.Definition.EffectIds.Select(id => new ActiveCapabilityEffect(
-                id,
-                link.Definition.FeatId.Value,
-                link.OriginalActor.Id,
-                link.TargetId,
-                link.StartTick,
-                long.MaxValue,
-                rules.InformationScopeId))];
+        ImmutableArray<EffectRequest> effects = BuildEffectRequests(
+            link.Definition.Effects,
+            link.OriginalActor.Id.Value,
+            link.TargetId.Value,
+            0,
+            checked((ulong)link.StartTick));
         ObservableCapabilityEvidence evidence = new(
             new ContentId("evidence.psionics.mindlink"),
             link.Definition.FeatId.Value,
@@ -393,10 +404,9 @@ public static class MindlinkSystem
         CharacterState committed = link.OriginalActor with
         {
             CharacterResources = link.OriginalActor.CharacterResources.GenerateStrain(link.ReservedStrain),
-            ActiveEffects = effects,
             Evidence = [.. link.OriginalActor.Evidence, evidence],
         };
-        return Accepted(committed, link with { Phase = MindlinkPhase.Active });
+        return Accepted(committed, link with { Phase = MindlinkPhase.Active }, effects);
     }
 
     public static MindlinkResult Sustain(CharacterState actor, MindlinkState link, long tick)
@@ -429,17 +439,36 @@ public static class MindlinkSystem
             return Rejected(actor, "command.action-phase-invalid", link);
         }
 
-        CharacterState ended = actor with
-        {
-            ActiveEffects =
-            [.. actor.ActiveEffects.Where(value => value.SourceId != link.Definition.FeatId.Value || value.TargetId != link.TargetId)],
-        };
-        return Accepted(ended, link with { Phase = phase });
+        EffectId removeEffectId = new("effect.psionics.remove-shared-channel");
+        EffectRequest removal = new(
+            EffectInvocationId.Derive(
+                0,
+                checked((ulong)link.LastSustainTick),
+                removeEffectId.Value),
+            EffectApplicationDefinition.InstantTarget(removeEffectId),
+            link.OriginalActor.Id.Value,
+            link.TargetId.Value);
+        return Accepted(actor, link with { Phase = phase }, [removal]);
     }
 
-    private static MindlinkResult Accepted(CharacterState actor, MindlinkState link) =>
-        new(actor, link, true, ActionRejectionCodes.None);
+    private static MindlinkResult Accepted(
+        CharacterState actor,
+        MindlinkState link,
+        ImmutableArray<EffectRequest> effects = default) =>
+        new(actor, link, true, ActionRejectionCodes.None, effects.IsDefault ? [] : effects);
+
+    private static ImmutableArray<EffectRequest> BuildEffectRequests(
+        ImmutableArray<EffectApplicationDefinition> applications,
+        ContentId sourceId,
+        ContentId targetId,
+        ulong seed,
+        ulong sequence) =>
+        [.. applications.Select((application, index) => new EffectRequest(
+            EffectInvocationId.Derive(seed, sequence + (ulong)index, application.EffectId.Value),
+            application,
+            sourceId,
+            targetId))];
 
     private static MindlinkResult Rejected(CharacterState actor, string code, MindlinkState? link = null) =>
-        new(actor, link, false, code);
+        new(actor, link, false, code, []);
 }

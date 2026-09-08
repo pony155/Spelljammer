@@ -144,6 +144,18 @@ internal static class ContentContracts
             "Committed melee item is missing.");
         Equal(weaponState.CurrentDurability - eligible.Reservation.Action.DurabilityCost,
             committedMeleeItem!.MeleeWeaponState!.CurrentDurability, "Weapon durability was not committed.");
+        True(first.Resolution!.Effects.Any(value => value.EffectId == CombatEffectIds.PhysicalDamage),
+            "Melee hit did not emit a physical-damage Effect request.");
+        EffectResolution meleeEffects = MeleeWeaponSystem.ResolveEffects(
+            first.Resolution,
+            new EffectTargetState(target.Id.Value, target.CharacterResources, 5, 0, target.Statuses),
+            snapshot,
+            new StatusSystemLimits(CharacterState.MaximumStatuses, 1_000_000, CharacterState.MaximumStatuses));
+        True(meleeEffects.Accepted, meleeEffects.RejectionCode);
+        Equal(
+            Math.Max(0, target.CharacterResources.GetCurrentValue(CharacterResourceIds.Health) - first.Resolution.HealthDamage),
+            meleeEffects.State.Resources.GetCurrentValue(CharacterResourceIds.Health),
+            "Melee Effect resolution did not apply its computed Health damage.");
 
         MeleeAttackRequest tooFar = request with
         {
@@ -215,6 +227,18 @@ internal static class ContentContracts
         Equal(turn.CurrentActionPoints - eligible.Reservation!.ActionPointCost, first.TurnState.CurrentActionPoints,
             "The ranged action's AP cost was not committed.");
         True(first.Resolution!.TotalHealthDamage > 0, "A successful ranged attack produced no Health damage.");
+        True(first.Resolution.Effects.Any(value => value.EffectId == CombatEffectIds.PhysicalDamage),
+            "Ranged hit did not emit a physical-damage Effect request.");
+        EffectResolution rangedEffects = RangedWeaponSystem.ResolveEffects(
+            first.Resolution,
+            new EffectTargetState(target.Id.Value, target.CharacterResources, 5, 0, target.Statuses),
+            snapshot,
+            new StatusSystemLimits(CharacterState.MaximumStatuses, 1_000_000, CharacterState.MaximumStatuses));
+        True(rangedEffects.Accepted, rangedEffects.RejectionCode);
+        Equal(
+            Math.Max(0, target.CharacterResources.GetCurrentValue(CharacterResourceIds.Health) - first.Resolution.TotalHealthDamage),
+            rangedEffects.State.Resources.GetCurrentValue(CharacterResourceIds.Health),
+            "Ranged Effect resolution did not apply its computed Health damage.");
 
         InventoryEntryId ammunitionEntryId = new(Guid.Parse("33333333-3333-3333-3333-333333333333"));
         InventoryContainer actorContainer = actor.Items.InventoryContainers.Single();
@@ -369,14 +393,25 @@ internal static class ContentContracts
             "The base Ability and Skill fingerprint changed.");
         Equal(6, snapshot.AbilityRegistry.Count, "The base Ability roster is incomplete.");
         Equal(30, snapshot.SkillRegistry.Count, "The base Skill roster is incomplete.");
-        Equal(4, snapshot.StatusRegistry.Count, "The base Status roster is incomplete.");
-        Equal(2, snapshot.EffectRegistry.Count, "The base Effect roster is incomplete.");
+        Equal(5, snapshot.StatusRegistry.Count, "The base Status roster is incomplete.");
+        Equal(11, snapshot.EffectRegistry.Count, "The base Effect roster is incomplete.");
         True(snapshot.TryGetStatus(new StatusId("status.charmed"), out StatusDefinition? charmed),
             "Charmed was not published through the Status registry.");
         Equal(StatusStackPolicy.Refresh, charmed!.StackPolicy, "Charmed stack policy changed.");
         True(snapshot.TryGetEffect(new EffectId("effect.status.apply-burning"), out EffectDefinition? ignite) &&
-            ignite!.StatusId == new StatusId("status.burning"),
+            ignite!.Payload is ApplyStatusEffectPayload { StatusId: var statusId } &&
+            statusId == new StatusId("status.burning"),
             "Apply Burning did not resolve its Status reference.");
+        True(snapshot.TryGetEffect(CombatEffectIds.PhysicalDamage, out EffectDefinition? physicalDamage) &&
+            physicalDamage!.Payload is DamageEffectPayload { Type: EffectType.PhysicalDamage },
+            "Combat physical damage was not compiled as a typed damage payload.");
+        True(snapshot.TryGetEffect(new EffectId("effect.equipment.focus"), out EffectDefinition? focus) &&
+            focus!.Payload is EmitEventEffectPayload { EventId: var eventId } &&
+            eventId == new ContentId("event.equipment.focus"),
+            "Equipment focus was not compiled as a typed event payload.");
+        True(snapshot.TryGetStatus(new StatusId("status.mindlinked"), out StatusDefinition? mindlinked) &&
+            mindlinked!.DurationType == StatusDurationType.UntilRemoved,
+            "Mindlinked was not published as an until-removed Status.");
         string[] expectedAbilitys =
         [
             "ability.agility", "ability.intelligence", "ability.perception",
@@ -750,7 +785,8 @@ internal static class ContentContracts
             committed.Actor.CharacterResources.GetCurrentValue(CharacterResourceIds.Mana),
             "Spell commit charged the wrong Mana cost.");
         True(committed.Actor.Evidence.Any(value => value.SourceId == spellId.Value), "Spell commit omitted observable evidence.");
-        True(committed.Actor.ActiveEffects.Any(value => value.SourceId == spellId.Value), "Spell commit omitted its bounded active effect.");
+        True(committed.Effects.Any(value => value.EffectId == new EffectId("effect.spirit.magic-missile-impact") &&
+            value.SourceId == caster.Id.Value), "Spell commit omitted its actor-sourced Effect request.");
         SpellActionResult recovered = SpellActionSystem.Recover(committed.Actor, committed.Action!);
         Equal(SpellActionPhase.Recovered, recovered.Action!.Phase, "Spell recovery did not close the phase sequence.");
         SpellActionResult interruption = SpellActionSystem.Interrupt(reserved.Action!);
@@ -783,12 +819,13 @@ internal static class ContentContracts
             "Mindlink replay changed deterministic strain publication.");
         Equal(4, active.Actor.CharacterResources.GetCurrentValue(CharacterResourceIds.Strain), "Mindlink charged the wrong initial Strain.");
         True(active.Actor.Evidence.Any(value => value.SourceId == mindlinkId.Value), "Mindlink commit omitted observable evidence.");
-        True(active.Actor.ActiveEffects.Any(value => value.ScopeId == new ContentId("psionics.scope.deliberate-message")),
-            "Mindlink exposed a broader information scope.");
+        True(active.Effects.Any(value => value.EffectId == new EffectId("effect.psionics.shared-channel")),
+            "Mindlink omitted its shared-channel Effect request.");
         MindlinkResult sustained = MindlinkSystem.Sustain(active.Actor, active.Link!, 12);
         Equal(5, sustained.Actor.CharacterResources.GetCurrentValue(CharacterResourceIds.Strain), "Mindlink sustain charged the wrong Strain.");
         MindlinkResult revoked = MindlinkSystem.Revoke(sustained.Actor, sustained.Link!, human.Id);
-        False(revoked.Actor.ActiveEffects.Any(value => value.SourceId == mindlinkId.Value), "Revoked Mindlink retained its active channel.");
+        True(revoked.Effects.Any(value => value.EffectId == new EffectId("effect.psionics.remove-shared-channel")),
+            "Revoked Mindlink omitted its shared-channel removal request.");
 
         CharacterState awakened = CompleteTraining(human, new TrainingProjectId("training.psionics.awakening"), snapshot);
         MindlinkResult unknown = MindlinkSystem.Invite(awakened, somnari, mindlinkId, true, 13, snapshot);

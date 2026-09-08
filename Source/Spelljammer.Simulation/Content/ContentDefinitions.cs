@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using Spelljammer.Simulation.Effects;
 
 namespace Spelljammer.Simulation.Content;
 
@@ -160,10 +161,13 @@ public sealed record FeatDefinition(
     ImmutableArray<AccessId> RequiredAccessIds,
     ImmutableArray<AccessId> GrantedAccessIds,
     ImmutableArray<FeatId> GrantedFeatIds,
-    ImmutableArray<ContentId> EffectIds,
+    ImmutableArray<EffectApplicationDefinition> Effects,
     SpellFeatRules? SpellRules,
     PsionicFeatRules? PsionicRules)
-    : ContentDefinition(FeatId.Value, SchemaVersion, Revision, NameKey, DescriptionKey);
+    : ContentDefinition(FeatId.Value, SchemaVersion, Revision, NameKey, DescriptionKey)
+{
+    public ImmutableArray<EffectId> EffectIds => [.. Effects.Select(value => value.EffectId)];
+}
 
 /// <summary>
 /// Defines a playable character race with inherent Feats and compatibility requirements.
@@ -299,8 +303,11 @@ public sealed record MeleeWeaponActionDefinition(
     int RangeModifier,
     int EnergyCostModifier,
     int DurabilityCost,
-    ImmutableArray<ContentId> EffectIds)
-    : ContentDefinition(MeleeWeaponActionId.Value, SchemaVersion, Revision, NameKey, DescriptionKey);
+    ImmutableArray<EffectApplicationDefinition> Effects)
+    : ContentDefinition(MeleeWeaponActionId.Value, SchemaVersion, Revision, NameKey, DescriptionKey)
+{
+    public ImmutableArray<EffectId> EffectIds => [.. Effects.Select(value => value.EffectId)];
+}
 
 public enum RangedWeaponFamily : byte
 {
@@ -370,8 +377,11 @@ public sealed record RangedWeaponActionDefinition(
     int RangePenaltyPerUnit,
     int DamageFalloffPerUnitPercentage,
     int ReloadAmount,
-    ImmutableArray<ContentId> EffectIds)
-    : ContentDefinition(RangedWeaponActionId.Value, SchemaVersion, Revision, NameKey, DescriptionKey);
+    ImmutableArray<EffectApplicationDefinition> Effects)
+    : ContentDefinition(RangedWeaponActionId.Value, SchemaVersion, Revision, NameKey, DescriptionKey)
+{
+    public ImmutableArray<EffectId> EffectIds => [.. Effects.Select(value => value.EffectId)];
+}
 
 public sealed record BoardCellDefinition(
     CellId CellId,
