@@ -1,8 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
-
-  <PropertyGroup>
-    <OutputType>Exe</OutputType>
-  </PropertyGroup>
+<Project Sdk="MSTest.Sdk">
 
   <ItemGroup>
     <ProjectReference Include="..\..\Source\Spelljammer.Persistence\Spelljammer.Persistence.csproj" />

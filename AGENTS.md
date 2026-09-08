@@ -129,7 +129,7 @@ smallest playable vertical slice before broadening the simulation surface.
 | `Content/Packs/base/` | Built-in gameplay definitions and their authored localization catalogs. |
 | `Content/Localization/` | Pinned locale-data inputs and notices. |
 | `Tests/Spelljammer.Localization.Tests/` | Headless localization contracts and corruption/formatting coverage. |
-| `Tests/Spelljammer.Simulation.Tests/` | Compile-only determinism, rejection, bounds, and resource-loop contracts. |
+| `Tests/Spelljammer.Simulation.Tests/` | MSTest determinism, rejection, bounds, and resource-loop contracts. |
 | `Docs/Concept/` | Current product direction and playable-slice scope. |
 | `Docs/Architecture/` | Implemented and planned subsystem architecture. |
 | `Docs/Archive/` | Historical design material that is not current product authority. |

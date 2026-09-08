@@ -11,44 +11,83 @@ using Spelljammer.Simulation.Content;
 using Spelljammer.Simulation.Encounters;
 using Spelljammer.Simulation.Items;
 using Spelljammer.Simulation.Effects;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using MeleeWeaponDefinition = Spelljammer.Simulation.Items.MeleeWeaponDefinition;
 using RangedWeaponDefinition = Spelljammer.Simulation.Items.RangedWeaponDefinition;
 
-return ContentContracts.Run();
-
-internal static partial class ContentContracts
+[TestClass]
+[DoNotParallelize]
+public sealed partial class ContentContracts
 {
     private static readonly SemanticVersion GameVersion = new(0, 1, 0);
     private static readonly string FixtureRoot = Path.Combine(AppContext.BaseDirectory, "Fixtures", "Milestone0");
     private static readonly string Milestone2Root = Path.Combine(AppContext.BaseDirectory, "Fixtures", "Milestone2");
 
-    public static int Run()
-    {
-        StableIdsAreValidatedAndOrdinal();
-        ValidFixtureIsCanonicalAndDeterministic();
-        EveryFrozenDiagnosticCaseIsRecognized();
-        FailedReplacementPreservesPublishedSnapshot();
-        BaseAbilitysAndSkillsAreTypedAndIndexed();
-        WorldTimeIsDataDriven();
-        LevelProgressionTablesAreDataDriven();
-        CharacterResourcesAreBoundedAndDirectional();
-        Milestone2InvalidCasesAreRecognized();
-        AdditiveSkillIsDynamicAndReversible();
-        CharacterDefinitionsRejectInvalidGraphs();
-        BaseRosterIsDeterministicAndDynamic();
-        RecruitmentHonorsScenarioRosterLimit();
-        EligibilityAndResolutionAreAtomic();
-        TrainingGrantsAccessOnlyAtCompletion();
-        AccessSourcesCoexistAndRecompute();
-        SupernaturalDefinitionsAndExecutionAreBounded();
-        MindlinkRequiresKnowledgeConsentAndStrain();
-        RaceCapabilitiesRespectTheirBoundaries();
-        Milestone5EncounterAndShipContentIsLinked();
-        MeleeWeaponsAreDataDrivenAndAtomic();
-        RangedWeaponsUseAmmunitionAndReloadAtomically();
-        Console.WriteLine("Content and character capability contracts passed.");
-        return 0;
-    }
+    [TestMethod]
+    public void StableIdsAreValidatedAndOrdinalContract() => StableIdsAreValidatedAndOrdinal();
+
+    [TestMethod]
+    public void ValidFixtureIsCanonicalAndDeterministicContract() => ValidFixtureIsCanonicalAndDeterministic();
+
+    [TestMethod]
+    public void EveryFrozenDiagnosticCaseIsRecognizedContract() => EveryFrozenDiagnosticCaseIsRecognized();
+
+    [TestMethod]
+    public void FailedReplacementPreservesPublishedSnapshotContract() => FailedReplacementPreservesPublishedSnapshot();
+
+    [TestMethod]
+    public void BaseAbilitysAndSkillsAreTypedAndIndexedContract() => BaseAbilitysAndSkillsAreTypedAndIndexed();
+
+    [TestMethod]
+    public void WorldTimeIsDataDrivenContract() => WorldTimeIsDataDriven();
+
+    [TestMethod]
+    public void LevelProgressionTablesAreDataDrivenContract() => LevelProgressionTablesAreDataDriven();
+
+    [TestMethod]
+    public void CharacterResourcesAreBoundedAndDirectionalContract() => CharacterResourcesAreBoundedAndDirectional();
+
+    [TestMethod]
+    public void Milestone2InvalidCasesAreRecognizedContract() => Milestone2InvalidCasesAreRecognized();
+
+    [TestMethod]
+    public void AdditiveSkillIsDynamicAndReversibleContract() => AdditiveSkillIsDynamicAndReversible();
+
+    [TestMethod]
+    public void CharacterDefinitionsRejectInvalidGraphsContract() => CharacterDefinitionsRejectInvalidGraphs();
+
+    [TestMethod]
+    public void BaseRosterIsDeterministicAndDynamicContract() => BaseRosterIsDeterministicAndDynamic();
+
+    [TestMethod]
+    public void RecruitmentHonorsScenarioRosterLimitContract() => RecruitmentHonorsScenarioRosterLimit();
+
+    [TestMethod]
+    public void EligibilityAndResolutionAreAtomicContract() => EligibilityAndResolutionAreAtomic();
+
+    [TestMethod]
+    public void TrainingGrantsAccessOnlyAtCompletionContract() => TrainingGrantsAccessOnlyAtCompletion();
+
+    [TestMethod]
+    public void AccessSourcesCoexistAndRecomputeContract() => AccessSourcesCoexistAndRecompute();
+
+    [TestMethod]
+    public void SupernaturalDefinitionsAndExecutionAreBoundedContract() => SupernaturalDefinitionsAndExecutionAreBounded();
+
+    [TestMethod]
+    public void MindlinkRequiresKnowledgeConsentAndStrainContract() => MindlinkRequiresKnowledgeConsentAndStrain();
+
+    [TestMethod]
+    public void RaceCapabilitiesRespectTheirBoundariesContract() => RaceCapabilitiesRespectTheirBoundaries();
+
+    [TestMethod]
+    public void Milestone5EncounterAndShipContentIsLinkedContract() => Milestone5EncounterAndShipContentIsLinked();
+
+    [TestMethod]
+    public void MeleeWeaponsAreDataDrivenAndAtomicContract() => MeleeWeaponsAreDataDrivenAndAtomic();
+
+    [TestMethod]
+    public void RangedWeaponsUseAmmunitionAndReloadAtomicallyContract() => RangedWeaponsUseAmmunitionAndReloadAtomically();
 
 
 }

@@ -1,24 +1,25 @@
 using System.Text;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Spelljammer.Settings;
 
-return SettingsContracts.Run();
-
-internal static class SettingsContracts
+[TestClass]
+public sealed class SettingsContracts
 {
-    public static int Run()
-    {
-        ProfileRoundTripsDeterministically();
-        Version1ProfilesMigrateToSafeDisplayDefaults();
-        InvalidDocumentsReturnStableDefaults();
-        FailedReplacementRetainsActiveSettings();
-        Console.WriteLine("Game settings contracts passed.");
-        return 0;
-    }
+    [TestMethod]
+    public void ProfileRoundTripsDeterministicallyContract() => ProfileRoundTripsDeterministically();
+
+    [TestMethod]
+    public void Version1ProfilesMigrateToSafeDisplayDefaultsContract() => Version1ProfilesMigrateToSafeDisplayDefaults();
+
+    [TestMethod]
+    public void InvalidDocumentsReturnStableDefaultsContract() => InvalidDocumentsReturnStableDefaults();
+
+    [TestMethod]
+    public void FailedReplacementRetainsActiveSettingsContract() => FailedReplacementRetainsActiveSettings();
 
     private static void ProfileRoundTripsDeterministically()
     {
-        GameSettingsProfile profile = GameSettingsProfile.Default with
-        {
+        GameSettingsProfile profile = GameSettingsProfile.Default with {
             MasterVolume = 55,
             ReducedMotion = true,
             UiScalePercent = 125,

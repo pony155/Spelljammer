@@ -1,25 +1,40 @@
 using System.Text;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Spelljammer.Localization;
 using Spelljammer.Tools.Localization;
 
-return LocalizationTests.Run();
-
-internal static class LocalizationTests
+[TestClass]
+public sealed class LocalizationTests
 {
-    public static int Run()
-    {
+    [TestMethod]
+    public void StableIdentityRejectsInvalidNamesAndCollisionsContract() =>
         StableIdentityRejectsInvalidNamesAndCollisions();
-        CompilerIsStrictAndDeterministic();
-        ArtifactRejectsCorruption();
+
+    [TestMethod]
+    public void CompilerIsStrictAndDeterministicContract() => CompilerIsStrictAndDeterministic();
+
+    [TestMethod]
+    public void ArtifactRejectsCorruptionContract() => ArtifactRejectsCorruption();
+
+    [TestMethod]
+    public void RuntimeUsesExplicitFallbackAndAtomicPublicationContract() =>
         RuntimeUsesExplicitFallbackAndAtomicPublication();
-        RuntimeFormatsTypedMessagesAndBoundsWork();
-        PinnedLocaleProfilesFormatWithoutHostCulture();
-        CompilerReportsTranslationSchemaMismatch();
+
+    [TestMethod]
+    public void RuntimeFormatsTypedMessagesAndBoundsWorkContract() => RuntimeFormatsTypedMessagesAndBoundsWork();
+
+    [TestMethod]
+    public void PinnedLocaleProfilesFormatWithoutHostCultureContract() => PinnedLocaleProfilesFormatWithoutHostCulture();
+
+    [TestMethod]
+    public void CompilerReportsTranslationSchemaMismatchContract() => CompilerReportsTranslationSchemaMismatch();
+
+    [TestMethod]
+    public void PseudoLocalesAndCompletenessAreDeterministicContract() =>
         PseudoLocalesAndCompletenessAreDeterministic();
-        RuntimeRejectsNonOwnerThread();
-        Console.WriteLine("Localization Phase 1 and 2 tests passed.");
-        return 0;
-    }
+
+    [TestMethod]
+    public void RuntimeRejectsNonOwnerThreadContract() => RuntimeRejectsNonOwnerThread();
 
     private static void StableIdentityRejectsInvalidNamesAndCollisions()
     {

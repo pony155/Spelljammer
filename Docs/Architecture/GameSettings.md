@@ -111,12 +111,13 @@ local preference document.
 
 ## Verification ownership
 
-`Tests/Spelljammer.Settings.Tests` is a compile-only contract executable for
+`Tests/Spelljammer.Settings.Tests` is an MSTest contract suite for
 codec determinism, schema-1 migration, stable language/resolution validation,
 invalid-input fallback, transactional publication, replacement failure,
 recovery, and exact cleanup. SpriteForge's
 `UIInteropTests.cpp` compiles the current UI ABI, transactional mutations,
 anchored/nested modal behavior, copied layout/presentation, and failed-batch
 atomicity. SpriteForge's `AudioInteropTests.cpp` owns native default-config,
-argument-validation, ownership, and output-clearing contracts. CI or the user
-owns executable test runs under repository policy.
+argument-validation, ownership, and output-clearing contracts. The .NET suites
+run through Microsoft Testing Platform when test execution is requested under
+repository policy.

@@ -1,27 +1,37 @@
-using System.Collections.Immutable;
-using Spelljammer.Simulation.Characters;
-using Spelljammer.Simulation.Content;
-using Spelljammer.Simulation.Encounters;
-using Spelljammer.Simulation.Items;
-using Spelljammer.Simulation.Effects;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-return SimulationContracts.Run();
-
-internal static partial class SimulationContracts
+[TestClass]
+public sealed partial class SimulationContracts
 {
-    public static int Run()
-    {
+    [TestMethod]
+    public void FixedTickCadenceAndOrderingAreDeterministicContract() =>
         FixedTickCadenceAndOrderingAreDeterministic();
+
+    [TestMethod]
+    public void CampaignClockAndCalendarAreDeterministicContract() =>
         CampaignClockAndCalendarAreDeterministic();
+
+    [TestMethod]
+    public void TacticalBoardAndEncounterCleanupAreBoundedContract() =>
         TacticalBoardAndEncounterCleanupAreBounded();
+
+    [TestMethod]
+    public void ShipLoadoutPowerAndDamageAreAtomicContract() =>
         ShipLoadoutPowerAndDamageAreAtomic();
+
+    [TestMethod]
+    public void CombatSystemRoutesAndRejectsAtomicallyContract() =>
         CombatSystemRoutesAndRejectsAtomically();
+
+    [TestMethod]
+    public void PersonalCombatResolutionIsCommittedAtomicallyContract() =>
         PersonalCombatResolutionIsCommittedAtomically();
+
+    [TestMethod]
+    public void ItemInventoryAndEquipmentLoadoutAreAtomicContract() =>
         ItemInventoryAndEquipmentLoadoutAreAtomic();
+
+    [TestMethod]
+    public void StatusLifecycleAndConflictsAreAtomicContract() =>
         StatusLifecycleAndConflictsAreAtomic();
-        Console.WriteLine("Spelljammer simulation contracts passed.");
-        return 0;
-    }
-
-
 }

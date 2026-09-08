@@ -14,7 +14,7 @@ using Spelljammer.Simulation.World;
 using Spelljammer.Simulation.Items;
 using Spelljammer.Simulation.Effects;
 
-internal static partial class PersistenceContracts
+public sealed partial class PersistenceContracts
 {
     private static void AtomicReplacementPreservesRecovery()
     {

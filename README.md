@@ -64,7 +64,7 @@ Implemented foundations include:
 - versioned game-owned localization catalogs, typed message formatting,
   explicit fallback, pinned plural/number profiles, pseudo-locales, and offline
   catalog tooling; and
-- compile-only simulation and localization contract targets for CI execution.
+- MSTest contract suites executed through Microsoft Testing Platform.
 
 ## Product direction
 
@@ -132,11 +132,11 @@ defined in
 | `Tools/Spelljammer.Localization.Compiler/` | Source-catalog compiler and validation tools. |
 | `Content/Packs/base/` | Built-in capability, Race, Heritage, learned and race- or heritage-granted Feat, training, and first-roster definitions with localization. |
 | `Content/Localization/` | Pinned locale-data inputs and third-party notices. |
-| `Tests/Spelljammer.Simulation.Tests/` | Compile-only deterministic simulation contracts. |
-| `Tests/Spelljammer.Localization.Tests/` | Compile-only localization contracts. |
-| `Tests/Spelljammer.Content.Tests/` | Compile-only gameplay content and rollback contracts plus frozen v1 fixtures. |
-| `Tests/Spelljammer.Persistence.Tests/` | Compile-only save, preflight, replacement, recovery, and migration contracts. |
-| `Tests/Spelljammer.Settings.Tests/` | Compile-only settings codec, rollback, recovery, and cleanup contracts. |
+| `Tests/Spelljammer.Simulation.Tests/` | MSTest deterministic simulation contracts. |
+| `Tests/Spelljammer.Localization.Tests/` | MSTest localization contracts. |
+| `Tests/Spelljammer.Content.Tests/` | MSTest gameplay content and rollback contracts plus frozen v1 fixtures. |
+| `Tests/Spelljammer.Persistence.Tests/` | MSTest save, preflight, replacement, recovery, and migration contracts. |
+| `Tests/Spelljammer.Settings.Tests/` | MSTest settings codec, rollback, recovery, and cleanup contracts. |
 | `Docs/Concept/` | Current vision and playable-slice scope. |
 | `Docs/Architecture/` | Implemented and planned subsystem boundaries. |
 | `Docs/Archive/` | Historical explorations; not current product authority. |
@@ -175,6 +175,15 @@ Follow SpriteForge's README to configure and install the native engine. The
 current host is Windows-only even though reusable SpriteForge components may
 target other platforms. The settings dialog requires SpriteForge UI interop
 version 1 in addition to the existing renderer ABI.
+
+Run all managed MSTest suites through Microsoft Testing Platform with:
+
+```powershell
+dotnet test .\Spelljammer.slnx
+```
+
+The command reports both per-assembly results and the aggregate discovered and
+executed test count.
 
 ## Localization
 

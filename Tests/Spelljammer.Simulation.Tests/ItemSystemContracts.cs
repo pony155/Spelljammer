@@ -6,7 +6,7 @@ using Spelljammer.Simulation.Encounters;
 using Spelljammer.Simulation.Items;
 using Spelljammer.Simulation.Effects;
 
-internal static partial class SimulationContracts
+public sealed partial class SimulationContracts
 {
     private static void ItemInventoryAndEquipmentLoadoutAreAtomic()
     {

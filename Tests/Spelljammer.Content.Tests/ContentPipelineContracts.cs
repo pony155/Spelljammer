@@ -14,7 +14,7 @@ using Spelljammer.Simulation.Effects;
 using MeleeWeaponDefinition = Spelljammer.Simulation.Items.MeleeWeaponDefinition;
 using RangedWeaponDefinition = Spelljammer.Simulation.Items.RangedWeaponDefinition;
 
-internal static partial class ContentContracts
+public sealed partial class ContentContracts
 {
     private static void StableIdsAreValidatedAndOrdinal()
     {

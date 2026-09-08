@@ -8,7 +8,7 @@ using Spelljammer.Simulation.Ships;
 using Spelljammer.Simulation.Effects;
 using Spelljammer.Simulation.World;
 
-internal static partial class SimulationContracts
+public sealed partial class SimulationContracts
 {
     private static readonly WorldTimeDefinition TestWorldTime = new(
         new WorldTimeId("world-time.test.standard"), 1, 1,

@@ -12,26 +12,36 @@ using Spelljammer.Simulation.Content;
 using Spelljammer.Simulation.Encounters;
 using Spelljammer.Simulation.Items;
 using Spelljammer.Simulation.Effects;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-return PersistenceContracts.Run();
-
-internal static partial class PersistenceContracts
+[TestClass]
+[DoNotParallelize]
+public sealed partial class PersistenceContracts
 {
     private static readonly SemanticVersion GameVersion = new(0, 1, 0);
     private static readonly string FixtureRoot = Path.Combine(AppContext.BaseDirectory, "Fixtures");
 
-    public static int Run()
-    {
-        ExactCampaignRoundTripsCanonically();
-        CorruptionAndMissingContentFailPreflight();
-        CompatibilityIsExplicitAndLoadable();
-        FailedLoadPreservesActiveCampaign();
-        AtomicReplacementPreservesRecovery();
+    [TestMethod]
+    public void ExactCampaignRoundTripsCanonicallyContract() => ExactCampaignRoundTripsCanonically();
+
+    [TestMethod]
+    public void CorruptionAndMissingContentFailPreflightContract() => CorruptionAndMissingContentFailPreflight();
+
+    [TestMethod]
+    public void CompatibilityIsExplicitAndLoadableContract() => CompatibilityIsExplicitAndLoadable();
+
+    [TestMethod]
+    public void FailedLoadPreservesActiveCampaignContract() => FailedLoadPreservesActiveCampaign();
+
+    [TestMethod]
+    public void AtomicReplacementPreservesRecoveryContract() => AtomicReplacementPreservesRecovery();
+
+    [TestMethod]
+    public void LocationMigrationIsDeterministicAndNonDestructiveContract() =>
         LocationMigrationIsDeterministicAndNonDestructive();
-        MigrationFailuresPreserveTheSource();
-        Console.WriteLine("Campaign persistence contracts passed.");
-        return 0;
-    }
+
+    [TestMethod]
+    public void MigrationFailuresPreserveTheSourceContract() => MigrationFailuresPreserveTheSource();
 
 
 }

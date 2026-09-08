@@ -5,7 +5,7 @@ using Spelljammer.Simulation.Content;
 using Spelljammer.Simulation.Encounters;
 using Spelljammer.Simulation.World;
 
-internal static partial class SimulationContracts
+public sealed partial class SimulationContracts
 {
     private static void CombatSystemRoutesAndRejectsAtomically()
     {

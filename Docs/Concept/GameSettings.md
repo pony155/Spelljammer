@@ -274,7 +274,7 @@ The delivered slice adds:
   same-directory replacement, exact-file recovery, and stable diagnostics;
 - a localized in-window SpriteForge UI modal with mouse interaction and keyboard focus,
   navigation, adjustment, acceptance, and cancellation; and
-- compile-only settings and engine-interop contracts covering bounds,
+- MSTest settings contracts and engine-interop contracts covering bounds,
   corruption, rollback, recovery, action routing, and batch atomicity.
 
 The remaining first-slice work is:
