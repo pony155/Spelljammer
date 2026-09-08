@@ -8,10 +8,10 @@ atomic state replacement for equipping, unequipping, and transferring distinct
 pieces of equipment without coupling inventory identity to WPF, rendering, or
 localized text.
 
-Existing melee and ranged weapon rules remain their own authoritative combat
-definitions. The implemented item core supplies isolated definition, ownership,
-placement, and per-instance state contracts; wiring those weapon rules and
-their persisted resource state into item instances remains planned.
+Melee and ranged weapon rules compile into the same item catalog as armor and
+gear. Character creation produces deterministic item instances, equips their
+starting loadout through `ItemSystem`, and combat commits weapon condition back
+to those instances. Campaign save schema 8 persists the complete item state.
 Consumables, materials, trade goods, crafting, merchants, loot generation, and
 ground containers are planned extensions rather than implemented features.
 
@@ -267,11 +267,9 @@ ItemInstance
     └── currentDurability
 ```
 
-The final ownership boundary must select one source of truth for durability.
-The preferred model is item-instance durability, with weapon and armor state
-projecting that value for their resolution systems. The current melee and
-ranged standalone state records are transitional until this persistence
-contract is migrated together.
+`ItemInstance.currentDurability` is the common condition value. Specialized
+weapon state mirrors it for weapon-rule validation, and `ItemSystem` rejects a
+state in which the values disagree.
 
 ## Inventory containers
 
@@ -351,24 +349,29 @@ Implemented in `Source/Spelljammer.Simulation/Items/ItemSystem.cs`:
 - all-or-nothing ownership, slot, and fixed-point weight-capacity checks;
 - removal of every loadout assignment when an item is transferred.
 
-The definition catalog is currently supplied directly to the simulation core.
-Compiling authored item JSON into that catalog, content snapshots, save DTOs,
-and migration from the existing weapon/equipment records are separate work and
-must be delivered together to preserve existing content and saves.
+The compiled content snapshot exposes one `ItemRegistry` containing armor,
+gear, melee weapons, and ranged weapons. The separate typed weapon registries
+remain indexes over those same concrete objects for combat-specific lookup.
 
-Remaining implementation work:
+Melee and ranged authored content now compile to the single concrete
+`Spelljammer.Simulation.Items.MeleeWeaponDefinition` and
+`Spelljammer.Simulation.Items.RangedWeaponDefinition` types. Their item weight,
+value, tags, occupied slots, and action IDs are inherited from the Item system;
+the duplicate weapon records formerly declared under `Simulation.Content` have
+been removed. Character and encounter ownership now use item instances.
 
-1. Add typed IDs and compiled content definitions for items and authored
-   equipment slots.
-2. Add versioned save DTOs for `ItemInstance`, `InventoryContainer`, and
-   `EquipmentLoadout`.
-3. Migrate the current encounter `PersonalLoadout` from definition IDs to item
-   instance IDs while retaining content-fingerprint validation.
-4. Connect equipped melee and ranged instances to their persistent durability,
-   energy, heat, and loaded-ammunition state.
-5. Add transactional Equip, Unequip, and Transfer commands with focused
-   success, conflict, capacity, ownership, and rollback contracts.
-6. Add Helm and BodyArmor definitions and authored Head/Body slot examples.
+Implemented integration:
+
+1. Character JSON owns starting item definitions and bounded inventory capacity.
+2. Character creation deterministically creates and equips item instances.
+3. Character and encounter state both use `ItemSystemState`.
+4. Melee and ranged commands address weapons by `ItemInstanceId` and commit
+   durability, energy, ammunition, and heat to the owning character.
+5. Save schema 8 serializes instances, containers, loadouts, and specialized
+   weapon state; schema 7 equipment IDs are converted during load.
+
+Stackable ammunition inventory, loot containers, merchants, and consumable
+commands remain planned.
 
 No inventory, item, or equipment change may require hard-coded absolute paths,
 localized text as identity, unbounded collections, or UI-timing-dependent

@@ -29,7 +29,14 @@ public abstract record ItemDefinition(
     : ContentDefinition(Id, SchemaVersion, Revision, NameKey, DescriptionKey);
 
 /// <summary>Read-only definition lookup used by item-state validation.</summary>
-public sealed class ItemDefinitionCatalog
+public interface IItemDefinitionCatalog
+{
+    bool TryGetItem(ContentId id, out ItemDefinition? definition);
+    bool IsKnownEquipmentSlot(ContentId id);
+}
+
+/// <summary>Standalone immutable item catalog used by focused simulation scenarios.</summary>
+public sealed class ItemDefinitionCatalog : IItemDefinitionCatalog
 {
     private readonly FrozenDictionary<ContentId, ItemDefinition> definitions;
     private readonly FrozenSet<ContentId> equipmentSlots;
@@ -42,7 +49,7 @@ public sealed class ItemDefinitionCatalog
         this.equipmentSlots = equipmentSlots.ToFrozenSet();
     }
 
-    public bool TryGetDefinition(ContentId id, out ItemDefinition? definition) =>
+    public bool TryGetItem(ContentId id, out ItemDefinition? definition) =>
         definitions.TryGetValue(id, out definition);
 
     public bool IsKnownEquipmentSlot(ContentId id) => equipmentSlots.Contains(id);

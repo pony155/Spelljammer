@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using Spelljammer.Simulation.Characters;
 using Spelljammer.Simulation.Content;
 
 namespace Spelljammer.Simulation.Items;
@@ -6,7 +7,7 @@ namespace Spelljammer.Simulation.Items;
 /// <summary>Atomic item, inventory, and equipment-loadout mutations.</summary>
 public static class ItemSystem
 {
-    public static ItemSystemResult Create(ItemSystemState candidate, ItemDefinitionCatalog catalog)
+    public static ItemSystemResult Create(ItemSystemState candidate, IItemDefinitionCatalog catalog)
     {
         ArgumentNullException.ThrowIfNull(candidate);
         ArgumentNullException.ThrowIfNull(catalog);
@@ -20,7 +21,7 @@ public static class ItemSystem
         ContentId ownerId,
         InventoryContainerId containerId,
         ItemInstanceId instanceId,
-        ItemDefinitionCatalog catalog)
+        IItemDefinitionCatalog catalog)
     {
         if (!Validate(state, catalog, out string rejection))
         {
@@ -47,7 +48,7 @@ public static class ItemSystem
             return ItemSystemResult.Rejected(state, ItemRejectionCodes.OwnershipMismatch);
         }
 
-        if (!catalog.TryGetDefinition(item.DefinitionId, out ItemDefinition? definition))
+        if (!catalog.TryGetItem(item.DefinitionId, out ItemDefinition? definition))
         {
             return ItemSystemResult.Rejected(state, ItemRejectionCodes.DefinitionMissing);
         }
@@ -97,7 +98,7 @@ public static class ItemSystem
         ItemSystemState state,
         ContentId ownerId,
         ItemInstanceId instanceId,
-        ItemDefinitionCatalog catalog)
+        IItemDefinitionCatalog catalog)
     {
         if (!Validate(state, catalog, out string rejection))
         {
@@ -123,7 +124,7 @@ public static class ItemSystem
         ItemSystemState state,
         ItemInstanceId instanceId,
         InventoryContainerId destinationContainerId,
-        ItemDefinitionCatalog catalog)
+        IItemDefinitionCatalog catalog)
     {
         if (!Validate(state, catalog, out string rejection))
         {
@@ -145,7 +146,7 @@ public static class ItemSystem
             return ItemSystemResult.AcceptedState(state);
         }
 
-        if (!catalog.TryGetDefinition(item.DefinitionId, out ItemDefinition? definition))
+        if (!catalog.TryGetItem(item.DefinitionId, out ItemDefinition? definition))
         {
             return ItemSystemResult.Rejected(state, ItemRejectionCodes.DefinitionMissing);
         }
@@ -176,7 +177,7 @@ public static class ItemSystem
         return Create(candidate, catalog);
     }
 
-    private static bool Validate(ItemSystemState state, ItemDefinitionCatalog catalog, out string rejection)
+    private static bool Validate(ItemSystemState state, IItemDefinitionCatalog catalog, out string rejection)
     {
         if (state.ItemInstances.Select(value => value.InstanceId).Distinct().Count() != state.ItemInstances.Length ||
             state.InventoryContainers.Select(value => value.ContainerId).Distinct().Count() != state.InventoryContainers.Length ||
@@ -201,7 +202,7 @@ public static class ItemSystem
         foreach (ItemInstance item in state.ItemInstances)
         {
             if (!item.InstanceId.IsValid || !item.DefinitionId.IsValid || !item.OwnerContainerId.IsValid || item.StateVersion < 1 ||
-                item.CurrentDurability < 0 || !catalog.TryGetDefinition(item.DefinitionId, out _))
+                item.CurrentDurability < 0 || !catalog.TryGetItem(item.DefinitionId, out ItemDefinition? definition))
             {
                 rejection = ItemRejectionCodes.InvalidState;
                 return false;
@@ -211,6 +212,41 @@ public static class ItemSystem
                 owner!.ItemInstanceIds.Count(value => value == item.InstanceId) != 1)
             {
                 rejection = ItemRejectionCodes.OwnershipMismatch;
+                return false;
+            }
+
+            try
+            {
+                switch (definition)
+                {
+                    case MeleeWeaponDefinition melee when item.MeleeWeaponState is not null && item.RangedWeaponState is null:
+                        item.MeleeWeaponState.Validate(melee);
+                        if (item.CurrentDurability != item.MeleeWeaponState.CurrentDurability)
+                        {
+                            throw new InvalidOperationException();
+                        }
+                        break;
+                    case RangedWeaponDefinition ranged when item.RangedWeaponState is not null && item.MeleeWeaponState is null &&
+                        catalog is ICharacterContentCatalog characterCatalog:
+                        item.RangedWeaponState.Validate(ranged, characterCatalog);
+                        if (item.CurrentDurability != item.RangedWeaponState.CurrentDurability)
+                        {
+                            throw new InvalidOperationException();
+                        }
+                        break;
+                    case MeleeWeaponDefinition or RangedWeaponDefinition:
+                        throw new InvalidOperationException();
+                    default:
+                        if (item.MeleeWeaponState is not null || item.RangedWeaponState is not null)
+                        {
+                            throw new InvalidOperationException();
+                        }
+                        break;
+                }
+            }
+            catch (InvalidOperationException)
+            {
+                rejection = ItemRejectionCodes.InvalidState;
                 return false;
             }
         }
@@ -227,7 +263,7 @@ public static class ItemSystem
             {
                 if (!TryFindItem(state, group.Key, out ItemInstance? item) ||
                     !TryFindContainer(state, item!.OwnerContainerId, out InventoryContainer? container) || container!.OwnerId != loadout.OwnerId ||
-                    !catalog.TryGetDefinition(item.DefinitionId, out ItemDefinition? definition) || definition is not EquipmentDefinition equipment ||
+                    !catalog.TryGetItem(item.DefinitionId, out ItemDefinition? definition) || definition is not EquipmentDefinition equipment ||
                     group.Select(value => value.SlotId).OrderBy(value => value).SequenceEqual(equipment.OccupiedSlotIds.OrderBy(value => value)) is false)
                 {
                     rejection = ItemRejectionCodes.InvalidState;
@@ -250,9 +286,9 @@ public static class ItemSystem
         }).OrderBy(value => value.OwnerId).ToImmutableArray(),
     };
 
-    private static long GetWeight(ItemSystemState state, InventoryContainer container, ItemDefinitionCatalog catalog) =>
+    private static long GetWeight(ItemSystemState state, InventoryContainer container, IItemDefinitionCatalog catalog) =>
         container.ItemInstanceIds.Sum(instanceId => TryFindItem(state, instanceId, out ItemInstance? item) &&
-            catalog.TryGetDefinition(item!.DefinitionId, out ItemDefinition? definition)
+            catalog.TryGetItem(item!.DefinitionId, out ItemDefinition? definition)
                 ? (long)definition!.WeightHundredthsOfPound
                 : long.MaxValue);
 

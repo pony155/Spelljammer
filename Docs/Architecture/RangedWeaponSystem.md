@@ -4457,11 +4457,13 @@ the repository's camel-case convention while keeping separate
 `RangedWeaponDefinition : WeaponDefinition` owns family, technology,
 handedness, governing Skill, base damage and armor behavior, Stamina cost,
 optimal and maximum range, weight, durability, value, optional ammunition or
-internal energy, optional heat, traits, and allowed actions. It inherits item
-identity from `ItemDefinition` and equip slots from `EquipmentDefinition`;
-there is no `EquipmentDefinition.rangedWeaponId` link. The content compiler
-enforces the family-and-technology compatibility table in section 4 and rejects
-weapons that model both replaceable ammunition and internal energy.
+internal energy, optional heat, traits, and allowed actions. Weight is stored
+as an integer count of hundredths of a pound. It inherits item fields from
+`ItemDefinition` and equip slots from `EquipmentDefinition`; there is no second
+ranged definition containing duplicate weight, value, traits, or action IDs.
+The content compiler enforces the family-and-technology compatibility table in
+section 4 and rejects weapons that model both replaceable ammunition and
+internal energy.
 
 Ammunition definitions use integer percentages for multiplicative damage and
 Armor Damage modifiers. Armor Penetration and range modifiers are additive.
@@ -4479,11 +4481,12 @@ specified by section 52, and burst results reduce Armor between resolved hits.
 Accepted attempts spend their costs even when every shot misses; rejected
 attempts leave all input state unchanged.
 
-Reloading is a separate transactional operation. It validates ammunition
+Reloading is a separate transactional operation addressed by `ItemInstanceId`. It validates ammunition
 compatibility, prevents replacement of a non-empty incompatible magazine,
 respects magazine capacity and available inventory quantity, and commits AP
-and Stamina only when ammunition is loaded. `Cool` provides an explicit bounded
-heat transition for the owning encounter system.
+and Stamina only when ammunition is loaded. Attack, reload, and `Cool` publish
+ammunition, energy, heat, and durability back into the owning character's item
+state.
 
 The base pack demonstrates the contract with the Ballistic Service Pistol,
 Standard Pistol Rounds, Standard Shot, Aimed Shot, and Reload Magazine. Other
@@ -4491,8 +4494,7 @@ families, technologies, ammunition payloads, burst fire, area attacks, and
 environmental interactions are schema-supported concepts that still require
 authored definitions and effect-system integration.
 
-Encounter actors and campaign saves still retain the older generic equipment
-state. Persisting `RangedWeaponState`, applying returned Health and Armor
-damage to encounter targets, inventory-stack ownership, AI action selection,
-line-of-fire, and terrain effects require a coordinated encounter/save schema
-migration and remain planned.
+Encounter actors and campaign save schema 8 persist the item instance and its
+`RangedWeaponState`. Applying returned Health and Armor damage to encounter
+targets, stackable ammunition ownership, AI action selection, line-of-fire,
+and terrain effects remain planned.

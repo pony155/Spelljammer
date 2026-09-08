@@ -1,0 +1,1 @@
+{"schemaVersion":1,"revision":1,"id":"equipment.translation-slate","nameKey":"equipment.personal.field-medkit.name","descriptionKey":"equipment.personal.field-medkit.description","kind":"gear","weightHundredthsOfPound":60,"value":70,"tags":["translation"],"occupiedSlotIds":["equipment-slot.utility"],"actionIds":[],"effectIds":[]}

@@ -318,7 +318,7 @@ public static class CharacterActionSystem
             return Rejected(ActionRejectionCodes.AbilityRequired, requirement.AbilityId.Value);
         }
 
-        if (requirement.EquipmentId is ContentId equipmentId && !actor.EquipmentIds.Contains(equipmentId))
+        if (requirement.EquipmentId is ContentId equipmentId && !actor.HasItemDefinition(equipmentId))
         {
             return Rejected(ActionRejectionCodes.EquipmentRequired, equipmentId);
         }

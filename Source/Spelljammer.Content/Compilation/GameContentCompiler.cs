@@ -5,6 +5,11 @@ using Spelljammer.Content.Parsing;
 using Spelljammer.Content.Sources;
 using Spelljammer.Simulation.Characters;
 using Spelljammer.Simulation.Content;
+using MeleeWeaponDefinition = Spelljammer.Simulation.Items.MeleeWeaponDefinition;
+using RangedWeaponDefinition = Spelljammer.Simulation.Items.RangedWeaponDefinition;
+using EquipmentDefinition = Spelljammer.Simulation.Items.EquipmentDefinition;
+using ArmorDefinition = Spelljammer.Simulation.Items.ArmorDefinition;
+using GearDefinition = Spelljammer.Simulation.Items.GearDefinition;
 
 namespace Spelljammer.Content.Compilation;
 
@@ -640,6 +645,8 @@ public sealed class GameContentCompiler
                     CheckReference(definition, definition.Strings["backgroundId"], DefinitionKind.Background, byId, "/backgroundId", diagnostics);
                     CheckReferences(definition, definition.Arrays["scenarioIds"], DefinitionKind.Scenario, byId, "/scenarioIds", diagnostics);
                     CheckReferences(definition, definition.Arrays["focusSkillIds"], DefinitionKind.Skill, byId, "/focusSkillIds", diagnostics);
+                    CheckItemReferences(definition, definition.Arrays["startingItemDefinitionIds"], byId,
+                        "/startingItemDefinitionIds", diagnostics);
                     break;
                 case DefinitionKind.Heritage:
                     CheckReference(definition, definition.Strings["raceId"], DefinitionKind.Race, byId, "/raceId", diagnostics);
@@ -656,23 +663,15 @@ public sealed class GameContentCompiler
                     CheckPrimitive(definition, definition.Strings["safetyId"], "/safetyId", diagnostics);
                     break;
                 case DefinitionKind.Equipment:
-                    CheckPrimitive(definition, definition.Strings["slotId"], "/slotId", diagnostics);
-                    CheckPrimitive(definition, definition.Strings["initialStateId"], "/initialStateId", diagnostics);
-                    CheckPrimitive(definition, definition.Strings["resourceId"], "/resourceId", diagnostics);
-                    CheckPrimitives(definition, definition.Arrays["actionIds"], "/actionIds", diagnostics);
-                    CheckPrimitives(definition, definition.Arrays["effectIds"], "/effectIds", diagnostics);
-                    if (definition.Strings.TryGetValue("meleeWeaponId", out string? meleeWeaponId))
-                    {
-                        CheckReference(definition, meleeWeaponId, DefinitionKind.MeleeWeapon, byId, "/meleeWeaponId", diagnostics);
-                    }
-                    if (definition.Strings.TryGetValue("rangedWeaponId", out string? rangedWeaponId))
-                    {
-                        CheckReference(definition, rangedWeaponId, DefinitionKind.RangedWeapon, byId, "/rangedWeaponId", diagnostics);
-                    }
+                    CheckPrimitives(definition, definition.Arrays["occupiedSlotIds"], "/occupiedSlotIds", diagnostics);
+                    CheckPrimitives(definition, OptionalArray(definition, "actionIds"), "/actionIds", diagnostics);
+                    CheckPrimitives(definition, OptionalArray(definition, "effectIds"), "/effectIds", diagnostics);
+                    CheckPrimitives(definition, OptionalArray(definition, "resistanceIds"), "/resistanceIds", diagnostics);
                     break;
                 case DefinitionKind.MeleeWeapon:
                     CheckReference(definition, definition.Strings["skillId"], DefinitionKind.Skill, byId, "/skillId", diagnostics);
                     CheckReference(definition, definition.Strings["abilityId"], DefinitionKind.Ability, byId, "/abilityId", diagnostics);
+                    CheckPrimitives(definition, definition.Arrays["occupiedSlotIds"], "/occupiedSlotIds", diagnostics);
                     CheckReferences(definition, definition.Arrays["actionIds"], DefinitionKind.MeleeWeaponAction, byId, "/actionIds", diagnostics);
                     break;
                 case DefinitionKind.MeleeWeaponAction:
@@ -680,6 +679,7 @@ public sealed class GameContentCompiler
                     break;
                 case DefinitionKind.RangedWeapon:
                     CheckReference(definition, definition.Strings["skillId"], DefinitionKind.Skill, byId, "/skillId", diagnostics);
+                    CheckPrimitives(definition, definition.Arrays["occupiedSlotIds"], "/occupiedSlotIds", diagnostics);
                     CheckReferences(definition, definition.Arrays["actionIds"], DefinitionKind.RangedWeaponAction, byId, "/actionIds", diagnostics);
                     break;
                 case DefinitionKind.RangedWeaponAction:
@@ -774,8 +774,8 @@ public sealed class GameContentCompiler
                 case DefinitionKind.TrainingProject when definition.Integers["resourceCost"] is < 0 or > 1_000_000:
                     OutOfRange(definition, "/resourceCost", diagnostics);
                     break;
-                case DefinitionKind.Equipment when definition.Integers["resourceCapacity"] is < 0 or > 1_000_000:
-                    OutOfRange(definition, "/resourceCapacity", diagnostics);
+                case DefinitionKind.Equipment:
+                    ValidateEquipment(definition, diagnostics);
                     break;
                 case DefinitionKind.MeleeWeapon:
                     ValidateMeleeWeapon(definition, diagnostics);
@@ -845,7 +845,7 @@ public sealed class GameContentCompiler
                         definition.Id.ToString(), "/" + field);
                 }
 
-                if (field is not ("tags" or "targetTags" or "hazardTags" or "traits"))
+                if (field is not ("tags" or "targetTags" or "hazardTags" or "coverageTags" or "traits"))
                 {
                     totalReferences = checked(totalReferences + values.Length);
                     definitionReferences = checked(definitionReferences + values.Length);
@@ -866,7 +866,7 @@ public sealed class GameContentCompiler
                     RequireNonempty(definition, "scenarioIds", diagnostics);
                     RequireNonempty(definition, "languageIds", diagnostics);
                     RequireNonempty(definition, "scriptIds", diagnostics);
-                    RequireNonempty(definition, "equipmentIds", diagnostics);
+                    RequireNonempty(definition, "startingItemDefinitionIds", diagnostics);
                     RequireNonempty(definition, "focusSkillIds", diagnostics);
                     RequireNonempty(definition, "resourceIds", diagnostics);
                     break;
@@ -887,13 +887,14 @@ public sealed class GameContentCompiler
                     }
                     break;
                 case DefinitionKind.Equipment:
-                    RequireNonempty(definition, "actionIds", diagnostics);
-                    RequireNonempty(definition, "effectIds", diagnostics);
+                    RequireNonempty(definition, "occupiedSlotIds", diagnostics);
                     break;
                 case DefinitionKind.MeleeWeapon:
+                    RequireNonempty(definition, "occupiedSlotIds", diagnostics);
                     RequireNonempty(definition, "actionIds", diagnostics);
                     break;
                 case DefinitionKind.RangedWeapon:
+                    RequireNonempty(definition, "occupiedSlotIds", diagnostics);
                     RequireNonempty(definition, "actionIds", diagnostics);
                     break;
                 case DefinitionKind.ZoneLink:
@@ -923,7 +924,7 @@ public sealed class GameContentCompiler
         {
             foreach ((string field, ImmutableArray<string> values) in definition.Arrays)
             {
-                bool isTagField = field is "tags" or "targetTags" or "hazardTags" or "traits";
+                bool isTagField = field is "tags" or "targetTags" or "hazardTags" or "coverageTags" or "traits";
                 int maximum = isTagField ? limits.TagsPerDefinition : limits.ReferencesPerDefinition;
                 if (values.Length > maximum)
                 {
@@ -933,7 +934,7 @@ public sealed class GameContentCompiler
             }
 
             int definitionReferences = definition.Arrays
-                .Where(pair => pair.Key is not ("tags" or "targetTags" or "hazardTags" or "traits"))
+                .Where(pair => pair.Key is not ("tags" or "targetTags" or "hazardTags" or "coverageTags" or "traits"))
                 .Sum(pair => pair.Value.Length);
             definitionReferences += definition.Strings.Count;
 
@@ -1068,7 +1069,9 @@ public sealed class GameContentCompiler
         new ContentId(value.Strings["positionId"]),
         Sort(value.Arrays["languageIds"]).Select(item => new ContentId(item)).ToImmutableArray(),
         Sort(value.Arrays["scriptIds"]).Select(item => new ContentId(item)).ToImmutableArray(),
-        Sort(value.Arrays["equipmentIds"]).Select(item => new ContentId(item)).ToImmutableArray(),
+        Sort(value.Arrays["startingItemDefinitionIds"]).Select(item => new ContentId(item)).ToImmutableArray(),
+        value.Integers["inventoryMaximumWeightHundredthsOfPound"],
+        value.Integers["inventoryMaximumEntries"],
         Sort(value.Arrays["focusSkillIds"]).Select(item => new SkillId(item)).ToImmutableArray(),
         Sort(value.Arrays["resourceIds"]).Select(item => new ResourceId(item)).ToImmutableArray());
 
@@ -1134,30 +1137,45 @@ public sealed class GameContentCompiler
         new ContentId(value.Strings["safetyId"]),
         Sort(value.Arrays["grantedFeatIds"]).Select(item => new FeatId(item)).ToImmutableArray());
 
-    private static EquipmentDefinition CompileEquipment(SourceDefinition value) => new(
-        new EquipmentId(value.Id), 1, value.Revision, value.NameKey, value.DescriptionKey,
-        new ContentId(value.Strings["slotId"]), new ContentId(value.Strings["initialStateId"]),
-        new ResourceId(value.Strings["resourceId"]), value.Integers["resourceCapacity"],
-        Sort(value.Arrays["actionIds"]).Select(item => new ContentId(item)).ToImmutableArray(),
-        Sort(value.Arrays["effectIds"]).Select(item => new ContentId(item)).ToImmutableArray(),
-        value.Strings.TryGetValue("meleeWeaponId", out string? meleeWeaponId) ? new MeleeWeaponId(meleeWeaponId) : null,
-        value.Strings.TryGetValue("rangedWeaponId", out string? rangedWeaponId) ? new RangedWeaponId(rangedWeaponId) : null);
+    private static EquipmentDefinition CompileEquipment(SourceDefinition value)
+    {
+        ContentId id = value.Id;
+        ImmutableArray<string> tags = Sort(value.Arrays["tags"]);
+        ImmutableArray<ContentId> slots = Sort(value.Arrays["occupiedSlotIds"])
+            .Select(item => new ContentId(item)).ToImmutableArray();
+        return value.Strings["kind"] switch
+        {
+            "armor" => new ArmorDefinition(
+                id, 1, value.Revision, value.NameKey, value.DescriptionKey,
+                value.Integers["weightHundredthsOfPound"], value.Integers["value"], tags, slots,
+                value.Integers["armorValue"], value.Integers["durabilityMaximum"],
+                Sort(OptionalArray(value, "resistanceIds")).Select(item => new ContentId(item)).ToImmutableArray(),
+                Sort(OptionalArray(value, "coverageTags")), Sort(OptionalArray(value, "traits"))),
+            "gear" => new GearDefinition(
+                id, 1, value.Revision, value.NameKey, value.DescriptionKey,
+                value.Integers["weightHundredthsOfPound"], value.Integers["value"], tags, slots,
+                Sort(OptionalArray(value, "actionIds")).Select(item => new ContentId(item)).ToImmutableArray(),
+                Sort(OptionalArray(value, "effectIds")).Select(item => new ContentId(item)).ToImmutableArray()),
+            _ => throw new ArgumentOutOfRangeException(nameof(value)),
+        };
+    }
 
     private static MeleeWeaponDefinition CompileMeleeWeapon(SourceDefinition value) => new(
         new MeleeWeaponId(value.Id), 1, value.Revision, value.NameKey, value.DescriptionKey,
+        value.Integers["weightHundredthsOfPound"], value.Integers["value"], Sort(value.Arrays["traits"]),
+        Sort(value.Arrays["occupiedSlotIds"]).Select(item => new ContentId(item)).ToImmutableArray(),
+        Sort(value.Arrays["actionIds"]).Select(item => new ContentId(item)).ToImmutableArray(),
         ParseMeleeWeaponFamily(value.Strings["family"]),
         ParseMeleeWeaponTechnology(value.Strings["technology"]),
         ParseMeleeWeaponHands(value.Strings["hands"]),
         new SkillId(value.Strings["skillId"]), new AbilityId(value.Strings["abilityId"]),
         value.Integers["damageMinimum"], value.Integers["damageMaximum"],
         value.Integers["armorDamagePercentage"], value.Integers["armorPenetrationPercentage"],
-        value.Integers["staminaCost"], value.Integers["range"], value.Integers["weightGrams"],
-        value.Integers["maximumDurability"], value.Integers["value"],
+        value.Integers["staminaCost"], value.Integers["range"], value.Integers["maximumDurability"],
         value.Integers.GetValueOrDefault("energyCapacity"), value.Integers.GetValueOrDefault("energyPerAttack"),
         value.Integers.GetValueOrDefault("unpoweredDamagePercentage"),
         value.Integers.GetValueOrDefault("unpoweredArmorPenetrationPercentage"),
-        value.Integers["strengthDamageScale"], Sort(value.Arrays["traits"]),
-        Sort(value.Arrays["actionIds"]).Select(item => new MeleeWeaponActionId(item)).ToImmutableArray());
+        value.Integers["strengthDamageScale"]);
 
     private static MeleeWeaponActionDefinition CompileMeleeWeaponAction(SourceDefinition value) => new(
         new MeleeWeaponActionId(value.Id), 1, value.Revision, value.NameKey, value.DescriptionKey,
@@ -1198,6 +1216,9 @@ public sealed class GameContentCompiler
 
     private static RangedWeaponDefinition CompileRangedWeapon(SourceDefinition value) => new(
         new RangedWeaponId(value.Id), 1, value.Revision, value.NameKey, value.DescriptionKey,
+        value.Integers["weightHundredthsOfPound"], value.Integers["value"], Sort(value.Arrays["traits"]),
+        Sort(value.Arrays["occupiedSlotIds"]).Select(item => new ContentId(item)).ToImmutableArray(),
+        Sort(value.Arrays["actionIds"]).Select(item => new ContentId(item)).ToImmutableArray(),
         ParseRangedWeaponFamily(value.Strings["family"]),
         ParseRangedWeaponTechnology(value.Strings["technology"]),
         ParseRangedWeaponHands(value.Strings["hands"]),
@@ -1205,15 +1226,13 @@ public sealed class GameContentCompiler
         value.Integers["damageMinimum"], value.Integers["damageMaximum"],
         value.Integers["armorDamagePercentage"], value.Integers["armorPenetrationPercentage"],
         value.Integers["staminaCost"], value.Integers["optimalRange"], value.Integers["maximumRange"],
-        value.Integers["weightGrams"], value.Integers["maximumDurability"], value.Integers["value"],
+        value.Integers["maximumDurability"],
         value.Strings.TryGetValue("ammunitionType", out string? ammunitionType)
             ? ParseAmmunitionType(ammunitionType)
             : null,
         value.Integers.GetValueOrDefault("magazineCapacity"),
         value.Integers.GetValueOrDefault("energyCapacity"), value.Integers.GetValueOrDefault("energyPerShot"),
-        value.Integers.GetValueOrDefault("heatCapacity"), value.Integers.GetValueOrDefault("heatPerShot"),
-        Sort(value.Arrays["traits"]),
-        Sort(value.Arrays["actionIds"]).Select(item => new RangedWeaponActionId(item)).ToImmutableArray());
+        value.Integers.GetValueOrDefault("heatCapacity"), value.Integers.GetValueOrDefault("heatPerShot"));
 
     private static AmmunitionDefinition CompileAmmunition(SourceDefinition value) => new(
         new AmmunitionId(value.Id), 1, value.Revision, value.NameKey, value.DescriptionKey,
@@ -1331,6 +1350,9 @@ public sealed class GameContentCompiler
         value.Integers["armorPenetration"]);
 
     private static ImmutableArray<string> Sort(ImmutableArray<string> values) => [.. values.Order(StringComparer.Ordinal)];
+
+    private static ImmutableArray<string> OptionalArray(SourceDefinition value, string name) =>
+        value.Arrays.TryGetValue(name, out ImmutableArray<string> values) ? values : [];
 
     private static void ValidateAbility(SourceDefinition definition, DiagnosticSink diagnostics)
     {
@@ -1509,6 +1531,21 @@ public sealed class GameContentCompiler
             property);
     }
 
+    private static void ValidateEquipment(SourceDefinition definition, DiagnosticSink diagnostics)
+    {
+        string kind = definition.Strings["kind"];
+        bool commonInvalid = kind is not ("armor" or "gear") ||
+            definition.Integers["weightHundredthsOfPound"] is < 0 or > 1_000_000 ||
+            definition.Integers["value"] is < 0 or > 1_000_000;
+        bool armorInvalid = kind == "armor" &&
+            (!definition.Integers.TryGetValue("armorValue", out int armorValue) || armorValue is < 0 or > 1_000_000 ||
+             !definition.Integers.TryGetValue("durabilityMaximum", out int durability) || durability is < 1 or > 1_000_000);
+        if (commonInvalid || armorInvalid)
+        {
+            OutOfRange(definition, kind is not ("armor" or "gear") ? "/kind" : "/weightHundredthsOfPound", diagnostics);
+        }
+    }
+
     private static void ValidateMeleeWeapon(SourceDefinition definition, DiagnosticSink diagnostics)
     {
         bool enumInvalid = definition.Strings["family"] is not ("blade" or "dagger" or "axe" or "blunt" or "polearm" or "fist") ||
@@ -1521,7 +1558,7 @@ public sealed class GameContentCompiler
             definition.Integers["armorPenetrationPercentage"] is < 0 or > 100 ||
             definition.Integers["staminaCost"] is < 0 or > 1_000_000 ||
             definition.Integers["range"] is < 1 or > 1_000_000 ||
-            definition.Integers["weightGrams"] is < 0 or > 1_000_000 ||
+            definition.Integers["weightHundredthsOfPound"] is < 0 or > 1_000_000 ||
             definition.Integers["maximumDurability"] is < 1 or > 1_000_000 ||
             definition.Integers["value"] is < 0 or > 1_000_000 ||
             definition.Integers.GetValueOrDefault("energyCapacity") is < 0 or > 1_000_000 ||
@@ -1575,7 +1612,7 @@ public sealed class GameContentCompiler
             definition.Integers["optimalRange"] is < 0 or > 1_000_000 ||
             definition.Integers["maximumRange"] < definition.Integers["optimalRange"] ||
             definition.Integers["maximumRange"] > 1_000_000 ||
-            definition.Integers["weightGrams"] is < 0 or > 1_000_000 ||
+            definition.Integers["weightHundredthsOfPound"] is < 0 or > 1_000_000 ||
             definition.Integers["maximumDurability"] is < 1 or > 1_000_000 ||
             definition.Integers["value"] is < 0 or > 1_000_000 ||
             magazineCapacity is < 0 or > 1_000_000 ||
@@ -1690,6 +1727,30 @@ public sealed class GameContentCompiler
         {
             diagnostics.Add(ContentDiagnosticCodes.SemanticInvalid, character.PackId, character.RelativePath,
                 character.Id.ToString(), "/raceId");
+        }
+
+        if (character.Integers["inventoryMaximumWeightHundredthsOfPound"] <= 0 ||
+            character.Integers["inventoryMaximumEntries"] <= 0)
+        {
+            diagnostics.Add(ContentDiagnosticCodes.ValueOutOfRange, character.PackId, character.RelativePath,
+                character.Id.ToString(), "/inventory");
+        }
+    }
+
+    private static void CheckItemReferences(
+        SourceDefinition definition,
+        IEnumerable<string> ids,
+        IReadOnlyDictionary<string, SourceDefinition> byId,
+        string property,
+        DiagnosticSink diagnostics)
+    {
+        foreach (string id in ids)
+        {
+            if (!byId.TryGetValue(id, out SourceDefinition? target) ||
+                target.Kind is not (DefinitionKind.Equipment or DefinitionKind.MeleeWeapon or DefinitionKind.RangedWeapon))
+            {
+                Unknown(definition, id, property, diagnostics);
+            }
         }
     }
 

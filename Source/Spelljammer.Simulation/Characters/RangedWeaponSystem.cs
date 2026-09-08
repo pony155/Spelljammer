@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using Spelljammer.Simulation.Content;
+using Spelljammer.Simulation.Items;
 
 namespace Spelljammer.Simulation.Characters;
 
@@ -63,18 +64,17 @@ public sealed record RangedTarget(
 
 public sealed record RangedAttackRequest(
     CharacterId ActorId,
-    EquipmentId EquipmentId,
+    ItemInstanceId WeaponItemInstanceId,
     RangedWeaponActionId ActionId,
     RangedTarget? Target,
     CharacterTurnState TurnState,
-    RangedWeaponState WeaponState,
     int SituationalHitModifier,
     ulong RandomSeed,
     ulong RandomSequence);
 
 public sealed record RangedAttackReservation(
     CharacterState OriginalActor,
-    EquipmentDefinition Equipment,
+    ItemInstance Item,
     RangedWeaponDefinition Weapon,
     RangedWeaponActionDefinition Action,
     AmmunitionDefinition? Ammunition,
@@ -108,7 +108,7 @@ public sealed record RangedShotResolution(
 public sealed record RangedAttackResolution(
     CharacterId ActorId,
     CharacterId TargetId,
-    EquipmentId EquipmentId,
+    ItemInstanceId WeaponItemInstanceId,
     RangedWeaponId WeaponId,
     RangedWeaponActionId ActionId,
     AmmunitionId? AmmunitionId,
@@ -122,7 +122,6 @@ public sealed record RangedAttackResolution(
 public sealed record RangedAttackResult(
     CharacterState Actor,
     CharacterTurnState TurnState,
-    RangedWeaponState WeaponState,
     bool Accepted,
     bool Hit,
     string RejectionCode,
@@ -130,17 +129,15 @@ public sealed record RangedAttackResult(
 
 public sealed record RangedReloadRequest(
     CharacterId ActorId,
-    EquipmentId EquipmentId,
+    ItemInstanceId WeaponItemInstanceId,
     RangedWeaponActionId ActionId,
     AmmunitionId AmmunitionId,
     int AvailableAmmunition,
-    CharacterTurnState TurnState,
-    RangedWeaponState WeaponState);
+    CharacterTurnState TurnState);
 
 public sealed record RangedReloadResult(
     CharacterState? Actor,
     CharacterTurnState TurnState,
-    RangedWeaponState WeaponState,
     int RemainingAmmunition,
     int LoadedAmount,
     bool Accepted,
@@ -173,14 +170,15 @@ public static class RangedWeaponSystem
             return Rejected(ActionRejectionCodes.ContentMismatch);
         }
 
-        if (!TryResolveWeapon(actor, request.EquipmentId, request.WeaponState, catalog,
-            out EquipmentDefinition? equipment, out RangedWeaponDefinition? weapon, out string rejection))
+        if (!TryResolveWeapon(actor, request.WeaponItemInstanceId, catalog,
+            out ItemInstance? item, out RangedWeaponDefinition? weapon,
+            out RangedWeaponState? weaponState, out string rejection))
         {
-            return Rejected(rejection, request.EquipmentId.Value);
+            return Rejected(rejection, item?.DefinitionId);
         }
 
         if (!catalog.TryGetRangedWeaponAction(request.ActionId, out RangedWeaponActionDefinition? action) ||
-            action!.Kind != RangedWeaponActionKind.Attack || !weapon!.ActionIds.Contains(request.ActionId))
+            action!.Kind != RangedWeaponActionKind.Attack || !weapon!.ActionIds.Contains(request.ActionId.Value))
         {
             return Rejected(ActionRejectionCodes.ActionUnknown, request.ActionId.Value);
         }
@@ -200,7 +198,7 @@ public static class RangedWeaponSystem
         int ammunitionCost = 0;
         if (weapon.AmmunitionType is not null)
         {
-            if (request.WeaponState.LoadedAmmunitionId is not AmmunitionId ammunitionId ||
+            if (weaponState!.LoadedAmmunitionId is not AmmunitionId ammunitionId ||
                 !catalog.TryGetAmmunition(ammunitionId, out ammunition) ||
                 ammunition!.AmmunitionType != weapon.AmmunitionType)
             {
@@ -208,7 +206,7 @@ public static class RangedWeaponSystem
             }
 
             ammunitionCost = action.AmmunitionCost;
-            if (ammunitionCost <= 0 || request.WeaponState.CurrentAmmunition < ammunitionCost)
+            if (ammunitionCost <= 0 || weaponState.CurrentAmmunition < ammunitionCost)
             {
                 return Rejected(ActionRejectionCodes.ResourceInsufficient, ammunitionId.Value);
             }
@@ -220,14 +218,14 @@ public static class RangedWeaponSystem
 
         int energyCost = Math.Max(0, AddBounded(
             MultiplyBounded(weapon.EnergyPerShot, action.ShotCount), action.EnergyCostModifier));
-        if (request.WeaponState.CurrentEnergy < energyCost)
+        if (weaponState!.CurrentEnergy < energyCost)
         {
             return Rejected(ActionRejectionCodes.ResourceInsufficient, weapon.RangedWeaponId.Value);
         }
 
         int heatGenerated = Math.Max(0, AddBounded(
             MultiplyBounded(weapon.HeatPerShot, action.ShotCount), action.HeatModifier));
-        if ((long)request.WeaponState.CurrentHeat + heatGenerated > weapon.HeatCapacity)
+        if ((long)weaponState.CurrentHeat + heatGenerated > weapon.HeatCapacity)
         {
             return Rejected(ActionRejectionCodes.EquipmentOverheated, weapon.RangedWeaponId.Value);
         }
@@ -260,7 +258,7 @@ public static class RangedWeaponSystem
         }
 
         return new RangedAttackEligibilityResult(
-            new RangedAttackReservation(actor, equipment!, weapon, action, ammunition, request, skill,
+            new RangedAttackReservation(actor, item!, weapon, action, ammunition, request, skill,
                 action.ActionPointCost, staminaCost, ammunitionCost, energyCost, heatGenerated,
                 rangePenalty, falloff),
             ActionRejectionCodes.None,
@@ -280,7 +278,9 @@ public static class RangedWeaponSystem
             action != reservation.Action ||
             (reservation.Ammunition is not null &&
              (!catalog.TryGetAmmunition(reservation.Ammunition.AmmunitionId, out AmmunitionDefinition? ammunition) ||
-              ammunition != reservation.Ammunition)))
+              ammunition != reservation.Ammunition)) ||
+            !reservation.OriginalActor.TryGetItem(reservation.Item.InstanceId, out ItemInstance? currentItem) ||
+            currentItem != reservation.Item)
         {
             return RejectedResolution(reservation, ActionRejectionCodes.ContentMismatch);
         }
@@ -334,30 +334,36 @@ public static class RangedWeaponSystem
                 shotIndex, roll, totalAccuracy, hit, rolledDamage, healthDamage, armorDamage));
         }
 
-        CharacterState committedActor = reservation.OriginalActor with
-        {
-            CharacterResources = reservation.OriginalActor.CharacterResources.SpendResource(
-                StaminaId, reservation.StaminaCost),
-        };
-        RangedWeaponState committedWeapon = reservation.Request.WeaponState with
+        RangedWeaponState originalWeaponState = reservation.Item.RangedWeaponState!;
+        RangedWeaponState committedWeapon = originalWeaponState with
         {
             CurrentDurability = Math.Max(0,
-                reservation.Request.WeaponState.CurrentDurability - reservation.Action.DurabilityCost),
-            CurrentAmmunition = reservation.Request.WeaponState.CurrentAmmunition - reservation.AmmunitionCost,
-            CurrentEnergy = reservation.Request.WeaponState.CurrentEnergy - reservation.EnergyCost,
-            CurrentHeat = reservation.Request.WeaponState.CurrentHeat + reservation.HeatGenerated,
+                originalWeaponState.CurrentDurability - reservation.Action.DurabilityCost),
+            CurrentAmmunition = originalWeaponState.CurrentAmmunition - reservation.AmmunitionCost,
+            CurrentEnergy = originalWeaponState.CurrentEnergy - reservation.EnergyCost,
+            CurrentHeat = originalWeaponState.CurrentHeat + reservation.HeatGenerated,
         };
         if (committedWeapon.CurrentAmmunition == 0)
         {
             committedWeapon = committedWeapon with { LoadedAmmunitionId = null };
         }
 
+        ItemInstance committedItem = reservation.Item with
+        {
+            CurrentDurability = committedWeapon.CurrentDurability,
+            RangedWeaponState = committedWeapon,
+        };
+        CharacterState committedActor = reservation.OriginalActor.ReplaceItem(committedItem) with
+        {
+            CharacterResources = reservation.OriginalActor.CharacterResources.SpendResource(
+                StaminaId, reservation.StaminaCost),
+        };
         CharacterTurnState committedTurn = reservation.Request.TurnState.SpendActionPoints(reservation.ActionPointCost);
         bool anyHit = shots.Any(value => value.Hit);
         RangedAttackResolution resolution = new(
             committedActor.Id,
             reservation.Request.Target.Id,
-            reservation.Equipment.EquipmentId,
+            reservation.Item.InstanceId,
             reservation.Weapon.RangedWeaponId,
             reservation.Action.RangedWeaponActionId,
             reservation.Ammunition?.AmmunitionId,
@@ -368,7 +374,7 @@ public static class RangedWeaponSystem
             shots.MoveToImmutable(),
             anyHit ? reservation.Action.EffectIds : []);
         return new RangedAttackResult(
-            committedActor, committedTurn, committedWeapon, true, anyHit, ActionRejectionCodes.None, resolution);
+            committedActor, committedTurn, true, anyHit, ActionRejectionCodes.None, resolution);
     }
 
     public static RangedReloadResult Reload(
@@ -379,7 +385,7 @@ public static class RangedWeaponSystem
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(catalog);
         RangedReloadResult Reject(string code) => new(
-            actor, request.TurnState, request.WeaponState, request.AvailableAmmunition, 0, false, code);
+            actor, request.TurnState, request.AvailableAmmunition, 0, false, code);
 
         if (actor is null || actor.Id != request.ActorId)
         {
@@ -396,14 +402,15 @@ public static class RangedWeaponSystem
             return Reject(ActionRejectionCodes.ContentMismatch);
         }
 
-        if (!TryResolveWeapon(actor, request.EquipmentId, request.WeaponState, catalog,
-            out _, out RangedWeaponDefinition? weapon, out string rejection))
+        if (!TryResolveWeapon(actor, request.WeaponItemInstanceId, catalog,
+            out ItemInstance? item, out RangedWeaponDefinition? weapon,
+            out RangedWeaponState? weaponState, out string rejection))
         {
             return Reject(rejection);
         }
 
         if (!catalog.TryGetRangedWeaponAction(request.ActionId, out RangedWeaponActionDefinition? action) ||
-            action!.Kind != RangedWeaponActionKind.Reload || !weapon!.ActionIds.Contains(request.ActionId))
+            action!.Kind != RangedWeaponActionKind.Reload || !weapon!.ActionIds.Contains(request.ActionId.Value))
         {
             return Reject(ActionRejectionCodes.ActionUnknown);
         }
@@ -414,14 +421,14 @@ public static class RangedWeaponSystem
             return Reject(ActionRejectionCodes.AmmunitionIncompatible);
         }
 
-        if (request.WeaponState.LoadedAmmunitionId is AmmunitionId loadedId &&
-            loadedId != request.AmmunitionId && request.WeaponState.CurrentAmmunition > 0)
+        if (weaponState!.LoadedAmmunitionId is AmmunitionId loadedId &&
+            loadedId != request.AmmunitionId && weaponState.CurrentAmmunition > 0)
         {
             return Reject(ActionRejectionCodes.AmmunitionIncompatible);
         }
 
         int capacity = Math.Max(1, weapon.MagazineCapacity);
-        int space = capacity - request.WeaponState.CurrentAmmunition;
+        int space = capacity - weaponState.CurrentAmmunition;
         if (space <= 0)
         {
             return Reject(ActionRejectionCodes.MagazineFull);
@@ -439,57 +446,71 @@ public static class RangedWeaponSystem
         }
 
         int loadedAmount = Math.Min(space, Math.Min(action.ReloadAmount, request.AvailableAmmunition));
-        CharacterState committedActor = actor with
-        {
-            CharacterResources = actor.CharacterResources.SpendResource(StaminaId, staminaCost),
-        };
-        RangedWeaponState committedWeapon = request.WeaponState with
+        RangedWeaponState committedWeapon = weaponState with
         {
             LoadedAmmunitionId = request.AmmunitionId,
-            CurrentAmmunition = request.WeaponState.CurrentAmmunition + loadedAmount,
+            CurrentAmmunition = weaponState.CurrentAmmunition + loadedAmount,
+        };
+        ItemInstance committedItem = item! with
+        {
+            CurrentDurability = committedWeapon.CurrentDurability,
+            RangedWeaponState = committedWeapon,
+        };
+        CharacterState committedActor = actor.ReplaceItem(committedItem) with
+        {
+            CharacterResources = actor.CharacterResources.SpendResource(StaminaId, staminaCost),
         };
         return new RangedReloadResult(
             committedActor,
             request.TurnState.SpendActionPoints(action.ActionPointCost),
-            committedWeapon,
             request.AvailableAmmunition - loadedAmount,
             loadedAmount,
             true,
             ActionRejectionCodes.None);
     }
 
-    public static RangedWeaponState Cool(RangedWeaponState state, RangedWeaponDefinition definition, int amount)
+    public static CharacterState Cool(
+        CharacterState actor,
+        ItemInstanceId weaponItemInstanceId,
+        int amount,
+        ICharacterContentCatalog catalog)
     {
-        ArgumentNullException.ThrowIfNull(state);
-        ArgumentNullException.ThrowIfNull(definition);
-        if (amount < 0 || state.WeaponId != definition.RangedWeaponId)
+        ArgumentNullException.ThrowIfNull(actor);
+        ArgumentNullException.ThrowIfNull(catalog);
+        if (amount < 0 || !TryResolveWeapon(actor, weaponItemInstanceId, catalog,
+                out ItemInstance? item, out _, out RangedWeaponState? state, out _))
         {
             throw new ArgumentOutOfRangeException(nameof(amount));
         }
 
-        return state with { CurrentHeat = Math.Max(0, state.CurrentHeat - amount) };
+        RangedWeaponState cooled = state! with { CurrentHeat = Math.Max(0, state.CurrentHeat - amount) };
+        return actor.ReplaceItem(item! with { RangedWeaponState = cooled });
     }
 
     private static bool TryResolveWeapon(
         CharacterState actor,
-        EquipmentId equipmentId,
-        RangedWeaponState state,
+        ItemInstanceId itemInstanceId,
         ICharacterContentCatalog catalog,
-        out EquipmentDefinition? equipment,
+        out ItemInstance? item,
         out RangedWeaponDefinition? weapon,
+        out RangedWeaponState? state,
         out string rejection)
     {
-        equipment = null;
+        item = null;
         weapon = null;
-        if (!actor.EquipmentIds.Contains(equipmentId.Value) ||
-            !catalog.TryGetEquipment(equipmentId, out equipment) ||
-            equipment!.RangedWeaponId is not RangedWeaponId weaponId)
+        state = null;
+        if (!actor.TryGetItem(itemInstanceId, out item) || !actor.IsEquipped(itemInstanceId) ||
+            !catalog.TryGetItem(item!.DefinitionId, out ItemDefinition? definition) ||
+            definition is not RangedWeaponDefinition resolvedWeapon ||
+            item.RangedWeaponState is not RangedWeaponState resolvedState)
         {
             rejection = ActionRejectionCodes.EquipmentRequired;
             return false;
         }
 
-        if (!catalog.TryGetRangedWeapon(weaponId, out weapon) || state.WeaponId != weaponId)
+        weapon = resolvedWeapon;
+        state = resolvedState;
+        if (state.WeaponId != weapon.RangedWeaponId)
         {
             rejection = ActionRejectionCodes.ContentMismatch;
             return false;
@@ -540,6 +561,5 @@ public static class RangedWeaponSystem
         new(null, code, relatedId);
 
     private static RangedAttackResult RejectedResolution(RangedAttackReservation reservation, string code) =>
-        new(reservation.OriginalActor, reservation.Request.TurnState, reservation.Request.WeaponState,
-            false, false, code, null);
+        new(reservation.OriginalActor, reservation.Request.TurnState, false, false, code, null);
 }

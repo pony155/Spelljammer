@@ -1,0 +1,1 @@
+{"schemaVersion":1,"revision":1,"id":"equipment.command-tablet","nameKey":"equipment.personal.field-medkit.name","descriptionKey":"equipment.personal.field-medkit.description","kind":"gear","weightHundredthsOfPound":70,"value":85,"tags":["command"],"occupiedSlotIds":["equipment-slot.utility"],"actionIds":[],"effectIds":[]}

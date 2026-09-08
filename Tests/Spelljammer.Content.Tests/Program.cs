@@ -9,6 +9,9 @@ using Spelljammer.Content.Sources;
 using Spelljammer.Simulation.Characters;
 using Spelljammer.Simulation.Content;
 using Spelljammer.Simulation.Encounters;
+using Spelljammer.Simulation.Items;
+using MeleeWeaponDefinition = Spelljammer.Simulation.Items.MeleeWeaponDefinition;
+using RangedWeaponDefinition = Spelljammer.Simulation.Items.RangedWeaponDefinition;
 
 return ContentContracts.Run();
 
@@ -62,7 +65,7 @@ internal static class ContentContracts
         ContentCompilationResult compiled = CompileDirectory(Path.Combine(Milestone2Root, "base"));
         True(compiled.Succeeded, Primary(compiled));
         GameContentSnapshot snapshot = compiled.Snapshot!;
-        Equal(5, snapshot.EquipmentRegistry.Count, "The first encounter equipment set is incomplete.");
+        Equal(20, snapshot.ItemRegistry.Count, "The unified item catalog is incomplete.");
         Equal(6, snapshot.BoardCellRegistry.Count, "The authored ruin does not contain six cells.");
         Equal(5, snapshot.ZoneLinkRegistry.Count, "The authored ruin link graph is incomplete.");
         Equal(1, snapshot.PersonalBoardRegistry.Count, "The first personal board was not published.");
@@ -96,34 +99,32 @@ internal static class ContentContracts
         Equal(1, snapshot.MeleeWeaponRegistry.Count, "The base melee weapon was not published.");
         Equal(3, snapshot.MeleeWeaponActionRegistry.Count, "The base melee action set is incomplete.");
 
-        EquipmentId equipmentId = new("equipment.personal.boarding-blade");
-        True(snapshot.TryGetEquipment(equipmentId, out EquipmentDefinition? equipment), "Boarding blade equipment is missing.");
-        Equal(new MeleeWeaponId("melee-weapon.boarding-blade"), equipment!.MeleeWeaponId!.Value,
-            "Equipment did not link to its melee rules.");
-        True(snapshot.TryGetMeleeWeapon(equipment.MeleeWeaponId.Value, out MeleeWeaponDefinition? weapon),
+        True(snapshot.TryGetMeleeWeapon(new MeleeWeaponId("melee-weapon.boarding-blade"), out MeleeWeaponDefinition? weapon),
             "Boarding blade melee rules are missing.");
         True(snapshot.TryGetMeleeWeaponAction(new MeleeWeaponActionId("melee-action.slash"), out _),
             "Slash action is missing.");
         Equal(MeleeWeaponFamily.Blade, weapon!.Family, "Weapon family was not compiled from JSON.");
         Equal(MeleeWeaponTechnology.Conventional, weapon.Technology, "Weapon technology was not compiled from JSON.");
+        True(weapon is Spelljammer.Simulation.Items.WeaponDefinition,
+            "The melee weapon did not inherit the shared item/equipment definition chain.");
+        Equal(265, weapon.WeightHundredthsOfPound, "Melee weight was not compiled in hundredths of a pound.");
+        True(weapon.OccupiedSlotIds.Contains(new ContentId("equipment-slot.main-hand")),
+            "The melee weapon lost its inherited equipment slot.");
 
-        CharacterState actor = roster.Characters.First() with
-        {
-            EquipmentIds = roster.Characters.First().EquipmentIds.Add(equipmentId.Value),
-        };
+        MeleeWeaponState weaponState = MeleeWeaponState.Create(weapon);
+        (CharacterState actor, ItemInstanceId weaponItemInstanceId) = AddEquippedWeapon(
+            roster.Characters.First(), weapon, weaponState, null, snapshot);
         CharacterState target = roster.Characters.First(value => value.Id != actor.Id);
         ScenarioDefinition scenario = snapshot.Scenarios.Single(value => value.ScenarioId == actor.ScenarioId);
         True(snapshot.TryGetCharacterResourceProfile(scenario.CharacterResourceProfileId!.Value,
             out CharacterResourceProfileDefinition? profile), "Character resource profile is missing.");
         CharacterTurnState turn = CharacterTurnState.Create(profile!.TurnRules).RestoreActionPoints(profile.TurnRules.BaseActionPoints);
-        MeleeWeaponState weaponState = MeleeWeaponState.Create(weapon);
         MeleeAttackRequest request = new(
             actor.Id,
-            equipmentId,
+            weaponItemInstanceId,
             new MeleeWeaponActionId("melee-action.slash"),
             new MeleeTarget(target.Id, true, true, 1, 0, 5),
             turn,
-            weaponState,
             0x5eedUL,
             12);
 
@@ -138,8 +139,10 @@ internal static class ContentContracts
         Equal(actor.CharacterResources.GetCurrentValue(CharacterResourceIds.Stamina) - eligible.Reservation.StaminaCost,
             first.Actor.CharacterResources.GetCurrentValue(CharacterResourceIds.Stamina),
             "The weapon and action stamina cost was not committed.");
+        True(first.Actor.TryGetItem(weaponItemInstanceId, out ItemInstance? committedMeleeItem),
+            "Committed melee item is missing.");
         Equal(weaponState.CurrentDurability - eligible.Reservation.Action.DurabilityCost,
-            first.WeaponState.CurrentDurability, "Weapon durability was not committed.");
+            committedMeleeItem!.MeleeWeaponState!.CurrentDurability, "Weapon durability was not committed.");
 
         MeleeAttackRequest tooFar = request with
         {
@@ -150,7 +153,8 @@ internal static class ContentContracts
         Equal(ActionRejectionCodes.TargetOutOfRange, rejected.RejectionCode, "Out-of-range rejection was unstable.");
         Equal(actor, eligible.Reservation.OriginalActor, "Eligibility mutated the actor before commit.");
         Equal(turn, request.TurnState, "Eligibility mutated Action Points before commit.");
-        Equal(weaponState, request.WeaponState, "Eligibility mutated weapon state before commit.");
+        Equal(weaponState, actor.Items.ItemInstances.Single(value => value.InstanceId == weaponItemInstanceId).MeleeWeaponState!,
+            "Eligibility mutated weapon state before commit.");
     }
 
     private static void RangedWeaponsUseAmmunitionAndReloadAtomically()
@@ -160,34 +164,32 @@ internal static class ContentContracts
         Equal(1, snapshot.AmmunitionRegistry.Count, "The base ammunition definition was not published.");
         Equal(3, snapshot.RangedWeaponActionRegistry.Count, "The base ranged action set is incomplete.");
 
-        EquipmentId equipmentId = new("equipment.personal.service-pistol");
-        True(snapshot.TryGetEquipment(equipmentId, out EquipmentDefinition? equipment), "Service pistol equipment is missing.");
-        Equal(new RangedWeaponId("ranged-weapon.service-pistol"), equipment!.RangedWeaponId!.Value,
-            "Equipment did not link to its ranged weapon rules.");
-        True(snapshot.TryGetRangedWeapon(equipment.RangedWeaponId.Value, out RangedWeaponDefinition? weapon),
+        True(snapshot.TryGetRangedWeapon(new RangedWeaponId("ranged-weapon.service-pistol"), out RangedWeaponDefinition? weapon),
             "Service pistol ranged rules are missing.");
         True(snapshot.TryGetAmmunition(new AmmunitionId("ammunition.pistol.standard"),
             out AmmunitionDefinition? ammunition), "Standard pistol ammunition is missing.");
         Equal(RangedWeaponFamily.Pistol, weapon!.Family, "Ranged family was not compiled from JSON.");
         Equal(RangedWeaponTechnology.Ballistic, weapon.Technology, "Ranged technology was not compiled from JSON.");
+        True(weapon is Spelljammer.Simulation.Items.WeaponDefinition,
+            "The ranged weapon did not inherit the shared item/equipment definition chain.");
+        Equal(209, weapon.WeightHundredthsOfPound, "Ranged weight was not compiled in hundredths of a pound.");
+        True(weapon.OccupiedSlotIds.Contains(new ContentId("equipment-slot.off-hand")),
+            "The ranged weapon lost its inherited equipment slot.");
 
-        CharacterState actor = roster.Characters.First() with
-        {
-            EquipmentIds = roster.Characters.First().EquipmentIds.Add(equipmentId.Value),
-        };
+        RangedWeaponState weaponState = RangedWeaponState.Create(weapon, ammunition);
+        (CharacterState actor, ItemInstanceId weaponItemInstanceId) = AddEquippedWeapon(
+            roster.Characters.First(), weapon, null, weaponState, snapshot);
         CharacterState target = roster.Characters.First(value => value.Id != actor.Id);
         ScenarioDefinition scenario = snapshot.Scenarios.Single(value => value.ScenarioId == actor.ScenarioId);
         True(snapshot.TryGetCharacterResourceProfile(scenario.CharacterResourceProfileId!.Value,
             out CharacterResourceProfileDefinition? profile), "Character resource profile is missing.");
         CharacterTurnState turn = CharacterTurnState.Create(profile!.TurnRules).RestoreActionPoints(profile.TurnRules.BaseActionPoints);
-        RangedWeaponState weaponState = RangedWeaponState.Create(weapon, ammunition);
         RangedAttackRequest request = new(
             actor.Id,
-            equipmentId,
+            weaponItemInstanceId,
             new RangedWeaponActionId("ranged-action.standard-shot"),
             new RangedTarget(target.Id, true, true, 6, 0, 5, 0),
             turn,
-            weaponState,
             100,
             0x51deUL,
             4);
@@ -201,43 +203,46 @@ internal static class ContentContracts
             "Ranged resolution summary was not deterministic.");
         True(first.Resolution.Shots.SequenceEqual(second.Resolution.Shots),
             "Per-shot ranged resolution was not deterministic.");
-        Equal(weaponState.CurrentAmmunition - 1, first.WeaponState.CurrentAmmunition,
+        True(first.Actor.TryGetItem(weaponItemInstanceId, out ItemInstance? committedRangedItem),
+            "Committed ranged item is missing.");
+        Equal(weaponState.CurrentAmmunition - 1, committedRangedItem!.RangedWeaponState!.CurrentAmmunition,
             "Accepted fire did not consume authored ammunition.");
         Equal(turn.CurrentActionPoints - eligible.Reservation!.ActionPointCost, first.TurnState.CurrentActionPoints,
             "The ranged action's AP cost was not committed.");
         True(first.Resolution!.TotalHealthDamage > 0, "A successful ranged attack produced no Health damage.");
 
         RangedWeaponState empty = weaponState with { LoadedAmmunitionId = null, CurrentAmmunition = 0 };
-        RangedAttackRequest unloadedRequest = request with { WeaponState = empty };
-        RangedAttackEligibilityResult unloaded = RangedWeaponSystem.CheckAttackEligibility(actor, unloadedRequest, snapshot);
+        ItemInstance rangedItem = actor.Items.ItemInstances.Single(value => value.InstanceId == weaponItemInstanceId);
+        CharacterState unloadedActor = actor.ReplaceItem(rangedItem with { RangedWeaponState = empty });
+        RangedAttackEligibilityResult unloaded = RangedWeaponSystem.CheckAttackEligibility(unloadedActor, request, snapshot);
         False(unloaded.Accepted, "An unloaded ranged weapon was fired.");
         Equal(ActionRejectionCodes.AmmunitionRequired, unloaded.RejectionCode,
             "An unloaded weapon returned the wrong rejection.");
         Equal(actor, eligible.Reservation.OriginalActor, "Attack eligibility mutated the actor before commit.");
         Equal(turn, request.TurnState, "Attack eligibility mutated AP before commit.");
-        Equal(weaponState, request.WeaponState, "Attack eligibility mutated weapon state before commit.");
+        Equal(weaponState, actor.Items.ItemInstances.Single(value => value.InstanceId == weaponItemInstanceId).RangedWeaponState!,
+            "Attack eligibility mutated weapon state before commit.");
 
         RangedReloadRequest reloadRequest = new(
             actor.Id,
-            equipmentId,
+            weaponItemInstanceId,
             new RangedWeaponActionId("ranged-action.reload-magazine"),
             ammunition!.AmmunitionId,
             10,
-            turn,
-            empty);
-        RangedReloadResult reloaded = RangedWeaponSystem.Reload(actor, reloadRequest, snapshot);
+            turn);
+        RangedReloadResult reloaded = RangedWeaponSystem.Reload(unloadedActor, reloadRequest, snapshot);
         True(reloaded.Accepted, reloaded.RejectionCode);
         Equal(weapon.MagazineCapacity, reloaded.LoadedAmount, "Reload ignored magazine capacity.");
         Equal(10 - weapon.MagazineCapacity, reloaded.RemainingAmmunition,
             "Reload did not return the remaining inventory ammunition.");
-        Equal(ammunition.AmmunitionId, reloaded.WeaponState.LoadedAmmunitionId!.Value,
+        True(reloaded.Actor!.TryGetItem(weaponItemInstanceId, out ItemInstance? reloadedItem), "Reloaded item is missing.");
+        Equal(ammunition.AmmunitionId, reloadedItem!.RangedWeaponState!.LoadedAmmunitionId!.Value,
             "Reload did not publish the loaded ammunition identity.");
 
-        RangedReloadRequest fullRequest = reloadRequest with { WeaponState = weaponState };
-        RangedReloadResult full = RangedWeaponSystem.Reload(actor, fullRequest, snapshot);
+        RangedReloadResult full = RangedWeaponSystem.Reload(actor, reloadRequest, snapshot);
         False(full.Accepted, "A full magazine accepted more ammunition.");
         Equal(ActionRejectionCodes.MagazineFull, full.RejectionCode, "Full-magazine rejection was unstable.");
-        Equal(weaponState, full.WeaponState, "Rejected reload mutated weapon state.");
+        Equal(actor, full.Actor!, "Rejected reload mutated weapon state.");
         Equal(turn, full.TurnState, "Rejected reload spent AP.");
 
         Dictionary<string, byte[]> invalidFiles = ReadFiles(Path.Combine(Milestone2Root, "base"));
@@ -552,7 +557,7 @@ internal static class ContentContracts
             scenario,
             0x5eedUL,
             snapshot,
-            new CrewSupportProfile(ImmutableHashSet<ContentId>.Empty, support.AvailableEquipmentIds));
+            new CrewSupportProfile(ImmutableHashSet<ContentId>.Empty, support.AvailableItemDefinitionIds));
         False(unsupported.Succeeded, "An unsupported mixed-race roster was published.");
         Equal(CharacterCreationFailure.SupportUnavailable, unsupported.Failure, "Missing quarters/care support was not explicit.");
     }
@@ -784,7 +789,7 @@ internal static class ContentContracts
     {
         (GameContentSnapshot snapshot, RosterSnapshot roster) = BaseRoster();
         CharacterState eidolon = roster.Characters.Single(value => value.RaceId == new RaceId("race.eidolon"));
-        CharacterState withoutAnchor = eidolon with { EquipmentIds = eidolon.EquipmentIds.Remove(new ContentId("equipment.soul-anchor.portable")) };
+        CharacterState withoutAnchor = RemoveItem(eidolon, new ContentId("equipment.soul-anchor.portable"));
         ActionDefinition soulRecovery = RaceCapabilities.CreateSoulAnchorRecoveryAction(withoutAnchor, snapshot)!;
         ActionRequest request = new(
             withoutAnchor.Id,
@@ -841,7 +846,63 @@ internal static class ContentContracts
 
     private static CrewSupportProfile FullSupport(GameContentSnapshot snapshot) => new(
         snapshot.Races.SelectMany(value => value.RequiredSupportIds).ToImmutableHashSet(),
-        snapshot.Characters.SelectMany(value => value.EquipmentIds).ToImmutableHashSet());
+        snapshot.Characters.SelectMany(value => value.StartingItemDefinitionIds).ToImmutableHashSet());
+
+    private static (CharacterState Character, ItemInstanceId ItemId) AddEquippedWeapon(
+        CharacterState character,
+        WeaponDefinition definition,
+        MeleeWeaponState? meleeState,
+        RangedWeaponState? rangedState,
+        ICharacterContentCatalog catalog)
+    {
+        InventoryContainer container = character.Items.InventoryContainers.Single();
+        ItemInstanceId instanceId = new(definition is MeleeWeaponDefinition
+            ? Guid.Parse("11111111-1111-1111-1111-111111111111")
+            : Guid.Parse("22222222-2222-2222-2222-222222222222"));
+        ItemInstance item = new(
+            instanceId,
+            definition.Id,
+            container.ContainerId,
+            meleeState?.CurrentDurability ?? rangedState?.CurrentDurability,
+            null,
+            null,
+            1,
+            meleeState,
+            rangedState);
+        ItemSystemState candidate = character.Items with
+        {
+            ItemInstances = character.Items.ItemInstances.Add(item),
+            InventoryContainers = character.Items.InventoryContainers.Select(value => value.ContainerId == container.ContainerId
+                ? value with { ItemInstanceIds = value.ItemInstanceIds.Add(instanceId) }
+                : value).ToImmutableArray(),
+        };
+        ItemSystemResult created = ItemSystem.Create(candidate, catalog);
+        True(created.Accepted, created.RejectionCode);
+        ItemSystemResult equipped = ItemSystem.Equip(created.State, character.Id.Value, container.ContainerId, instanceId, catalog);
+        True(equipped.Accepted, equipped.RejectionCode);
+        return (character with { Items = equipped.State }, instanceId);
+    }
+
+    private static CharacterState RemoveItem(CharacterState character, ContentId definitionId)
+    {
+        ItemInstance item = character.Items.ItemInstances.Single(value => value.DefinitionId == definitionId);
+        return character with
+        {
+            Items = character.Items with
+            {
+                ItemInstances = character.Items.ItemInstances.Remove(item),
+                InventoryContainers = character.Items.InventoryContainers.Select(value => value with
+                {
+                    ItemInstanceIds = value.ItemInstanceIds.Remove(item.InstanceId),
+                }).ToImmutableArray(),
+                EquipmentLoadouts = character.Items.EquipmentLoadouts.Select(value => value with
+                {
+                    SlotAssignments = value.SlotAssignments
+                        .Where(assignment => assignment.ItemInstanceId != item.InstanceId).ToImmutableArray(),
+                }).ToImmutableArray(),
+            },
+        };
+    }
 
     private static string Describe(RosterSnapshot roster, GameContentSnapshot snapshot) => string.Join(
         ';',

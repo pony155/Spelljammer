@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using Spelljammer.Simulation.Characters;
 using Spelljammer.Simulation.Content;
+using Spelljammer.Simulation.Items;
 
 namespace Spelljammer.Simulation.Encounters;
 
@@ -239,43 +240,6 @@ public sealed record TacticalBoard(
     }
 }
 
-public enum EquipmentCondition : byte
-{
-    Ready,
-    Depleted,
-    Damaged,
-}
-
-public sealed record EquipmentState(
-    EquipmentId Id,
-    ContentId SlotId,
-    EquipmentCondition Condition,
-    int ResourceRemaining);
-
-public sealed record PersonalLoadout(ImmutableDictionary<ContentId, EquipmentState> Slots)
-{
-    public const int MaximumSlots = 5;
-
-    public static PersonalLoadout Create(IEnumerable<EquipmentDefinition> definitions)
-    {
-        EquipmentDefinition[] values = [.. definitions];
-        if (values.Length > MaximumSlots || values.Select(value => value.SlotId).Distinct().Count() != values.Length)
-        {
-            throw new InvalidOperationException("Personal loadout is invalid or exceeds capacity.");
-        }
-
-        return new PersonalLoadout(values.ToImmutableDictionary(
-            value => value.SlotId,
-            value => new EquipmentState(
-                value.EquipmentId,
-                value.SlotId,
-                value.InitialStateId == new ContentId("equipment-state.damaged")
-                    ? EquipmentCondition.Damaged
-                    : value.ResourceCapacity == 0 ? EquipmentCondition.Depleted : EquipmentCondition.Ready,
-                value.ResourceCapacity)));
-    }
-}
-
 public enum InjurySeverity : byte
 {
     Minor,
@@ -295,7 +259,7 @@ public sealed record PersonalActorState(
     bool Defending,
     bool Surrendered,
     bool Prisoner,
-    PersonalLoadout Loadout,
+    ItemSystemState Items,
     ImmutableArray<InjuryState> Injuries)
 {
     public int TurnMeter => Turn.CurrentTurnMeter;
@@ -311,8 +275,7 @@ public sealed record PersonalActorState(
         TeamId teamId,
         CharacterState character,
         CellId cellId,
-        CharacterResourceProfileDefinition profile,
-        PersonalLoadout loadout)
+        CharacterResourceProfileDefinition profile)
     {
         ArgumentNullException.ThrowIfNull(character);
         ArgumentNullException.ThrowIfNull(profile);
@@ -327,7 +290,7 @@ public sealed record PersonalActorState(
             false,
             false,
             false,
-            loadout,
+            character.Items,
             []);
     }
 }

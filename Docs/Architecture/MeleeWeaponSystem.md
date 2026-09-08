@@ -1207,9 +1207,10 @@ energy behavior expressed by zero or positive capacities, `traits`, and
 `MeleeWeaponDefinition : WeaponDefinition` owns family, technology,
 handedness, governing Skill and Ability, damage, armor interaction, range,
 weight, durability, value, energy behavior, unpowered fallback percentages,
-Strength scaling, traits, and its allowed action IDs. It inherits the item
-identity from `ItemDefinition` and equip slots from `EquipmentDefinition`;
-there is no `EquipmentDefinition.meleeWeaponId` link.
+Strength scaling, traits, and its allowed action IDs. Weight is stored as an
+integer count of hundredths of a pound. It inherits item fields from
+`ItemDefinition` and equip slots from `EquipmentDefinition`; there is no second
+melee definition containing duplicate weight, value, traits, or action IDs.
 `MeleeWeaponActionDefinition` separately owns AP cost, accuracy, stamina,
 damage, armor, range, energy, durability, and effect modifiers.
 
@@ -1217,8 +1218,9 @@ damage, armor, range, energy, durability, and effect modifiers.
 equipped item resolves to `MeleeWeaponDefinition`, action membership, target
 legality and range, AP, Stamina, durability, energy, Skill, and Ability before
 reserving an attack. Resolution uses explicit seed and sequence values, integer
-percentage arithmetic, and returns the new character, turn, and weapon state.
-Rejection does not mutate any of those inputs. AP and Stamina are paid on an
+percentage arithmetic, and returns the new character and turn state. The new
+weapon state is committed inside the addressed `ItemInstance`. Rejection does
+not mutate any input. AP and Stamina are paid on an
 accepted attempt even when it misses; durability and energy are likewise
 consumed by the attempt. Effects apply only on a hit.
 
@@ -1227,8 +1229,7 @@ one-handed Boarding Blade and Slash, Thrust, and Heavy Strike actions. The
 other families and technologies are supported by the schema but await authored
 weapons and technology-specific effects.
 
-Encounter actor state and campaign saves still store the older generic
-equipment condition/resource fields. Wiring per-instance melee durability and
-energy into `PersonalLoadout`, encounter commands, target Health/Armor commit,
-AI selection, and save migration is planned work; the resolver is kept
-standalone until that persistence contract can be changed transactionally.
+Character and encounter state persist the same item-instance ownership model,
+and campaign save schema 8 stores melee durability and energy. Applying the
+returned Health and Armor damage to encounter targets and AI action selection
+remain encounter-system work.

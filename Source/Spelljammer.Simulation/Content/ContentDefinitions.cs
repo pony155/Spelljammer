@@ -237,7 +237,9 @@ public sealed record CharacterDefinition(
     ContentId PositionId,
     ImmutableArray<ContentId> LanguageIds,
     ImmutableArray<ContentId> ScriptIds,
-    ImmutableArray<ContentId> EquipmentIds,
+    ImmutableArray<ContentId> StartingItemDefinitionIds,
+    int InventoryMaximumWeightHundredthsOfPound,
+    int InventoryMaximumEntries,
     ImmutableArray<SkillId> FocusSkillIds,
     ImmutableArray<ResourceId> ResourceIds)
     : ContentDefinition(CharacterId.Value, SchemaVersion, Revision, NameKey, DescriptionKey);
@@ -255,22 +257,6 @@ public sealed record ScenarioDefinition(
     LevelProgressionTableId? LevelProgressionTableId,
     CharacterResourceProfileId? CharacterResourceProfileId)
     : ContentDefinition(ScenarioId.Value, SchemaVersion, Revision, NameKey, DescriptionKey);
-
-public sealed record EquipmentDefinition(
-    EquipmentId EquipmentId,
-    int SchemaVersion,
-    int Revision,
-    string NameKey,
-    string DescriptionKey,
-    ContentId SlotId,
-    ContentId InitialStateId,
-    ResourceId ResourceId,
-    int ResourceCapacity,
-    ImmutableArray<ContentId> ActionIds,
-    ImmutableArray<ContentId> EffectIds,
-    MeleeWeaponId? MeleeWeaponId,
-    RangedWeaponId? RangedWeaponId)
-    : ContentDefinition(EquipmentId.Value, SchemaVersion, Revision, NameKey, DescriptionKey);
 
 public enum MeleeWeaponFamily : byte
 {
@@ -296,36 +282,6 @@ public enum MeleeWeaponHands : byte
     OneHanded,
     TwoHanded,
 }
-
-/// <summary>Data-driven properties shared by every action performed with one melee weapon.</summary>
-public sealed record MeleeWeaponDefinition(
-    MeleeWeaponId MeleeWeaponId,
-    int SchemaVersion,
-    int Revision,
-    string NameKey,
-    string DescriptionKey,
-    MeleeWeaponFamily Family,
-    MeleeWeaponTechnology Technology,
-    MeleeWeaponHands Hands,
-    SkillId SkillId,
-    AbilityId AbilityId,
-    int DamageMinimum,
-    int DamageMaximum,
-    int ArmorDamagePercentage,
-    int ArmorPenetrationPercentage,
-    int StaminaCost,
-    int Range,
-    int WeightGrams,
-    int MaximumDurability,
-    int Value,
-    int EnergyCapacity,
-    int EnergyPerAttack,
-    int UnpoweredDamagePercentage,
-    int UnpoweredArmorPenetrationPercentage,
-    int StrengthDamageScale,
-    ImmutableArray<string> Traits,
-    ImmutableArray<MeleeWeaponActionId> ActionIds)
-    : ContentDefinition(MeleeWeaponId.Value, SchemaVersion, Revision, NameKey, DescriptionKey);
 
 /// <summary>Action-owned AP, accuracy, cost, and effect modifiers for a melee attack.</summary>
 public sealed record MeleeWeaponActionDefinition(
@@ -393,37 +349,6 @@ public enum RangedWeaponActionKind : byte
     Attack,
     Reload,
 }
-
-/// <summary>Static ranged weapon properties; instance condition and loaded ammunition are stored separately.</summary>
-public sealed record RangedWeaponDefinition(
-    RangedWeaponId RangedWeaponId,
-    int SchemaVersion,
-    int Revision,
-    string NameKey,
-    string DescriptionKey,
-    RangedWeaponFamily Family,
-    RangedWeaponTechnology Technology,
-    RangedWeaponHands Hands,
-    SkillId SkillId,
-    int DamageMinimum,
-    int DamageMaximum,
-    int ArmorDamagePercentage,
-    int ArmorPenetrationPercentage,
-    int StaminaCost,
-    int OptimalRange,
-    int MaximumRange,
-    int WeightGrams,
-    int MaximumDurability,
-    int Value,
-    AmmunitionType? AmmunitionType,
-    int MagazineCapacity,
-    int EnergyCapacity,
-    int EnergyPerShot,
-    int HeatCapacity,
-    int HeatPerShot,
-    ImmutableArray<string> Traits,
-    ImmutableArray<RangedWeaponActionId> ActionIds)
-    : ContentDefinition(RangedWeaponId.Value, SchemaVersion, Revision, NameKey, DescriptionKey);
 
 /// <summary>Static ammunition modifiers and logistics properties.</summary>
 public sealed record AmmunitionDefinition(

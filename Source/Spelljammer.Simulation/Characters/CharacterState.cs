@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using Spelljammer.Simulation.Content;
+using Spelljammer.Simulation.Items;
 
 namespace Spelljammer.Simulation.Characters;
 
@@ -318,7 +319,7 @@ public sealed record CharacterState(
     CharacterCapabilities Capabilities,
     ImmutableArray<ContentId> LanguageIds,
     ImmutableArray<ContentId> ScriptIds,
-    ImmutableHashSet<ContentId> EquipmentIds,
+    ItemSystemState Items,
     ImmutableDictionary<ResourceId, int> Resources,
     ImmutableDictionary<TrainingProjectId, int> TrainingProgress,
     bool CanAct = true)
@@ -368,13 +369,18 @@ public sealed record CharacterState(
 
         if (LanguageIds.Length > CharacterCapabilities.MaximumSetEntries ||
             ScriptIds.Length > CharacterCapabilities.MaximumSetEntries ||
-            EquipmentIds.Count > CharacterCapabilities.MaximumSetEntries ||
             Resources.Count > CharacterCapabilities.MaximumSetEntries ||
             TrainingProgress.Count > CharacterCapabilities.MaximumSetEntries ||
             ActiveEffects.Length > MaximumActiveEffects ||
             Evidence.Length > MaximumEvidenceEntries)
         {
             throw new InvalidOperationException("Character state exceeds a bounded capacity.");
+        }
+
+        ItemSystemResult itemValidation = ItemSystem.Create(Items, catalog);
+        if (!itemValidation.Accepted)
+        {
+            throw new InvalidOperationException($"Character item state is invalid: {itemValidation.RejectionCode}");
         }
 
         if (Resources.Any(value => !value.Key.IsValid || value.Value < 0))
@@ -409,6 +415,37 @@ public sealed record CharacterState(
                 throw new InvalidOperationException("Character evidence state is invalid.");
             }
         }
+    }
+
+    public bool HasItemDefinition(ContentId definitionId) =>
+        Items.ItemInstances.Any(value => value.DefinitionId == definitionId);
+
+    public bool TryGetItem(ItemInstanceId instanceId, out ItemInstance? item)
+    {
+        item = Items.ItemInstances.SingleOrDefault(value => value.InstanceId == instanceId);
+        return item is not null;
+    }
+
+    public bool IsEquipped(ItemInstanceId instanceId) =>
+        Items.EquipmentLoadouts.Any(value => value.OwnerId == Id.Value &&
+            value.SlotAssignments.Any(assignment => assignment.ItemInstanceId == instanceId));
+
+    public CharacterState ReplaceItem(ItemInstance replacement)
+    {
+        if (!Items.ItemInstances.Any(value => value.InstanceId == replacement.InstanceId))
+        {
+            throw new InvalidOperationException("Cannot replace an item which is not owned by the character.");
+        }
+
+        return this with
+        {
+            Items = Items with
+            {
+                ItemInstances = Items.ItemInstances
+                    .Select(value => value.InstanceId == replacement.InstanceId ? replacement : value)
+                    .ToImmutableArray(),
+            },
+        };
     }
 }
 

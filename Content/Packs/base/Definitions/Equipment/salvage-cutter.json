@@ -1,0 +1,1 @@
+{"schemaVersion":1,"revision":1,"id":"equipment.salvage-cutter","nameKey":"equipment.personal.field-medkit.name","descriptionKey":"equipment.personal.field-medkit.description","kind":"gear","weightHundredthsOfPound":300,"value":95,"tags":["salvage"],"occupiedSlotIds":["equipment-slot.utility"],"actionIds":[],"effectIds":[]}

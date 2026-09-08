@@ -447,17 +447,6 @@ public readonly record struct ObjectiveId : IComparable<ObjectiveId>
     public override string ToString() => Value.ToString();
 }
 
-/// <summary>A strongly-typed identifier for a piece of equipment or gear.</summary>
-public readonly record struct EquipmentId : IComparable<EquipmentId>
-{
-    public EquipmentId(ContentId value) => Value = TypedContentId.RequirePrefix(value, "equipment.");
-    public EquipmentId(string value) : this(new ContentId(value)) { }
-    public ContentId Value { get; }
-    public bool IsValid => Value.IsValid;
-    public int CompareTo(EquipmentId other) => Value.CompareTo(other.Value);
-    public override string ToString() => Value.ToString();
-}
-
 /// <summary>A strongly-typed identifier for melee weapon rules.</summary>
 public readonly record struct MeleeWeaponId : IComparable<MeleeWeaponId>
 {

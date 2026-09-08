@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Spelljammer.Persistence;
 
 internal sealed class SavePreflightDto
@@ -112,7 +114,10 @@ internal sealed class CharacterDto
     public CapabilityDto Capabilities { get; set; } = new();
     public string[] LanguageIds { get; set; } = [];
     public string[] ScriptIds { get; set; } = [];
-    public string[] EquipmentIds { get; set; } = [];
+    public ItemSystemDto Items { get; set; } = new();
+    [JsonPropertyName("equipmentIds")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string[]? LegacyEquipmentDefinitionIds { get; set; }
     public ValueDto[] Resources { get; set; } = [];
     public CharacterResourceDto[] CharacterResources { get; set; } = [];
     public ValueDto[] TrainingProgress { get; set; } = [];
@@ -240,7 +245,9 @@ internal sealed class PersonalActorDto
     public bool Prisoner { get; set; }
     public int ReservedReactionPoints { get; set; }
     public long ReactionExpiresTick { get; set; }
-    public EquipmentStateDto[] Equipment { get; set; } = [];
+    public ItemSystemDto Items { get; set; } = new();
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public EquipmentStateDto[]? Equipment { get; set; }
     public InjuryDto[] Injuries { get; set; } = [];
 }
 
@@ -250,6 +257,64 @@ internal sealed class EquipmentStateDto
     public string EquipmentId { get; set; } = string.Empty;
     public int Condition { get; set; }
     public int ResourceRemaining { get; set; }
+}
+
+internal sealed class ItemSystemDto
+{
+    public ItemInstanceDto[] ItemInstances { get; set; } = [];
+    public InventoryContainerDto[] InventoryContainers { get; set; } = [];
+    public EquipmentLoadoutDto[] EquipmentLoadouts { get; set; } = [];
+}
+
+internal sealed class ItemInstanceDto
+{
+    public string InstanceId { get; set; } = string.Empty;
+    public string DefinitionId { get; set; } = string.Empty;
+    public string OwnerContainerId { get; set; } = string.Empty;
+    public int? CurrentDurability { get; set; }
+    public string? QualityId { get; set; }
+    public string? CustomName { get; set; }
+    public int StateVersion { get; set; }
+    public MeleeWeaponStateDto? MeleeWeaponState { get; set; }
+    public RangedWeaponStateDto? RangedWeaponState { get; set; }
+}
+
+internal sealed class InventoryContainerDto
+{
+    public string ContainerId { get; set; } = string.Empty;
+    public string OwnerId { get; set; } = string.Empty;
+    public int MaximumWeightHundredthsOfPound { get; set; }
+    public int MaximumEntries { get; set; }
+    public string[] ItemInstanceIds { get; set; } = [];
+}
+
+internal sealed class EquipmentLoadoutDto
+{
+    public string OwnerId { get; set; } = string.Empty;
+    public SlotAssignmentDto[] SlotAssignments { get; set; } = [];
+}
+
+internal sealed class SlotAssignmentDto
+{
+    public string SlotId { get; set; } = string.Empty;
+    public string ItemInstanceId { get; set; } = string.Empty;
+}
+
+internal sealed class MeleeWeaponStateDto
+{
+    public string WeaponId { get; set; } = string.Empty;
+    public int CurrentDurability { get; set; }
+    public int CurrentEnergy { get; set; }
+}
+
+internal sealed class RangedWeaponStateDto
+{
+    public string WeaponId { get; set; } = string.Empty;
+    public int CurrentDurability { get; set; }
+    public string? LoadedAmmunitionId { get; set; }
+    public int CurrentAmmunition { get; set; }
+    public int CurrentEnergy { get; set; }
+    public int CurrentHeat { get; set; }
 }
 
 internal sealed class InjuryDto

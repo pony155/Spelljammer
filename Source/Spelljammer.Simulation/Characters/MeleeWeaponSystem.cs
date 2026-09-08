@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using Spelljammer.Simulation.Content;
+using Spelljammer.Simulation.Items;
 
 namespace Spelljammer.Simulation.Characters;
 
@@ -40,17 +41,16 @@ public sealed record MeleeTarget(
 
 public sealed record MeleeAttackRequest(
     CharacterId ActorId,
-    EquipmentId EquipmentId,
+    ItemInstanceId WeaponItemInstanceId,
     MeleeWeaponActionId ActionId,
     MeleeTarget? Target,
     CharacterTurnState TurnState,
-    MeleeWeaponState WeaponState,
     ulong RandomSeed,
     ulong RandomSequence);
 
 public sealed record MeleeAttackReservation(
     CharacterState OriginalActor,
-    EquipmentDefinition Equipment,
+    ItemInstance Item,
     MeleeWeaponDefinition Weapon,
     MeleeWeaponActionDefinition Action,
     MeleeAttackRequest Request,
@@ -72,7 +72,7 @@ public sealed record MeleeAttackEligibilityResult(
 public sealed record MeleeAttackResolution(
     CharacterId ActorId,
     CharacterId TargetId,
-    EquipmentId EquipmentId,
+    ItemInstanceId WeaponItemInstanceId,
     MeleeWeaponId WeaponId,
     MeleeWeaponActionId ActionId,
     int Roll,
@@ -89,7 +89,6 @@ public sealed record MeleeAttackResolution(
 public sealed record MeleeAttackResult(
     CharacterState Actor,
     CharacterTurnState TurnState,
-    MeleeWeaponState WeaponState,
     bool Accepted,
     bool Hit,
     string RejectionCode,
@@ -120,37 +119,38 @@ public static class MeleeWeaponSystem
             return Rejected(ActionRejectionCodes.ContentMismatch);
         }
 
-        if (!actor.EquipmentIds.Contains(request.EquipmentId.Value) ||
-            !catalog.TryGetEquipment(request.EquipmentId, out EquipmentDefinition? equipment) ||
-            equipment!.MeleeWeaponId is not MeleeWeaponId weaponId)
+        if (!actor.TryGetItem(request.WeaponItemInstanceId, out ItemInstance? item) ||
+            !actor.IsEquipped(request.WeaponItemInstanceId) ||
+            !catalog.TryGetItem(item!.DefinitionId, out ItemDefinition? definition) ||
+            definition is not MeleeWeaponDefinition weapon || item.MeleeWeaponState is not MeleeWeaponState weaponState)
         {
-            return Rejected(ActionRejectionCodes.EquipmentRequired, request.EquipmentId.Value);
+            return Rejected(ActionRejectionCodes.EquipmentRequired, item?.DefinitionId);
         }
 
-        if (!catalog.TryGetMeleeWeapon(weaponId, out MeleeWeaponDefinition? weapon) ||
-            request.WeaponState.WeaponId != weaponId)
+        MeleeWeaponId weaponId = weapon.MeleeWeaponId;
+        if (weaponState.WeaponId != weaponId)
         {
             return Rejected(ActionRejectionCodes.ContentMismatch, weaponId.Value);
         }
 
         if (!catalog.TryGetMeleeWeaponAction(request.ActionId, out MeleeWeaponActionDefinition? action) ||
-            !weapon!.ActionIds.Contains(request.ActionId))
+            !weapon!.ActionIds.Contains(request.ActionId.Value))
         {
             return Rejected(ActionRejectionCodes.ActionUnknown, request.ActionId.Value);
         }
 
         try
         {
-            request.WeaponState.Validate(weapon);
+            weaponState.Validate(weapon);
         }
         catch (InvalidOperationException)
         {
             return Rejected(ActionRejectionCodes.ContentMismatch, weaponId.Value);
         }
 
-        if (request.WeaponState.CurrentDurability == 0)
+        if (weaponState.CurrentDurability == 0)
         {
-            return Rejected(ActionRejectionCodes.EquipmentBroken, request.EquipmentId.Value);
+            return Rejected(ActionRejectionCodes.EquipmentBroken, item.DefinitionId);
         }
 
         if (request.Target is null || !request.Target.IsPresent)
@@ -183,7 +183,7 @@ public static class MeleeWeaponSystem
         }
 
         int energyCost = Math.Max(0, AddBounded(weapon.EnergyPerAttack, action.EnergyCostModifier));
-        bool unpowered = request.WeaponState.CurrentEnergy < energyCost;
+        bool unpowered = weaponState.CurrentEnergy < energyCost;
         if (unpowered && weapon.UnpoweredDamagePercentage == 0)
         {
             return Rejected(ActionRejectionCodes.ResourceInsufficient, weaponId.Value);
@@ -196,7 +196,7 @@ public static class MeleeWeaponSystem
         }
 
         return new MeleeAttackEligibilityResult(
-            new MeleeAttackReservation(actor, equipment, weapon, action, request, ability, skill,
+            new MeleeAttackReservation(actor, item, weapon, action, request, ability, skill,
                 action.ActionPointCost, staminaCost, unpowered ? 0 : energyCost, unpowered),
             ActionRejectionCodes.None,
             null);
@@ -210,7 +210,9 @@ public static class MeleeWeaponSystem
             !catalog.TryGetMeleeWeapon(reservation.Weapon.MeleeWeaponId, out MeleeWeaponDefinition? currentWeapon) ||
             currentWeapon != reservation.Weapon ||
             !catalog.TryGetMeleeWeaponAction(reservation.Action.MeleeWeaponActionId, out MeleeWeaponActionDefinition? currentAction) ||
-            currentAction != reservation.Action)
+            currentAction != reservation.Action ||
+            !reservation.OriginalActor.TryGetItem(reservation.Item.InstanceId, out ItemInstance? currentItem) ||
+            currentItem != reservation.Item)
         {
             return RejectedResolution(reservation, ActionRejectionCodes.ContentMismatch);
         }
@@ -252,23 +254,29 @@ public static class MeleeWeaponSystem
                 ClampNonnegative((long)rolledDamage * armorDamagePercentage / 100));
         }
 
-        CharacterState committedActor = reservation.OriginalActor with
+        MeleeWeaponState originalWeaponState = reservation.Item.MeleeWeaponState!;
+        MeleeWeaponState committedWeapon = originalWeaponState with
+        {
+            CurrentDurability = Math.Max(0,
+                originalWeaponState.CurrentDurability - reservation.Action.DurabilityCost),
+            CurrentEnergy = originalWeaponState.CurrentEnergy - reservation.EnergyCost,
+        };
+        ItemInstance committedItem = reservation.Item with
+        {
+            CurrentDurability = committedWeapon.CurrentDurability,
+            MeleeWeaponState = committedWeapon,
+        };
+        CharacterState committedActor = reservation.OriginalActor.ReplaceItem(committedItem) with
         {
             CharacterResources = reservation.OriginalActor.CharacterResources.SpendResource(
                 new ResourceId("resource.stamina"), reservation.StaminaCost),
         };
         CharacterTurnState committedTurn = reservation.Request.TurnState.SpendActionPoints(reservation.ActionPointCost);
-        MeleeWeaponState committedWeapon = reservation.Request.WeaponState with
-        {
-            CurrentDurability = Math.Max(0,
-                reservation.Request.WeaponState.CurrentDurability - reservation.Action.DurabilityCost),
-            CurrentEnergy = reservation.Request.WeaponState.CurrentEnergy - reservation.EnergyCost,
-        };
         ImmutableArray<ContentId> effects = hit ? reservation.Action.EffectIds : [];
         MeleeAttackResolution resolution = new(
             committedActor.Id,
             reservation.Request.Target.Id,
-            reservation.Equipment.EquipmentId,
+            reservation.Item.InstanceId,
             reservation.Weapon.MeleeWeaponId,
             reservation.Action.MeleeWeaponActionId,
             attackRoll,
@@ -284,7 +292,6 @@ public static class MeleeWeaponSystem
         return new MeleeAttackResult(
             committedActor,
             committedTurn,
-            committedWeapon,
             true,
             hit,
             ActionRejectionCodes.None,
@@ -313,6 +320,5 @@ public static class MeleeWeaponSystem
         new(null, code, relatedId);
 
     private static MeleeAttackResult RejectedResolution(MeleeAttackReservation reservation, string code) =>
-        new(reservation.OriginalActor, reservation.Request.TurnState, reservation.Request.WeaponState,
-            false, false, code, null);
+        new(reservation.OriginalActor, reservation.Request.TurnState, false, false, code, null);
 }

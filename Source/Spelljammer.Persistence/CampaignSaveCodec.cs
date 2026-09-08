@@ -9,6 +9,7 @@ using Spelljammer.Content.Manifests;
 using Spelljammer.Simulation.Characters;
 using Spelljammer.Simulation.Content;
 using Spelljammer.Simulation.Encounters;
+using Spelljammer.Simulation.Items;
 
 namespace Spelljammer.Persistence;
 
@@ -119,7 +120,7 @@ public static class CampaignSaveCodec
         }
 
         if (metadata.Discriminator != DocumentDiscriminator ||
-            contentLock.SaveSchemaVersion != CampaignSaveVersions.SaveSchema ||
+            contentLock.SaveSchemaVersion is < CampaignSaveVersions.OldestSupportedSaveSchema or > CampaignSaveVersions.SaveSchema ||
             contentLock.GeneratorVersion != CampaignSaveVersions.WorldGenerator ||
             contentLock.FormulaVersion != CampaignSaveVersions.Formula ||
             contentLock.EffectVersion != CampaignSaveVersions.Effect)
@@ -131,7 +132,10 @@ public static class CampaignSaveCodec
         ImmutableHashSet<ContentId> availablePacks = content.Packs.Select(value => value.Id).ToImmutableHashSet();
         ImmutableArray<ContentId> missingPacks = [.. contentLock.Packs.Select(value => value.Id)
             .Where(id => !availablePacks.Contains(id)).Distinct().Order()];
-        ImmutableArray<ContentId> missingDefinitions = [.. required.Where(id => !content.TryGetDefinition(id, out _)).Distinct().Order()];
+        IEnumerable<ContentId> resolvedRequired = contentLock.SaveSchemaVersion < CampaignSaveVersions.SaveSchema
+            ? required.Select(id => MapLegacyItemDefinitionId(id.ToString()))
+            : required;
+        ImmutableArray<ContentId> missingDefinitions = [.. resolvedRequired.Where(id => !content.TryGetDefinition(id, out _)).Distinct().Order()];
         if (!missingPacks.IsEmpty || !missingDefinitions.IsEmpty)
         {
             return new ContentPreflightResult(ContentPreflightKind.Missing, SaveDiagnosticCode.MissingContent,
@@ -143,7 +147,10 @@ public static class CampaignSaveCodec
         if (packsExact && contentLock.ManifestFingerprint == available.ManifestFingerprint &&
             contentLock.SemanticFingerprint == content.Fingerprint && contentLock.EffectiveFingerprint == content.Fingerprint)
         {
-            return new ContentPreflightResult(ContentPreflightKind.Exact, SaveDiagnosticCode.None, contentLock, [], [], []);
+            ContentPreflightKind kind = contentLock.SaveSchemaVersion == CampaignSaveVersions.SaveSchema
+                ? ContentPreflightKind.Exact
+                : ContentPreflightKind.Compatible;
+            return new ContentPreflightResult(kind, SaveDiagnosticCode.None, contentLock, [], [], []);
         }
 
         if (compatibility?.Any(rule => rule.SourceFingerprint == contentLock.EffectiveFingerprint &&
@@ -225,7 +232,8 @@ public static class CampaignSaveCodec
 
         ushort envelope = BinaryPrimitives.ReadUInt16LittleEndian(span.Slice(8, 2));
         ushort schema = BinaryPrimitives.ReadUInt16LittleEndian(span.Slice(10, 2));
-        if (envelope != CampaignSaveVersions.Envelope || schema != CampaignSaveVersions.SaveSchema)
+        if (envelope != CampaignSaveVersions.Envelope ||
+            schema is < CampaignSaveVersions.OldestSupportedSaveSchema or > CampaignSaveVersions.SaveSchema)
         {
             return Fail(out diagnostic, SaveDiagnosticCode.Unsupported);
         }
@@ -500,7 +508,7 @@ public static class CampaignSaveCodec
             },
             LanguageIds = [.. character.LanguageIds.Order().Select(value => value.ToString())],
             ScriptIds = [.. character.ScriptIds.Order().Select(value => value.ToString())],
-            EquipmentIds = [.. character.EquipmentIds.Order().Select(value => value.ToString())],
+            Items = ToDto(character.Items),
             Resources = Values(character.Resources.Select(value => (value.Key.Value, value.Value))),
             CharacterResources = [.. character.CharacterResources.Values.OrderBy(value => value.ResourceId).Select(ToDto)],
             TrainingProgress = Values(character.TrainingProgress.Select(value => (value.Key.Value, value.Value))),
@@ -526,6 +534,52 @@ public static class CampaignSaveCodec
             })],
         };
     }
+
+    private static ItemSystemDto ToDto(ItemSystemState state) => new()
+    {
+        ItemInstances = [.. state.ItemInstances.OrderBy(value => value.InstanceId.Value).Select(value => new ItemInstanceDto
+        {
+            InstanceId = value.InstanceId.ToString(),
+            DefinitionId = value.DefinitionId.ToString(),
+            OwnerContainerId = value.OwnerContainerId.ToString(),
+            CurrentDurability = value.CurrentDurability,
+            QualityId = value.QualityId?.ToString(),
+            CustomName = value.CustomName,
+            StateVersion = value.StateVersion,
+            MeleeWeaponState = value.MeleeWeaponState is null ? null : new MeleeWeaponStateDto
+            {
+                WeaponId = value.MeleeWeaponState.WeaponId.ToString(),
+                CurrentDurability = value.MeleeWeaponState.CurrentDurability,
+                CurrentEnergy = value.MeleeWeaponState.CurrentEnergy,
+            },
+            RangedWeaponState = value.RangedWeaponState is null ? null : new RangedWeaponStateDto
+            {
+                WeaponId = value.RangedWeaponState.WeaponId.ToString(),
+                CurrentDurability = value.RangedWeaponState.CurrentDurability,
+                LoadedAmmunitionId = value.RangedWeaponState.LoadedAmmunitionId?.ToString(),
+                CurrentAmmunition = value.RangedWeaponState.CurrentAmmunition,
+                CurrentEnergy = value.RangedWeaponState.CurrentEnergy,
+                CurrentHeat = value.RangedWeaponState.CurrentHeat,
+            },
+        })],
+        InventoryContainers = [.. state.InventoryContainers.OrderBy(value => value.ContainerId.Value).Select(value => new InventoryContainerDto
+        {
+            ContainerId = value.ContainerId.ToString(),
+            OwnerId = value.OwnerId.ToString(),
+            MaximumWeightHundredthsOfPound = value.MaximumWeightHundredthsOfPound,
+            MaximumEntries = value.MaximumEntries,
+            ItemInstanceIds = [.. value.ItemInstanceIds.OrderBy(id => id.Value).Select(id => id.ToString())],
+        })],
+        EquipmentLoadouts = [.. state.EquipmentLoadouts.OrderBy(value => value.OwnerId).Select(value => new EquipmentLoadoutDto
+        {
+            OwnerId = value.OwnerId.ToString(),
+            SlotAssignments = [.. value.SlotAssignments.OrderBy(item => item.SlotId).Select(item => new SlotAssignmentDto
+            {
+                SlotId = item.SlotId.ToString(),
+                ItemInstanceId = item.ItemInstanceId.ToString(),
+            })],
+        })],
+    };
 
     private static CharacterResourceModifierDto ToDto(CharacterResourceModifier modifier) => new()
     {
@@ -622,13 +676,7 @@ public static class CampaignSaveCodec
             Prisoner = value.Prisoner,
             ReservedReactionPoints = value.ReservedReactionPoints,
             ReactionExpiresTick = value.ReactionExpiresTick,
-            Equipment = [.. value.Loadout.Slots.Values.OrderBy(item => item.SlotId).Select(item => new EquipmentStateDto
-            {
-                SlotId = item.SlotId.ToString(),
-                EquipmentId = item.Id.ToString(),
-                Condition = (int)item.Condition,
-                ResourceRemaining = item.ResourceRemaining,
-            })],
+            Items = ToDto(value.Items),
             Injuries = [.. value.Injuries.Select(injury => new InjuryDto
             {
                 Id = injury.Id.ToString(),
@@ -680,12 +728,12 @@ public static class CampaignSaveCodec
         RequireCount(payload.Characters.Length, CampaignSaveLimits.MaximumCharacters);
         RequireCount(payload.World.Ships.Length, CampaignSaveLimits.MaximumShips);
         ImmutableArray<CharacterState> characters = [.. payload.Characters
-            .Select(value => FromDto(value, content, addCompatibleDefinitions)).OrderBy(value => value.Id)];
+            .Select(value => FromDto(value, content, addCompatibleDefinitions, savedLock.SaveSchemaVersion)).OrderBy(value => value.Id)];
         ImmutableDictionary<ShipId, ShipState> ships = payload.World.Ships.Select(value => FromDto(value, content))
             .ToImmutableDictionary(value => value.Id);
         PersonalEncounterState? encounter = payload.World.PersonalEncounter is null
             ? null
-            : FromDto(payload.World.PersonalEncounter, content);
+            : FromDto(payload.World.PersonalEncounter, content, savedLock.SaveSchemaVersion);
 
         RequireCount(payload.World.Commands.Length, VoyageWorld.MaximumCommands);
         RequireCount(payload.World.CommandHistory.Length, VoyageWorld.MaximumCommandHistory);
@@ -718,7 +766,8 @@ public static class CampaignSaveCodec
                 new ContentId(value.Id), value.Tick, new ContentId(value.SourceId), new ContentId(value.TargetId),
                 ParseEnum<VoyageCommandKind>(value.Kind), value.Succeeded, value.Amount, value.ResultCode))]);
 
-        CampaignContentLock activeLock = savedLock.EffectiveFingerprint == content.Fingerprint
+        CampaignContentLock activeLock = savedLock.EffectiveFingerprint == content.Fingerprint &&
+            savedLock.SaveSchemaVersion == CampaignSaveVersions.SaveSchema
             ? savedLock
             : CampaignContentLock.Create(content, savedLock.AppliedMigrationIds);
         return new CampaignState(
@@ -782,7 +831,8 @@ public static class CampaignSaveCodec
     private static CharacterState FromDto(
         CharacterDto value,
         GameContentSnapshot content,
-        bool addCompatibleDefinitions)
+        bool addCompatibleDefinitions,
+        ushort saveSchemaVersion)
     {
         RequireCount(value.Capabilities.Abilities.Length, CampaignSaveLimits.MaximumCollectionEntries);
         RequireCount(value.Capabilities.Skills.Length, CampaignSaveLimits.MaximumCollectionEntries);
@@ -813,12 +863,15 @@ public static class CampaignSaveCodec
         CharacterCapabilities capabilities = CharacterCapabilities.Restore(snapshot, content);
         ImmutableDictionary<ContentId, int> resources = ValueDictionary(value.Resources);
         ImmutableDictionary<ContentId, int> training = ValueDictionary(value.TrainingProgress);
+        ItemSystemState items = saveSchemaVersion < CampaignSaveVersions.SaveSchema
+            ? MigrateLegacyItems(new ContentId(value.Id), value.LegacyEquipmentDefinitionIds ?? [], content)
+            : FromDto(value.Items);
         CharacterState character = new(
             new CharacterId(value.Id), content.Fingerprint, new ScenarioId(value.ScenarioId), new RaceId(value.RaceId),
             new HeritageId(value.HeritageId), new BackgroundId(value.BackgroundId), new ContentId(value.PositionId), capabilities,
             ParseIds(value.LanguageIds, CampaignSaveLimits.MaximumCollectionEntries),
             ParseIds(value.ScriptIds, CampaignSaveLimits.MaximumCollectionEntries),
-            ParseIds(value.EquipmentIds, CampaignSaveLimits.MaximumCollectionEntries).ToImmutableHashSet(),
+            items,
             resources.ToImmutableDictionary(pair => new ResourceId(pair.Key), pair => pair.Value),
             training.ToImmutableDictionary(pair => new TrainingProjectId(pair.Key), pair => pair.Value),
             value.CanAct)
@@ -834,7 +887,10 @@ public static class CampaignSaveCodec
         return character;
     }
 
-    private static PersonalEncounterState FromDto(PersonalEncounterDto value, GameContentSnapshot content)
+    private static PersonalEncounterState FromDto(
+        PersonalEncounterDto value,
+        GameContentSnapshot content,
+        ushort saveSchemaVersion)
     {
         if (!content.TryGetEncounter(new EncounterId(value.Id), out EncounterDefinition? encounterDefinition) ||
             !content.TryGetPersonalBoard(new PersonalBoardId(value.BoardId), out PersonalBoardDefinition? boardDefinition) ||
@@ -862,19 +918,14 @@ public static class CampaignSaveCodec
             RequireCount(actorDto.CharacterResources.Length, CampaignSaveLimits.MaximumCollectionEntries);
             CellId cellId = new(actorDto.CellId);
             ActorId actorId = new(actorDto.Id);
-            ImmutableDictionary<ContentId, EquipmentState>.Builder slots = ImmutableDictionary.CreateBuilder<ContentId, EquipmentState>();
-            RequireCount(actorDto.Equipment.Length, PersonalLoadout.MaximumSlots);
-            foreach (EquipmentStateDto item in actorDto.Equipment)
-            {
-                EquipmentState equipment = new(new EquipmentId(item.EquipmentId), new ContentId(item.SlotId),
-                    ParseEnum<EquipmentCondition>(item.Condition), item.ResourceRemaining);
-                slots.Add(equipment.SlotId, equipment);
-            }
+            ItemSystemState items = saveSchemaVersion < CampaignSaveVersions.SaveSchema
+                ? MigrateLegacyItems(new ContentId(actorDto.Id), (actorDto.Equipment ?? []).Select(item => item.EquipmentId), content)
+                : FromDto(actorDto.Items);
 
             PersonalActorState actor = new(
                 actorId, new TeamId(actorDto.TeamId), actorDto.CharacterId is null ? null : new CharacterId(actorDto.CharacterId),
                 cellId, FromDto(actorDto.Turn), CharacterResourceSet.Restore(actorDto.CharacterResources.Select(FromDto)), actorDto.Defending,
-                actorDto.Surrendered, actorDto.Prisoner, new PersonalLoadout(slots.ToImmutable()),
+                actorDto.Surrendered, actorDto.Prisoner, items,
                 [.. actorDto.Injuries.Select(injury => new InjuryState(
                     new ContentId(injury.Id), ParseEnum<InjurySeverity>(injury.Severity), injury.Stabilized))])
             {
@@ -900,6 +951,113 @@ public static class CampaignSaveCodec
         };
         return encounter;
     }
+
+    private static ItemSystemState FromDto(ItemSystemDto value)
+    {
+        RequireCount(value.ItemInstances.Length, CampaignSaveLimits.MaximumCollectionEntries);
+        RequireCount(value.InventoryContainers.Length, CampaignSaveLimits.MaximumCollectionEntries);
+        RequireCount(value.EquipmentLoadouts.Length, CampaignSaveLimits.MaximumCollectionEntries);
+        return new ItemSystemState(
+            [.. value.ItemInstances.Select(item => new ItemInstance(
+                new ItemInstanceId(ParseGuid(item.InstanceId)),
+                new ContentId(item.DefinitionId),
+                new InventoryContainerId(ParseGuid(item.OwnerContainerId)),
+                item.CurrentDurability,
+                item.QualityId is null ? null : new ContentId(item.QualityId),
+                item.CustomName,
+                item.StateVersion,
+                item.MeleeWeaponState is null ? null : new MeleeWeaponState(
+                    new MeleeWeaponId(item.MeleeWeaponState.WeaponId),
+                    item.MeleeWeaponState.CurrentDurability,
+                    item.MeleeWeaponState.CurrentEnergy),
+                item.RangedWeaponState is null ? null : new RangedWeaponState(
+                    new RangedWeaponId(item.RangedWeaponState.WeaponId),
+                    item.RangedWeaponState.CurrentDurability,
+                    item.RangedWeaponState.LoadedAmmunitionId is null ? null : new AmmunitionId(item.RangedWeaponState.LoadedAmmunitionId),
+                    item.RangedWeaponState.CurrentAmmunition,
+                    item.RangedWeaponState.CurrentEnergy,
+                    item.RangedWeaponState.CurrentHeat)))],
+            [.. value.InventoryContainers.Select(container =>
+            {
+                RequireCount(container.ItemInstanceIds.Length, CampaignSaveLimits.MaximumCollectionEntries);
+                return new InventoryContainer(
+                    new InventoryContainerId(ParseGuid(container.ContainerId)),
+                    new ContentId(container.OwnerId),
+                    container.MaximumWeightHundredthsOfPound,
+                    container.MaximumEntries,
+                    [.. container.ItemInstanceIds.Select(id => new ItemInstanceId(ParseGuid(id)))]);
+            })],
+            [.. value.EquipmentLoadouts.Select(loadout =>
+            {
+                RequireCount(loadout.SlotAssignments.Length, CampaignSaveLimits.MaximumCollectionEntries);
+                return new EquipmentLoadout(new ContentId(loadout.OwnerId),
+                    [.. loadout.SlotAssignments.Select(assignment => new SlotAssignment(
+                        new ContentId(assignment.SlotId), new ItemInstanceId(ParseGuid(assignment.ItemInstanceId))))]);
+            })]);
+    }
+
+    private static ItemSystemState MigrateLegacyItems(
+        ContentId ownerId,
+        IEnumerable<string> legacyDefinitionIds,
+        GameContentSnapshot content)
+    {
+        string[] legacyIds = [.. legacyDefinitionIds];
+        RequireCount(legacyIds.Length, CampaignSaveLimits.MaximumCollectionEntries);
+        ContentId[] definitionIds = [.. legacyIds.Select(MapLegacyItemDefinitionId)];
+        ItemDefinition[] definitions = [.. definitionIds.Select(id => content.TryGetItem(id, out ItemDefinition? definition)
+            ? definition! : throw new InvalidOperationException("Legacy item definition cannot be migrated."))];
+        InventoryContainerId containerId = new(DeriveSaveGuid(ownerId, "inventory", 0));
+        ImmutableArray<ItemInstance> instances = [.. definitions.Select((definition, index) => new ItemInstance(
+            new ItemInstanceId(DeriveSaveGuid(ownerId, definition.Id.ToString(), index)),
+            definition.Id,
+            containerId,
+            definition switch
+            {
+                ArmorDefinition armor => armor.DurabilityMaximum,
+                MeleeWeaponDefinition melee => melee.MaximumDurability,
+                RangedWeaponDefinition ranged => ranged.MaximumDurability,
+                _ => null,
+            },
+            null,
+            null,
+            1,
+            definition is MeleeWeaponDefinition meleeDefinition ? MeleeWeaponState.Create(meleeDefinition) : null,
+            definition is RangedWeaponDefinition rangedDefinition ? RangedWeaponState.Create(rangedDefinition) : null))];
+        int maximumWeight = (int)Math.Clamp(definitions.Sum(definition => (long)definition.WeightHundredthsOfPound), 1, int.MaxValue);
+        ItemSystemResult result = ItemSystem.Create(new ItemSystemState(
+            instances,
+            [new InventoryContainer(containerId, ownerId, maximumWeight, Math.Max(1, instances.Length),
+                [.. instances.Select(item => item.InstanceId)])],
+            [new EquipmentLoadout(ownerId, [])]), content);
+        foreach (ItemInstance item in instances)
+        {
+            if (!result.Accepted)
+            {
+                throw new InvalidOperationException("Legacy item state cannot be migrated.");
+            }
+
+            result = ItemSystem.Equip(result.State, ownerId, containerId, item.InstanceId, content);
+        }
+
+        return result.Accepted ? result.State : throw new InvalidOperationException("Legacy item state cannot be migrated.");
+    }
+
+    private static ContentId MapLegacyItemDefinitionId(string id) => new(id switch
+    {
+        "equipment.personal.boarding-blade" => "melee-weapon.boarding-blade",
+        "equipment.personal.service-pistol" => "ranged-weapon.service-pistol",
+        _ => id,
+    });
+
+    private static Guid DeriveSaveGuid(ContentId ownerId, string purpose, int ordinal)
+    {
+        byte[] digest = SHA256.HashData(Encoding.UTF8.GetBytes($"save-v8:{ownerId}:{purpose}:{ordinal}"));
+        return new Guid(digest.AsSpan(0, 16));
+    }
+
+    private static Guid ParseGuid(string value) => Guid.TryParse(value, out Guid result) && result != Guid.Empty
+        ? result
+        : throw new InvalidOperationException("Item state contains an invalid identifier.");
 
     private static VoyageCommand FromDto(CommandDto value) => new(
         new ContentId(value.Id), ParseEnum<VoyageCommandKind>(value.Kind), value.TargetTick, value.Priority,

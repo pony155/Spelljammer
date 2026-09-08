@@ -3,6 +3,10 @@ using System.Collections.Immutable;
 using Spelljammer.Content.Manifests;
 using Spelljammer.Simulation.Characters;
 using Spelljammer.Simulation.Content;
+using MeleeWeaponDefinition = Spelljammer.Simulation.Items.MeleeWeaponDefinition;
+using RangedWeaponDefinition = Spelljammer.Simulation.Items.RangedWeaponDefinition;
+using EquipmentDefinition = Spelljammer.Simulation.Items.EquipmentDefinition;
+using ItemDefinition = Spelljammer.Simulation.Items.ItemDefinition;
 
 namespace Spelljammer.Content.Compilation;
 
@@ -77,6 +81,8 @@ public sealed class GameContentSnapshot : ICharacterContentCatalog
         MeleeWeapons = meleeWeapons;
         MeleeWeaponActions = meleeWeaponActions;
         RangedWeapons = rangedWeapons;
+        Items = equipment.Cast<ItemDefinition>().Concat(meleeWeapons).Concat(rangedWeapons)
+            .OrderBy(definition => definition.Id).ToImmutableArray();
         Ammunition = ammunition;
         RangedWeaponActions = rangedWeaponActions;
         BoardCells = boardCells;
@@ -103,7 +109,7 @@ public sealed class GameContentSnapshot : ICharacterContentCatalog
         HeritageRegistry = new TypedDefinitionRegistry<HeritageId, HeritageDefinition>(fingerprint, heritages, definition => definition.HeritageId);
         RaceRegistry = new TypedDefinitionRegistry<RaceId, RaceDefinition>(fingerprint, races, definition => definition.RaceId);
         TrainingProjectRegistry = new TypedDefinitionRegistry<TrainingProjectId, TrainingProjectDefinition>(fingerprint, trainingProjects, definition => definition.TrainingProjectId);
-        EquipmentRegistry = new TypedDefinitionRegistry<EquipmentId, EquipmentDefinition>(fingerprint, equipment, definition => definition.EquipmentId);
+        ItemRegistry = new TypedDefinitionRegistry<ContentId, ItemDefinition>(fingerprint, Items, definition => definition.Id);
         MeleeWeaponRegistry = new TypedDefinitionRegistry<MeleeWeaponId, MeleeWeaponDefinition>(fingerprint, meleeWeapons, definition => definition.MeleeWeaponId);
         MeleeWeaponActionRegistry = new TypedDefinitionRegistry<MeleeWeaponActionId, MeleeWeaponActionDefinition>(fingerprint, meleeWeaponActions, definition => definition.MeleeWeaponActionId);
         RangedWeaponRegistry = new TypedDefinitionRegistry<RangedWeaponId, RangedWeaponDefinition>(fingerprint, rangedWeapons, definition => definition.RangedWeaponId);
@@ -161,6 +167,7 @@ public sealed class GameContentSnapshot : ICharacterContentCatalog
     public ImmutableArray<RaceDefinition> Races { get; }
     public ImmutableArray<TrainingProjectDefinition> TrainingProjects { get; }
     public ImmutableArray<EquipmentDefinition> Equipment { get; }
+    public ImmutableArray<ItemDefinition> Items { get; }
     public ImmutableArray<MeleeWeaponDefinition> MeleeWeapons { get; }
     public ImmutableArray<MeleeWeaponActionDefinition> MeleeWeaponActions { get; }
     public ImmutableArray<RangedWeaponDefinition> RangedWeapons { get; }
@@ -186,7 +193,7 @@ public sealed class GameContentSnapshot : ICharacterContentCatalog
     public TypedDefinitionRegistry<HeritageId, HeritageDefinition> HeritageRegistry { get; }
     public TypedDefinitionRegistry<RaceId, RaceDefinition> RaceRegistry { get; }
     public TypedDefinitionRegistry<TrainingProjectId, TrainingProjectDefinition> TrainingProjectRegistry { get; }
-    public TypedDefinitionRegistry<EquipmentId, EquipmentDefinition> EquipmentRegistry { get; }
+    public TypedDefinitionRegistry<ContentId, ItemDefinition> ItemRegistry { get; }
     public TypedDefinitionRegistry<MeleeWeaponId, MeleeWeaponDefinition> MeleeWeaponRegistry { get; }
     public TypedDefinitionRegistry<MeleeWeaponActionId, MeleeWeaponActionDefinition> MeleeWeaponActionRegistry { get; }
     public TypedDefinitionRegistry<RangedWeaponId, RangedWeaponDefinition> RangedWeaponRegistry { get; }
@@ -222,7 +229,9 @@ public sealed class GameContentSnapshot : ICharacterContentCatalog
     public bool TryGetHeritage(HeritageId id, out HeritageDefinition? definition) => HeritageRegistry.TryGet(id, out definition);
     public bool TryGetRace(RaceId id, out RaceDefinition? definition) => RaceRegistry.TryGet(id, out definition);
     public bool TryGetTrainingProject(TrainingProjectId id, out TrainingProjectDefinition? definition) => TrainingProjectRegistry.TryGet(id, out definition);
-    public bool TryGetEquipment(EquipmentId id, out EquipmentDefinition? definition) => EquipmentRegistry.TryGet(id, out definition);
+    public bool TryGetItem(ContentId id, out ItemDefinition? definition) => ItemRegistry.TryGet(id, out definition);
+    public bool IsKnownEquipmentSlot(ContentId id) => Items.OfType<EquipmentDefinition>()
+        .SelectMany(definition => definition.OccupiedSlotIds).Contains(id);
     public bool TryGetMeleeWeapon(MeleeWeaponId id, out MeleeWeaponDefinition? definition) => MeleeWeaponRegistry.TryGet(id, out definition);
     public bool TryGetMeleeWeaponAction(MeleeWeaponActionId id, out MeleeWeaponActionDefinition? definition) => MeleeWeaponActionRegistry.TryGet(id, out definition);
     public bool TryGetRangedWeapon(RangedWeaponId id, out RangedWeaponDefinition? definition) => RangedWeaponRegistry.TryGet(id, out definition);

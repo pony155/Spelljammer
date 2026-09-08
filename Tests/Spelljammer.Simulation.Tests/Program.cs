@@ -314,7 +314,7 @@ internal static class SimulationContracts
 
     private static PersonalActorState Actor(ActorId id, TeamId team, CellId cell) => new(
         id, team, null, cell, ActorTurn(), ActorResources(), false, false, false,
-        PersonalLoadout.Create([]), []);
+        new ItemSystemState([], [], []), []);
 
     private static CharacterTurnState ActorTurn() => CharacterTurnState.Create(new CharacterTurnRules(
         100,
@@ -362,9 +362,9 @@ internal static class SimulationContracts
         ItemInstanceId bladeId = new(Guid.Parse("33333333-3333-3333-3333-333333333333"));
         ItemInstanceId helmId = new(Guid.Parse("44444444-4444-4444-4444-444444444444"));
         ItemInstanceId competingBladeId = new(Guid.Parse("55555555-5555-5555-5555-555555555555"));
-        Spelljammer.Simulation.Items.MeleeWeaponDefinition blade = new(
+        GearDefinition blade = new(
             new ContentId("item.test.boarding-blade"), 1, 1, "item.test.blade.name", "item.test.blade.description",
-            125, 80, [], [mainHand, offHand], [new ContentId("action.test.slash")]);
+            125, 80, [], [mainHand, offHand], [new ContentId("action.test.slash")], []);
         ArmorDefinition helm = new(
             new ContentId("item.test.helm"), 1, 1, "item.test.helm.name", "item.test.helm.description",
             80, 50, [], [head], 2, 100, [], ["head"], []);

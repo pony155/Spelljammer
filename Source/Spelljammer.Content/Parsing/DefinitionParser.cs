@@ -28,7 +28,9 @@ internal static class DefinitionParser
             [DefinitionKind.Access] = new(["tags"], []),
             [DefinitionKind.Background] = new(["compatibleRaceIds", "abilityBonusIds", "focusSkillIds"], []),
             [DefinitionKind.Character] = new(
-                ["raceId", "heritageId", "backgroundId", "scenarioIds", "positionId", "languageIds", "scriptIds", "equipmentIds", "focusSkillIds", "resourceIds"], []),
+                ["raceId", "heritageId", "backgroundId", "scenarioIds", "positionId", "languageIds", "scriptIds",
+                 "startingItemDefinitionIds", "inventoryMaximumWeightHundredthsOfPound", "inventoryMaximumEntries",
+                 "focusSkillIds", "resourceIds"], []),
             [DefinitionKind.Scenario] = new(["maximumRosterSize"], ["levelProgressionTableId", "characterResourceProfileId"]),
             [DefinitionKind.Feat] = new(
                 ["activation", "grantedAccessIds"],
@@ -41,12 +43,12 @@ internal static class DefinitionParser
             [DefinitionKind.TrainingProject] = new(
                 ["requiredSkillIds", "workUnits", "progressCap", "facilityId", "resourceId", "resourceCost", "safetyId", "grantedFeatIds"], []),
             [DefinitionKind.Equipment] = new(
-                ["slotId", "initialStateId", "resourceId", "resourceCapacity", "actionIds", "effectIds"],
-                ["meleeWeaponId", "rangedWeaponId"]),
+                ["kind", "weightHundredthsOfPound", "value", "tags", "occupiedSlotIds"],
+                ["actionIds", "effectIds", "armorValue", "durabilityMaximum", "resistanceIds", "coverageTags", "traits"]),
             [DefinitionKind.MeleeWeapon] = new(
                 ["family", "technology", "hands", "skillId", "abilityId", "damageMinimum", "damageMaximum", "armorDamagePercentage",
-                 "armorPenetrationPercentage", "staminaCost", "range", "weightGrams", "maximumDurability", "value",
-                 "strengthDamageScale", "traits", "actionIds"],
+                 "armorPenetrationPercentage", "staminaCost", "range", "weightHundredthsOfPound", "maximumDurability", "value",
+                 "strengthDamageScale", "traits", "occupiedSlotIds", "actionIds"],
                 ["energyCapacity", "energyPerAttack", "unpoweredDamagePercentage",
                  "unpoweredArmorPenetrationPercentage"]),
             [DefinitionKind.MeleeWeaponAction] = new(
@@ -56,7 +58,7 @@ internal static class DefinitionParser
             [DefinitionKind.RangedWeapon] = new(
                 ["family", "technology", "hands", "skillId", "damageMinimum", "damageMaximum",
                  "armorDamagePercentage", "armorPenetrationPercentage", "staminaCost", "optimalRange", "maximumRange",
-                 "weightGrams", "maximumDurability", "value", "traits", "actionIds"],
+                 "weightHundredthsOfPound", "maximumDurability", "value", "traits", "occupiedSlotIds", "actionIds"],
                 ["ammunitionType", "magazineCapacity", "energyCapacity", "energyPerShot", "heatCapacity", "heatPerShot"]),
             [DefinitionKind.Ammunition] = new(
                 ["ammunitionType", "technology", "damagePercentage", "armorDamagePercentage",
@@ -244,9 +246,9 @@ internal static class DefinitionParser
 
         foreach ((string field, ImmutableArray<string> values) in arrays)
         {
-            if (field is "tags" or "targetTags" or "hazardTags" or "traits" or "effectIds")
+            if (field is "tags" or "targetTags" or "hazardTags" or "coverageTags" or "traits" or "effectIds")
             {
-                bool invalid = field is "tags" or "targetTags" or "hazardTags" or "traits"
+                bool invalid = field is "tags" or "targetTags" or "hazardTags" or "coverageTags" or "traits"
                     ? values.Any(value => !SourceValidation.IsIdSegment(value))
                     : values.Any(value => !ContentId.IsCanonical(value));
                 if (invalid)

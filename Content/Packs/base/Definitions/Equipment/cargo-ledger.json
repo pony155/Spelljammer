@@ -1,0 +1,1 @@
+{"schemaVersion":1,"revision":1,"id":"equipment.cargo-ledger","nameKey":"equipment.personal.field-medkit.name","descriptionKey":"equipment.personal.field-medkit.description","kind":"gear","weightHundredthsOfPound":40,"value":45,"tags":["trade"],"occupiedSlotIds":["equipment-slot.utility"],"actionIds":[],"effectIds":[]}

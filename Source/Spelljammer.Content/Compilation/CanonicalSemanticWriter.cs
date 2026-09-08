@@ -1,6 +1,10 @@
 using System.Security.Cryptography;
 using System.Text;
 using Spelljammer.Simulation.Content;
+using MeleeWeaponDefinition = Spelljammer.Simulation.Items.MeleeWeaponDefinition;
+using RangedWeaponDefinition = Spelljammer.Simulation.Items.RangedWeaponDefinition;
+using ArmorDefinition = Spelljammer.Simulation.Items.ArmorDefinition;
+using GearDefinition = Spelljammer.Simulation.Items.GearDefinition;
 
 namespace Spelljammer.Content.Compilation;
 
@@ -109,7 +113,9 @@ internal static class CanonicalSemanticWriter
                 break;
             case CharacterDefinition value:
                 properties["backgroundId"] = output => WriteString(output, value.BackgroundId.ToString());
-                properties["equipmentIds"] = output => WriteIds(output, value.EquipmentIds);
+                properties["startingItemDefinitionIds"] = output => WriteIds(output, value.StartingItemDefinitionIds);
+                properties["inventoryMaximumWeightHundredthsOfPound"] = output => output.Append(value.InventoryMaximumWeightHundredthsOfPound);
+                properties["inventoryMaximumEntries"] = output => output.Append(value.InventoryMaximumEntries);
                 properties["focusSkillIds"] = output => WriteIds(output, value.FocusSkillIds.Select(id => id.Value));
                 properties["heritageId"] = output => WriteString(output, value.HeritageId.ToString());
                 properties["languageIds"] = output => WriteIds(output, value.LanguageIds);
@@ -209,25 +215,30 @@ internal static class CanonicalSemanticWriter
                 properties["safetyId"] = output => WriteString(output, value.SafetyId.ToString());
                 properties["workUnits"] = output => output.Append(value.WorkUnits);
                 break;
-            case EquipmentDefinition value:
+            case ArmorDefinition value:
+                properties["armorValue"] = output => output.Append(value.ArmorValue);
+                properties["coverageTags"] = output => WriteStrings(output, value.CoverageTags);
+                properties["durabilityMaximum"] = output => output.Append(value.DurabilityMaximum);
+                properties["kind"] = output => WriteString(output, "armor");
+                properties["occupiedSlotIds"] = output => WriteIds(output, value.OccupiedSlotIds);
+                properties["resistanceIds"] = output => WriteIds(output, value.ResistanceIds);
+                properties["tags"] = output => WriteStrings(output, value.Tags);
+                properties["traits"] = output => WriteStrings(output, value.Traits);
+                properties["value"] = output => output.Append(value.Value);
+                properties["weightHundredthsOfPound"] = output => output.Append(value.WeightHundredthsOfPound);
+                break;
+            case GearDefinition value:
                 properties["actionIds"] = output => WriteIds(output, value.ActionIds);
                 properties["effectIds"] = output => WriteIds(output, value.EffectIds);
-                properties["initialStateId"] = output => WriteString(output, value.InitialStateId.ToString());
-                properties["resourceCapacity"] = output => output.Append(value.ResourceCapacity);
-                properties["resourceId"] = output => WriteString(output, value.ResourceId.ToString());
-                properties["slotId"] = output => WriteString(output, value.SlotId.ToString());
-                if (value.MeleeWeaponId is MeleeWeaponId meleeWeaponId)
-                {
-                    properties["meleeWeaponId"] = output => WriteString(output, meleeWeaponId.ToString());
-                }
-                if (value.RangedWeaponId is RangedWeaponId rangedWeaponId)
-                {
-                    properties["rangedWeaponId"] = output => WriteString(output, rangedWeaponId.ToString());
-                }
+                properties["kind"] = output => WriteString(output, "gear");
+                properties["occupiedSlotIds"] = output => WriteIds(output, value.OccupiedSlotIds);
+                properties["tags"] = output => WriteStrings(output, value.Tags);
+                properties["value"] = output => output.Append(value.Value);
+                properties["weightHundredthsOfPound"] = output => output.Append(value.WeightHundredthsOfPound);
                 break;
             case MeleeWeaponDefinition value:
                 properties["abilityId"] = output => WriteString(output, value.AbilityId.ToString());
-                properties["actionIds"] = output => WriteIds(output, value.ActionIds.Select(id => id.Value));
+                properties["actionIds"] = output => WriteIds(output, value.ActionIds);
                 properties["armorDamagePercentage"] = output => output.Append(value.ArmorDamagePercentage);
                 properties["armorPenetrationPercentage"] = output => output.Append(value.ArmorPenetrationPercentage);
                 properties["damageMaximum"] = output => output.Append(value.DamageMaximum);
@@ -242,11 +253,12 @@ internal static class CanonicalSemanticWriter
                 properties["staminaCost"] = output => output.Append(value.StaminaCost);
                 properties["strengthDamageScale"] = output => output.Append(value.StrengthDamageScale);
                 properties["technology"] = output => WriteString(output, WriteMeleeTechnology(value.Technology));
-                properties["traits"] = output => WriteStrings(output, value.Traits);
+                properties["occupiedSlotIds"] = output => WriteIds(output, value.OccupiedSlotIds);
+                properties["traits"] = output => WriteStrings(output, value.Tags);
                 properties["unpoweredArmorPenetrationPercentage"] = output => output.Append(value.UnpoweredArmorPenetrationPercentage);
                 properties["unpoweredDamagePercentage"] = output => output.Append(value.UnpoweredDamagePercentage);
                 properties["value"] = output => output.Append(value.Value);
-                properties["weightGrams"] = output => output.Append(value.WeightGrams);
+                properties["weightHundredthsOfPound"] = output => output.Append(value.WeightHundredthsOfPound);
                 break;
             case MeleeWeaponActionDefinition value:
                 properties["actionPointCost"] = output => output.Append(value.ActionPointCost);
@@ -261,7 +273,7 @@ internal static class CanonicalSemanticWriter
                 properties["staminaCostModifier"] = output => output.Append(value.StaminaCostModifier);
                 break;
             case RangedWeaponDefinition value:
-                properties["actionIds"] = output => WriteIds(output, value.ActionIds.Select(id => id.Value));
+                properties["actionIds"] = output => WriteIds(output, value.ActionIds);
                 if (value.AmmunitionType is AmmunitionType ammunitionType)
                 {
                     properties["ammunitionType"] = output => WriteString(output, WriteAmmunitionType(ammunitionType));
@@ -283,9 +295,10 @@ internal static class CanonicalSemanticWriter
                 properties["skillId"] = output => WriteString(output, value.SkillId.ToString());
                 properties["staminaCost"] = output => output.Append(value.StaminaCost);
                 properties["technology"] = output => WriteString(output, WriteRangedTechnology(value.Technology));
-                properties["traits"] = output => WriteStrings(output, value.Traits);
+                properties["occupiedSlotIds"] = output => WriteIds(output, value.OccupiedSlotIds);
+                properties["traits"] = output => WriteStrings(output, value.Tags);
                 properties["value"] = output => output.Append(value.Value);
-                properties["weightGrams"] = output => output.Append(value.WeightGrams);
+                properties["weightHundredthsOfPound"] = output => output.Append(value.WeightHundredthsOfPound);
                 break;
             case AmmunitionDefinition value:
                 properties["ammunitionType"] = output => WriteString(output, WriteAmmunitionType(value.AmmunitionType));
@@ -417,7 +430,8 @@ internal static class CanonicalSemanticWriter
         LevelProgressionTableDefinition => 9,
         CharacterResourceProfileDefinition => 10,
         TrainingProjectDefinition => 11,
-        EquipmentDefinition => 12,
+        ArmorDefinition => 12,
+        GearDefinition => 12,
         MeleeWeaponDefinition => 13,
         MeleeWeaponActionDefinition => 14,
         RangedWeaponDefinition => 15,

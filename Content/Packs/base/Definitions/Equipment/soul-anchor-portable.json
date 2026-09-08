@@ -1,0 +1,1 @@
+{"schemaVersion":1,"revision":1,"id":"equipment.soul-anchor.portable","nameKey":"equipment.personal.casting-focus.name","descriptionKey":"equipment.personal.casting-focus.description","kind":"gear","weightHundredthsOfPound":200,"value":250,"tags":["soul-anchor"],"occupiedSlotIds":["equipment-slot.relic"],"actionIds":[],"effectIds":["effect.recovery.soul-anchor"]}

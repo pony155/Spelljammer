@@ -4,6 +4,7 @@ using Spelljammer.Content.Compilation;
 using Spelljammer.Simulation.Characters;
 using Spelljammer.Simulation.Content;
 using Spelljammer.Simulation.Encounters;
+using Spelljammer.Simulation.Items;
 
 namespace Spelljammer.Persistence;
 
@@ -117,10 +118,7 @@ public static class CampaignValidator
             try
             {
                 _ = CharacterCapabilities.Restore(character.Capabilities.Snapshot(content), content);
-                if (resourceProfile is not null)
-                {
-                    character.CharacterResources.Validate(resourceProfile);
-                }
+                character.ValidateForContent(content);
             }
             catch (InvalidOperationException)
             {
@@ -207,7 +205,7 @@ public static class CampaignValidator
                          .Concat(capabilities.Skills.Select(value => value.Id.Value))
                          .Concat(capabilities.Feats.Select(value => value.Value))
                          .Concat(character.TrainingProgress.Keys.Select(value => value.Value))
-                         .Concat(character.EquipmentIds))
+                         .Concat(character.Items.ItemInstances.Select(value => value.DefinitionId)))
             {
                 Add(id);
             }
@@ -232,7 +230,7 @@ public static class CampaignValidator
             Add(encounter.Board.Definition.PersonalBoardId.Value);
             foreach (ContentId id in encounter.Board.Cells.Keys.Select(value => value.Value)
                          .Concat(encounter.Board.Links.Select(value => value.LinkId.Value))
-                         .Concat(encounter.Actors.Values.SelectMany(actor => actor.Loadout.Slots.Values.Select(item => item.Id.Value))))
+                         .Concat(encounter.Actors.Values.SelectMany(actor => actor.Items.ItemInstances.Select(item => item.DefinitionId))))
             {
                 Add(id);
             }
@@ -264,7 +262,7 @@ public static class CampaignValidator
             if (!encounter.Board.Cells.ContainsKey(actor.CellId) ||
                 actor.CharacterId is CharacterId characterId && !characterIds.Contains(characterId) ||
                 resourceProfile is null || actor.Health < 0 ||
-                actor.Loadout.Slots.Count > PersonalLoadout.MaximumSlots || actor.Injuries.Length > CampaignSaveLimits.MaximumCollectionEntries)
+                actor.Injuries.Length > CampaignSaveLimits.MaximumCollectionEntries)
             {
                 return false;
             }
@@ -274,21 +272,14 @@ public static class CampaignValidator
             {
                 actor.CharacterResources.Validate(resourceProfile);
                 actor.Turn.Validate(resourceProfile.TurnRules);
+                if (!ItemSystem.Create(actor.Items, content).Accepted)
+                {
+                    return false;
+                }
             }
             catch (InvalidOperationException)
             {
                 return false;
-            }
-
-            foreach (EquipmentState item in actor.Loadout.Slots.Values)
-            {
-                if (!content.TryGetEquipment(item.Id, out EquipmentDefinition? itemDefinition) ||
-                    itemDefinition!.SlotId != item.SlotId || item.ResourceRemaining < 0 ||
-                    item.ResourceRemaining > itemDefinition.ResourceCapacity)
-                {
-                    missingId = item.Id.Value;
-                    return false;
-                }
             }
         }
 

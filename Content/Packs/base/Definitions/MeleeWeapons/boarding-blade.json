@@ -15,7 +15,7 @@
   "armorPenetrationPercentage": 10,
   "staminaCost": 8,
   "range": 1,
-  "weightGrams": 1200,
+  "weightHundredthsOfPound": 265,
   "maximumDurability": 100,
   "value": 80,
   "energyCapacity": 0,
@@ -24,5 +24,6 @@
   "unpoweredArmorPenetrationPercentage": 10,
   "strengthDamageScale": 50,
   "traits": ["reliable"],
+  "occupiedSlotIds": ["equipment-slot.main-hand"],
   "actionIds": ["melee-action.slash", "melee-action.thrust", "melee-action.heavy-strike"]
 }

@@ -1,9 +1,14 @@
 using System.Collections.Immutable;
 using Spelljammer.Simulation.Content;
+using MeleeWeaponDefinition = Spelljammer.Simulation.Items.MeleeWeaponDefinition;
+using RangedWeaponDefinition = Spelljammer.Simulation.Items.RangedWeaponDefinition;
+using EquipmentDefinition = Spelljammer.Simulation.Items.EquipmentDefinition;
+using ItemDefinition = Spelljammer.Simulation.Items.ItemDefinition;
+using Spelljammer.Simulation.Items;
 
 namespace Spelljammer.Simulation.Characters;
 
-public interface ICharacterContentCatalog
+public interface ICharacterContentCatalog : IItemDefinitionCatalog
 {
     ContentFingerprint Fingerprint { get; }
     ImmutableArray<AbilityDefinition> Abilities { get; }
@@ -12,6 +17,7 @@ public interface ICharacterContentCatalog
     ImmutableArray<CharacterDefinition> Characters { get; }
     ImmutableArray<ScenarioDefinition> Scenarios { get; }
     ImmutableArray<EquipmentDefinition> Equipment { get; }
+    ImmutableArray<ItemDefinition> Items { get; }
     ImmutableArray<MeleeWeaponDefinition> MeleeWeapons { get; }
     ImmutableArray<MeleeWeaponActionDefinition> MeleeWeaponActions { get; }
     ImmutableArray<RangedWeaponDefinition> RangedWeapons { get; }
@@ -35,7 +41,6 @@ public interface ICharacterContentCatalog
     bool TryGetFeat(FeatId id, out FeatDefinition? definition);
     bool TryGetHeritage(HeritageId id, out HeritageDefinition? definition);
     bool TryGetRace(RaceId id, out RaceDefinition? definition);
-    bool TryGetEquipment(EquipmentId id, out EquipmentDefinition? definition);
     bool TryGetMeleeWeapon(MeleeWeaponId id, out MeleeWeaponDefinition? definition);
     bool TryGetMeleeWeaponAction(MeleeWeaponActionId id, out MeleeWeaponActionDefinition? definition);
     bool TryGetRangedWeapon(RangedWeaponId id, out RangedWeaponDefinition? definition);

@@ -1,6 +1,8 @@
 using System.Collections.Immutable;
+using System.Security.Cryptography;
 using System.Text;
 using Spelljammer.Simulation.Content;
+using Spelljammer.Simulation.Items;
 
 namespace Spelljammer.Simulation.Characters;
 
@@ -87,10 +89,10 @@ public sealed record CharacterCreationResult(CharacterState? Character, Characte
 /// for new characters joining a crew or scenario.
 /// </remarks>
 /// <param name="SupportedRequirementIds">The set of support requirements this crew can fulfill.</param>
-/// <param name="AvailableEquipmentIds">The equipment available for new characters to start with.</param>
+/// <param name="AvailableItemDefinitionIds">The item definitions available for new characters to start with.</param>
 public sealed record CrewSupportProfile(
     ImmutableHashSet<ContentId> SupportedRequirementIds,
-    ImmutableHashSet<ContentId> AvailableEquipmentIds);
+    ImmutableHashSet<ContentId> AvailableItemDefinitionIds);
 
 /// <summary>
 /// A snapshot of a complete roster of characters at a point in time.
@@ -188,11 +190,13 @@ public static class CharacterCreator
             }
         }
 
-        foreach (ContentId equipmentId in template.EquipmentIds)
+        foreach (ContentId itemDefinitionId in template.StartingItemDefinitionIds)
         {
-            if (!support.AvailableEquipmentIds.Contains(equipmentId))
+            if (!support.AvailableItemDefinitionIds.Contains(itemDefinitionId) ||
+                !catalog.TryGetItem(itemDefinitionId, out ItemDefinition? definition) ||
+                definition is not EquipmentDefinition)
             {
-                return Failure(CharacterCreationFailure.EquipmentUnavailable, equipmentId);
+                return Failure(CharacterCreationFailure.EquipmentUnavailable, itemDefinitionId);
             }
         }
 
@@ -255,6 +259,12 @@ public static class CharacterCreator
             .Where(id => !characterResourceIds.Contains(id))
             .ToImmutableDictionary(id => id, _ => 10);
 
+        ItemSystemResult startingItems = CreateStartingItems(request, template, catalog);
+        if (!startingItems.Accepted)
+        {
+            return Failure(CharacterCreationFailure.EquipmentUnavailable);
+        }
+
         CharacterState published = new(
             template.CharacterId,
             catalog.Fingerprint,
@@ -266,7 +276,7 @@ public static class CharacterCreator
             capabilities,
             template.LanguageIds,
             template.ScriptIds,
-            template.EquipmentIds.ToImmutableHashSet(),
+            startingItems.State,
             resources,
             ImmutableDictionary<TrainingProjectId, int>.Empty)
         {
@@ -275,6 +285,64 @@ public static class CharacterCreator
                 : CharacterResourceSet.Empty,
         };
         return new CharacterCreationResult(published, CharacterCreationFailure.None, null);
+    }
+
+    private static ItemSystemResult CreateStartingItems(
+        CharacterCreationRequest request,
+        CharacterDefinition template,
+        ICharacterContentCatalog catalog)
+    {
+        ContentId ownerId = template.CharacterId.Value;
+        InventoryContainerId containerId = new(DeriveGuid(request, "inventory", ownerId, 0));
+        ImmutableArray<ItemInstance>.Builder items = ImmutableArray.CreateBuilder<ItemInstance>(template.StartingItemDefinitionIds.Length);
+        for (int index = 0; index < template.StartingItemDefinitionIds.Length; index++)
+        {
+            ContentId definitionId = template.StartingItemDefinitionIds[index];
+            catalog.TryGetItem(definitionId, out ItemDefinition? definition);
+            int? durability = definition switch
+            {
+                ArmorDefinition armor => armor.DurabilityMaximum,
+                MeleeWeaponDefinition melee => melee.MaximumDurability,
+                RangedWeaponDefinition ranged => ranged.MaximumDurability,
+                _ => null,
+            };
+            items.Add(new ItemInstance(
+                new ItemInstanceId(DeriveGuid(request, "item", definitionId, index)),
+                definitionId,
+                containerId,
+                durability,
+                null,
+                null,
+                1,
+                definition is MeleeWeaponDefinition meleeDefinition ? MeleeWeaponState.Create(meleeDefinition) : null,
+                definition is RangedWeaponDefinition rangedDefinition ? RangedWeaponState.Create(rangedDefinition) : null));
+        }
+
+        ImmutableArray<ItemInstance> instances = items.MoveToImmutable();
+        ItemSystemState candidate = new(
+            instances,
+            [new InventoryContainer(containerId, ownerId, template.InventoryMaximumWeightHundredthsOfPound,
+                template.InventoryMaximumEntries, instances.Select(value => value.InstanceId).ToImmutableArray())],
+            [new EquipmentLoadout(ownerId, [])]);
+        ItemSystemResult result = ItemSystem.Create(candidate, catalog);
+        foreach (ItemInstance item in instances)
+        {
+            if (!result.Accepted)
+            {
+                return result;
+            }
+
+            result = ItemSystem.Equip(result.State, ownerId, containerId, item.InstanceId, catalog);
+        }
+
+        return result;
+    }
+
+    private static Guid DeriveGuid(CharacterCreationRequest request, string purpose, ContentId relatedId, int ordinal)
+    {
+        byte[] digest = SHA256.HashData(Encoding.UTF8.GetBytes(
+            $"{request.ContentFingerprint}:{request.CharacterId}:{request.Seed}:{purpose}:{relatedId}:{ordinal}"));
+        return new Guid(digest.AsSpan(0, 16));
     }
 
     public static RosterCreationResult CreateRoster(

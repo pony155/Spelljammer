@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using Spelljammer.Simulation.Characters;
 using Spelljammer.Simulation.Content;
 
 namespace Spelljammer.Simulation.Items;
@@ -23,7 +24,9 @@ public sealed record ItemInstance(
     int? CurrentDurability,
     ContentId? QualityId,
     string? CustomName,
-    int StateVersion);
+    int StateVersion,
+    MeleeWeaponState? MeleeWeaponState = null,
+    RangedWeaponState? RangedWeaponState = null);
 
 /// <summary>A bounded container which owns distinct item instances.</summary>
 public sealed record InventoryContainer(
