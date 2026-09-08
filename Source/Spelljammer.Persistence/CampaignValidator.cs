@@ -205,7 +205,8 @@ public static class CampaignValidator
                          .Concat(capabilities.Skills.Select(value => value.Id.Value))
                          .Concat(capabilities.Feats.Select(value => value.Value))
                          .Concat(character.TrainingProgress.Keys.Select(value => value.Value))
-                         .Concat(character.Items.ItemInstances.Select(value => value.DefinitionId)))
+                         .Concat(character.Items.ItemInstances.Select(value => value.DefinitionId))
+                         .Concat(character.Items.InventoryEntries.Select(value => value.Stack.DefinitionId)))
             {
                 Add(id);
             }
@@ -230,7 +231,9 @@ public static class CampaignValidator
             Add(encounter.Board.Definition.PersonalBoardId.Value);
             foreach (ContentId id in encounter.Board.Cells.Keys.Select(value => value.Value)
                          .Concat(encounter.Board.Links.Select(value => value.LinkId.Value))
-                         .Concat(encounter.Actors.Values.SelectMany(actor => actor.Items.ItemInstances.Select(item => item.DefinitionId))))
+                         .Concat(encounter.Actors.Values.SelectMany(actor => actor.Items.ItemInstances.Select(item => item.DefinitionId)))
+                         .Concat(encounter.Actors.Values.SelectMany(actor =>
+                             actor.Items.InventoryEntries.Select(entry => entry.Stack.DefinitionId))))
             {
                 Add(id);
             }

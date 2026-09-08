@@ -1230,6 +1230,6 @@ other families and technologies are supported by the schema but await authored
 weapons and technology-specific effects.
 
 Character and encounter state persist the same item-instance ownership model,
-and campaign save schema 8 stores melee durability and energy. Applying the
+and campaign save schema 9 stores melee durability and energy. Applying the
 returned Health and Armor damage to encounter targets and AI action selection
 remain encounter-system work.

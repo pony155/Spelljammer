@@ -10,8 +10,8 @@
   "armorDamagePercentage": 100,
   "armorPenetrationModifier": 0,
   "rangeModifier": 0,
-  "stackSize": 50,
-  "weightGrams": 12,
+  "maximumStackSize": 50,
+  "weightHundredthsOfPound": 3,
   "value": 2,
-  "traits": ["standard"]
+  "tags": ["standard"]
 }

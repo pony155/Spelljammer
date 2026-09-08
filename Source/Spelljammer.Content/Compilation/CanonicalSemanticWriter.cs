@@ -5,6 +5,7 @@ using MeleeWeaponDefinition = Spelljammer.Simulation.Items.MeleeWeaponDefinition
 using RangedWeaponDefinition = Spelljammer.Simulation.Items.RangedWeaponDefinition;
 using ArmorDefinition = Spelljammer.Simulation.Items.ArmorDefinition;
 using GearDefinition = Spelljammer.Simulation.Items.GearDefinition;
+using AmmunitionDefinition = Spelljammer.Simulation.Items.AmmunitionDefinition;
 
 namespace Spelljammer.Content.Compilation;
 
@@ -306,11 +307,11 @@ internal static class CanonicalSemanticWriter
                 properties["armorPenetrationModifier"] = output => output.Append(value.ArmorPenetrationModifier);
                 properties["damagePercentage"] = output => output.Append(value.DamagePercentage);
                 properties["rangeModifier"] = output => output.Append(value.RangeModifier);
-                properties["stackSize"] = output => output.Append(value.StackSize);
+                properties["maximumStackSize"] = output => output.Append(value.MaximumStackSize);
                 properties["technology"] = output => WriteString(output, WriteRangedTechnology(value.Technology));
-                properties["traits"] = output => WriteStrings(output, value.Traits);
+                properties["tags"] = output => WriteStrings(output, value.Tags);
                 properties["value"] = output => output.Append(value.Value);
-                properties["weightGrams"] = output => output.Append(value.WeightGrams);
+                properties["weightHundredthsOfPound"] = output => output.Append(value.WeightHundredthsOfPound);
                 break;
             case RangedWeaponActionDefinition value:
                 properties["actionPointCost"] = output => output.Append(value.ActionPointCost);

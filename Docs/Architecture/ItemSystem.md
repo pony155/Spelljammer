@@ -11,7 +11,7 @@ localized text.
 Melee and ranged weapon rules compile into the same item catalog as armor and
 gear. Character creation produces deterministic item instances, equips their
 starting loadout through `ItemSystem`, and combat commits weapon condition back
-to those instances. Campaign save schema 8 persists the complete item state.
+to those instances. Campaign save schema 9 persists the complete item state.
 Consumables, materials, trade goods, crafting, merchants, loot generation, and
 ground containers are planned extensions rather than implemented features.
 
@@ -283,13 +283,20 @@ InventoryContainer
     ownerId
     maximumWeightHundredthsOfPound
     maximumEntries
-    entries[]
+    itemInstanceIds[]
+    inventoryEntryIds[]
 }
 
 InventoryEntry
 {
-    itemDefinitionId
-    itemInstanceId?
+    entryId
+    ownerContainerId
+    stack
+}
+
+ItemStack
+{
+    definitionId
     quantity
 }
 ```
@@ -297,10 +304,11 @@ InventoryEntry
 The initial capacity model is authored maximum weight plus a bounded entry
 count. Item shapes and grid-packing are explicitly out of scope.
 
-Stackable entries use `itemDefinitionId` and a positive `quantity` no greater
-than the definition's `maximumStackSize`. Distinct equipment uses one
-`itemInstanceId`, quantity one, and cannot be merged merely because it shares
-a definition ID.
+Stackable entries use a stable `entryId`, a direct container owner, and an
+`ItemStack` whose positive `quantity` is no greater than the definition's
+`maximumStackSize`. Distinct equipment uses `ItemInstance` instead of
+`InventoryEntry`, always has quantity one, and cannot be merged merely because
+it shares a definition ID.
 
 Weight uses an integer fixed-point unit of one hundredth of a pound. For
 example, `125` represents 1.25 lb and `5` represents 0.05 lb. Simulation,
@@ -318,7 +326,10 @@ All mutations use typed commands and publish replacement state only after full
 validation.
 
 ```text
+AddStack
+Consume
 TransferItem
+TransferStack
 EquipItem
 UnequipItem
 SplitStack
@@ -342,16 +353,19 @@ Implemented in `Source/Spelljammer.Simulation/Items/ItemSystem.cs`:
 
 - immutable `ItemDefinition` / `EquipmentDefinition` / `WeaponDefinition`
   inheritance types, including melee, ranged, armor, and gear definitions;
-- stable GUID instance and container IDs; bounded `ItemInstance`,
-  `InventoryContainer`, and `EquipmentLoadout` state;
+- stable GUID instance, entry, and container IDs; bounded `ItemInstance`,
+  `InventoryEntry` / `ItemStack`, `InventoryContainer`, and
+  `EquipmentLoadout` state;
 - a definition catalog boundary, complete-state validation, deterministic state
-  normalization, and atomic `Equip`, `Unequip`, and `Transfer` operations;
+  normalization, and atomic `Equip`, `Unequip`, `Transfer`, `AddStack`,
+  `SplitStack`, `MergeStack`, `Consume`, and `TransferStack` operations;
 - all-or-nothing ownership, slot, and fixed-point weight-capacity checks;
 - removal of every loadout assignment when an item is transferred.
 
-The compiled content snapshot exposes one `ItemRegistry` containing armor,
-gear, melee weapons, and ranged weapons. The separate typed weapon registries
-remain indexes over those same concrete objects for combat-specific lookup.
+The compiled content snapshot exposes one `ItemRegistry` containing
+ammunition, armor, gear, melee weapons, and ranged weapons. Separate typed
+ammunition and weapon registries remain indexes over those same concrete
+objects for combat-specific lookup.
 
 Melee and ranged authored content now compile to the single concrete
 `Spelljammer.Simulation.Items.MeleeWeaponDefinition` and
@@ -367,11 +381,10 @@ Implemented integration:
 3. Character and encounter state both use `ItemSystemState`.
 4. Melee and ranged commands address weapons by `ItemInstanceId` and commit
    durability, energy, ammunition, and heat to the owning character.
-5. Save schema 8 serializes instances, containers, loadouts, and specialized
-   weapon state; schema 7 equipment IDs are converted during load.
+5. Save schema 9 serializes instances, stack entries, containers, loadouts, and
+   specialized weapon state; schema 7 and 8 data are converted during load.
 
-Stackable ammunition inventory, loot containers, merchants, and consumable
-commands remain planned.
+Loot containers, merchants, item drops, and consumable effects remain planned.
 
 No inventory, item, or equipment change may require hard-coded absolute paths,
 localized text as identity, unbounded collections, or UI-timing-dependent

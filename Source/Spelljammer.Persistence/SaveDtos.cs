@@ -262,8 +262,17 @@ internal sealed class EquipmentStateDto
 internal sealed class ItemSystemDto
 {
     public ItemInstanceDto[] ItemInstances { get; set; } = [];
+    public InventoryEntryDto[] InventoryEntries { get; set; } = [];
     public InventoryContainerDto[] InventoryContainers { get; set; } = [];
     public EquipmentLoadoutDto[] EquipmentLoadouts { get; set; } = [];
+}
+
+internal sealed class InventoryEntryDto
+{
+    public string EntryId { get; set; } = string.Empty;
+    public string OwnerContainerId { get; set; } = string.Empty;
+    public string DefinitionId { get; set; } = string.Empty;
+    public int Quantity { get; set; }
 }
 
 internal sealed class ItemInstanceDto
@@ -286,6 +295,7 @@ internal sealed class InventoryContainerDto
     public int MaximumWeightHundredthsOfPound { get; set; }
     public int MaximumEntries { get; set; }
     public string[] ItemInstanceIds { get; set; } = [];
+    public string[] InventoryEntryIds { get; set; } = [];
 }
 
 internal sealed class EquipmentLoadoutDto

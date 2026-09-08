@@ -1,0 +1,636 @@
+# Status and Effect System
+
+## 1. Overview
+
+This document defines temporary conditions, persistent modifiers, and one-time gameplay results.
+
+~~~text
+Effect
+    A gameplay result that happens once or applies a Status.
+
+Status
+    A condition that remains on a target and changes its rules or behavior.
+~~~
+
+Effects and Statuses are independent from their source. They may be produced by weapons, spells, abilities, traits, environmental hazards, traps, or combat events.
+
+---
+
+# 2. Core Principles
+
+## One Effect, One Result
+
+Each Effect performs one gameplay operation.
+
+~~~text
+HealHealth
+ReduceStrain
+PhysicalDamage
+ApplyStatus: Charmed
+RemoveStatus: Poisoned
+~~~
+
+Effects should not hide multiple unrelated results inside one operation.
+
+## Statuses Describe Ongoing State
+
+An Effect describes what happens. A Status describes what remains true afterward.
+
+~~~text
+ApplyStatus: Confused
+        ↓
+Confused Status
+        ↓
+AI decision penalties while active
+~~~
+
+## Statuses Do Not Directly Run AI
+
+AI-affecting Statuses provide rules, restrictions, and preferences. The AI reads those rules while generating and scoring actions.
+
+---
+
+# 3. Effect
+
+Common Effect types include:
+
+~~~text
+HealHealth
+RestoreMana
+RestoreStamina
+RestoreResolve
+ReduceStrain
+
+PhysicalDamage
+ThermalDamage
+ShockDamage
+ArcaneDamage
+ArmorDamage
+
+ApplyStatus
+RemoveStatus
+
+ModifyDamage
+ModifyDefense
+ModifyAccuracy
+ModifyMovement
+ModifyResistance
+GrantShield
+~~~
+
+Strain is reduced with ReduceStrain. It is not restored with RestoreStrain.
+
+A simple Effect definition is:
+
+~~~text
+Effect
+{
+    type
+    source
+    target
+    amount
+    duration
+}
+~~~
+
+Some Effects finish immediately:
+
+~~~text
+HealHealth
+ReduceStrain
+PhysicalDamage
+~~~
+
+Other Effects create or remove an ongoing Status:
+
+~~~text
+ApplyStatus: Burning
+RemoveStatus: Poisoned
+~~~
+
+---
+
+# 4. Status Definition
+
+StatusDefinition is static data describing the rules of a Status. It does not store the current duration of a particular target.
+
+~~~text
+StatusDefinition
+{
+    id
+    name
+    category
+    tags[]
+
+    default_duration
+    duration_type
+
+    stack_policy
+    max_stacks
+
+    exclusive_group
+    priority
+
+    modifiers[]
+    restrictions[]
+    ai_rules[]
+
+    on_apply[]
+    on_tick[]
+    on_expire[]
+}
+~~~
+
+## Identity
+
+~~~text
+id: Charmed
+name: Charmed
+category: Mental
+tags:
+- Control
+- AIInfluence
+~~~
+
+## Duration
+
+~~~text
+default_duration: 3
+duration_type: Timed
+~~~
+
+Supported duration types:
+
+~~~text
+Timed
+Permanent
+UntilRemoved
+Conditional
+~~~
+
+## Stacking and Conflict
+
+~~~text
+stack_policy: Refresh
+max_stacks: 1
+
+exclusive_group: MentalControl
+priority: 50
+~~~
+
+## Modifiers
+
+Modifiers change a value or rule while the Status is active.
+
+~~~text
+modifiers:
+- type: ModifyAccuracy
+  amount: -20
+- type: ModifyResolve
+  amount: -10
+~~~
+
+Each Modifier should represent one gameplay result.
+
+## Restrictions
+
+Restrictions define actions or targets that are not allowed.
+
+~~~text
+restrictions:
+- type: CannotAttack
+  target_rule: StatusSource
+~~~
+
+## AI Rules
+
+AI rules alter target selection, action preference, or decision reliability.
+
+~~~text
+ai_rules:
+- type: PreferTarget
+  target_rule: NearestEnemy
+- type: DiscourageAction
+  action_tag: Retreat
+~~~
+
+## Lifecycle Rules
+
+Lifecycle Effects are optional:
+
+~~~text
+on_apply[]
+    Effects resolved when the Status is applied.
+
+on_tick[]
+    Effects resolved at the Status interval.
+
+on_expire[]
+    Effects resolved when the Status ends.
+~~~
+
+Each entry is a separate Effect. Lifecycle rules must not hide unexplained composite behavior.
+
+---
+
+# 5. Status Instance
+
+StatusInstance represents one active Status on one target.
+
+~~~text
+StatusInstance
+{
+    definition_id
+    source_id
+    target_id
+
+    remaining_duration
+    stacks
+    potency
+}
+~~~
+
+The definition stores reusable rules. The instance stores runtime state.
+
+~~~text
+StatusInstance
+{
+    definition_id: Confused
+    source_id: EnemyMage_01
+    target_id: Crewman_04
+
+    remaining_duration: 2
+    stacks: 1
+    potency: 1
+}
+~~~
+
+source_id is important for Statuses such as Charm, which may distinguish the source from other entities.
+
+---
+
+# 6. Duration Rules
+
+Timed Statuses use turn-based durations.
+
+~~~text
+duration: 3
+~~~
+
+Recommended lifecycle:
+
+~~~text
+Status applied
+    ↓
+Target receives its normal turn
+    ↓
+Target turn ends
+    ↓
+remaining_duration -= 1
+    ↓
+Remove when remaining_duration <= 0
+~~~
+
+This makes Status expiration predictable to the player.
+
+---
+
+# 7. Stacking Rules
+
+Every Status must define a stack_policy.
+
+## Refresh
+
+Reapplying the Status resets its duration without increasing its strength.
+
+~~~text
+Charmed: 2 turns remaining
+Apply Charmed: 3 turns
+Result: Charmed with 3 turns remaining
+~~~
+
+Recommended for:
+
+~~~text
+Charmed
+Confused
+Haste
+~~~
+
+## Extend
+
+Reapplying the Status adds the new duration to the remaining duration.
+
+~~~text
+2 turns remaining
++ 3 turns
+= 5 turns remaining
+~~~
+
+Recommended for:
+
+~~~text
+Poisoned
+Burning
+Bleeding
+~~~
+
+## IntensityStack
+
+Reapplying the Status increases its intensity.
+
+~~~text
+Bleeding: 1 stack
++ Bleeding: 1 stack
+= Bleeding: 2 stacks
+~~~
+
+The Status must define a maximum:
+
+~~~text
+max_stacks: 3
+~~~
+
+## StrongerWins
+
+Only the stronger version remains active.
+
+~~~text
+Confusion: -10 Accuracy
+Confusion: -20 Accuracy
+Result: -20 Accuracy
+~~~
+
+Recommended for:
+
+~~~text
+Shielded
+Resistance modifiers
+Stat modifiers
+~~~
+
+## Independent
+
+Each application creates a separate Status instance.
+
+~~~text
+Poison A: 2 damage for 3 turns
+Poison B: 5 damage for 2 turns
+~~~
+
+Use this only when tracking separate sources is valuable.
+
+## Reject
+
+The new application is ignored if the target already has the Status.
+
+---
+
+# 8. Status Replacement and Exclusive Groups
+
+Statuses that cannot normally coexist should share an exclusive_group.
+
+~~~text
+Charmed
+exclusive_group: MentalControl
+priority: 50
+
+Confused
+exclusive_group: MentalControl
+priority: 30
+~~~
+
+When a new Status enters an occupied group:
+
+~~~text
+New priority > existing priority
+    → Remove existing Status and apply new Status
+
+New priority < existing priority
+    → Reject new Status
+
+Equal priority
+    → Use the Status-specific tie rule
+~~~
+
+Suggested control priority:
+
+~~~text
+HardControl
+    Stunned
+    Dominated
+
+FactionControl
+    Charmed
+
+BehaviorControl
+    Raging
+    Feared
+
+DecisionDisruption
+    Confused
+~~~
+
+Different exclusive groups may coexist:
+
+~~~text
+Charmed + Burning
+    Can coexist.
+
+Confused + Poisoned
+    Can coexist.
+~~~
+
+If active Statuses produce contradictory rules, the higher-priority rule wins. The result must not depend on application order unless explicitly designed.
+
+---
+
+# 9. AI-Affecting Statuses
+
+AI-affecting Statuses modify the AI's inputs instead of directly taking over the AI controller.
+
+The AI should query:
+
+~~~text
+CanAct?
+CanAttack(target)?
+IsTargetValid(target)?
+PreferredTargets()
+PreferredActions()
+ActionRestrictions()
+DecisionReliability()
+~~~
+
+## Charmed
+
+Charm primarily changes faction relationships and target validity.
+
+~~~text
+StatusDefinition
+{
+    id: Charmed
+    category: Mental
+    tags:
+    - Control
+    - AIInfluence
+
+    default_duration: 3
+    duration_type: Timed
+
+    stack_policy: Refresh
+    max_stacks: 1
+
+    exclusive_group: MentalControl
+    priority: 50
+
+    restrictions:
+    - type: CannotAttack
+      target_rule: StatusSource
+
+    ai_rules:
+    - type: TreatAsAlly
+      target_rule: StatusSource
+    - type: PreferTarget
+      target_rule: SourceEnemies
+}
+~~~
+
+Charm does not automatically mean complete control of every action. A limited version may only prevent attacks against the source and modify target preference.
+
+## Confused
+
+Confusion reduces decision reliability without necessarily changing faction relationships.
+
+~~~text
+StatusDefinition
+{
+    id: Confused
+    category: Mental
+    tags:
+    - Disruption
+    - AIInfluence
+
+    default_duration: 2
+    duration_type: Timed
+
+    stack_policy: Refresh
+    max_stacks: 1
+
+    exclusive_group: MentalControl
+    priority: 30
+
+    modifiers:
+    - type: ModifyAccuracy
+      amount: -20
+
+    ai_rules:
+    - type: ReduceDecisionReliability
+      amount: 50
+    - type: UnstableTargetSelection
+      amount: 25
+}
+~~~
+
+Confusion should normally select from valid actions and targets, but alter their weights or reliability. Fully random behavior is difficult for players to understand and debug.
+
+## Raging
+
+Rage changes behavior toward aggression.
+
+~~~text
+StatusDefinition
+{
+    id: Raging
+    category: Mental
+    tags:
+    - Emotion
+    - Aggressive
+
+    default_duration: 3
+    duration_type: Timed
+
+    stack_policy: Refresh
+    max_stacks: 1
+
+    exclusive_group: EmotionalState
+    priority: 40
+
+    restrictions:
+    - type: DiscourageAction
+      action_tag: Retreat
+    - type: DiscourageAction
+      action_tag: Defend
+
+    ai_rules:
+    - type: PreferTarget
+      target_rule: NearestEnemy
+    - type: PreferAction
+      action_tag: Attack
+    - type: PreferAction
+      action_tag: Charge
+}
+~~~
+
+Rage should normally influence action scoring rather than make retreat mathematically impossible, unless it is explicitly designed as hard control.
+
+---
+
+# 10. Categories and Tags
+
+Categories are used for organization, resistance rules, UI, and conflict resolution.
+
+~~~text
+Mental
+Emotion
+Control
+Disruption
+DamageOverTime
+Defensive
+Resource
+Physical
+Magical
+~~~
+
+Tags provide more specific filtering:
+
+~~~text
+AIInfluence
+HardControl
+FactionControl
+DamageOverTime
+Removable
+Hidden
+Positive
+Negative
+~~~
+
+Category and tags are metadata. They must not replace the actual rules of the Status.
+
+---
+
+# 11. Initial Design Rules
+
+The first implementation should follow these defaults:
+
+~~~text
+Timed Statuses use turn-based durations.
+
+Same Status defaults to Refresh.
+
+Damage-over-time Statuses may use IntensityStack.
+
+Shields and similar defenses use StrongerWins.
+
+Mutually exclusive control Statuses use Exclusive Groups and Priority.
+
+AI Statuses provide rules to AI queries; they do not directly run the AI.
+
+Trait is separate from Status.
+
+Effect is separate from the ongoing Status it creates.
+
+One Effect performs one gameplay result.
+~~~
+
+This structure keeps Status definitions reusable across combat, abilities, weapons, magic, traits, and environmental systems without coupling them to any particular item type.
+

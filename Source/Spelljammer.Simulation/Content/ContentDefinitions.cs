@@ -350,25 +350,6 @@ public enum RangedWeaponActionKind : byte
     Reload,
 }
 
-/// <summary>Static ammunition modifiers and logistics properties.</summary>
-public sealed record AmmunitionDefinition(
-    AmmunitionId AmmunitionId,
-    int SchemaVersion,
-    int Revision,
-    string NameKey,
-    string DescriptionKey,
-    AmmunitionType AmmunitionType,
-    RangedWeaponTechnology Technology,
-    int DamagePercentage,
-    int ArmorDamagePercentage,
-    int ArmorPenetrationModifier,
-    int RangeModifier,
-    int StackSize,
-    int WeightGrams,
-    int Value,
-    ImmutableArray<string> Traits)
-    : ContentDefinition(AmmunitionId.Value, SchemaVersion, Revision, NameKey, DescriptionKey);
-
 /// <summary>Action-owned ranged attack or reload costs and behavior.</summary>
 public sealed record RangedWeaponActionDefinition(
     RangedWeaponActionId RangedWeaponActionId,

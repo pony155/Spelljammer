@@ -10,6 +10,7 @@ using Spelljammer.Persistence;
 using Spelljammer.Simulation.Characters;
 using Spelljammer.Simulation.Content;
 using Spelljammer.Simulation.Encounters;
+using Spelljammer.Simulation.Items;
 
 return PersistenceContracts.Run();
 
@@ -56,6 +57,14 @@ internal static class PersistenceContracts
             "A stabilized injury did not round-trip.");
         True(loaded.Campaign.Voyage.Commands.Length == 1 && loaded.Campaign.Voyage.CommandHistory.Length == 1,
             "Queued work and retained history did not round-trip.");
+        InventoryEntryId ammunitionEntryId = new(Guid.Parse("88888888-8888-8888-8888-888888888888"));
+        Equal(12, loaded.Campaign.Characters.SelectMany(value => value.Items.InventoryEntries)
+            .Single(value => value.EntryId == ammunitionEntryId).Stack.Quantity,
+            "A character ammunition stack did not round-trip.");
+        Equal(12, loaded.Campaign.Voyage.PersonalEncounter.Actors.Values
+            .SelectMany(value => value.Items.InventoryEntries)
+            .Single(value => value.EntryId == ammunitionEntryId).Stack.Quantity,
+            "An encounter ammunition stack did not round-trip.");
     }
 
     private static void SchemaSevenEquipmentMigratesToItemInstances()
@@ -356,6 +365,15 @@ internal static class PersistenceContracts
             boardDefinition.LinkIds.Select(id => content.ZoneLinks.Single(value => value.LinkId == id)));
         True(board.Accepted, board.RejectionCode);
         CharacterState crew = activeRoster.Members[0];
+        AmmunitionDefinition ammunition = content.Ammunition.Single();
+        InventoryContainer inventory = crew.Items.InventoryContainers.Single();
+        InventoryEntryId ammunitionEntryId = new(Guid.Parse("88888888-8888-8888-8888-888888888888"));
+        ItemSystemResult stocked = ItemSystem.AddStack(
+            crew.Items, inventory.ContainerId, ammunitionEntryId, ammunition.Id, 12, content);
+        True(stocked.Accepted, stocked.RejectionCode);
+        crew = crew with { Items = stocked.State };
+        ImmutableArray<CharacterState> campaignCharacters =
+            [.. activeRoster.Members.Select(value => value.Id == crew.Id ? crew : value)];
         True(content.TryGetCharacterResourceProfile(new CharacterResourceProfileId("character-resources.standard"),
             out CharacterResourceProfileDefinition? resourceProfile), "Character resource profile is missing.");
         ActorId actorId = new("actor.first-voyage.saved-crew");
@@ -390,7 +408,7 @@ internal static class PersistenceContracts
             new ContentId("location.anchorage.home"),
             world,
             activeRoster.ProtagonistId,
-            activeRoster.Members);
+            campaignCharacters);
     }
 
     private static void True(bool condition, string message)

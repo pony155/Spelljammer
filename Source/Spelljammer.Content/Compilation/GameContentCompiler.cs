@@ -10,6 +10,7 @@ using RangedWeaponDefinition = Spelljammer.Simulation.Items.RangedWeaponDefiniti
 using EquipmentDefinition = Spelljammer.Simulation.Items.EquipmentDefinition;
 using ArmorDefinition = Spelljammer.Simulation.Items.ArmorDefinition;
 using GearDefinition = Spelljammer.Simulation.Items.GearDefinition;
+using AmmunitionDefinition = Spelljammer.Simulation.Items.AmmunitionDefinition;
 
 namespace Spelljammer.Content.Compilation;
 
@@ -1236,12 +1237,12 @@ public sealed class GameContentCompiler
 
     private static AmmunitionDefinition CompileAmmunition(SourceDefinition value) => new(
         new AmmunitionId(value.Id), 1, value.Revision, value.NameKey, value.DescriptionKey,
+        value.Integers["weightHundredthsOfPound"], value.Integers["value"], value.Integers["maximumStackSize"],
+        Sort(value.Arrays["tags"]),
         ParseAmmunitionType(value.Strings["ammunitionType"]),
         ParseRangedWeaponTechnology(value.Strings["technology"]),
         value.Integers["damagePercentage"], value.Integers["armorDamagePercentage"],
-        value.Integers["armorPenetrationModifier"], value.Integers["rangeModifier"],
-        value.Integers["stackSize"], value.Integers["weightGrams"], value.Integers["value"],
-        Sort(value.Arrays["traits"]));
+        value.Integers["armorPenetrationModifier"], value.Integers["rangeModifier"]);
 
     private static RangedWeaponActionDefinition CompileRangedWeaponAction(SourceDefinition value) => new(
         new RangedWeaponActionId(value.Id), 1, value.Revision, value.NameKey, value.DescriptionKey,
@@ -1633,8 +1634,8 @@ public sealed class GameContentCompiler
             definition.Integers["armorDamagePercentage"] is < 0 or > 1_000 ||
             definition.Integers["armorPenetrationModifier"] is < -100 or > 100 ||
             definition.Integers["rangeModifier"] is < -1_000_000 or > 1_000_000 ||
-            definition.Integers["stackSize"] is < 1 or > 1_000_000 ||
-            definition.Integers["weightGrams"] is < 0 or > 1_000_000 ||
+            definition.Integers["maximumStackSize"] is < 2 or > 1_000_000 ||
+            definition.Integers["weightHundredthsOfPound"] is < 0 or > 1_000_000 ||
             definition.Integers["value"] is < 0 or > 1_000_000;
         if (enumInvalid || numberInvalid)
         {

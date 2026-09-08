@@ -1,0 +1,24 @@
+using System.Collections.Immutable;
+using Spelljammer.Simulation.Content;
+
+namespace Spelljammer.Simulation.Items;
+
+/// <summary>Stackable ammunition item and its ranged-combat modifiers.</summary>
+public sealed record AmmunitionDefinition(
+    AmmunitionId AmmunitionId,
+    int SchemaVersion,
+    int Revision,
+    string NameKey,
+    string DescriptionKey,
+    int WeightHundredthsOfPound,
+    int Value,
+    int MaximumStackSize,
+    ImmutableArray<string> Tags,
+    AmmunitionType AmmunitionType,
+    RangedWeaponTechnology Technology,
+    int DamagePercentage,
+    int ArmorDamagePercentage,
+    int ArmorPenetrationModifier,
+    int RangeModifier)
+    : ItemDefinition(AmmunitionId.Value, SchemaVersion, Revision, NameKey, DescriptionKey,
+        ItemCategory.Ammunition, WeightHundredthsOfPound, Value, MaximumStackSize, Tags);

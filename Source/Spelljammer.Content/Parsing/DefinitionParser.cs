@@ -62,7 +62,7 @@ internal static class DefinitionParser
                 ["ammunitionType", "magazineCapacity", "energyCapacity", "energyPerShot", "heatCapacity", "heatPerShot"]),
             [DefinitionKind.Ammunition] = new(
                 ["ammunitionType", "technology", "damagePercentage", "armorDamagePercentage",
-                 "armorPenetrationModifier", "rangeModifier", "stackSize", "weightGrams", "value", "traits"], []),
+                 "armorPenetrationModifier", "rangeModifier", "maximumStackSize", "weightHundredthsOfPound", "value", "tags"], []),
             [DefinitionKind.RangedWeaponAction] = new(
                 ["kind", "actionPointCost", "staminaCostModifier", "hitModifier", "damagePercentage",
                  "ammunitionCost", "shotCount", "energyCostModifier", "heatModifier", "durabilityCost",

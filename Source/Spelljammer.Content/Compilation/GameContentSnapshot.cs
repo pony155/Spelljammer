@@ -7,6 +7,7 @@ using MeleeWeaponDefinition = Spelljammer.Simulation.Items.MeleeWeaponDefinition
 using RangedWeaponDefinition = Spelljammer.Simulation.Items.RangedWeaponDefinition;
 using EquipmentDefinition = Spelljammer.Simulation.Items.EquipmentDefinition;
 using ItemDefinition = Spelljammer.Simulation.Items.ItemDefinition;
+using AmmunitionDefinition = Spelljammer.Simulation.Items.AmmunitionDefinition;
 
 namespace Spelljammer.Content.Compilation;
 
@@ -81,7 +82,7 @@ public sealed class GameContentSnapshot : ICharacterContentCatalog
         MeleeWeapons = meleeWeapons;
         MeleeWeaponActions = meleeWeaponActions;
         RangedWeapons = rangedWeapons;
-        Items = equipment.Cast<ItemDefinition>().Concat(meleeWeapons).Concat(rangedWeapons)
+        Items = equipment.Cast<ItemDefinition>().Concat(meleeWeapons).Concat(rangedWeapons).Concat(ammunition)
             .OrderBy(definition => definition.Id).ToImmutableArray();
         Ammunition = ammunition;
         RangedWeaponActions = rangedWeaponActions;

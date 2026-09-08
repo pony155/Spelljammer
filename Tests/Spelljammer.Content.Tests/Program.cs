@@ -65,7 +65,7 @@ internal static class ContentContracts
         ContentCompilationResult compiled = CompileDirectory(Path.Combine(Milestone2Root, "base"));
         True(compiled.Succeeded, Primary(compiled));
         GameContentSnapshot snapshot = compiled.Snapshot!;
-        Equal(20, snapshot.ItemRegistry.Count, "The unified item catalog is incomplete.");
+        Equal(21, snapshot.ItemRegistry.Count, "The unified item catalog is incomplete.");
         Equal(6, snapshot.BoardCellRegistry.Count, "The authored ruin does not contain six cells.");
         Equal(5, snapshot.ZoneLinkRegistry.Count, "The authored ruin link graph is incomplete.");
         Equal(1, snapshot.PersonalBoardRegistry.Count, "The first personal board was not published.");
@@ -168,6 +168,10 @@ internal static class ContentContracts
             "Service pistol ranged rules are missing.");
         True(snapshot.TryGetAmmunition(new AmmunitionId("ammunition.pistol.standard"),
             out AmmunitionDefinition? ammunition), "Standard pistol ammunition is missing.");
+        True(ammunition is ItemDefinition && snapshot.TryGetItem(ammunition!.Id, out ItemDefinition? ammunitionItem) &&
+            ReferenceEquals(ammunition, ammunitionItem), "Ammunition is not published through the unified item catalog.");
+        Equal(50, ammunition!.MaximumStackSize, "Ammunition maximumStackSize was not compiled.");
+        Equal(3, ammunition.WeightHundredthsOfPound, "Ammunition weight is not stored in hundredths of a pound.");
         Equal(RangedWeaponFamily.Pistol, weapon!.Family, "Ranged family was not compiled from JSON.");
         Equal(RangedWeaponTechnology.Ballistic, weapon.Technology, "Ranged technology was not compiled from JSON.");
         True(weapon is Spelljammer.Simulation.Items.WeaponDefinition,
@@ -211,9 +215,15 @@ internal static class ContentContracts
             "The ranged action's AP cost was not committed.");
         True(first.Resolution!.TotalHealthDamage > 0, "A successful ranged attack produced no Health damage.");
 
+        InventoryEntryId ammunitionEntryId = new(Guid.Parse("33333333-3333-3333-3333-333333333333"));
+        InventoryContainer actorContainer = actor.Items.InventoryContainers.Single();
+        ItemSystemResult stocked = ItemSystem.AddStack(
+            actor.Items, actorContainer.ContainerId, ammunitionEntryId, ammunition.Id, 10, snapshot);
+        True(stocked.Accepted, stocked.RejectionCode);
+        CharacterState stockedActor = actor with { Items = stocked.State };
         RangedWeaponState empty = weaponState with { LoadedAmmunitionId = null, CurrentAmmunition = 0 };
-        ItemInstance rangedItem = actor.Items.ItemInstances.Single(value => value.InstanceId == weaponItemInstanceId);
-        CharacterState unloadedActor = actor.ReplaceItem(rangedItem with { RangedWeaponState = empty });
+        ItemInstance rangedItem = stockedActor.Items.ItemInstances.Single(value => value.InstanceId == weaponItemInstanceId);
+        CharacterState unloadedActor = stockedActor.ReplaceItem(rangedItem with { RangedWeaponState = empty });
         RangedAttackEligibilityResult unloaded = RangedWeaponSystem.CheckAttackEligibility(unloadedActor, request, snapshot);
         False(unloaded.Accepted, "An unloaded ranged weapon was fired.");
         Equal(ActionRejectionCodes.AmmunitionRequired, unloaded.RejectionCode,
@@ -227,8 +237,7 @@ internal static class ContentContracts
             actor.Id,
             weaponItemInstanceId,
             new RangedWeaponActionId("ranged-action.reload-magazine"),
-            ammunition!.AmmunitionId,
-            10,
+            ammunitionEntryId,
             turn);
         RangedReloadResult reloaded = RangedWeaponSystem.Reload(unloadedActor, reloadRequest, snapshot);
         True(reloaded.Accepted, reloaded.RejectionCode);
@@ -238,11 +247,14 @@ internal static class ContentContracts
         True(reloaded.Actor!.TryGetItem(weaponItemInstanceId, out ItemInstance? reloadedItem), "Reloaded item is missing.");
         Equal(ammunition.AmmunitionId, reloadedItem!.RangedWeaponState!.LoadedAmmunitionId!.Value,
             "Reload did not publish the loaded ammunition identity.");
+        Equal(10 - weapon.MagazineCapacity,
+            reloaded.Actor.Items.InventoryEntries.Single(value => value.EntryId == ammunitionEntryId).Stack.Quantity,
+            "Reload did not atomically consume the inventory stack.");
 
-        RangedReloadResult full = RangedWeaponSystem.Reload(actor, reloadRequest, snapshot);
+        RangedReloadResult full = RangedWeaponSystem.Reload(stockedActor, reloadRequest, snapshot);
         False(full.Accepted, "A full magazine accepted more ammunition.");
         Equal(ActionRejectionCodes.MagazineFull, full.RejectionCode, "Full-magazine rejection was unstable.");
-        Equal(actor, full.Actor!, "Rejected reload mutated weapon state.");
+        Equal(stockedActor, full.Actor!, "Rejected reload mutated weapon or inventory state.");
         Equal(turn, full.TurnState, "Rejected reload spent AP.");
 
         Dictionary<string, byte[]> invalidFiles = ReadFiles(Path.Combine(Milestone2Root, "base"));

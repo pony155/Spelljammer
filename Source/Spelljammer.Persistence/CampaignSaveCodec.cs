@@ -132,7 +132,7 @@ public static class CampaignSaveCodec
         ImmutableHashSet<ContentId> availablePacks = content.Packs.Select(value => value.Id).ToImmutableHashSet();
         ImmutableArray<ContentId> missingPacks = [.. contentLock.Packs.Select(value => value.Id)
             .Where(id => !availablePacks.Contains(id)).Distinct().Order()];
-        IEnumerable<ContentId> resolvedRequired = contentLock.SaveSchemaVersion < CampaignSaveVersions.SaveSchema
+        IEnumerable<ContentId> resolvedRequired = contentLock.SaveSchemaVersion < CampaignSaveVersions.ItemInstanceSaveSchema
             ? required.Select(id => MapLegacyItemDefinitionId(id.ToString()))
             : required;
         ImmutableArray<ContentId> missingDefinitions = [.. resolvedRequired.Where(id => !content.TryGetDefinition(id, out _)).Distinct().Order()];
@@ -562,6 +562,13 @@ public static class CampaignSaveCodec
                 CurrentHeat = value.RangedWeaponState.CurrentHeat,
             },
         })],
+        InventoryEntries = [.. state.InventoryEntries.OrderBy(value => value.EntryId.Value).Select(value => new InventoryEntryDto
+        {
+            EntryId = value.EntryId.ToString(),
+            OwnerContainerId = value.OwnerContainerId.ToString(),
+            DefinitionId = value.Stack.DefinitionId.ToString(),
+            Quantity = value.Stack.Quantity,
+        })],
         InventoryContainers = [.. state.InventoryContainers.OrderBy(value => value.ContainerId.Value).Select(value => new InventoryContainerDto
         {
             ContainerId = value.ContainerId.ToString(),
@@ -569,6 +576,7 @@ public static class CampaignSaveCodec
             MaximumWeightHundredthsOfPound = value.MaximumWeightHundredthsOfPound,
             MaximumEntries = value.MaximumEntries,
             ItemInstanceIds = [.. value.ItemInstanceIds.OrderBy(id => id.Value).Select(id => id.ToString())],
+            InventoryEntryIds = [.. value.InventoryEntryIds.OrderBy(id => id.Value).Select(id => id.ToString())],
         })],
         EquipmentLoadouts = [.. state.EquipmentLoadouts.OrderBy(value => value.OwnerId).Select(value => new EquipmentLoadoutDto
         {
@@ -863,7 +871,7 @@ public static class CampaignSaveCodec
         CharacterCapabilities capabilities = CharacterCapabilities.Restore(snapshot, content);
         ImmutableDictionary<ContentId, int> resources = ValueDictionary(value.Resources);
         ImmutableDictionary<ContentId, int> training = ValueDictionary(value.TrainingProgress);
-        ItemSystemState items = saveSchemaVersion < CampaignSaveVersions.SaveSchema
+        ItemSystemState items = saveSchemaVersion < CampaignSaveVersions.ItemInstanceSaveSchema
             ? MigrateLegacyItems(new ContentId(value.Id), value.LegacyEquipmentDefinitionIds ?? [], content)
             : FromDto(value.Items);
         CharacterState character = new(
@@ -918,7 +926,7 @@ public static class CampaignSaveCodec
             RequireCount(actorDto.CharacterResources.Length, CampaignSaveLimits.MaximumCollectionEntries);
             CellId cellId = new(actorDto.CellId);
             ActorId actorId = new(actorDto.Id);
-            ItemSystemState items = saveSchemaVersion < CampaignSaveVersions.SaveSchema
+            ItemSystemState items = saveSchemaVersion < CampaignSaveVersions.ItemInstanceSaveSchema
                 ? MigrateLegacyItems(new ContentId(actorDto.Id), (actorDto.Equipment ?? []).Select(item => item.EquipmentId), content)
                 : FromDto(actorDto.Items);
 
@@ -955,6 +963,7 @@ public static class CampaignSaveCodec
     private static ItemSystemState FromDto(ItemSystemDto value)
     {
         RequireCount(value.ItemInstances.Length, CampaignSaveLimits.MaximumCollectionEntries);
+        RequireCount(value.InventoryEntries.Length, CampaignSaveLimits.MaximumCollectionEntries);
         RequireCount(value.InventoryContainers.Length, CampaignSaveLimits.MaximumCollectionEntries);
         RequireCount(value.EquipmentLoadouts.Length, CampaignSaveLimits.MaximumCollectionEntries);
         return new ItemSystemState(
@@ -980,12 +989,16 @@ public static class CampaignSaveCodec
             [.. value.InventoryContainers.Select(container =>
             {
                 RequireCount(container.ItemInstanceIds.Length, CampaignSaveLimits.MaximumCollectionEntries);
+                RequireCount(container.InventoryEntryIds.Length, CampaignSaveLimits.MaximumCollectionEntries);
                 return new InventoryContainer(
                     new InventoryContainerId(ParseGuid(container.ContainerId)),
                     new ContentId(container.OwnerId),
                     container.MaximumWeightHundredthsOfPound,
                     container.MaximumEntries,
-                    [.. container.ItemInstanceIds.Select(id => new ItemInstanceId(ParseGuid(id)))]);
+                    [.. container.ItemInstanceIds.Select(id => new ItemInstanceId(ParseGuid(id)))])
+                {
+                    InventoryEntryIds = [.. container.InventoryEntryIds.Select(id => new InventoryEntryId(ParseGuid(id)))],
+                };
             })],
             [.. value.EquipmentLoadouts.Select(loadout =>
             {
@@ -993,7 +1006,13 @@ public static class CampaignSaveCodec
                 return new EquipmentLoadout(new ContentId(loadout.OwnerId),
                     [.. loadout.SlotAssignments.Select(assignment => new SlotAssignment(
                         new ContentId(assignment.SlotId), new ItemInstanceId(ParseGuid(assignment.ItemInstanceId))))]);
-            })]);
+            })])
+        {
+            InventoryEntries = [.. value.InventoryEntries.Select(entry => new InventoryEntry(
+                new InventoryEntryId(ParseGuid(entry.EntryId)),
+                new InventoryContainerId(ParseGuid(entry.OwnerContainerId)),
+                new ItemStack(new ContentId(entry.DefinitionId), entry.Quantity)))],
+        };
     }
 
     private static ItemSystemState MigrateLegacyItems(

@@ -131,8 +131,7 @@ public sealed record RangedReloadRequest(
     CharacterId ActorId,
     ItemInstanceId WeaponItemInstanceId,
     RangedWeaponActionId ActionId,
-    AmmunitionId AmmunitionId,
-    int AvailableAmmunition,
+    InventoryEntryId AmmunitionEntryId,
     CharacterTurnState TurnState);
 
 public sealed record RangedReloadResult(
@@ -384,8 +383,12 @@ public static class RangedWeaponSystem
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(catalog);
+        int RemainingAmmunition() => actor is not null &&
+            actor.TryGetInventoryEntry(request.AmmunitionEntryId, out InventoryEntry? currentEntry)
+                ? currentEntry!.Stack.Quantity
+                : 0;
         RangedReloadResult Reject(string code) => new(
-            actor, request.TurnState, request.AvailableAmmunition, 0, false, code);
+            actor, request.TurnState, RemainingAmmunition(), 0, false, code);
 
         if (actor is null || actor.Id != request.ActorId)
         {
@@ -415,14 +418,24 @@ public static class RangedWeaponSystem
             return Reject(ActionRejectionCodes.ActionUnknown);
         }
 
-        if (weapon.AmmunitionType is null || !catalog.TryGetAmmunition(request.AmmunitionId, out AmmunitionDefinition? ammunition) ||
-            ammunition!.AmmunitionType != weapon.AmmunitionType)
+        if (!actor.TryGetInventoryEntry(request.AmmunitionEntryId, out InventoryEntry? ammunitionEntry))
+        {
+            return Reject(ActionRejectionCodes.AmmunitionRequired);
+        }
+
+        InventoryEntry resolvedAmmunitionEntry = ammunitionEntry!;
+        InventoryContainer? ammunitionContainer = actor.Items.InventoryContainers.SingleOrDefault(
+            value => value.ContainerId == resolvedAmmunitionEntry.OwnerContainerId);
+        if (ammunitionContainer?.OwnerId != actor.Id.Value ||
+            !catalog.TryGetItem(resolvedAmmunitionEntry.Stack.DefinitionId, out ItemDefinition? ammunitionItem) ||
+            ammunitionItem is not AmmunitionDefinition ammunition ||
+            weapon.AmmunitionType is null || ammunition.AmmunitionType != weapon.AmmunitionType)
         {
             return Reject(ActionRejectionCodes.AmmunitionIncompatible);
         }
 
         if (weaponState!.LoadedAmmunitionId is AmmunitionId loadedId &&
-            loadedId != request.AmmunitionId && weaponState.CurrentAmmunition > 0)
+            loadedId != ammunition.AmmunitionId && weaponState.CurrentAmmunition > 0)
         {
             return Reject(ActionRejectionCodes.AmmunitionIncompatible);
         }
@@ -434,7 +447,7 @@ public static class RangedWeaponSystem
             return Reject(ActionRejectionCodes.MagazineFull);
         }
 
-        if (request.AvailableAmmunition <= 0 || !request.TurnState.CanSpendActionPoints(action.ActionPointCost))
+        if (!request.TurnState.CanSpendActionPoints(action.ActionPointCost))
         {
             return Reject(ActionRejectionCodes.ResourceInsufficient);
         }
@@ -445,10 +458,10 @@ public static class RangedWeaponSystem
             return Reject(ActionRejectionCodes.ResourceInsufficient);
         }
 
-        int loadedAmount = Math.Min(space, Math.Min(action.ReloadAmount, request.AvailableAmmunition));
+        int loadedAmount = Math.Min(space, Math.Min(action.ReloadAmount, resolvedAmmunitionEntry.Stack.Quantity));
         RangedWeaponState committedWeapon = weaponState with
         {
-            LoadedAmmunitionId = request.AmmunitionId,
+            LoadedAmmunitionId = ammunition.AmmunitionId,
             CurrentAmmunition = weaponState.CurrentAmmunition + loadedAmount,
         };
         ItemInstance committedItem = item! with
@@ -456,14 +469,29 @@ public static class RangedWeaponSystem
             CurrentDurability = committedWeapon.CurrentDurability,
             RangedWeaponState = committedWeapon,
         };
-        CharacterState committedActor = actor.ReplaceItem(committedItem) with
+        ItemSystemState itemCandidate = actor.Items with
         {
+            ItemInstances = actor.Items.ItemInstances.Select(value => value.InstanceId == committedItem.InstanceId
+                ? committedItem
+                : value).ToImmutableArray(),
+        };
+        ItemSystemResult consumed = ItemSystem.Consume(itemCandidate, request.AmmunitionEntryId, loadedAmount, catalog);
+        if (!consumed.Accepted)
+        {
+            return Reject(ActionRejectionCodes.ResourceInsufficient);
+        }
+
+        CharacterState committedActor = actor with
+        {
+            Items = consumed.State,
             CharacterResources = actor.CharacterResources.SpendResource(StaminaId, staminaCost),
         };
+        int remainingAmmunition = consumed.State.InventoryEntries
+            .SingleOrDefault(value => value.EntryId == request.AmmunitionEntryId)?.Stack.Quantity ?? 0;
         return new RangedReloadResult(
             committedActor,
             request.TurnState.SpendActionPoints(action.ActionPointCost),
-            request.AvailableAmmunition - loadedAmount,
+            remainingAmmunition,
             loadedAmount,
             true,
             ActionRejectionCodes.None);

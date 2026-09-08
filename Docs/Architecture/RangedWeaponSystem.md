@@ -1609,31 +1609,31 @@ Special Attack Behavior
 
 ---
 
-# 27. Ammo Definition
+# 27. Ammunition Definition
 
 The standard ammunition definition is:
 
 ```text
-AmmoDefinition
+AmmunitionDefinition : ItemDefinition
 {
     id
     name
     description
 
-    ammo_type
+    ammunitionType
     technology
 
-    damage_modifier
-    armor_damage_modifier
-    armor_penetration_modifier
+    damagePercentage
+    armorDamagePercentage
+    armorPenetrationModifier
 
-    range_modifier
+    rangeModifier
 
-    stack_size
-    weight
+    maximumStackSize
+    weightHundredthsOfPound
     value
 
-    traits[]
+    tags[]
 }
 ```
 
@@ -1913,7 +1913,7 @@ The exact interaction with `optimal_range` and `max_range` is determined by the 
 
 # 35. Stack Size
 
-`stack_size` determines how many units of ammunition may occupy a standard inventory stack.
+`maximumStackSize` determines how many units of ammunition may occupy a standard inventory stack.
 
 Example tendencies:
 
@@ -2038,7 +2038,7 @@ stun_chance
 explosion_radius
 ```
 
-to every `AmmoDefinition`.
+to every `AmmunitionDefinition`.
 
 When a Trait requires numerical configuration, it should reference or contain an appropriate Effect definition.
 
@@ -2455,7 +2455,7 @@ armor_penetration_modifier: 0.00
 
 range_modifier: 0
 
-stack_size: 1
+maximumStackSize: 1
 weight: 12.0
 value: 1500
 
@@ -2469,7 +2469,7 @@ traits:
 ]
 ```
 
-The base AmmoDefinition should not contain every nuclear explosion parameter.
+The base AmmunitionDefinition should not contain every nuclear explosion parameter.
 
 The `Nuclear` payload/effect system should define:
 
@@ -2622,7 +2622,7 @@ An `Unstable` trait may interact with:
 - User injury
 - Catastrophic failure
 
-These consequences should be handled by Trait and Effect systems rather than hardcoded into `AmmoDefinition`.
+These consequences should be handled by Trait and Effect systems rather than hardcoded into `AmmunitionDefinition`.
 
 ---
 
@@ -2644,7 +2644,7 @@ armor_penetration_modifier: 0.00
 
 range_modifier: 0
 
-stack_size: 20
+maximumStackSize: 20
 weight: 0.05
 value: 1
 
@@ -2738,7 +2738,7 @@ armor_penetration_modifier: 0.00
 
 range_modifier: 0
 
-stack_size: 20
+maximumStackSize: 20
 weight: 0.08
 value: 2
 
@@ -3273,7 +3273,7 @@ knockback
 terrain_damage
 ```
 
-These values belong to the Explosion Effect or Payload Definition rather than the universal `AmmoDefinition`.
+These values belong to the Explosion Effect or Payload Definition rather than the universal `AmmunitionDefinition`.
 
 This allows the same base ammo schema to support:
 
@@ -4003,7 +4003,7 @@ Available Actions
 ---
 
 ```text
-AmmoDefinition
+AmmunitionDefinition
     ↓
 Defines what is loaded
 ```
@@ -4318,45 +4318,45 @@ RangedWeapon
 
 ---
 
-# 73. Final AmmoDefinition Schema
+# 73. Final AmmunitionDefinition Schema
 
 ```text
-AmmoDefinition
+AmmunitionDefinition : ItemDefinition
 {
     id
     name
     description
 
-    ammo_type
+    ammunitionType
     technology
 
-    damage_modifier
-    armor_damage_modifier
-    armor_penetration_modifier
+    damagePercentage
+    armorDamagePercentage
+    armorPenetrationModifier
 
-    range_modifier
+    rangeModifier
 
-    stack_size
-    weight
+    maximumStackSize
+    weightHundredthsOfPound
     value
 
-    traits[]
+    tags[]
 }
 ```
 
 Modifier rules:
 
 ```text
-damage_modifier
+damagePercentage
 → multiplicative
 
-armor_damage_modifier
+armorDamagePercentage
 → multiplicative
 
-armor_penetration_modifier
+armorPenetrationModifier
 → additive
 
-range_modifier
+rangeModifier
 → additive
 ```
 
@@ -4415,7 +4415,7 @@ Ranged Combat Equipment
 │       ├── Plasma
 │       └── Arcane
 │
-├── AmmoDefinition
+├── AmmunitionDefinition
 │   ├── Arrow
 │   ├── CrossbowBolt
 │   ├── PistolRound
@@ -4481,10 +4481,13 @@ specified by section 52, and burst results reduce Armor between resolved hits.
 Accepted attempts spend their costs even when every shot misses; rejected
 attempts leave all input state unchanged.
 
-Reloading is a separate transactional operation addressed by `ItemInstanceId`. It validates ammunition
-compatibility, prevents replacement of a non-empty incompatible magazine,
-respects magazine capacity and available inventory quantity, and commits AP
-and Stamina only when ammunition is loaded. Attack, reload, and `Cool` publish
+Reloading is a separate transactional operation addressed by the weapon's
+`ItemInstanceId` and the ammunition's `InventoryEntryId`. It resolves the
+ammunition definition through the unified item catalog, validates container
+ownership and compatibility, prevents replacement of a non-empty incompatible
+magazine, and respects both magazine capacity and stack quantity. Stack
+consumption, magazine replacement, AP, and Stamina are committed atomically;
+rejection leaves all input state unchanged. Attack, reload, and `Cool` publish
 ammunition, energy, heat, and durability back into the owning character's item
 state.
 
@@ -4494,7 +4497,6 @@ families, technologies, ammunition payloads, burst fire, area attacks, and
 environmental interactions are schema-supported concepts that still require
 authored definitions and effect-system integration.
 
-Encounter actors and campaign save schema 8 persist the item instance and its
+Encounter actors and campaign save schema 9 persist the item instance and its
 `RangedWeaponState`. Applying returned Health and Armor damage to encounter
-targets, stackable ammunition ownership, AI action selection, line-of-fire,
-and terrain effects remain planned.
+targets, AI action selection, line-of-fire, and terrain effects remain planned.

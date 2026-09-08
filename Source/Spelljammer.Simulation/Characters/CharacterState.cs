@@ -426,6 +426,12 @@ public sealed record CharacterState(
         return item is not null;
     }
 
+    public bool TryGetInventoryEntry(InventoryEntryId entryId, out InventoryEntry? entry)
+    {
+        entry = Items.InventoryEntries.SingleOrDefault(value => value.EntryId == entryId);
+        return entry is not null;
+    }
+
     public bool IsEquipped(ItemInstanceId instanceId) =>
         Items.EquipmentLoadouts.Any(value => value.OwnerId == Id.Value &&
             value.SlotAssignments.Any(assignment => assignment.ItemInstanceId == instanceId));

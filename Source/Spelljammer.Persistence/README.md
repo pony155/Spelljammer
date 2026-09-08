@@ -12,7 +12,7 @@ Callers supply the immutable `GameContentSnapshot` selected for a load; saved
 stable IDs are resolved and runtime indices are reconstructed only inside that
 validated boundary.
 
-Save schema 8 preserves campaign and encounter character resources, turn state,
+Save schema 9 preserves campaign and encounter character resources, turn state,
 and complete item-instance ownership: containers, equipped slots, durability,
-melee energy, and ranged ammunition, energy, and heat. Schema 7 equipment IDs
-remain readable through the deterministic load migration.
+melee energy, ranged ammunition, energy, and heat, and stackable inventory
+entries. Schema 7 and 8 saves remain readable through deterministic migration.
