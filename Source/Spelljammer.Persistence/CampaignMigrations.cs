@@ -251,7 +251,6 @@ public static class CampaignMigrationService
         return source with
         {
             ContentLock = contentLock,
-            Characters = characters,
             World = source.World with
             {
                 ContentFingerprint = newContent.Fingerprint,
@@ -259,6 +258,7 @@ public static class CampaignMigrationService
                 Calendar = calendar!,
                 TimeScale = timeScale!,
                 Ships = ships,
+                Characters = characters.ToImmutableDictionary(character => character.Id),
                 PersonalEncounter = encounter,
             },
         };

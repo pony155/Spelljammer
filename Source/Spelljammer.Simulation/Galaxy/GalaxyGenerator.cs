@@ -8,7 +8,10 @@ public sealed record GalaxyGenerationSettings(int SystemCount = 16, int Generato
     public const int MinimumSystemCount = 8;
 }
 
-public sealed record GalaxyGenerationResult(GalaxyMapState? Galaxy, GalaxyValidationCode Code)
+public sealed record GalaxyGenerationResult(
+    GalaxyState? Galaxy,
+    VoyageNavigationState? Navigation,
+    GalaxyValidationCode Code)
 {
     public bool Succeeded => Galaxy is not null && Code == GalaxyValidationCode.None;
 }
@@ -27,9 +30,9 @@ public static class GalaxyGenerator
     {
         settings ??= new();
         if (settings.GeneratorVersion <= 0 ||
-            settings.SystemCount is < GalaxyGenerationSettings.MinimumSystemCount or > GalaxyMapState.MaximumSystems)
+            settings.SystemCount is < GalaxyGenerationSettings.MinimumSystemCount or > GalaxyLimits.MaximumSystems)
         {
-            return new(null, GalaxyValidationCode.InvalidHeader);
+            return new(null, null, GalaxyValidationCode.InvalidHeader);
         }
 
         DeterministicStream random = new(seed ^ 0x67616c617879UL);
@@ -97,18 +100,22 @@ public static class GalaxyGenerator
         Connect(Math.Max(1, split - 3), Math.Min(systems.Length - 1, split + 2));
 
         ImmutableDictionary<StarSystemId, StarSystemState> systemMap = systems.ToImmutableDictionary(value => value.Id);
-        GalaxyMapState galaxy = new(
-            settings.GeneratorVersion,
-            seed,
-            systems[0].Id,
-            systemMap,
-            starways.ToImmutableDictionary(value => value.Id),
-            ImmutableDictionary<StarSystemId, GalaxyKnowledgeLevel>.Empty
-                .Add(systems[0].Id, GalaxyKnowledgeLevel.Charted)
-                .Add(systems[1].Id, GalaxyKnowledgeLevel.Detected)
-                .Add(systems[2].Id, GalaxyKnowledgeLevel.Detected));
+        GalaxyState galaxy = new(
+            new GalaxyTopology(
+                settings.GeneratorVersion,
+                seed,
+                systemMap,
+                starways.ToImmutableDictionary(value => value.Id)),
+            new GalaxyKnowledgeState(
+                ImmutableDictionary<StarSystemId, GalaxyKnowledgeLevel>.Empty
+                    .Add(systems[0].Id, GalaxyKnowledgeLevel.Charted)
+                    .Add(systems[1].Id, GalaxyKnowledgeLevel.Detected)
+                    .Add(systems[2].Id, GalaxyKnowledgeLevel.Detected)),
+            GalaxyDynamicState.Empty);
         GalaxyValidationResult validation = GalaxyValidator.Validate(galaxy);
-        return validation.Accepted ? new(galaxy, GalaxyValidationCode.None) : new(null, validation.Code);
+        return validation.Accepted
+            ? new(galaxy, VoyageNavigationState.AtAnchor(systems[0].Id), GalaxyValidationCode.None)
+            : new(null, null, validation.Code);
     }
 
     private struct DeterministicStream(ulong state)

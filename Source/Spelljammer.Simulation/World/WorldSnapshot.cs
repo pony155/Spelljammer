@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using Spelljammer.Simulation.Characters;
 using Spelljammer.Simulation.Content;
 using Spelljammer.Simulation.Encounters;
 using Spelljammer.Simulation.Galaxy;
@@ -19,11 +20,13 @@ public sealed record WorldSnapshot(
     CalendarDefinition Calendar,
     TimeScaleDefinition TimeScale,
     CampaignClockState Clock,
-    GalaxyMapState? Galaxy,
+    GalaxyState? Galaxy,
+    VoyageNavigationState? VoyageNavigation,
     long Tick,
     bool ShipPaused,
     bool PersonalPaused,
     ImmutableArray<ShipState> Ships,
+    ImmutableArray<CharacterState> Characters,
     PersonalEncounterState? PersonalEncounter,
     ImmutableArray<BattleUnitId> ReadyUnits,
     ImmutableArray<ScheduledAction> Actions,

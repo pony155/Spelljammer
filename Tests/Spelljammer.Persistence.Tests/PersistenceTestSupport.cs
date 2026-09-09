@@ -10,6 +10,7 @@ using Spelljammer.Persistence;
 using Spelljammer.Simulation.Characters;
 using Spelljammer.Simulation.Content;
 using Spelljammer.Simulation.Encounters;
+using Spelljammer.Simulation.Galaxy;
 using Spelljammer.Simulation.Ships;
 using Spelljammer.Simulation.World;
 using Spelljammer.Simulation.Items;
@@ -114,6 +115,22 @@ public sealed partial class PersistenceContracts
             ImmutableHashSet.Create(new ContentId("object.ruin.ancient-defense")),
             false,
             false);
+        GalaxyGenerationResult generatedGalaxy = GalaxyGenerator.Generate(0x5eedUL);
+        if (!generatedGalaxy.Succeeded)
+        {
+            throw new InvalidOperationException($"Test galaxy generation failed: {generatedGalaxy.Code}.");
+        }
+
+        StarwayId changedStarwayId = generatedGalaxy.Galaxy!.Topology.Starways.Keys.Min();
+        GalaxyState galaxy = generatedGalaxy.Galaxy with
+        {
+            Dynamic = new GalaxyDynamicState(
+                ImmutableDictionary<StarwayId, StarwayDynamicState>.Empty.Add(
+                    changedStarwayId,
+                    new StarwayDynamicState(false, 2, new ContentId("faction.test.traders"))),
+                ImmutableHashSet.Create(new ContentId("site.test.changed"))),
+        };
+
         World world = World.Create(
             0x5eedUL,
             content.Fingerprint,
@@ -122,7 +139,10 @@ public sealed partial class PersistenceContracts
             content.TimeScales.Single(),
             new TeamId("team.player"),
             [loadout.Ship!],
-            encounter);
+            encounter,
+            galaxy,
+            generatedGalaxy.Navigation,
+            characters: campaignCharacters);
         WorldCommand queued = new(
             new ContentId("command.saved.course"), WorldCommandKind.Course, 1, 10, loadout.Ship!.Id.Value,
             loadout.Ship.Id.Value, new FixedVector2(FixedScalar.FromInt(1), FixedScalar.FromInt(0)), 0, null, 1);
@@ -136,8 +156,7 @@ public sealed partial class PersistenceContracts
             CampaignContentLock.Create(content),
             new ContentId("location.anchorage.home"),
             world,
-            activeRoster.ProtagonistId,
-            campaignCharacters);
+            activeRoster.ProtagonistId);
     }
 
     private static void True(bool condition, string message)

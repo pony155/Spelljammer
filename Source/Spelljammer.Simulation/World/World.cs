@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using Spelljammer.Simulation.Characters;
 using Spelljammer.Simulation.Content;
 using Spelljammer.Simulation.Encounters;
 using Spelljammer.Simulation.Galaxy;
@@ -37,9 +38,17 @@ public sealed partial record World(
     public const int MaximumSchedules = 256;
     public const int MaximumEvents = 512;
     public const int MaximumReadyUnits = 64;
+    public const int MaximumCharacters = 64;
 
     /// <summary>The optional authoritative campaign galaxy for voyage-scale play.</summary>
-    public GalaxyMapState? Galaxy { get; init; }
+    public GalaxyState? Galaxy { get; init; }
+
+    /// <summary>The voyage position and transit state, kept separate from galaxy geography.</summary>
+    public VoyageNavigationState? VoyageNavigation { get; init; }
+
+    /// <summary>Persistent authoritative characters indexed by stable identity.</summary>
+    public ImmutableDictionary<CharacterId, CharacterState> Characters { get; init; } =
+        ImmutableDictionary<CharacterId, CharacterState>.Empty;
 
     public static World Create(
         ulong seed,
@@ -50,18 +59,26 @@ public sealed partial record World(
         TeamId playerTeamId,
         IEnumerable<ShipState> ships,
         PersonalEncounterState? encounter = null,
-        GalaxyMapState? galaxy = null)
+        GalaxyState? galaxy = null,
+        VoyageNavigationState? voyageNavigation = null,
+        IEnumerable<CharacterState>? characters = null)
     {
         ArgumentNullException.ThrowIfNull(timeDefinition);
         ArgumentNullException.ThrowIfNull(calendar);
         ArgumentNullException.ThrowIfNull(timeScale);
         ImmutableDictionary<ShipId, ShipState> shipMap = ships.ToImmutableDictionary(value => value.Id);
+        ImmutableDictionary<CharacterId, CharacterState> characterMap =
+            (characters ?? []).ToImmutableDictionary(value => value.Id);
         if (timeDefinition.TicksPerSecond <= 0 || timeDefinition.MaximumCatchUpTicks <= 0 ||
             calendar.SecondsPerMinute <= 0 || calendar.MinutesPerHour <= 0 || calendar.HoursPerDay <= 0 ||
             calendar.DaysPerWeek <= 0 || calendar.Months.IsDefaultOrEmpty ||
             timeScale.WorldSecondsNumerator <= 0 || timeScale.SimulationTicksDenominator <= 0 ||
             shipMap.Count is 0 or > 32 || encounter?.Units.Count > MaximumReadyUnits ||
-            (galaxy is not null && !GalaxyValidator.Validate(galaxy).Accepted))
+            characterMap.Count > MaximumCharacters ||
+            characterMap.Values.Any(value => value.ContentFingerprint != fingerprint) ||
+            (galaxy is null) != (voyageNavigation is null) ||
+            (galaxy is not null && (!GalaxyValidator.Validate(galaxy).Accepted ||
+                !GalaxyValidator.ValidateNavigation(galaxy, voyageNavigation))))
         {
             throw new InvalidOperationException("World configuration or capacity is invalid.");
         }
@@ -84,7 +101,12 @@ public sealed partial record World(
             [],
             [],
             [],
-            []) { Galaxy = galaxy };
+            [])
+        {
+            Galaxy = galaxy,
+            VoyageNavigation = voyageNavigation,
+            Characters = characterMap,
+        };
     }
 
     public World SetShipPause(bool paused) => this with { ShipPaused = paused };
@@ -99,10 +121,12 @@ public sealed partial record World(
         TimeScale,
         Clock,
         Galaxy,
+        VoyageNavigation,
         Tick,
         ShipPaused,
         PersonalPaused,
         [.. Ships.Values.OrderBy(value => value.Id)],
+        [.. Characters.Values.OrderBy(value => value.Id)],
         PersonalEncounter,
         ReadyUnits,
         ScheduledActions,

@@ -6,9 +6,10 @@
 project. It does not reference WPF, SpriteForge, localization, wall-clock APIs,
 filesystem APIs, or mutable presentation objects.
 
-`World` owns the fixed-tick voyage timeline, ship and personal
-encounters, typed commands, scheduled action phases, replay history, and
-bounded events. Accepted transitions publish replacement immutable state.
+`World` owns the fixed-tick voyage timeline, persistent characters, ships,
+galaxy and voyage-navigation state, personal encounters, typed commands,
+scheduled action phases, replay history, and bounded events. Accepted
+transitions publish replacement immutable state.
 Rejected commands preserve the prior world and return stable rejection codes.
 
 Simulation cadence and catch-up policy come from the fingerprinted
@@ -43,7 +44,8 @@ Combat/      character-combat definitions, action systems, and resolution contra
 Content/     stable content IDs, common definition metadata, and aggregate catalog
 Effects/     Effect and Status definitions, state, queries, and systems
 Encounters/  encounter definitions, battle-unit projections, tactical board, and lifecycle
-Galaxy/      deterministic topology, knowledge, validation, and bounded route planning
+Galaxy/      immutable topology, player knowledge, dynamic map state, voyage navigation,
+             validation, deterministic generation, and bounded route planning
 Items/       item definitions, inventory state, equipment, and mutations
 Ships/       ship definitions, state, loadout, power, damage, and combat geometry
 World/       world state, time, geometry, commands, scheduled actions, and events
@@ -104,8 +106,14 @@ view they consume.
 
 ## Persistence and content
 
-The persistence project serializes `World`, character, encounter, item,
-Status, and command state only after content preflight. See the
+The persistence project serializes `World`, encounter, item, Status, and
+command state only after content preflight. Persistent characters belong to
+`World.Characters`; `CampaignState.Characters` is a read-only compatibility
+projection for existing consumers rather than a second authority. Galaxy
+state is divided into immutable `GalaxyTopology`, player-facing
+`GalaxyKnowledgeState`, and mutable `GalaxyDynamicState` under one
+`GalaxyState`. `VoyageNavigationState` is stored separately inside `World`, so
+the map cannot acquire player-location or transit responsibility. See the
 [Persistence source briefing](../../Source/Spelljammer.Persistence/README.md).
 
 Gameplay definitions are discovered, linked, validated, and compiled by the

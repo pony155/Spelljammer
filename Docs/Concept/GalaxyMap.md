@@ -275,6 +275,13 @@ records, and dynamic world changes. A newer generator creates new campaigns but
 does not silently rewrite an existing galaxy. Any compaction or migration first
 validates the complete replacement before publication.
 
+`GalaxyState` separates immutable `GalaxyTopology`, player knowledge in
+`GalaxyKnowledgeState`, and blockades, hazard modifiers, controlling factions,
+and changed sites in `GalaxyDynamicState`. The player's current system, active
+Starway, planned route, progress, and departure or arrival ticks belong to
+`VoyageNavigationState`, not to the galaxy map. Both values are owned and
+committed by the authoritative `World`.
+
 Content loading rejects duplicate IDs, invalid weights, missing definitions,
 unbounded tables, impossible placement constraints, invalid route costs,
 orphaned Starways, and unreachable required systems. Save loading rejects or

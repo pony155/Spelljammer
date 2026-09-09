@@ -30,13 +30,14 @@ public static partial class CampaignSaveCodec
         CurrentLocationId = campaign.CurrentLocationId.ToString(),
         ProtagonistId = campaign.ProtagonistId.ToString(),
         World = ToDto(campaign.World),
-        Characters = [.. campaign.Characters.OrderBy(value => value.Id).Select(value => ToDto(value, content))],
+        Characters = [.. campaign.World.Characters.Values.OrderBy(value => value.Id).Select(value => ToDto(value, content))],
     };
 
     private static WorldDto ToDto(World world) => new()
     {
         Seed = world.Seed,
         Galaxy = world.Galaxy is null ? null : ToDto(world.Galaxy),
+        VoyageNavigation = world.VoyageNavigation is null ? null : ToDto(world.VoyageNavigation),
         Clock = new CampaignClockDto
         {
             ElapsedWorldSeconds = world.Clock.ElapsedWorldSeconds,
@@ -82,34 +83,57 @@ public static partial class CampaignSaveCodec
         })],
     };
 
-    private static GalaxyDto ToDto(GalaxyMapState galaxy) => new()
+    private static GalaxyDto ToDto(GalaxyState galaxy) => new()
     {
-        GeneratorVersion = galaxy.GeneratorVersion,
-        Seed = galaxy.Seed,
-        CurrentSystemId = galaxy.CurrentSystemId.ToString(),
-        Systems = [.. galaxy.Systems.Values.OrderBy(value => value.Id).Select(value => new GalaxySystemDto
+        Topology = new GalaxyTopologyDto
         {
-            Id = value.Id.ToString(),
-            Ordinal = value.Ordinal,
-            Region = value.Region,
-            DisplayX = value.DisplayX,
-            DisplayY = value.DisplayY,
-            ArchetypeId = value.ArchetypeId.ToString(),
-        })],
-        Starways = [.. galaxy.Starways.Values.OrderBy(value => value.Id).Select(value => new StarwayDto
-        {
-            Id = value.Id.ToString(),
-            FirstSystemId = value.FirstSystemId.ToString(),
-            SecondSystemId = value.SecondSystemId.ToString(),
-            TravelTime = value.TravelTime,
-            FuelCost = value.FuelCost,
-            Danger = value.Danger,
-        })],
-        Knowledge = [.. galaxy.Knowledge.OrderBy(value => value.Key).Select(value => new GalaxyKnowledgeDto
+            GeneratorVersion = galaxy.Topology.GeneratorVersion,
+            Seed = galaxy.Topology.Seed,
+            Systems = [.. galaxy.Topology.Systems.Values.OrderBy(value => value.Id).Select(value => new GalaxySystemDto
+            {
+                Id = value.Id.ToString(),
+                Ordinal = value.Ordinal,
+                Region = value.Region,
+                DisplayX = value.DisplayX,
+                DisplayY = value.DisplayY,
+                ArchetypeId = value.ArchetypeId.ToString(),
+            })],
+            Starways = [.. galaxy.Topology.Starways.Values.OrderBy(value => value.Id).Select(value => new StarwayDto
+            {
+                Id = value.Id.ToString(),
+                FirstSystemId = value.FirstSystemId.ToString(),
+                SecondSystemId = value.SecondSystemId.ToString(),
+                TravelTime = value.TravelTime,
+                FuelCost = value.FuelCost,
+                Danger = value.Danger,
+            })],
+        },
+        Knowledge = [.. galaxy.Knowledge.Systems.OrderBy(value => value.Key).Select(value => new GalaxyKnowledgeDto
         {
             SystemId = value.Key.ToString(),
             Level = (int)value.Value,
         })],
+        Dynamic = new GalaxyDynamicDto
+        {
+            Starways = [.. galaxy.Dynamic.Starways.OrderBy(value => value.Key).Select(value => new StarwayDynamicDto
+            {
+                StarwayId = value.Key.ToString(),
+                IsBlocked = value.Value.IsBlocked,
+                DangerModifier = value.Value.DangerModifier,
+                ControllingFactionId = value.Value.ControllingFactionId?.ToString(),
+            })],
+            ChangedSiteIds = [.. galaxy.Dynamic.ChangedSiteIds.Order().Select(value => value.ToString())],
+        },
+    };
+
+    private static VoyageNavigationDto ToDto(VoyageNavigationState navigation) => new()
+    {
+        CurrentSystemId = navigation.CurrentSystemId.ToString(),
+        ActiveStarwayId = navigation.ActiveStarwayId?.ToString(),
+        PlannedRouteIds = [.. navigation.PlannedRoute.Select(value => value.ToString())],
+        RouteProgress = navigation.RouteProgress,
+        DepartureTick = navigation.DepartureTick,
+        ArrivalTick = navigation.ArrivalTick,
     };
 
     private static ShipDto ToDto(ShipState ship) => new()

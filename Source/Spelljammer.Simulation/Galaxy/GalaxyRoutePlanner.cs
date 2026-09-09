@@ -32,14 +32,14 @@ public static class GalaxyRoutePlanner
     public const int DefaultMaximumExpansions = 1_024;
 
     public static GalaxyRouteResult Plan(
-        GalaxyMapState galaxy,
+        GalaxyState galaxy,
         StarSystemId origin,
         StarSystemId destination,
         GalaxyRoutePreference preference,
         int maximumExpansions = DefaultMaximumExpansions)
     {
         ArgumentNullException.ThrowIfNull(galaxy);
-        if (!galaxy.Systems.ContainsKey(origin) || !galaxy.Systems.ContainsKey(destination) ||
+        if (!galaxy.Topology.Systems.ContainsKey(origin) || !galaxy.Topology.Systems.ContainsKey(destination) ||
             origin == destination || !Enum.IsDefined(preference) || maximumExpansions <= 0)
         {
             return Failed(GalaxyRouteCode.InvalidRequest);
@@ -74,6 +74,12 @@ public static class GalaxyRoutePlanner
 
             foreach (StarwayState starway in galaxy.StarwaysFrom(current))
             {
+                StarwayDynamicState dynamic = galaxy.Dynamic.StateOf(starway.Id);
+                if (dynamic.IsBlocked)
+                {
+                    continue;
+                }
+
                 StarSystemId next = starway.FirstSystemId == current ? starway.SecondSystemId : starway.FirstSystemId;
                 if (next != destination && galaxy.KnowledgeOf(next) < GalaxyKnowledgeLevel.Detected)
                 {
@@ -85,7 +91,7 @@ public static class GalaxyRoutePlanner
                     GalaxyRoutePreference.TravelTime => starway.TravelTime,
                     GalaxyRoutePreference.Fuel => starway.FuelCost,
                     GalaxyRoutePreference.KnownDanger => galaxy.KnowledgeOf(next) >= GalaxyKnowledgeLevel.Surveyed
-                        ? Math.Max(1, starway.Danger)
+                        ? Math.Max(1, starway.Danger + dynamic.DangerModifier)
                         : 1,
                     _ => throw new InvalidOperationException(),
                 };

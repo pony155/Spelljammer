@@ -47,6 +47,7 @@ internal sealed class WorldDto
 {
     public ulong Seed { get; set; }
     public GalaxyDto? Galaxy { get; set; }
+    public VoyageNavigationDto? VoyageNavigation { get; set; }
     public CampaignClockDto Clock { get; set; } = new();
     public long Tick { get; set; }
     public ulong RandomSequence { get; set; }
@@ -64,12 +65,41 @@ internal sealed class WorldDto
 
 internal sealed class GalaxyDto
 {
+    public GalaxyTopologyDto Topology { get; set; } = new();
+    public GalaxyKnowledgeDto[] Knowledge { get; set; } = [];
+    public GalaxyDynamicDto Dynamic { get; set; } = new();
+}
+
+internal sealed class GalaxyTopologyDto
+{
     public int GeneratorVersion { get; set; }
     public ulong Seed { get; set; }
-    public string CurrentSystemId { get; set; } = string.Empty;
     public GalaxySystemDto[] Systems { get; set; } = [];
     public StarwayDto[] Starways { get; set; } = [];
-    public GalaxyKnowledgeDto[] Knowledge { get; set; } = [];
+}
+
+internal sealed class GalaxyDynamicDto
+{
+    public StarwayDynamicDto[] Starways { get; set; } = [];
+    public string[] ChangedSiteIds { get; set; } = [];
+}
+
+internal sealed class StarwayDynamicDto
+{
+    public string StarwayId { get; set; } = string.Empty;
+    public bool IsBlocked { get; set; }
+    public int DangerModifier { get; set; }
+    public string? ControllingFactionId { get; set; }
+}
+
+internal sealed class VoyageNavigationDto
+{
+    public string CurrentSystemId { get; set; } = string.Empty;
+    public string? ActiveStarwayId { get; set; }
+    public string[] PlannedRouteIds { get; set; } = [];
+    public int RouteProgress { get; set; }
+    public long DepartureTick { get; set; }
+    public long ArrivalTick { get; set; }
 }
 
 internal sealed class GalaxySystemDto

@@ -93,6 +93,8 @@ public static partial class CampaignSaveCodec
                 ParseEnum<WorldCommandKind>(value.Kind), value.Succeeded, value.Amount, value.ResultCode))])
         {
             Galaxy = payload.World.Galaxy is null ? null : FromDto(payload.World.Galaxy),
+            VoyageNavigation = payload.World.VoyageNavigation is null ? null : FromDto(payload.World.VoyageNavigation),
+            Characters = characters.ToImmutableDictionary(value => value.Id),
         };
 
         CampaignContentLock activeLock = savedLock.EffectiveFingerprint == content.Fingerprint &&
@@ -108,34 +110,55 @@ public static partial class CampaignSaveCodec
             activeLock,
             new ContentId(payload.CurrentLocationId),
             world,
-            new CharacterId(payload.ProtagonistId),
-            characters);
+            new CharacterId(payload.ProtagonistId));
     }
 
-    private static GalaxyMapState FromDto(GalaxyDto value)
+    private static GalaxyState FromDto(GalaxyDto value)
     {
-        RequireCount(value.Systems.Length, GalaxyMapState.MaximumSystems);
-        RequireCount(value.Starways.Length, GalaxyMapState.MaximumStarways);
-        RequireCount(value.Knowledge.Length, GalaxyMapState.MaximumSystems);
-        GalaxyMapState galaxy = new(
-            value.GeneratorVersion,
-            value.Seed,
-            new StarSystemId(value.CurrentSystemId),
-            value.Systems.Select(system => new StarSystemState(
-                new StarSystemId(system.Id), system.Ordinal, system.Region, system.DisplayX, system.DisplayY,
-                new ContentId(system.ArchetypeId))).ToImmutableDictionary(system => system.Id),
-            value.Starways.Select(starway => new StarwayState(
-                new StarwayId(starway.Id), new StarSystemId(starway.FirstSystemId),
-                new StarSystemId(starway.SecondSystemId), starway.TravelTime, starway.FuelCost, starway.Danger))
-                .ToImmutableDictionary(starway => starway.Id),
-            value.Knowledge.ToImmutableDictionary(
-                item => new StarSystemId(item.SystemId), item => ParseEnum<GalaxyKnowledgeLevel>(item.Level)));
+        RequireCount(value.Topology.Systems.Length, GalaxyLimits.MaximumSystems);
+        RequireCount(value.Topology.Starways.Length, GalaxyLimits.MaximumStarways);
+        RequireCount(value.Knowledge.Length, GalaxyLimits.MaximumSystems);
+        RequireCount(value.Dynamic.Starways.Length, GalaxyLimits.MaximumStarways);
+        RequireCount(value.Dynamic.ChangedSiteIds.Length, GalaxyLimits.MaximumChangedSites);
+        GalaxyState galaxy = new(
+            new GalaxyTopology(
+                value.Topology.GeneratorVersion,
+                value.Topology.Seed,
+                value.Topology.Systems.Select(system => new StarSystemState(
+                    new StarSystemId(system.Id), system.Ordinal, system.Region, system.DisplayX, system.DisplayY,
+                    new ContentId(system.ArchetypeId))).ToImmutableDictionary(system => system.Id),
+                value.Topology.Starways.Select(starway => new StarwayState(
+                    new StarwayId(starway.Id), new StarSystemId(starway.FirstSystemId),
+                    new StarSystemId(starway.SecondSystemId), starway.TravelTime, starway.FuelCost, starway.Danger))
+                    .ToImmutableDictionary(starway => starway.Id)),
+            new GalaxyKnowledgeState(value.Knowledge.ToImmutableDictionary(
+                item => new StarSystemId(item.SystemId), item => ParseEnum<GalaxyKnowledgeLevel>(item.Level))),
+            new GalaxyDynamicState(
+                value.Dynamic.Starways.ToImmutableDictionary(
+                    item => new StarwayId(item.StarwayId),
+                    item => new StarwayDynamicState(
+                        item.IsBlocked,
+                        item.DangerModifier,
+                        item.ControllingFactionId is null ? null : new ContentId(item.ControllingFactionId))),
+                ParseIds(value.Dynamic.ChangedSiteIds, GalaxyLimits.MaximumChangedSites).ToImmutableHashSet()));
         if (!GalaxyValidator.Validate(galaxy).Accepted)
         {
             throw new InvalidOperationException("Campaign galaxy is invalid.");
         }
 
         return galaxy;
+    }
+
+    private static VoyageNavigationState FromDto(VoyageNavigationDto value)
+    {
+        RequireCount(value.PlannedRouteIds.Length, GalaxyLimits.MaximumSystems);
+        return new(
+            new StarSystemId(value.CurrentSystemId),
+            value.ActiveStarwayId is null ? null : new StarwayId(value.ActiveStarwayId),
+            [.. value.PlannedRouteIds.Select(id => new StarwayId(id))],
+            value.RouteProgress,
+            value.DepartureTick,
+            value.ArrivalTick);
     }
 
     private static ShipState FromDto(ShipDto value, GameContentSnapshot content)

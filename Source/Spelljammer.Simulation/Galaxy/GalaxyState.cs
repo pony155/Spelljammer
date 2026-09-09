@@ -58,36 +58,93 @@ public sealed record StarwayState(
     int FuelCost,
     int Danger);
 
-public sealed record GalaxyMapState(
-    int GeneratorVersion,
-    ulong Seed,
-    StarSystemId CurrentSystemId,
-    ImmutableDictionary<StarSystemId, StarSystemState> Systems,
-    ImmutableDictionary<StarwayId, StarwayState> Starways,
-    ImmutableDictionary<StarSystemId, GalaxyKnowledgeLevel> Knowledge)
+public static class GalaxyLimits
 {
     public const int MaximumSystems = 1_024;
     public const int MaximumStarways = 4_096;
     public const int MaximumStarwaysPerSystem = 16;
+    public const int MaximumChangedSites = 4_096;
+}
 
-    public GalaxyKnowledgeLevel KnowledgeOf(StarSystemId id) =>
-        Knowledge.TryGetValue(id, out GalaxyKnowledgeLevel value) ? value : GalaxyKnowledgeLevel.Unknown;
-
+public sealed record GalaxyTopology(
+    int GeneratorVersion,
+    ulong Seed,
+    ImmutableDictionary<StarSystemId, StarSystemState> Systems,
+    ImmutableDictionary<StarwayId, StarwayState> Starways)
+{
     public IEnumerable<StarwayState> StarwaysFrom(StarSystemId id) =>
         Starways.Values
             .Where(value => value.FirstSystemId == id || value.SecondSystemId == id)
             .OrderBy(value => value.Id);
+}
 
-    public GalaxyMapState WithKnowledge(StarSystemId id, GalaxyKnowledgeLevel level)
+public sealed record GalaxyKnowledgeState(
+    ImmutableDictionary<StarSystemId, GalaxyKnowledgeLevel> Systems)
+{
+    public GalaxyKnowledgeLevel LevelOf(StarSystemId id) =>
+        Systems.TryGetValue(id, out GalaxyKnowledgeLevel value) ? value : GalaxyKnowledgeLevel.Unknown;
+
+    public GalaxyKnowledgeState WithLevel(StarSystemId id, GalaxyKnowledgeLevel level)
     {
-        if (!Systems.ContainsKey(id) || !Enum.IsDefined(level))
+        if (!id.IsValid || !Enum.IsDefined(level))
         {
             throw new ArgumentException("Galaxy knowledge update is invalid.", nameof(id));
         }
 
-        GalaxyKnowledgeLevel current = KnowledgeOf(id);
-        return level <= current ? this : this with { Knowledge = Knowledge.SetItem(id, level) };
+        GalaxyKnowledgeLevel current = LevelOf(id);
+        return level <= current ? this : this with { Systems = Systems.SetItem(id, level) };
     }
+}
+
+public sealed record StarwayDynamicState(
+    bool IsBlocked,
+    int DangerModifier,
+    ContentId? ControllingFactionId);
+
+public sealed record GalaxyDynamicState(
+    ImmutableDictionary<StarwayId, StarwayDynamicState> Starways,
+    ImmutableHashSet<ContentId> ChangedSiteIds)
+{
+    public static GalaxyDynamicState Empty { get; } = new(
+        ImmutableDictionary<StarwayId, StarwayDynamicState>.Empty,
+        ImmutableHashSet<ContentId>.Empty);
+
+    public StarwayDynamicState StateOf(StarwayId id) =>
+        Starways.TryGetValue(id, out StarwayDynamicState? value)
+            ? value
+            : new(false, 0, null);
+}
+
+public sealed record GalaxyState(
+    GalaxyTopology Topology,
+    GalaxyKnowledgeState Knowledge,
+    GalaxyDynamicState Dynamic)
+{
+    public GalaxyKnowledgeLevel KnowledgeOf(StarSystemId id) => Knowledge.LevelOf(id);
+
+    public IEnumerable<StarwayState> StarwaysFrom(StarSystemId id) => Topology.StarwaysFrom(id);
+
+    public GalaxyState WithKnowledge(StarSystemId id, GalaxyKnowledgeLevel level)
+    {
+        if (!Topology.Systems.ContainsKey(id))
+        {
+            throw new ArgumentException("Galaxy knowledge update is invalid.", nameof(id));
+        }
+
+        return this with { Knowledge = Knowledge.WithLevel(id, level) };
+    }
+}
+
+public sealed record VoyageNavigationState(
+    StarSystemId CurrentSystemId,
+    StarwayId? ActiveStarwayId,
+    ImmutableArray<StarwayId> PlannedRoute,
+    int RouteProgress,
+    long DepartureTick,
+    long ArrivalTick)
+{
+    public static VoyageNavigationState AtAnchor(StarSystemId systemId) =>
+        new(systemId, null, [], 0, 0, 0);
 }
 
 public enum GalaxyValidationCode : byte
@@ -101,10 +158,10 @@ public enum GalaxyValidationCode : byte
     DegreeExceeded,
     UnreachableSystem,
     InvalidKnowledge,
+    InvalidDynamicState,
 }
 
 public sealed record GalaxyValidationResult(GalaxyValidationCode Code)
 {
     public bool Accepted => Code == GalaxyValidationCode.None;
 }
-

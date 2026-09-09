@@ -78,6 +78,8 @@ public static class CampaignValidator
             world.Clock.FractionRemainder >= world.TimeScale.SimulationTicksDenominator ||
             world.ContentFingerprint != content.Fingerprint || world.Tick < 0 ||
             (world.Galaxy is not null && !GalaxyValidator.Validate(world.Galaxy).Accepted) ||
+            (world.Galaxy is null) != (world.VoyageNavigation is null) ||
+            (world.Galaxy is not null && !GalaxyValidator.ValidateNavigation(world.Galaxy, world.VoyageNavigation)) ||
             world.Ships.Count is 0 or > CampaignSaveLimits.MaximumShips ||
             campaign.Characters.Length is 0 or > CampaignSaveLimits.MaximumCharacters ||
             world.Commands.Length > World.MaximumCommands ||
@@ -87,6 +89,7 @@ public static class CampaignValidator
             world.ReadyUnits.Length > World.MaximumReadyUnits ||
             world.Commands.Select(value => value.Id).Distinct().Count() != world.Commands.Length ||
             world.CommandHistory.Select(value => value.Command.Id).Distinct().Count() != world.CommandHistory.Length ||
+            world.Characters.Any(pair => pair.Key != pair.Value.Id) ||
             campaign.Characters.Select(value => value.Id).Distinct().Count() != campaign.Characters.Length ||
             !world.Commands.SequenceEqual(world.Commands.OrderBy(value => value.TargetTick).ThenBy(value => value.Priority)
                 .ThenBy(value => value.IssuerId).ThenBy(value => value.Sequence).ThenBy(value => value.Id)))

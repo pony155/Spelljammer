@@ -35,6 +35,19 @@ public sealed partial class PersistenceContracts
         Equal(campaign.CurrentLocationId, loaded.Campaign.CurrentLocationId, "Current location did not round-trip.");
         Equal(campaign.ProtagonistId, loaded.Campaign.ProtagonistId, "Protagonist identity did not round-trip.");
         Equal(campaign.Characters.Length, loaded.Campaign.Characters.Length, "Roster did not round-trip.");
+        Equal(campaign.Characters.Length, loaded.Campaign.World.Characters.Count,
+            "Authoritative World characters did not round-trip.");
+        Equal(campaign.World.VoyageNavigation!, loaded.Campaign.World.VoyageNavigation!,
+            "Voyage navigation did not round-trip.");
+        True(campaign.World.Galaxy!.Topology.Systems.Values.OrderBy(value => value.Id).SequenceEqual(
+                loaded.Campaign.World.Galaxy!.Topology.Systems.Values.OrderBy(value => value.Id)),
+            "Galaxy topology did not round-trip.");
+        Equal(campaign.World.Galaxy.Dynamic.Starways.Single(),
+            loaded.Campaign.World.Galaxy.Dynamic.Starways.Single(),
+            "Dynamic Starway state did not round-trip.");
+        True(campaign.World.Galaxy.Dynamic.ChangedSiteIds.SetEquals(
+                loaded.Campaign.World.Galaxy.Dynamic.ChangedSiteIds),
+            "Changed galaxy sites did not round-trip.");
         Equal(campaign.World.Ships.Values.Single().Modules.Length,
             loaded.Campaign.World.Ships.Values.Single().Modules.Length, "Ship modules did not round-trip.");
         True(loaded.Campaign.World.PersonalEncounter!.Units.Values.Single().Injuries.Single().Stabilized,

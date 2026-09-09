@@ -235,10 +235,12 @@ public sealed record CampaignState(
     CampaignContentLock ContentLock,
     ContentId CurrentLocationId,
     World World,
-    CharacterId ProtagonistId,
-    ImmutableArray<CharacterState> Characters)
+    CharacterId ProtagonistId)
 {
     public const int MaximumGameBuildBytes = 128;
+
+    /// <summary>Compatibility projection; authoritative character state is owned by <see cref="World"/>.</summary>
+    public ImmutableArray<CharacterState> Characters => [.. World.Characters.Values.OrderBy(value => value.Id)];
 }
 
 public enum ContentPreflightKind : byte
