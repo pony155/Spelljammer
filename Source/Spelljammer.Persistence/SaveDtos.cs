@@ -46,6 +46,7 @@ internal sealed class CampaignPayloadDto
 internal sealed class WorldDto
 {
     public ulong Seed { get; set; }
+    public GalaxyDto? Galaxy { get; set; }
     public CampaignClockDto Clock { get; set; } = new();
     public long Tick { get; set; }
     public ulong RandomSequence { get; set; }
@@ -59,6 +60,42 @@ internal sealed class WorldDto
     public ScheduledActionDto[] ScheduledActions { get; set; } = [];
     public string[] ReadyUnitIds { get; set; } = [];
     public EventDto[] Events { get; set; } = [];
+}
+
+internal sealed class GalaxyDto
+{
+    public int GeneratorVersion { get; set; }
+    public ulong Seed { get; set; }
+    public string CurrentSystemId { get; set; } = string.Empty;
+    public GalaxySystemDto[] Systems { get; set; } = [];
+    public StarwayDto[] Starways { get; set; } = [];
+    public GalaxyKnowledgeDto[] Knowledge { get; set; } = [];
+}
+
+internal sealed class GalaxySystemDto
+{
+    public string Id { get; set; } = string.Empty;
+    public int Ordinal { get; set; }
+    public int Region { get; set; }
+    public int DisplayX { get; set; }
+    public int DisplayY { get; set; }
+    public string ArchetypeId { get; set; } = string.Empty;
+}
+
+internal sealed class StarwayDto
+{
+    public string Id { get; set; } = string.Empty;
+    public string FirstSystemId { get; set; } = string.Empty;
+    public string SecondSystemId { get; set; } = string.Empty;
+    public int TravelTime { get; set; }
+    public int FuelCost { get; set; }
+    public int Danger { get; set; }
+}
+
+internal sealed class GalaxyKnowledgeDto
+{
+    public string SystemId { get; set; } = string.Empty;
+    public int Level { get; set; }
 }
 
 internal sealed class CampaignClockDto

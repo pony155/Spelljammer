@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using Spelljammer.Simulation.Content;
 using Spelljammer.Simulation.Encounters;
+using Spelljammer.Simulation.Galaxy;
 using Spelljammer.Simulation.Ships;
 
 namespace Spelljammer.Simulation.World;
@@ -18,6 +19,7 @@ public sealed record WorldSnapshot(
     CalendarDefinition Calendar,
     TimeScaleDefinition TimeScale,
     CampaignClockState Clock,
+    GalaxyMapState? Galaxy,
     long Tick,
     bool ShipPaused,
     bool PersonalPaused,

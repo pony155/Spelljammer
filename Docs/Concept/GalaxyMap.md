@@ -2,11 +2,14 @@
 
 ## Status
 
-This document defines the planned procedural galaxy, star-system, route,
-discovery, and map-persistence systems. They are not implemented yet. The
-retired deterministic 4-by-4 expedition grid has been removed; new galaxy work
-must publish bounded graph state into the authoritative voyage and persistence
-boundaries rather than revive that parallel prototype.
+This document defines the procedural galaxy, star-system, route, discovery,
+and map-persistence systems. The first headless foundation now implements a
+bounded deterministic two-region graph, immutable system and Starway state,
+knowledge-gated route planning, validation, `World` snapshots, and save
+round-tripping. Authored galaxy content, voyage commands, travel events, and
+the WPF map remain planned. The retired deterministic 4-by-4 expedition grid
+has been removed; new galaxy work must continue through the authoritative
+voyage and persistence boundaries rather than revive that parallel prototype.
 Optional late-campaign threats that can transform this graph are defined in
 [`Endgame_Crisis.md`](Endgame_Crisis.md).
 Seeded situations that occur while crossing its routes are defined in

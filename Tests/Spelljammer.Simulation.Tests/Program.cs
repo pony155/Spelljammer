@@ -34,4 +34,8 @@ public sealed partial class SimulationContracts
     [TestMethod]
     public void StatusLifecycleAndConflictsAreAtomicContract() =>
         StatusLifecycleAndConflictsAreAtomic();
+
+    [TestMethod]
+    public void GalaxyGenerationAndRoutingAreDeterministicContract() =>
+        GalaxyGenerationAndRoutingAreDeterministic();
 }

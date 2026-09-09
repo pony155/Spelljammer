@@ -4,6 +4,7 @@ using Spelljammer.Content.Compilation;
 using Spelljammer.Simulation.Characters;
 using Spelljammer.Simulation.Content;
 using Spelljammer.Simulation.Encounters;
+using Spelljammer.Simulation.Galaxy;
 using Spelljammer.Simulation.Ships;
 using Spelljammer.Simulation.World;
 using Spelljammer.Simulation.Items;
@@ -76,6 +77,7 @@ public static class CampaignValidator
             world.Clock.ElapsedWorldSeconds < 0 || world.Clock.FractionRemainder < 0 ||
             world.Clock.FractionRemainder >= world.TimeScale.SimulationTicksDenominator ||
             world.ContentFingerprint != content.Fingerprint || world.Tick < 0 ||
+            (world.Galaxy is not null && !GalaxyValidator.Validate(world.Galaxy).Accepted) ||
             world.Ships.Count is 0 or > CampaignSaveLimits.MaximumShips ||
             campaign.Characters.Length is 0 or > CampaignSaveLimits.MaximumCharacters ||
             world.Commands.Length > World.MaximumCommands ||

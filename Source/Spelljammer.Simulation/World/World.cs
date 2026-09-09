@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using Spelljammer.Simulation.Content;
 using Spelljammer.Simulation.Encounters;
+using Spelljammer.Simulation.Galaxy;
 using Spelljammer.Simulation.Ships;
 
 namespace Spelljammer.Simulation.World;
@@ -37,6 +38,9 @@ public sealed partial record World(
     public const int MaximumEvents = 512;
     public const int MaximumReadyUnits = 64;
 
+    /// <summary>The optional authoritative campaign galaxy for voyage-scale play.</summary>
+    public GalaxyMapState? Galaxy { get; init; }
+
     public static World Create(
         ulong seed,
         ContentFingerprint fingerprint,
@@ -45,7 +49,8 @@ public sealed partial record World(
         TimeScaleDefinition timeScale,
         TeamId playerTeamId,
         IEnumerable<ShipState> ships,
-        PersonalEncounterState? encounter = null)
+        PersonalEncounterState? encounter = null,
+        GalaxyMapState? galaxy = null)
     {
         ArgumentNullException.ThrowIfNull(timeDefinition);
         ArgumentNullException.ThrowIfNull(calendar);
@@ -55,7 +60,8 @@ public sealed partial record World(
             calendar.SecondsPerMinute <= 0 || calendar.MinutesPerHour <= 0 || calendar.HoursPerDay <= 0 ||
             calendar.DaysPerWeek <= 0 || calendar.Months.IsDefaultOrEmpty ||
             timeScale.WorldSecondsNumerator <= 0 || timeScale.SimulationTicksDenominator <= 0 ||
-            shipMap.Count is 0 or > 32 || encounter?.Units.Count > MaximumReadyUnits)
+            shipMap.Count is 0 or > 32 || encounter?.Units.Count > MaximumReadyUnits ||
+            (galaxy is not null && !GalaxyValidator.Validate(galaxy).Accepted))
         {
             throw new InvalidOperationException("World configuration or capacity is invalid.");
         }
@@ -78,7 +84,7 @@ public sealed partial record World(
             [],
             [],
             [],
-            []);
+            []) { Galaxy = galaxy };
     }
 
     public World SetShipPause(bool paused) => this with { ShipPaused = paused };
@@ -92,6 +98,7 @@ public sealed partial record World(
         Calendar,
         TimeScale,
         Clock,
+        Galaxy,
         Tick,
         ShipPaused,
         PersonalPaused,

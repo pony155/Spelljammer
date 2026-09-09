@@ -43,6 +43,7 @@ Combat/      character-combat definitions, action systems, and resolution contra
 Content/     stable content IDs, common definition metadata, and aggregate catalog
 Effects/     Effect and Status definitions, state, queries, and systems
 Encounters/  encounter definitions, battle-unit projections, tactical board, and lifecycle
+Galaxy/      deterministic topology, knowledge, validation, and bounded route planning
 Items/       item definitions, inventory state, equipment, and mutations
 Ships/       ship definitions, state, loadout, power, damage, and combat geometry
 World/       world state, time, geometry, commands, scheduled actions, and events

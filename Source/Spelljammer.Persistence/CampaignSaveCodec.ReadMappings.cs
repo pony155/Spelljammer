@@ -5,6 +5,7 @@ using Spelljammer.Simulation.Characters;
 using Spelljammer.Simulation.Combat;
 using Spelljammer.Simulation.Content;
 using Spelljammer.Simulation.Encounters;
+using Spelljammer.Simulation.Galaxy;
 using Spelljammer.Simulation.Ships;
 using Spelljammer.Simulation.World;
 using Spelljammer.Simulation.Items;
@@ -89,7 +90,10 @@ public static partial class CampaignSaveCodec
             [.. payload.World.ReadyUnitIds.Select(value => new BattleUnitId(value))],
             [.. payload.World.Events.Select(value => new WorldEvent(
                 new ContentId(value.Id), value.Tick, new ContentId(value.SourceId), new ContentId(value.TargetId),
-                ParseEnum<WorldCommandKind>(value.Kind), value.Succeeded, value.Amount, value.ResultCode))]);
+                ParseEnum<WorldCommandKind>(value.Kind), value.Succeeded, value.Amount, value.ResultCode))])
+        {
+            Galaxy = payload.World.Galaxy is null ? null : FromDto(payload.World.Galaxy),
+        };
 
         CampaignContentLock activeLock = savedLock.EffectiveFingerprint == content.Fingerprint &&
             savedLock.SaveSchemaVersion == CampaignSaveVersions.SaveSchema
@@ -106,6 +110,32 @@ public static partial class CampaignSaveCodec
             world,
             new CharacterId(payload.ProtagonistId),
             characters);
+    }
+
+    private static GalaxyMapState FromDto(GalaxyDto value)
+    {
+        RequireCount(value.Systems.Length, GalaxyMapState.MaximumSystems);
+        RequireCount(value.Starways.Length, GalaxyMapState.MaximumStarways);
+        RequireCount(value.Knowledge.Length, GalaxyMapState.MaximumSystems);
+        GalaxyMapState galaxy = new(
+            value.GeneratorVersion,
+            value.Seed,
+            new StarSystemId(value.CurrentSystemId),
+            value.Systems.Select(system => new StarSystemState(
+                new StarSystemId(system.Id), system.Ordinal, system.Region, system.DisplayX, system.DisplayY,
+                new ContentId(system.ArchetypeId))).ToImmutableDictionary(system => system.Id),
+            value.Starways.Select(starway => new StarwayState(
+                new StarwayId(starway.Id), new StarSystemId(starway.FirstSystemId),
+                new StarSystemId(starway.SecondSystemId), starway.TravelTime, starway.FuelCost, starway.Danger))
+                .ToImmutableDictionary(starway => starway.Id),
+            value.Knowledge.ToImmutableDictionary(
+                item => new StarSystemId(item.SystemId), item => ParseEnum<GalaxyKnowledgeLevel>(item.Level)));
+        if (!GalaxyValidator.Validate(galaxy).Accepted)
+        {
+            throw new InvalidOperationException("Campaign galaxy is invalid.");
+        }
+
+        return galaxy;
     }
 
     private static ShipState FromDto(ShipDto value, GameContentSnapshot content)

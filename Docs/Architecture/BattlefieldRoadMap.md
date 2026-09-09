@@ -106,7 +106,7 @@ versioned topology abstraction.
 - Decide how existing `Q`/`R` content migrates to `X`/`Y` or a
   `GridCoordinate` value.
 - Keep authored graph links only for exceptional traversal and stateful edges.
-- Update `Battle.md`, `BattleMap.md`, content schemas, and naming together.
+- Update `Battle.md`, `BattlefieldMapGenerator.md`, content schemas, and naming together.
 
 ### Exit criteria
 

@@ -9,6 +9,7 @@ using Spelljammer.Content.Manifests;
 using Spelljammer.Simulation.Characters;
 using Spelljammer.Simulation.Content;
 using Spelljammer.Simulation.Encounters;
+using Spelljammer.Simulation.Galaxy;
 using Spelljammer.Simulation.Ships;
 using Spelljammer.Simulation.World;
 using Spelljammer.Simulation.Items;
@@ -35,6 +36,7 @@ public static partial class CampaignSaveCodec
     private static WorldDto ToDto(World world) => new()
     {
         Seed = world.Seed,
+        Galaxy = world.Galaxy is null ? null : ToDto(world.Galaxy),
         Clock = new CampaignClockDto
         {
             ElapsedWorldSeconds = world.Clock.ElapsedWorldSeconds,
@@ -77,6 +79,36 @@ public static partial class CampaignSaveCodec
             Succeeded = value.Succeeded,
             Amount = value.Amount,
             ResultCode = value.ResultCode,
+        })],
+    };
+
+    private static GalaxyDto ToDto(GalaxyMapState galaxy) => new()
+    {
+        GeneratorVersion = galaxy.GeneratorVersion,
+        Seed = galaxy.Seed,
+        CurrentSystemId = galaxy.CurrentSystemId.ToString(),
+        Systems = [.. galaxy.Systems.Values.OrderBy(value => value.Id).Select(value => new GalaxySystemDto
+        {
+            Id = value.Id.ToString(),
+            Ordinal = value.Ordinal,
+            Region = value.Region,
+            DisplayX = value.DisplayX,
+            DisplayY = value.DisplayY,
+            ArchetypeId = value.ArchetypeId.ToString(),
+        })],
+        Starways = [.. galaxy.Starways.Values.OrderBy(value => value.Id).Select(value => new StarwayDto
+        {
+            Id = value.Id.ToString(),
+            FirstSystemId = value.FirstSystemId.ToString(),
+            SecondSystemId = value.SecondSystemId.ToString(),
+            TravelTime = value.TravelTime,
+            FuelCost = value.FuelCost,
+            Danger = value.Danger,
+        })],
+        Knowledge = [.. galaxy.Knowledge.OrderBy(value => value.Key).Select(value => new GalaxyKnowledgeDto
+        {
+            SystemId = value.Key.ToString(),
+            Level = (int)value.Value,
         })],
     };
 
