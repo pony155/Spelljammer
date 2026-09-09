@@ -51,6 +51,7 @@ public sealed partial class GameContentCompiler
         "resource.equipment-charge",
         "resource.ballistic-ammunition",
         "resource.aether-charge",
+        "resource.propellant",
         "resource.diesel-shell",
         "resource.spare-parts",
         "action.personal.melee",

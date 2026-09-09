@@ -182,6 +182,10 @@ public sealed partial class GameContentCompiler
                     CheckPrimitive(definition, definition.Strings["mountId"], "/mountId", diagnostics);
                     CheckPrimitive(definition, definition.Strings["primaryEffectId"], "/primaryEffectId", diagnostics);
                     CheckPrimitives(definition, definition.Arrays["compatiblePathIds"], "/compatiblePathIds", diagnostics);
+                    if (definition.Strings.TryGetValue("propulsionResourceId", out string? propulsionResourceId))
+                    {
+                        CheckPrimitive(definition, propulsionResourceId, "/propulsionResourceId", diagnostics);
+                    }
                     break;
                 case DefinitionKind.ShipWeaponConfiguration:
                     CheckPrimitive(definition, definition.Strings["networkId"], "/networkId", diagnostics);

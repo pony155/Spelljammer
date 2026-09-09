@@ -298,8 +298,12 @@ public sealed partial class SimulationContracts
         ContentId pathId = new(path);
         ShipFrameDefinition frame = new(
             new ShipFrameId("frame.test.wayfarer"), 1, 1, "frame.test.name", "frame.test.description",
-            30, 1, 12, 12, [new ContentId("mount.power"), new ContentId("mount.weapon"), new ContentId("mount.shield")]);
+            30, 1, 12, 12,
+            [new ContentId("mount.power"), new ContentId("mount.propulsion"), new ContentId("mount.weapon"), new ContentId("mount.shield")]);
         ShipModuleDefinition generator = Module("module.test.generator", "mount.power", "network.aether", 3, 10, 0, 0, pathId);
+        ShipModuleDefinition propulsion = Module(
+            "module.test.propulsion", "mount.propulsion", "network.aether", 3, 0, 2, 0, pathId,
+            new PropulsionCostDefinition(new ResourceId("resource.aether-charge"), 1, 1));
         ShipModuleDefinition battery = Module("module.test.battery", "mount.weapon", "network.aether", 2, 0, 1, 0, pathId);
         ShipModuleDefinition shield = Module("module.test.shield", "mount.shield", "network.aether", 2, 0, 0, 10, pathId);
         ShipWeaponConfigurationDefinition weapon = new(
@@ -307,9 +311,9 @@ public sealed partial class SimulationContracts
             new NetworkId("network.aether"), new ResourceId("resource.aether-charge"), 2, 8, 4, 10_000, 30_000, 4,
             new ContentId("damage.arcane"), new ContentId("area.single-target"), 2);
         ShipLoadoutResult result = ShipLoadoutSystem.Create(
-            id, teamId, frame, pathId, [generator, battery, shield], weapon,
+            id, teamId, frame, pathId, [generator, propulsion, battery, shield], weapon,
             ImmutableDictionary<ResourceId, int>.Empty
-                .Add(new ResourceId("resource.aether-charge"), 8)
+                .Add(new ResourceId("resource.aether-charge"), 100)
                 .Add(new ResourceId("resource.spare-parts"), 2));
         True(result.Accepted, result.RejectionCode);
         return result.Ship!;
@@ -323,10 +327,11 @@ public sealed partial class SimulationContracts
         int generated,
         int consumed,
         int shield,
-        ContentId path) => new(
+        ContentId path,
+        PropulsionCostDefinition? propulsion = null) => new(
             new ModuleId(id), 1, 1, $"{id}.name", $"{id}.description", slots, 0, 10,
             new NetworkId(network), generated, consumed, new ContentId(mount), new ContentId("effect.ship.test"),
-            0, shield, shield > 0 ? 2 : 0, shield > 0 ? 2 : 0, [path]);
+            0, shield, shield > 0 ? 2 : 0, shield > 0 ? 2 : 0, [path], propulsion);
 
     private static (TacticalBoard Board, CellId Entry, CellId Exit) CreateBoard()
     {

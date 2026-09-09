@@ -37,6 +37,8 @@ public enum WorldCommandKind : byte
     PersonalSurrender,
     PersonalRetreat,
     PersonalEndActivation,
+    PlanRoute,
+    BeginVoyage,
 }
 
 public sealed record WorldCommand(

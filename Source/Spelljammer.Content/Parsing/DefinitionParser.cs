@@ -94,7 +94,8 @@ internal static class DefinitionParser
                 ["personalBoardId", "contextId", "hostileTeamId", "ancientDefenseId", "nonCombatObjectiveId", "extractionObjectiveId"], []),
             [DefinitionKind.ShipFrame] = new(["maximumHull", "baseArmor", "maximumSlots", "cargoCapacity", "mountIds"], []),
             [DefinitionKind.ShipModule] = new(
-                ["slotCost", "cargoDisplacement", "maximumIntegrity", "networkId", "energyGeneration", "energyConsumption", "mountId", "primaryEffectId", "armorValue", "shieldValue", "shieldRechargeRate", "shieldEnergyConsumptionRate", "compatiblePathIds"], []),
+                ["slotCost", "cargoDisplacement", "maximumIntegrity", "networkId", "energyGeneration", "energyConsumption", "mountId", "primaryEffectId", "armorValue", "shieldValue", "shieldRechargeRate", "shieldEnergyConsumptionRate", "compatiblePathIds"],
+                ["propulsionResourceId", "travelCostNumerator", "travelCostDenominator"]),
             [DefinitionKind.ShipWeaponConfiguration] = new(
                 ["networkId", "resourceId", "resourceCost", "damage", "rateOfFireTicks", "effectiveRange", "maximumRange", "reloadTicks", "damageTypeId", "areaId", "armorPenetration"], []),
         };

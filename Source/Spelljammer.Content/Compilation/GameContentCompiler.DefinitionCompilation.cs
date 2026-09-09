@@ -524,7 +524,13 @@ public sealed partial class GameContentCompiler
         new ContentId(value.Strings["mountId"]), new ContentId(value.Strings["primaryEffectId"]),
         value.Integers["armorValue"], value.Integers["shieldValue"], value.Integers["shieldRechargeRate"],
         value.Integers["shieldEnergyConsumptionRate"],
-        Sort(value.Arrays["compatiblePathIds"]).Select(item => new ContentId(item)).ToImmutableArray());
+        Sort(value.Arrays["compatiblePathIds"]).Select(item => new ContentId(item)).ToImmutableArray(),
+        value.Strings.TryGetValue("propulsionResourceId", out string? propulsionResourceId)
+            ? new PropulsionCostDefinition(
+                new ResourceId(propulsionResourceId),
+                value.Integers["travelCostNumerator"],
+                value.Integers["travelCostDenominator"])
+            : null);
 
     private static ShipWeaponConfigurationDefinition CompileShipWeapon(SourceDefinition value) => new(
         new ShipWeaponConfigurationId(value.Id), 1, value.Revision, value.NameKey, value.DescriptionKey,

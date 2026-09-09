@@ -79,6 +79,7 @@ public sealed partial record World
             }
         }
 
+        world = world.UpdateVoyage();
         world = world.UpdateShips();
         world = world.UpdatePersonalTimeline();
         return world;
@@ -110,6 +111,21 @@ public sealed partial record World
                 return AddEvent(command, false, 0, "command.resource-insufficient");
             }
         }
+        else if (command.Kind == WorldCommandKind.BeginVoyage)
+        {
+            if (!TryResolveNextLeg(command, out ShipState? voyageShip, out _, out VoyageLegQuote? quote, out string rejection))
+            {
+                return AddEvent(command, false, 0, rejection);
+            }
+
+            resourceId = quote!.ResourceId;
+            reserved = quote.ResourceCost;
+            voyageShip!.Resources.TryGetValue(resourceId.Value, out int available);
+            if (available < reserved)
+            {
+                return AddEvent(command, false, 0, "command.resource-insufficient");
+            }
+        }
 
         ScheduledAction action = new(
             command,
@@ -128,7 +144,9 @@ public sealed partial record World
     {
         World committed = IsPersonal(schedule.Command.Kind)
             ? CommitPersonal(schedule.Command, personalCombatResolver)
-            : CommitShip(schedule.Command, schedule.ReservedResourceId, schedule.ReservedAmount);
+            : IsVoyage(schedule.Command.Kind)
+                ? CommitVoyage(schedule.Command, schedule.ReservedResourceId, schedule.ReservedAmount)
+                : CommitShip(schedule.Command, schedule.ReservedResourceId, schedule.ReservedAmount);
         int index = IndexOf(committed.ScheduledActions, value => value.Command.Id == schedule.Command.Id);
         if (index >= 0)
         {

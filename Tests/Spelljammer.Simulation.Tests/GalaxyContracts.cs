@@ -76,5 +76,77 @@ public sealed partial class SimulationContracts
             voyageNavigation: firstNavigation);
         Equal(firstNavigation, world.Snapshot().VoyageNavigation!,
             "World snapshot did not preserve voyage navigation.");
+
+        world = world with { Galaxy = knownGalaxy, ShipPaused = false };
+        ShipState voyageShip = world.Ships.Values.Single();
+        WorldCommand plan = new(
+            new ContentId("command.galaxy.plan"),
+            WorldCommandKind.PlanRoute,
+            world.Tick,
+            0,
+            voyageShip.Id.Value,
+            destination.Value,
+            FixedVector2.Zero,
+            0,
+            new ContentId("route-preference.travel-time"),
+            1);
+        WorldCommandResult planned = world.Enqueue(plan);
+        True(planned.Accepted, planned.RejectionCode);
+        world = planned.World.Advance(2).World;
+        True(!world.VoyageNavigation!.PlannedRoute.IsEmpty, "PlanRoute did not commit a route.");
+
+        StarwayId firstLegId = world.VoyageNavigation.PlannedRoute[0];
+        StarwayState firstLeg = world.Galaxy!.Topology.Starways[firstLegId];
+        StarSystemId nextSystem = firstLeg.FirstSystemId == world.VoyageNavigation.CurrentSystemId
+            ? firstLeg.SecondSystemId
+            : firstLeg.FirstSystemId;
+        VoyageLegQuote quote = ShipVoyageSystem.Quote(voyageShip, firstLeg).Quote!;
+        int resourceBefore = world.Ships[voyageShip.Id].Resources[quote.ResourceId];
+        ShipState emptyShip = world.Ships[voyageShip.Id] with
+        {
+            Resources = world.Ships[voyageShip.Id].Resources.SetItem(quote.ResourceId, 0),
+        };
+        World insufficient = world with { Ships = world.Ships.SetItem(emptyShip.Id, emptyShip) };
+        WorldCommand insufficientBegin = new(
+            new ContentId("command.galaxy.begin-insufficient"), WorldCommandKind.BeginVoyage, insufficient.Tick, 0,
+            emptyShip.Id.Value, nextSystem.Value, FixedVector2.Zero, 0, null, 2);
+        insufficient = insufficient.Enqueue(insufficientBegin).World.Advance(2).World;
+        True(insufficient.VoyageNavigation!.ActiveStarwayId is null,
+            "A rejected departure changed the voyage state.");
+        Equal(0, insufficient.Ships[emptyShip.Id].Resources[quote.ResourceId],
+            "A rejected departure changed the propulsion resource.");
+        True(insufficient.Events.Any(value => value.ResultCode == "command.resource-insufficient"),
+            "An insufficient-resource departure did not publish its rejection.");
+
+        WorldCommand begin = new(
+            new ContentId("command.galaxy.begin"),
+            WorldCommandKind.BeginVoyage,
+            world.Tick,
+            0,
+            voyageShip.Id.Value,
+            nextSystem.Value,
+            FixedVector2.Zero,
+            0,
+            null,
+            2);
+        WorldCommandResult begun = world.Enqueue(begin);
+        True(begun.Accepted, begun.RejectionCode);
+        world = begun.World.Advance(2).World;
+        Equal(firstLegId, world.VoyageNavigation!.ActiveStarwayId!.Value,
+            "BeginVoyage did not activate the first Starway.");
+        Equal(resourceBefore - quote.ResourceCost, world.Ships[voyageShip.Id].Resources[quote.ResourceId],
+            "BeginVoyage did not commit the propulsion cost exactly once.");
+
+        for (int index = 0; index < 256 && world.VoyageNavigation!.ActiveStarwayId is not null; index++)
+        {
+            world = world.Advance(8).World;
+        }
+
+        Equal(nextSystem, world.VoyageNavigation!.CurrentSystemId, "Arrival did not update the current system.");
+        True(world.VoyageNavigation.ActiveStarwayId is null, "Arrival left the voyage in transit.");
+        True(world.Galaxy!.KnowledgeOf(nextSystem) >= GalaxyKnowledgeLevel.Detected,
+            "Arrival did not reveal the destination system.");
+        True(world.Events.Any(value => value.ResultCode == "voyage.arrived"),
+            "Arrival did not publish an authoritative event.");
     }
 }

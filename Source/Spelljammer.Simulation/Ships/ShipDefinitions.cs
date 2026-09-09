@@ -40,8 +40,26 @@ public sealed record ShipModuleDefinition(
     int ShieldValue,
     int ShieldRechargeRate,
     int ShieldEnergyConsumptionRate,
-    ImmutableArray<ContentId> CompatiblePathIds)
+    ImmutableArray<ContentId> CompatiblePathIds,
+    PropulsionCostDefinition? Propulsion = null)
     : ContentDefinition(ModuleId.Value, SchemaVersion, Revision, NameKey, DescriptionKey);
+
+/// <summary>Defines how an installed propulsion module converts a Starway fuel cost into a ship resource cost.</summary>
+public sealed record PropulsionCostDefinition(
+    ResourceId ResourceId,
+    int CostNumerator,
+    int CostDenominator)
+{
+    public int Calculate(int baseCost)
+    {
+        if (!ResourceId.IsValid || CostNumerator <= 0 || CostDenominator <= 0 || baseCost <= 0)
+        {
+            throw new InvalidOperationException("Propulsion cost definition is invalid.");
+        }
+
+        return checked((baseCost * CostNumerator + CostDenominator - 1) / CostDenominator);
+    }
+}
 
 public sealed record ShipWeaponConfigurationDefinition(
     ShipWeaponConfigurationId ShipWeaponConfigurationId,

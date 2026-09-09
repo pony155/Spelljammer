@@ -5,8 +5,9 @@
 This document defines the procedural galaxy, star-system, route, discovery,
 and map-persistence systems. The first headless foundation now implements a
 bounded deterministic two-region graph, immutable system and Starway state,
-knowledge-gated route planning, validation, `World` snapshots, and save
-round-tripping. Authored galaxy content, voyage commands, travel events, and
+knowledge-gated route planning, propulsion resource contracts, authoritative
+route-plan/departure/progress/arrival transitions, validation, `World`
+snapshots, and save round-tripping. Authored galaxy content, travel events, and
 the WPF map remain planned. The retired deterministic 4-by-4 expedition grid
 has been removed; new galaxy work must continue through the authoritative
 voyage and persistence boundaries rather than revive that parallel prototype.

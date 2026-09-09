@@ -339,5 +339,6 @@ public sealed partial record World
         return false;
     }
 
-    private static bool IsPersonal(WorldCommandKind kind) => kind >= WorldCommandKind.PersonalMove;
+    private static bool IsPersonal(WorldCommandKind kind) =>
+        kind is >= WorldCommandKind.PersonalMove and <= WorldCommandKind.PersonalEndActivation;
 }

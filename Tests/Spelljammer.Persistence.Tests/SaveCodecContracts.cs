@@ -10,6 +10,7 @@ using Spelljammer.Persistence;
 using Spelljammer.Simulation.Characters;
 using Spelljammer.Simulation.Content;
 using Spelljammer.Simulation.Encounters;
+using Spelljammer.Simulation.Galaxy;
 using Spelljammer.Simulation.World;
 using Spelljammer.Simulation.Items;
 using Spelljammer.Simulation.Effects;
@@ -37,7 +38,15 @@ public sealed partial class PersistenceContracts
         Equal(campaign.Characters.Length, loaded.Campaign.Characters.Length, "Roster did not round-trip.");
         Equal(campaign.Characters.Length, loaded.Campaign.World.Characters.Count,
             "Authoritative World characters did not round-trip.");
-        Equal(campaign.World.VoyageNavigation!, loaded.Campaign.World.VoyageNavigation!,
+        VoyageNavigationState expectedNavigation = campaign.World.VoyageNavigation!;
+        VoyageNavigationState actualNavigation = loaded.Campaign.World.VoyageNavigation!;
+        Equal(expectedNavigation.CurrentSystemId, actualNavigation.CurrentSystemId,
+            "Voyage current system did not round-trip.");
+        True(expectedNavigation.ActiveStarwayId == actualNavigation.ActiveStarwayId &&
+                expectedNavigation.PlannedRoute.SequenceEqual(actualNavigation.PlannedRoute) &&
+                expectedNavigation.RouteProgress == actualNavigation.RouteProgress &&
+                expectedNavigation.DepartureTick == actualNavigation.DepartureTick &&
+                expectedNavigation.ArrivalTick == actualNavigation.ArrivalTick,
             "Voyage navigation did not round-trip.");
         True(campaign.World.Galaxy!.Topology.Systems.Values.OrderBy(value => value.Id).SequenceEqual(
                 loaded.Campaign.World.Galaxy!.Topology.Systems.Values.OrderBy(value => value.Id)),

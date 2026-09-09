@@ -33,7 +33,9 @@ public static class ShipLoadoutSystem
         int displacement = ordered.Sum(value => value.CargoDisplacement);
         if (ordered.Length is 0 or > MaximumModules || slotCost > frame.MaximumSlots ||
             displacement > frame.CargoCapacity || ordered.Select(value => value.MountId).Distinct().Count() != ordered.Length ||
-            ordered.Any(value => !value.CompatiblePathIds.Contains(pathId)))
+            ordered.Any(value => !value.CompatiblePathIds.Contains(pathId)) ||
+            ordered.Count(value => value.Propulsion is not null) != 1 ||
+            ordered.Any(value => (value.MountId == new ContentId("mount.propulsion")) != (value.Propulsion is not null)))
         {
             return new ShipLoadoutResult(null, "ship.loadout-invalid");
         }

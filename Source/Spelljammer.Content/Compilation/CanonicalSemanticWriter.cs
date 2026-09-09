@@ -455,6 +455,12 @@ internal static class CanonicalSemanticWriter
                 properties["shieldRechargeRate"] = output => output.Append(value.ShieldRechargeRate);
                 properties["shieldValue"] = output => output.Append(value.ShieldValue);
                 properties["slotCost"] = output => output.Append(value.SlotCost);
+                if (value.Propulsion is not null)
+                {
+                    properties["propulsionResourceId"] = output => WriteString(output, value.Propulsion.ResourceId.ToString());
+                    properties["travelCostDenominator"] = output => output.Append(value.Propulsion.CostDenominator);
+                    properties["travelCostNumerator"] = output => output.Append(value.Propulsion.CostNumerator);
+                }
                 break;
             case ShipWeaponConfigurationDefinition value:
                 properties["areaId"] = output => WriteString(output, value.AreaId.ToString());

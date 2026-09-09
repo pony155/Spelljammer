@@ -231,6 +231,12 @@ installed instances commit together or the original ship remains unchanged.
 | Nuclear-Thermal Drive | `module.propulsion.nuclear-thermal-drive` | Industrial—Atompunk | Provides high Speed by consuming reactor power and reaction mass | Piloting or Engineering; Pilot or Chief Engineer |
 | Vector Vanes | `module.propulsion.vector-vanes` | Either | Provides docking, evasion, and close maneuver control through a path-compatible drive | Piloting or Engineering; Pilot |
 
+Implemented voyage-capable propulsion modules carry a fingerprinted resource
+contract containing the consumed `ResourceId` and a positive rational cost
+multiplier. A voyage leg rounds the Starway's base fuel cost upward after
+applying that multiplier. Departure validates the installed propulsion module,
+route, and available resource before atomically deducting the cost.
+
 ### Habitat and care
 
 | Module | Stable ID | Function | Typical skill or position |

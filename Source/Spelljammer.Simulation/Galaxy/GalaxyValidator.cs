@@ -89,7 +89,7 @@ public static class GalaxyValidator
     public static bool ValidateNavigation(GalaxyState galaxy, VoyageNavigationState? navigation)
     {
         if (navigation is null || !galaxy.Topology.Systems.ContainsKey(navigation.CurrentSystemId) ||
-            navigation.RouteProgress < 0 || navigation.DepartureTick < 0 ||
+            navigation.RouteProgress is < 0 or > 10_000 || navigation.DepartureTick < 0 ||
             navigation.ArrivalTick < navigation.DepartureTick ||
             navigation.PlannedRoute.Length > GalaxyLimits.MaximumSystems ||
             navigation.PlannedRoute.Any(id => !galaxy.Topology.Starways.ContainsKey(id)))
@@ -97,9 +97,37 @@ public static class GalaxyValidator
             return false;
         }
 
-        return navigation.ActiveStarwayId is null
-            ? navigation.RouteProgress == 0 && navigation.DepartureTick == navigation.ArrivalTick
-            : galaxy.Topology.Starways.ContainsKey(navigation.ActiveStarwayId.Value) &&
-                !galaxy.Dynamic.StateOf(navigation.ActiveStarwayId.Value).IsBlocked;
+        if (navigation.ActiveStarwayId is null)
+        {
+            if (navigation.RouteProgress != 0 || navigation.DepartureTick != navigation.ArrivalTick)
+            {
+                return false;
+            }
+        }
+        else if (navigation.PlannedRoute.IsEmpty || navigation.PlannedRoute[0] != navigation.ActiveStarwayId.Value ||
+            galaxy.Dynamic.StateOf(navigation.ActiveStarwayId.Value).IsBlocked)
+        {
+            return false;
+        }
+
+        StarSystemId cursor = navigation.CurrentSystemId;
+        foreach (StarwayId routeId in navigation.PlannedRoute)
+        {
+            StarwayState route = galaxy.Topology.Starways[routeId];
+            if (route.FirstSystemId == cursor)
+            {
+                cursor = route.SecondSystemId;
+            }
+            else if (route.SecondSystemId == cursor)
+            {
+                cursor = route.FirstSystemId;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

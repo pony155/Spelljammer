@@ -59,6 +59,8 @@ responsibility: `World.cs` owns state creation and snapshots,
 `World.Commands.cs` owns queueing and cancellation,
 `World.Advancement.cs` owns fixed-tick scheduling,
 `World.ShipCommands.cs` owns ship transitions, and
+`World.VoyageCommands.cs` owns route-plan, departure, progress, and arrival
+transactions, while
 `World.PersonalCommands.cs` owns encounter transitions and the personal
 timeline. This is a source-level separation only; it does not create parallel
 world state or alter the public simulation contract.

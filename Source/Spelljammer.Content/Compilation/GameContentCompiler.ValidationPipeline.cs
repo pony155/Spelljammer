@@ -129,6 +129,16 @@ public sealed partial class GameContentCompiler
                     definition.Integers["shieldEnergyConsumptionRate"] is < 0 or > 1_000_000:
                     OutOfRange(definition, "/slotCost", diagnostics);
                     break;
+                case DefinitionKind.ShipModule when
+                    definition.Strings.ContainsKey("propulsionResourceId") != definition.Integers.ContainsKey("travelCostNumerator") ||
+                    definition.Strings.ContainsKey("propulsionResourceId") != definition.Integers.ContainsKey("travelCostDenominator") ||
+                    definition.Strings.ContainsKey("propulsionResourceId") !=
+                        StringComparer.Ordinal.Equals(definition.Strings["mountId"], "mount.propulsion") ||
+                    (definition.Strings.ContainsKey("propulsionResourceId") &&
+                        (definition.Integers["travelCostNumerator"] is < 1 or > 1_000_000 ||
+                         definition.Integers["travelCostDenominator"] is < 1 or > 1_000_000)):
+                    OutOfRange(definition, "/travelCostNumerator", diagnostics);
+                    break;
                 case DefinitionKind.ShipWeaponConfiguration when definition.Integers["resourceCost"] is < 1 or > 1_000_000 ||
                     definition.Integers["damage"] is < 1 or > 1_000_000 ||
                     definition.Integers["rateOfFireTicks"] is < 1 or > 1_000_000 ||

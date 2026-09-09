@@ -70,6 +70,7 @@ public sealed partial record World
 
     private bool TargetExists(WorldCommand command) =>
         command.TargetId == command.IssuerId || Ships.Keys.Any(value => value.Value == command.TargetId) ||
+        (IsVoyage(command.Kind) && Galaxy?.Topology.Systems.Keys.Any(value => value.Value == command.TargetId) == true) ||
         PersonalEncounter?.Units.Keys.Any(value => value.Value == command.TargetId) == true ||
         PersonalEncounter?.Board.Cells.Keys.Any(value => value.Value == command.TargetId) == true ||
         PersonalEncounter?.Objectives.Keys.Any(value => value.Value == command.TargetId) == true;

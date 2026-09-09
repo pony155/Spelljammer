@@ -31,6 +31,14 @@ public sealed partial class ContentContracts
         Equal(1, snapshot.ShipFrameRegistry.Count, "The Wayfarer frame was not published.");
         Equal(11, snapshot.ShipModuleRegistry.Count, "The two ship technology packages are incomplete.");
         Equal(2, snapshot.ShipWeaponConfigurationRegistry.Count, "The ship weapon configurations are incomplete.");
+        Equal(new ResourceId("resource.aether-charge"),
+            snapshot.ShipModules.Single(value => value.ModuleId == new ModuleId("module.propulsion.flux-sail"))
+                .Propulsion!.ResourceId,
+            "The Flux Sail lost its voyage resource contract.");
+        Equal(new ResourceId("resource.propellant"),
+            snapshot.ShipModules.Single(value => value.ModuleId == new ModuleId("module.propulsion.propellant-drive"))
+                .Propulsion!.ResourceId,
+            "The Propellant Drive lost its voyage resource contract.");
 
         PersonalBoardDefinition boardDefinition = snapshot.PersonalBoards.Single();
         BoardValidationResult board = TacticalBoard.Create(
