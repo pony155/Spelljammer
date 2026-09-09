@@ -34,12 +34,17 @@ internal sealed class GalaxyMapGeneratorView : Grid, IDisposable
     private static readonly SolidColorBrush ErrorBrush = Brush("#FF8C82");
     private static readonly SolidColorBrush PanelBrush = Brush("#F00A1221");
     private static readonly SolidColorBrush PanelBorderBrush = Brush("#664D668A");
+    private static readonly int[] SupportedSystemCounts = [16, 64, 128, 256, 512, 1_024];
 
     private readonly GameText strings;
     private readonly TextBox seedTextBox;
+    private readonly ComboBox shapeComboBox;
+    private readonly ComboBox sizeComboBox;
     private readonly TextBlock statusText;
     private readonly GalaxyTopologyPreview preview;
+    private readonly TextBlock systemMetric;
     private readonly TextBlock starwayMetric;
+    private readonly TextBlock regionMetric;
     private GalaxyMapSelection selection;
     private bool disposed;
 
@@ -93,12 +98,22 @@ internal sealed class GalaxyMapGeneratorView : Grid, IDisposable
         settingsStack.Children.Add(BodyText(strings.Get("galaxy.introduction"), 13, new Thickness(0, 7, 0, 16)));
         settingsStack.Children.Add(ReadOnlyField(
             strings.Get("galaxy.label.scenario"), strings.Get("galaxy.value.scenario.first-voyage")));
+        shapeComboBox = ComboBox();
+        AddChoice(shapeComboBox, strings.Get("galaxy.value.shape.spiral"), GalaxyShape.Spiral);
+        AddChoice(shapeComboBox, strings.Get("galaxy.value.shape.elliptical"), GalaxyShape.Elliptical);
+        AddChoice(shapeComboBox, strings.Get("galaxy.value.shape.ring"), GalaxyShape.Ring);
+        SelectChoice(shapeComboBox, selection.Settings.Shape);
+        settingsStack.Children.Add(SelectableField(strings.Get("galaxy.label.shape"), shapeComboBox));
+        sizeComboBox = ComboBox();
+        foreach (int systemCount in SupportedSystemCounts)
+        {
+            AddChoice(sizeComboBox, strings.Get($"galaxy.value.size.s{systemCount}"), systemCount);
+        }
+
+        SelectChoice(sizeComboBox, selection.Settings.SystemCount);
+        settingsStack.Children.Add(SelectableField(strings.Get("galaxy.label.size"), sizeComboBox));
         settingsStack.Children.Add(ReadOnlyField(
-            strings.Get("galaxy.label.shape"), strings.Get("galaxy.value.shape.dual-region")));
-        settingsStack.Children.Add(ReadOnlyField(
-            strings.Get("galaxy.label.systems"), strings.Get("galaxy.value.systems.voyage")));
-        settingsStack.Children.Add(ReadOnlyField(
-            strings.Get("galaxy.label.generator"), strings.Get("galaxy.value.generator.v1")));
+            strings.Get("galaxy.label.generator"), strings.Get("galaxy.value.generator.v2")));
         settingsStack.Children.Add(Label(strings.Get("galaxy.label.seed"), new Thickness(0, 14, 0, 7)));
 
         Grid seedRow = new();
@@ -161,19 +176,18 @@ internal sealed class GalaxyMapGeneratorView : Grid, IDisposable
         previewHeader.Children.Add(previewTitles);
         previewLayout.Children.Add(previewHeader);
 
-        preview = new GalaxyTopologyPreview(
-            strings.Get("galaxy.region.inner"),
-            strings.Get("galaxy.region.frontier"),
-            strings.Get("galaxy.legend.anchor"));
+        preview = new GalaxyTopologyPreview(strings.Get("galaxy.legend.anchor"));
         AutomationProperties.SetName(preview, strings.Get("galaxy.accessibility.map"));
         Grid.SetRow(preview, 1);
         previewLayout.Children.Add(preview);
 
         UniformGrid metrics = new() { Columns = 3, Margin = new Thickness(0, 14, 0, 0) };
-        metrics.Children.Add(Metric(strings.Get("galaxy.metric.systems"), "16"));
+        systemMetric = MetricValue("—");
+        metrics.Children.Add(Metric(strings.Get("galaxy.metric.systems"), systemMetric));
         starwayMetric = MetricValue("—");
         metrics.Children.Add(Metric(strings.Get("galaxy.metric.starways"), starwayMetric));
-        metrics.Children.Add(Metric(strings.Get("galaxy.metric.regions"), "2"));
+        regionMetric = MetricValue("—");
+        metrics.Children.Add(Metric(strings.Get("galaxy.metric.regions"), regionMetric));
         Grid.SetRow(metrics, 2);
         previewLayout.Children.Add(metrics);
 
@@ -212,6 +226,8 @@ internal sealed class GalaxyMapGeneratorView : Grid, IDisposable
 
         KeyDown += View_KeyDown;
         Loaded += View_Loaded;
+        shapeComboBox.SelectionChanged += GenerationSetting_SelectionChanged;
+        sizeComboBox.SelectionChanged += GenerationSetting_SelectionChanged;
         GeneratePreview();
     }
 
@@ -232,6 +248,8 @@ internal sealed class GalaxyMapGeneratorView : Grid, IDisposable
         KeyDown -= View_KeyDown;
         seedTextBox.TextChanged -= SeedTextBox_TextChanged;
         seedTextBox.KeyDown -= SeedTextBox_KeyDown;
+        shapeComboBox.SelectionChanged -= GenerationSetting_SelectionChanged;
+        sizeComboBox.SelectionChanged -= GenerationSetting_SelectionChanged;
         Children.Clear();
         GC.SuppressFinalize(this);
     }
@@ -297,6 +315,53 @@ internal sealed class GalaxyMapGeneratorView : Grid, IDisposable
         field.Child = row;
         return field;
     }
+
+    private Border SelectableField(string label, ComboBox comboBox)
+    {
+        Border field = new() {
+            BorderBrush = Brush("#334D668A"),
+            BorderThickness = new Thickness(0, 0, 0, 1),
+            Padding = new Thickness(0, 5, 0, 5),
+        };
+        Grid row = new();
+        row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(140) });
+        row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        row.Children.Add(Label(label));
+        Grid.SetColumn(comboBox, 1);
+        row.Children.Add(comboBox);
+        field.Child = row;
+        AutomationProperties.SetName(comboBox, label);
+        return field;
+    }
+
+    private static ComboBox ComboBox() => new() {
+        Foreground = TextBrush,
+        Background = Brush("#FF111D31"),
+        BorderBrush = PanelBorderBrush,
+        BorderThickness = new Thickness(1),
+        FontSize = 13,
+        FontWeight = FontWeights.SemiBold,
+        Padding = new Thickness(9, 5, 9, 5),
+        HorizontalContentAlignment = HorizontalAlignment.Stretch,
+        VerticalContentAlignment = VerticalAlignment.Center,
+        MinHeight = 34,
+    };
+
+    private static void AddChoice(ComboBox comboBox, string text, object value) =>
+        comboBox.Items.Add(new ComboBoxItem { Content = text, Tag = value });
+
+    private static void SelectChoice(ComboBox comboBox, object value)
+    {
+        ComboBoxItem? match = comboBox.Items
+            .OfType<ComboBoxItem>()
+            .FirstOrDefault(item => Equals(item.Tag, value));
+        comboBox.SelectedItem = match ?? comboBox.Items[0];
+    }
+
+    private static T SelectedChoice<T>(ComboBox comboBox) where T : struct =>
+        comboBox.SelectedItem is ComboBoxItem { Tag: T value }
+            ? value
+            : throw new InvalidOperationException("Galaxy generation choice is unavailable.");
 
     private static Border Panel() => new() {
         Background = PanelBrush,
@@ -432,24 +497,37 @@ internal sealed class GalaxyMapGeneratorView : Grid, IDisposable
         if (!TryReadSeed(out ulong seed))
         {
             preview.Galaxy = null;
+            systemMetric.Text = "—";
             starwayMetric.Text = "—";
+            regionMetric.Text = "—";
             SetStatus(strings.Get("galaxy.status.invalid-seed"), isError: true);
             return;
         }
 
-        GalaxyGenerationSettings settings = new();
+        GalaxyGenerationSettings settings = new(
+            SelectedChoice<int>(sizeComboBox),
+            SelectedChoice<GalaxyShape>(shapeComboBox));
         GalaxyGenerationResult result = GalaxyGenerator.Generate(seed, settings);
         if (!result.Succeeded)
         {
             preview.Galaxy = null;
+            systemMetric.Text = "—";
             starwayMetric.Text = "—";
+            regionMetric.Text = "—";
             SetStatus(strings.Get("galaxy.status.generation-failed"), isError: true);
             return;
         }
 
         selection = new GalaxyMapSelection(seed, settings);
+        preview.Shape = settings.Shape;
         preview.Galaxy = result.Galaxy;
+        systemMetric.Text = result.Galaxy!.Topology.Systems.Count.ToString(strings.Culture);
         starwayMetric.Text = result.Galaxy!.Topology.Starways.Count.ToString(strings.Culture);
+        regionMetric.Text = result.Galaxy.Topology.Systems.Values
+            .Select(value => value.Region)
+            .Distinct()
+            .Count()
+            .ToString(strings.Culture);
         SetStatus(strings.Get("galaxy.status.ready"), isError: false);
     }
 
@@ -489,6 +567,8 @@ internal sealed class GalaxyMapGeneratorView : Grid, IDisposable
             SetStatus(strings.Get("galaxy.status.preview-stale"), isError: false);
         }
     }
+
+    private void GenerationSetting_SelectionChanged(object sender, SelectionChangedEventArgs e) => GeneratePreview();
 
     private void Randomize_Click(object sender, RoutedEventArgs e)
     {
@@ -548,23 +628,32 @@ internal sealed class GalaxyMapGeneratorView : Grid, IDisposable
 /// <summary>
 /// Draws a read-only, bounded projection of immutable galaxy topology.
 /// </summary>
-internal sealed class GalaxyTopologyPreview(string innerRegion, string frontierRegion, string anchorLabel) : FrameworkElement
+internal sealed class GalaxyTopologyPreview(string anchorLabel) : FrameworkElement
 {
     private static readonly Brush BackgroundBrush = FrozenBrush("#D907101F");
     private static readonly Brush GridBrush = FrozenBrush("#184D668A");
     private static readonly Brush RouteBrush = FrozenBrush("#996F86A8");
     private static readonly Brush AlternateRouteBrush = FrozenBrush("#B35AAFC6");
-    private static readonly Brush RegionBrush = FrozenBrush("#1872B3C7");
+    private static readonly Brush GalaxyAreaBrush = FrozenBrush("#1267AAB9");
+    private static readonly Brush ShapeGuideBrush = FrozenBrush("#2F67AAB9");
     private static readonly Brush NodeBrush = FrozenBrush("#FFE8D8B8");
     private static readonly Brush AnchorBrush = FrozenBrush("#FF80DED9");
     private static readonly Brush LabelBrush = FrozenBrush("#FFC9D6E8");
-    private static readonly Brush MutedBrush = FrozenBrush("#FF91A3C1");
     private GalaxyState? galaxy;
+    private GalaxyShape shape = GalaxyShape.Elliptical;
 
     internal GalaxyState? Galaxy {
         get => galaxy;
         set {
             galaxy = value;
+            InvalidateVisual();
+        }
+    }
+
+    internal GalaxyShape Shape {
+        get => shape;
+        set {
+            shape = value;
             InvalidateVisual();
         }
     }
@@ -588,45 +677,38 @@ internal sealed class GalaxyTopologyPreview(string innerRegion, string frontierR
         }
 
         IReadOnlyList<StarSystemState> systems = galaxy.Topology.Systems.Values.OrderBy(value => value.Ordinal).ToArray();
+        int minimumX = systems.Min(value => value.DisplayX);
+        int maximumX = systems.Max(value => value.DisplayX);
         int minimumY = systems.Min(value => value.DisplayY);
         int maximumY = systems.Max(value => value.DisplayY);
-        int[] regions = systems.Select(value => value.Region).Distinct().Order().ToArray();
-        Dictionary<int, (int Minimum, int Maximum)> horizontalBounds = regions.ToDictionary(
-            region => region,
-            region => (
-                systems.Where(value => value.Region == region).Min(value => value.DisplayX),
-                systems.Where(value => value.Region == region).Max(value => value.DisplayX)));
         const double paddingX = 72;
         const double paddingY = 64;
-        const double regionGap = 112;
+        double xRange = Math.Max(1, maximumX - minimumX);
+        double yRange = Math.Max(1, maximumY - minimumY);
+        double scale = Math.Min(
+            Math.Max(1, ActualWidth - paddingX * 2) / xRange,
+            Math.Max(1, ActualHeight - paddingY * 2) / yRange);
+        double projectedWidth = xRange * scale;
+        double projectedHeight = yRange * scale;
+        double originX = (ActualWidth - projectedWidth) / 2;
+        double originY = (ActualHeight - projectedHeight) / 2;
         Point Project(StarSystemState system)
         {
-            int regionIndex = Array.IndexOf(regions, system.Region);
-            (int regionMinimumX, int regionMaximumX) = horizontalBounds[system.Region];
-            double regionWidth = Math.Max(1,
-                (ActualWidth - paddingX * 2 - regionGap * (regions.Length - 1)) / regions.Length);
-            double regionOriginX = paddingX + regionIndex * (regionWidth + regionGap);
-            double xRange = Math.Max(1, regionMaximumX - regionMinimumX);
-            double yRange = Math.Max(1, maximumY - minimumY);
             return new Point(
-                regionOriginX + ((system.DisplayX - regionMinimumX) / xRange * regionWidth),
-                paddingY + ((system.DisplayY - minimumY) / yRange * Math.Max(1, ActualHeight - paddingY * 2)));
+                originX + (system.DisplayX - minimumX) * scale,
+                originY + (system.DisplayY - minimumY) * scale);
         }
 
         Dictionary<StarSystemId, Point> points = systems.ToDictionary(value => value.Id, Project);
-        foreach (int region in systems.Select(value => value.Region).Distinct().Order())
+        Rect galaxyBounds = new(originX - 34, originY - 34, projectedWidth + 68, projectedHeight + 68);
+        if (shape is GalaxyShape.Elliptical or GalaxyShape.Ring)
         {
-            Point[] regionPoints = systems.Where(value => value.Region == region).Select(Project).ToArray();
-            Rect regionBounds = Rect.Empty;
-            foreach (Point point in regionPoints)
-            {
-                regionBounds.Union(point);
-            }
-
-            regionBounds.Inflate(42, 38);
-            drawingContext.DrawRoundedRectangle(RegionBrush, new Pen(FrozenBrush("#3367AAB9"), 1), regionBounds, 32, 32);
-            DrawText(drawingContext, region == 0 ? innerRegion : frontierRegion,
-                new Point(regionBounds.Left + 12, regionBounds.Top + 9), 11, MutedBrush, FontWeights.SemiBold);
+            drawingContext.DrawEllipse(
+                shape == GalaxyShape.Elliptical ? GalaxyAreaBrush : null,
+                new Pen(ShapeGuideBrush, 1),
+                new Point(galaxyBounds.Left + galaxyBounds.Width / 2, galaxyBounds.Top + galaxyBounds.Height / 2),
+                galaxyBounds.Width / 2,
+                galaxyBounds.Height / 2);
         }
 
         foreach (StarwayState starway in galaxy.Topology.Starways.Values.OrderBy(value => value.Id))
@@ -664,10 +746,15 @@ internal sealed class GalaxyTopologyPreview(string innerRegion, string frontierR
         {
             Point point = points[system.Id];
             bool anchor = system.Ordinal == 0;
-            double radius = anchor ? 10 : 6;
+            double nodeRadius = systems.Count switch {
+                <= 64 => 6,
+                <= 256 => 4,
+                _ => 2.5,
+            };
+            double radius = anchor ? Math.Max(8, nodeRadius + 3) : nodeRadius;
             if (anchor)
             {
-                drawingContext.DrawEllipse(null, new Pen(AnchorBrush, 2), point, 16, 16);
+                drawingContext.DrawEllipse(null, new Pen(AnchorBrush, 2), point, radius + 6, radius + 6);
             }
 
             drawingContext.DrawEllipse(anchor ? AnchorBrush : NodeBrush, null, point, radius, radius);
@@ -678,7 +765,7 @@ internal sealed class GalaxyTopologyPreview(string innerRegion, string frontierR
                 DrawText(drawingContext, anchorLabel, new Point(point.X + 19, point.Y + 1),
                     9, AnchorBrush, FontWeights.SemiBold);
             }
-            else
+            else if (systems.Count <= 64)
             {
                 DrawText(drawingContext, (system.Ordinal + 1).ToString("00", CultureInfo.InvariantCulture),
                     new Point(point.X + 10, point.Y - 9), 10, LabelBrush, FontWeights.SemiBold);

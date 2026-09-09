@@ -27,6 +27,33 @@ public sealed partial class SimulationContracts
         True(first.StarwaysFrom(firstNavigation.CurrentSystemId).Count() >= 2,
             "The starting anchorage did not have two outward Starways.");
 
+        int[] supportedSizes = [16, 64, 128, 256, 512, 1_024];
+        foreach (GalaxyShape shape in Enum.GetValues<GalaxyShape>())
+        {
+            foreach (int systemCount in supportedSizes)
+            {
+                GalaxyGenerationResult shapedResult = GalaxyGenerator.Generate(
+                    0x5eedUL,
+                    new GalaxyGenerationSettings(systemCount, shape));
+                True(shapedResult.Succeeded,
+                    $"{shape} galaxy generation with {systemCount} systems failed: {shapedResult.Code}.");
+                Equal(systemCount, shapedResult.Galaxy!.Topology.Systems.Count,
+                    $"{shape} galaxy generation returned the wrong system count.");
+                True(GalaxyValidator.Validate(shapedResult.Galaxy).Accepted,
+                    $"{shape} galaxy generation failed validation.");
+                True(shapedResult.Galaxy.StarwaysFrom(shapedResult.Navigation!.CurrentSystemId).Count() >= 2,
+                    $"{shape} galaxy generation left the starting anchorage with fewer than two routes.");
+            }
+        }
+
+        GalaxyGenerationResult spiral = GalaxyGenerator.Generate(
+            0x5eedUL, new GalaxyGenerationSettings(16, GalaxyShape.Spiral));
+        GalaxyGenerationResult ring = GalaxyGenerator.Generate(
+            0x5eedUL, new GalaxyGenerationSettings(16, GalaxyShape.Ring));
+        True(!spiral.Galaxy!.Topology.Systems.Values.OrderBy(value => value.Ordinal)
+                .SequenceEqual(ring.Galaxy!.Topology.Systems.Values.OrderBy(value => value.Ordinal)),
+            "Different galaxy shapes produced the same system layout.");
+
         StarSystemId destination = first.Topology.Systems.Values.OrderBy(value => value.Ordinal).Last().Id;
         GalaxyRouteResult unknown = GalaxyRoutePlanner.Plan(
             first, firstNavigation.CurrentSystemId, destination, GalaxyRoutePreference.TravelTime);
@@ -51,8 +78,7 @@ public sealed partial class SimulationContracts
         ImmutableDictionary<StarwayId, StarwayDynamicState> blockedDepartures = knownGalaxy
             .StarwaysFrom(firstNavigation.CurrentSystemId)
             .ToImmutableDictionary(value => value.Id, _ => new StarwayDynamicState(true, 0, null));
-        GalaxyState blockedGalaxy = knownGalaxy with
-        {
+        GalaxyState blockedGalaxy = knownGalaxy with {
             Dynamic = new GalaxyDynamicState(blockedDepartures, ImmutableHashSet<ContentId>.Empty),
         };
         True(GalaxyValidator.Validate(blockedGalaxy).Accepted,
@@ -102,8 +128,7 @@ public sealed partial class SimulationContracts
             : firstLeg.FirstSystemId;
         VoyageLegQuote quote = ShipVoyageSystem.Quote(voyageShip, firstLeg).Quote!;
         int resourceBefore = world.Ships[voyageShip.Id].Resources[quote.ResourceId];
-        ShipState emptyShip = world.Ships[voyageShip.Id] with
-        {
+        ShipState emptyShip = world.Ships[voyageShip.Id] with {
             Resources = world.Ships[voyageShip.Id].Resources.SetItem(quote.ResourceId, 0),
         };
         World insufficient = world with { Ships = world.Ships.SetItem(emptyShip.Id, emptyShip) };

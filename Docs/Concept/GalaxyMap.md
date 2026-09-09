@@ -3,12 +3,14 @@
 ## Status
 
 This document defines the procedural galaxy, star-system, route, discovery,
-and map-persistence systems. The first headless foundation now implements a
-bounded deterministic two-region graph, immutable system and Starway state,
+and map-persistence systems. Generator version 2 now implements bounded,
+deterministic Spiral, Elliptical, and Ring graphs from 16 through 1,024 systems,
+immutable system and Starway state,
 knowledge-gated route planning, propulsion resource contracts, authoritative
 route-plan/departure/progress/arrival transitions, validation, `World`
-snapshots, and save round-tripping. Authored galaxy content, travel events, and
-the WPF map remain planned. The retired deterministic 4-by-4 expedition grid
+snapshots, save round-tripping, and a WPF new-campaign topology preview. Authored
+galaxy content, travel events, and the playable voyage map remain planned. The
+retired deterministic 4-by-4 expedition grid
 has been removed; new galaxy work must continue through the authoritative
 voyage and persistence boundaries rather than revive that parallel prototype.
 Optional late-campaign threats that can transform this graph are defined in
@@ -69,18 +71,18 @@ Generation consumes a validated immutable settings record:
 
 | Setting | Examples | Rule |
 | --- | --- | --- |
-| Size | Voyage, Small, Standard, Large, Grand | Selects a bounded system count and generation budget |
-| Shape | Spiral, Ring, Clustered, Shattered, Open | Selects a topology strategy, not a background image |
+| Size | Compact, Small, Medium, Large, Huge, Vast | Selects a bounded system count and generation budget |
+| Shape | Spiral, Elliptical, Ring | Selects a topology strategy, not a background image |
 | Starway density | Sparse, Normal, Dense | Adjusts bounded extra edges after connectivity is guaranteed |
 | Hazard prevalence | Low, Normal, High | Adjusts eligible hazard weights, never mandatory-route lethality |
 | Habitable-site prevalence | Scarce, Normal, Abundant | Adjusts viable settlement candidates |
 | Faction presence | Sparse, Normal, Crowded | Adjusts initial faction count and territorial pressure |
 | Ancient activity | Quiet, Normal, Awakened | Adjusts ruins, sealed routes, and ancient hazards |
 
-Planned system-count presets are 64, 128, 256, 512, and 1,024. The maximum is
-an authored limit rather than an unbounded player integer. The first complete
-voyage uses only a 16-system test region; larger presets remain planned until
-generation, map rendering, saves, and path searches meet their budgets.
+Implemented system-count presets are 16, 64, 128, 256, 512, and 1,024. The
+maximum is an authored limit rather than an unbounded player integer. Preview
+labels are progressively simplified as system count grows so rendering remains
+bounded.
 
 ## Deterministic generation pipeline
 
@@ -122,6 +124,7 @@ Galaxy shapes bias placement and connection without dictating exact results:
 | Shape | Topological character |
 | --- | --- |
 | Spiral | Several curved arms joined by a contested core and occasional cross-arm routes |
+| Elliptical | Systems fill a broad oval with local nearest-neighbor routes and several alternatives |
 | Ring | Strong circular routes with dangerous or scarce crossings through the center |
 | Clustered | Dense local groups connected by a few long inter-cluster Starways |
 | Shattered | Irregular pockets, dead ends, broken ancient routes, and risky reconnection opportunities |
@@ -256,11 +259,11 @@ The immutable galaxy header resembles:
 ```json
 {
   "schemaVersion": 1,
-  "generatorVersion": 1,
+  "generatorVersion": 2,
   "seed": 731942,
   "settingsId": "galaxy.settings.voyage",
   "contentRevision": "content.prototype.1",
-  "shapeId": "galaxy.shape.clustered",
+  "shapeId": "galaxy.shape.elliptical",
   "systemCount": 16
 }
 ```
@@ -295,7 +298,7 @@ connected graph generated from one explicit seed and generator version. It
 needs:
 
 - one home anchorage and at least two initial outward Starways;
-- two regions with a visible chokepoint and at least one alternate route;
+- one selected Spiral, Elliptical, or Ring topology with at least one alternate route;
 - at least four system archetypes and six site types;
 - three factions, one settlement, one neutral market, and one contested location;
 - one ruin, one salvage site, one aether hazard, and one industrial hazard;

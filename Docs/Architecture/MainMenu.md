@@ -58,8 +58,9 @@ republishes the catalogs and rebuilds the retained menu document.
 New Game and Game Settings add modal overlays to the existing main-window
 visual tree; neither creates a second operating-system window or taskbar entry.
 The 1600x900 galaxy generator is the first new-campaign step. It exposes the
-explicit deterministic seed while honestly presenting scenario, dual-region
-shape, 16-system size, and generator version as fixed first-slice values. Its
+explicit deterministic seed, six bounded size presets from 16 through 1,024
+systems, and Spiral, Elliptical, and Ring shape strategies. Scenario and
+generator version remain fixed first-slice values. Its
 read-only topology projection calls the simulation-owned `GalaxyGenerator`,
 shows the validated systems and starways without revealing campaign discoveries,
 and carries the accepted seed into character creation. Invalid input and failed
