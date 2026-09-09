@@ -1,7 +1,5 @@
-using System.Buffers.Binary;
 using System.Globalization;
 using System.Runtime.InteropServices;
-using System.Security.Cryptography;
 using System.Text;
 using System.Windows;
 using System.Windows.Automation.Peers;
@@ -58,7 +56,6 @@ internal sealed class SpriteForgeCharacterCreationView : FrameworkElement, IDisp
     private static readonly ulong FooterPanelKey = StableKey("spelljammer.creation.footer-panel");
     private static readonly ulong StatusKey = StableKey("spelljammer.creation.status");
     private static readonly ulong BackKey = StableKey("spelljammer.creation.back");
-    private static readonly ulong RerollKey = StableKey("spelljammer.creation.reroll");
     private static readonly ulong ConfirmKey = StableKey("spelljammer.creation.confirm");
     private static readonly ulong CancelAction = StableKey("spelljammer.creation.action.cancel");
     private static readonly ulong[] CaptainChoiceKeys =
@@ -79,11 +76,11 @@ internal sealed class SpriteForgeCharacterCreationView : FrameworkElement, IDisp
     private ulong seed;
     private bool disposed;
 
-    internal SpriteForgeCharacterCreationView(GameText strings, CharacterCreationSelection? initial)
+    internal SpriteForgeCharacterCreationView(GameText strings, CharacterCreationSelection initial)
     {
         this.strings = strings;
-        choiceIndex = initial is null ? 0 : FindChoiceIndex(initial.Choice.CharacterId);
-        seed = initial?.Seed ?? NewSeed();
+        choiceIndex = FindChoiceIndex(initial.Choice.CharacterId);
+        seed = initial.Seed;
         background = LoadBackground();
         elementKeys =
         [
@@ -91,7 +88,7 @@ internal sealed class SpriteForgeCharacterCreationView : FrameworkElement, IDisp
             RosterPanelKey, RosterHeadingKey, PreviewPanelKey, PortraitKey, CaptainKey,
             DetailPanelKey, DetailHeadingKey, RaceLabelKey, RaceValueKey, HeritageLabelKey,
             HeritageValueKey, BackgroundLabelKey, BackgroundValueKey, SummaryKey, SeedLabelKey,
-            SeedValueKey, FooterPanelKey, StatusKey, BackKey, RerollKey, ConfirmKey,
+            SeedValueKey, FooterPanelKey, StatusKey, BackKey, ConfirmKey,
             .. CaptainChoiceKeys,
         ];
         Focusable = true;
@@ -188,8 +185,6 @@ internal sealed class SpriteForgeCharacterCreationView : FrameworkElement, IDisp
         DrawText(drawingContext, SeedValueKey, strings.Format(
             "creation.value.seed", LocalizationArgument.Unsigned("seed", seed)),
             16, "#80DED9", TextAlignment.Left, FontWeights.SemiBold);
-        DrawText(drawingContext, RerollKey, strings.Get("creation.button.reroll"), 13, "#F2E9D8",
-            TextAlignment.Center, FontWeights.SemiBold);
         DrawText(drawingContext, StatusKey, strings.Get("creation.status.ready"), 13, "#93A1BE",
             TextAlignment.Center, FontWeights.Normal);
         DrawText(drawingContext, BackKey, strings.Get("creation.button.back"), 14, "#F2E9D8",
@@ -393,7 +388,6 @@ internal sealed class SpriteForgeCharacterCreationView : FrameworkElement, IDisp
             Text(SeedLabelKey, 1052, 568, 180, 24, strings.Get("creation.label.seed"), names),
             Text(SeedValueKey, 1052, 594, 474, 34,
                 strings.Format("creation.value.seed", LocalizationArgument.Unsigned("seed", seed)), names),
-            Button(RerollKey, 1052, 646, 210, 46, 20, strings.Get("creation.button.reroll"), names),
             Panel(FooterPanelKey, 0, 808, 1600, 92, strings.Get("creation.accessibility.screen"), names,
                 Color(0.025f, 0.039f, 0.065f, 0.98f)),
             Button(BackKey, 42, 828, 180, 52, 21, strings.Get("creation.button.back"), names),
@@ -525,11 +519,6 @@ internal sealed class SpriteForgeCharacterCreationView : FrameworkElement, IDisp
             {
                 choiceIndex = selectedIndex;
                 Recreate(action.Source);
-            }
-            else if (action.Source == RerollKey)
-            {
-                seed = NewSeed();
-                Recreate(RerollKey);
             }
             else if (action.Source == ConfirmKey)
             {
@@ -694,14 +683,6 @@ internal sealed class SpriteForgeCharacterCreationView : FrameworkElement, IDisp
         image.EndInit();
         image.Freeze();
         return image;
-    }
-
-    private static ulong NewSeed()
-    {
-        Span<byte> bytes = stackalloc byte[sizeof(ulong)];
-        RandomNumberGenerator.Fill(bytes);
-        ulong value = BinaryPrimitives.ReadUInt64LittleEndian(bytes);
-        return value == 0 ? 1 : value;
     }
 
     private static EngineUiColor Color(float red, float green, float blue, float alpha = 1) =>

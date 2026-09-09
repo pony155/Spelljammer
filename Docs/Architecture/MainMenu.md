@@ -3,8 +3,9 @@
 ## Implemented slice
 
 Spelljammer starts in `MainMenuWindow`. Its current actions are New Game, Game
-Settings, and Quit Game. New Game opens the first character-creation UI; it
-does not yet advertise Continue or launch an authoritative campaign.
+Settings, and Quit Game. New Game opens the galaxy generator and then the first
+character-creation UI; it does not yet advertise Continue or launch an
+authoritative campaign.
 
 The authored background is:
 
@@ -47,22 +48,32 @@ independent presentation constant.
 ## Localization and lifecycle
 
 Player-visible strings are authored in the `en-US`, `fr-FR`, and
-`zh-Hant-TW` menu, settings, and creation catalogs under
-`Content/Packs/base/Localization`. The offline compiler builds all nine
-catalogs before WPF compilation and embeds the artifacts. The application
-stages and publishes all three complete namespaces in the selected locale on
-the UI thread before constructing the menu. Applying a language change
+`zh-Hant-TW` menu, settings, creation, galaxy, and calendar catalogs under
+`Content/Packs/base/Localization`. The offline compiler builds all 15 catalogs
+before WPF compilation and embeds the artifacts. The application stages and
+publishes all five complete namespaces in the selected locale on the UI thread
+before constructing the menu. Applying a language change
 republishes the catalogs and rebuilds the retained menu document.
 
 New Game and Game Settings add modal overlays to the existing main-window
 visual tree; neither creates a second operating-system window or taskbar entry.
-Character creation visually replaces the complete client area with a 1600x900
-dossier. Its persistent left roster directly selects any of the 11 authored
-first-voyage captain templates, while the preview and detail panels expose the
-current lineage, heritage, Background, summary, and explicit rerollable voyage
-seed. Confirm currently returns the selection to the host and reports it on the
-main menu; campaign construction, persistence, and launch remain planned. Quit
-Game emits a copied stable action and requests ordinary application shutdown.
+The 1600x900 galaxy generator is the first new-campaign step. It exposes the
+explicit deterministic seed while honestly presenting scenario, dual-region
+shape, 16-system size, and generator version as fixed first-slice values. Its
+read-only topology projection calls the simulation-owned `GalaxyGenerator`,
+shows the validated systems and starways without revealing campaign discoveries,
+and carries the accepted seed into character creation. Invalid input and failed
+validation leave the last accepted draft unpublished.
+
+Character creation is the second new-campaign step and visually replaces the
+complete client area with a 1600x900 dossier. Its persistent left roster directly
+selects any of the 11 authored first-voyage captain templates, while the preview
+and detail panels expose the current lineage, heritage, Background, summary, and
+the read-only galaxy seed accepted on the previous screen. Back returns to the
+retained galaxy draft. Confirm currently returns both selections to the host and
+reports the captain on the main menu; campaign construction, persistence, and
+launch remain planned. Quit Game emits a copied stable action and requests
+ordinary application shutdown.
 Closing the operating-system window has the same shutdown result. Native UI
 documents are destroyed on their owner thread when the window unloads.
 

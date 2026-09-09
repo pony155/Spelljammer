@@ -15,7 +15,7 @@ internal sealed class CharacterCreationScreen : Grid, IDisposable
     private readonly SpriteForgeCharacterCreationView creationView;
     private bool disposed;
 
-    internal CharacterCreationScreen(GameText strings, CharacterCreationSelection? initial)
+    internal CharacterCreationScreen(GameText strings, CharacterCreationSelection initial)
     {
         Background = Brushes.Black;
         creationView = new SpriteForgeCharacterCreationView(strings, initial);

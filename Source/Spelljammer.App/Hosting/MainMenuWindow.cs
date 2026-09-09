@@ -23,7 +23,9 @@ internal sealed class MainMenuWindow : Window
     private readonly Grid root;
     private readonly SpriteForgeMainMenuView menuView;
     private GameSettingsDialog? settingsDialog;
+    private GalaxyMapGeneratorScreen? galaxyMapGenerator;
     private CharacterCreationScreen? characterCreation;
+    private GalaxyMapSelection? galaxyMapDraft;
     private CharacterCreationSelection? newGameDraft;
 
     internal MainMenuWindow(
@@ -73,16 +75,56 @@ internal sealed class MainMenuWindow : Window
 
     private void MenuView_NewGameRequested(object? sender, EventArgs e)
     {
-        if (characterCreation is not null || settingsDialog is not null)
+        if (galaxyMapGenerator is not null || characterCreation is not null || settingsDialog is not null)
         {
             return;
         }
 
-        characterCreation = new CharacterCreationScreen(strings, newGameDraft);
+        OpenGalaxyMapGenerator();
+    }
+
+    private void OpenGalaxyMapGenerator()
+    {
+        galaxyMapGenerator = new GalaxyMapGeneratorScreen(strings, galaxyMapDraft);
+        galaxyMapGenerator.Completed += GalaxyMapGenerator_Completed;
+        galaxyMapGenerator.Cancelled += GalaxyMapGenerator_Cancelled;
+        menuView.IsEnabled = false;
+        root.Children.Add(galaxyMapGenerator);
+    }
+
+    private void GalaxyMapGenerator_Completed(object? sender, GalaxyMapGeneratorCompletedEventArgs e)
+    {
+        galaxyMapDraft = e.Selection;
+        CloseGalaxyMapGenerator();
+        CharacterCreationChoice choice = newGameDraft?.Choice ?? CharacterCreationChoices.All[0];
+        characterCreation = new CharacterCreationScreen(
+            strings,
+            new CharacterCreationSelection(choice, e.Selection.Seed));
         characterCreation.Completed += CharacterCreation_Completed;
         characterCreation.Cancelled += CharacterCreation_Cancelled;
         menuView.IsEnabled = false;
         root.Children.Add(characterCreation);
+    }
+
+    private void GalaxyMapGenerator_Cancelled(object? sender, EventArgs e)
+    {
+        CloseGalaxyMapGenerator();
+        menuView.Focus();
+    }
+
+    private void CloseGalaxyMapGenerator()
+    {
+        if (galaxyMapGenerator is null)
+        {
+            return;
+        }
+
+        galaxyMapGenerator.Completed -= GalaxyMapGenerator_Completed;
+        galaxyMapGenerator.Cancelled -= GalaxyMapGenerator_Cancelled;
+        root.Children.Remove(galaxyMapGenerator);
+        galaxyMapGenerator.Dispose();
+        galaxyMapGenerator = null;
+        menuView.IsEnabled = true;
     }
 
     private void CharacterCreation_Completed(object? sender, CharacterCreationCompletedEventArgs e)
@@ -99,7 +141,7 @@ internal sealed class MainMenuWindow : Window
     private void CharacterCreation_Cancelled(object? sender, EventArgs e)
     {
         CloseCharacterCreation();
-        menuView.Focus();
+        OpenGalaxyMapGenerator();
     }
 
     private void CloseCharacterCreation()
@@ -119,7 +161,7 @@ internal sealed class MainMenuWindow : Window
 
     private void MenuView_SettingsRequested(object? sender, EventArgs e)
     {
-        if (settingsDialog is not null)
+        if (settingsDialog is not null || galaxyMapGenerator is not null || characterCreation is not null)
         {
             return;
         }
@@ -211,6 +253,7 @@ internal sealed class MainMenuWindow : Window
     private void Window_Closed(object? sender, EventArgs e)
     {
         CloseCharacterCreation();
+        CloseGalaxyMapGenerator();
         CloseSettingsDialog();
         menuView.NewGameRequested -= MenuView_NewGameRequested;
         menuView.SettingsRequested -= MenuView_SettingsRequested;
