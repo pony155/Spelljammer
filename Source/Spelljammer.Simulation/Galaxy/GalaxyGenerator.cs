@@ -8,15 +8,20 @@ public enum GalaxyShape : byte
     Spiral = 1,
     Elliptical = 2,
     Ring = 3,
-    BarredSpiral = 4,
 }
 
 public sealed record GalaxyGenerationSettings(
     int SystemCount = 16,
     GalaxyShape Shape = GalaxyShape.Elliptical,
-    int GeneratorVersion = GalaxyGenerator.CurrentGeneratorVersion)
+    int GeneratorVersion = GalaxyGenerator.CurrentGeneratorVersion,
+    int SpiralBarStrength = 0,
+    int SpiralArmCount = 2)
 {
     public const int MinimumSystemCount = 8;
+    public const int MinimumSpiralBarStrength = 0;
+    public const int MaximumSpiralBarStrength = 100;
+    public const int MinimumSpiralArmCount = 2;
+    public const int MaximumSpiralArmCount = 6;
 }
 
 public sealed record GalaxyGenerationResult(
@@ -29,7 +34,7 @@ public sealed record GalaxyGenerationResult(
 
 public static class GalaxyGenerator
 {
-    public const int CurrentGeneratorVersion = 3;
+    public const int CurrentGeneratorVersion = 4;
 
     private const double FullCircle = Math.PI * 2;
     private const double GoldenAngle = 2.39996322972865332;
@@ -49,7 +54,11 @@ public static class GalaxyGenerator
     {
         settings ??= new();
         if (settings.GeneratorVersion != CurrentGeneratorVersion || !Enum.IsDefined(settings.Shape) ||
-            settings.SystemCount is < GalaxyGenerationSettings.MinimumSystemCount or > GalaxyLimits.MaximumSystems)
+            settings.SystemCount is < GalaxyGenerationSettings.MinimumSystemCount or > GalaxyLimits.MaximumSystems ||
+            settings.SpiralBarStrength is < GalaxyGenerationSettings.MinimumSpiralBarStrength or
+                > GalaxyGenerationSettings.MaximumSpiralBarStrength ||
+            settings.SpiralArmCount is < GalaxyGenerationSettings.MinimumSpiralArmCount or
+                > GalaxyGenerationSettings.MaximumSpiralArmCount)
         {
             return new(null, null, GalaxyValidationCode.InvalidHeader);
         }
@@ -102,16 +111,17 @@ public static class GalaxyGenerator
         switch (settings.Shape)
         {
             case GalaxyShape.Spiral:
-                ConnectSpiral(systems.Length, Connect);
+                ConnectSpiral(
+                    systems,
+                    BarSystemCount(settings.SystemCount, settings.SpiralBarStrength, settings.SpiralArmCount),
+                    settings.SpiralArmCount,
+                    Connect);
                 break;
             case GalaxyShape.Elliptical:
                 ConnectElliptical(systems, degrees, Connect);
                 break;
             case GalaxyShape.Ring:
                 ConnectRing(systems, Connect);
-                break;
-            case GalaxyShape.BarredSpiral:
-                ConnectElliptical(systems, degrees, Connect);
                 break;
             default:
                 return new(null, null, GalaxyValidationCode.InvalidHeader);
@@ -139,29 +149,49 @@ public static class GalaxyGenerator
     private static GeneratedPosition[] PlaceSystems(
         GalaxyGenerationSettings settings,
         ref DeterministicStream random) => settings.Shape switch {
-            GalaxyShape.Spiral => PlaceSpiral(settings.SystemCount, ref random),
+            GalaxyShape.Spiral => PlaceSpiral(
+                settings.SystemCount,
+                settings.SpiralBarStrength,
+                settings.SpiralArmCount,
+                ref random),
             GalaxyShape.Elliptical => PlaceElliptical(settings.SystemCount, ref random),
             GalaxyShape.Ring => PlaceRing(settings.SystemCount, ref random),
-            GalaxyShape.BarredSpiral => PlaceBarredSpiral(settings.SystemCount, ref random),
             _ => throw new ArgumentOutOfRangeException(nameof(settings)),
         };
 
-    private static GeneratedPosition[] PlaceSpiral(int count, ref DeterministicStream random)
+    private static GeneratedPosition[] PlaceSpiral(
+        int count,
+        int barStrength,
+        int armCount,
+        ref DeterministicStream random)
     {
-        int arms = ArmCount(count);
-        int layers = (count + arms - 1) / arms;
+        int barCount = BarSystemCount(count, barStrength, armCount);
+        double normalizedBarStrength = barStrength / 100.0;
         GeneratedPosition[] positions = new GeneratedPosition[count];
-        for (int index = 0; index < count; index++)
+        for (int index = 0; index < barCount; ++index)
         {
-            int arm = index % arms;
-            int layer = index / arms;
+            double progress = barCount <= 1 ? 0.5 : (double)index / (barCount - 1);
+            int x = Round((progress * 2 - 1) * (130 + normalizedBarStrength * 210)) + random.Next(-9, 10);
+            int y = random.Next(-10, 11) + Round(Math.Sin(progress * Math.PI) * 8);
+            positions[index] = new(x, y, RegionOf(x, y));
+        }
+
+        int spiralCount = count - barCount;
+        int layers = (spiralCount + armCount - 1) / armCount;
+        for (int index = 0; index < spiralCount; ++index)
+        {
+            int arm = index % armCount;
+            int layer = index / armCount;
             double progress = layers <= 1 ? 0 : (double)layer / (layers - 1);
             double radius = 90 + progress * 710;
-            double angle = arm * FullCircle / arms + progress * Math.PI * 1.55;
-            positions[index] = new(
-                Round(Math.Cos(angle) * radius) + random.Next(-14, 15),
-                Round(Math.Sin(angle) * radius * 0.58) + random.Next(-14, 15),
-                arm);
+            double angle = arm * FullCircle / armCount + progress * Math.PI * 1.55;
+            double barPull = normalizedBarStrength * Math.Pow(1 - progress, 2.25);
+            double targetX = Math.Cos(arm * FullCircle / armCount) >= 0 ? 340 : -340;
+            double spiralX = Math.Cos(angle) * radius;
+            double spiralY = Math.Sin(angle) * radius * 0.58;
+            int x = Round(spiralX + (targetX - spiralX) * barPull) + random.Next(-14, 15);
+            int y = Round(spiralY * (1 - barPull)) + random.Next(-14, 15);
+            positions[barCount + index] = new(x, y, RegionOf(x, y));
         }
 
         return positions;
@@ -219,59 +249,56 @@ public static class GalaxyGenerator
         return positions;
     }
 
-    private static GeneratedPosition[] PlaceBarredSpiral(int count, ref DeterministicStream random)
+    private static void ConnectSpiral(
+        IReadOnlyList<StarSystemState> systems,
+        int barCount,
+        int armCount,
+        Action<int, int> connect)
     {
-        int barCount = Math.Max(4, count / 5);
-        int armCount = count - barCount;
-        int armLayers = (armCount + 1) / 2;
-        GeneratedPosition[] positions = new GeneratedPosition[count];
-        for (int index = 0; index < barCount; ++index)
+        for (int index = 0; index + 1 < barCount; ++index)
         {
-            int side = index % 2 == 0 ? 1 : -1;
-            int step = (index + 1) / 2;
-            double progress = barCount <= 2 ? 0 : (double)step / (barCount / 2);
-            int x = index == 0 ? 0 : Round(side * progress * 320) + random.Next(-10, 11);
-            int y = random.Next(-22, 23);
-            positions[index] = new(x, y, RegionOf(x, y));
+            connect(index, index + 1);
         }
 
-        for (int index = 0; index < armCount; ++index)
+        int spiralCount = systems.Count - barCount;
+        for (int arm = 0; arm < armCount; ++arm)
         {
-            int arm = index % 2;
-            int layer = index / 2;
-            double progress = armLayers <= 1 ? 0 : (double)layer / (armLayers - 1);
-            double radius = 320 + progress * 480;
-            double angle = arm * Math.PI + progress * Math.PI * 1.25;
-            int x = Round(Math.Cos(angle) * radius) + random.Next(-14, 15);
-            int y = Round(Math.Sin(angle) * radius * 0.58) + random.Next(-14, 15);
-            positions[barCount + index] = new(x, y, RegionOf(x, y));
-        }
-
-        return positions;
-    }
-
-    private static void ConnectSpiral(int count, Action<int, int> connect)
-    {
-        int arms = ArmCount(count);
-        for (int arm = 0; arm < arms; arm++)
-        {
-            for (int index = arm; index + arms < count; index += arms)
+            int first = barCount + arm;
+            if (first >= systems.Count)
             {
-                connect(index, index + arms);
+                break;
             }
 
-            connect(arm, (arm + 1) % arms);
+            for (int index = first; index + armCount < systems.Count; index += armCount)
+            {
+                connect(index, index + armCount);
+            }
+
+            if (barCount > 0)
+            {
+                int endpoint = systems[first].DisplayX >= 0 ? barCount - 1 : 0;
+                connect(endpoint, first);
+            }
+            else
+            {
+                connect(arm, (arm + 1) % armCount);
+            }
         }
 
-        int layers = (count + arms - 1) / arms;
+        if (barCount > 0 && barCount == 2)
+        {
+            connect(0, Math.Min(systems.Count - 1, barCount + armCount / 2));
+        }
+
+        int layers = (spiralCount + armCount - 1) / armCount;
         for (int layer = 2; layer < layers; layer += 3)
         {
-            int first = layer * arms;
-            for (int arm = 0; arm < arms; arm++)
+            int first = barCount + layer * armCount;
+            for (int arm = 0; arm < armCount; ++arm)
             {
                 int left = first + arm;
-                int right = first + ((arm + 1) % arms);
-                if (left < count && right < count)
+                int right = first + ((arm + 1) % armCount);
+                if (left < systems.Count && right < systems.Count)
                 {
                     connect(left, right);
                 }
@@ -337,11 +364,16 @@ public static class GalaxyGenerator
         return deltaX * deltaX + deltaY * deltaY;
     }
 
-    private static int ArmCount(int systemCount) => systemCount switch {
-        >= 256 => 4,
-        >= 64 => 3,
-        _ => 2,
-    };
+    private static int BarSystemCount(int systemCount, int barStrength, int armCount)
+    {
+        if (barStrength == 0)
+        {
+            return 0;
+        }
+
+        int desired = Round(systemCount * (0.06 + barStrength / 100.0 * 0.16));
+        return Math.Clamp(desired, 2, systemCount - armCount);
+    }
 
     private static int RegionOf(int x, int y) => y >= 0 ? (x >= 0 ? 0 : 1) : (x < 0 ? 2 : 3);
 

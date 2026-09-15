@@ -3,8 +3,8 @@
 ## Status
 
 This document defines the procedural galaxy, star-system, route, discovery,
-and map-persistence systems. Generator version 3 now implements bounded,
-deterministic Spiral, Barred Spiral, Elliptical, and Ring graphs from 16 through 1,024 systems,
+and map-persistence systems. Generator version 4 now implements bounded,
+deterministic Spiral, Elliptical, and Ring graphs from 16 through 1,024 systems,
 immutable system and Starway state,
 knowledge-gated route planning, propulsion resource contracts, authoritative
 route-plan/departure/progress/arrival transitions, validation, `World`
@@ -72,7 +72,9 @@ Generation consumes a validated immutable settings record:
 | Setting | Examples | Rule |
 | --- | --- | --- |
 | Size | Compact, Small, Medium, Large, Huge, Vast | Selects a bounded system count and generation budget |
-| Shape | Spiral, Barred Spiral, Elliptical, Ring | Selects a topology strategy, not a background image |
+| Shape | Spiral, Elliptical, Ring | Selects a topology strategy, not a background image |
+| Spiral bar strength | 0%, 25%, 50%, 75%, 100% | Blends Spiral generation from an unbarred core to a strong central stellar bar |
+| Spiral arm count | 2 through 6 | Sets the number of generated arms when Spiral is selected |
 | Starway density | Sparse, Normal, Dense | Adjusts bounded extra edges after connectivity is guaranteed |
 | Hazard prevalence | Low, Normal, High | Adjusts eligible hazard weights, never mandatory-route lethality |
 | Habitable-site prevalence | Scarce, Normal, Abundant | Adjusts viable settlement candidates |
@@ -123,7 +125,7 @@ Galaxy shapes bias placement and connection without dictating exact results:
 
 | Shape | Topological character |
 | --- | --- |
-| Spiral | Several curved arms joined by a contested core and occasional cross-arm routes |
+| Spiral | Two to six curved arms, an adjustable central stellar bar, and occasional cross-arm routes |
 | Elliptical | Systems fill a broad oval with local nearest-neighbor routes and several alternatives |
 | Ring | Systems fill a broad annular band around an empty core, with local circular routes and no routine center crossings |
 | Clustered | Dense local groups connected by a few long inter-cluster Starways |
@@ -298,7 +300,7 @@ connected graph generated from one explicit seed and generator version. It
 needs:
 
 - one home anchorage and at least two initial outward Starways;
-- one selected Spiral, Barred Spiral, Elliptical, or Ring topology with at least one alternate route;
+- one selected Spiral, Elliptical, or Ring topology with at least one alternate route;
 - at least four system archetypes and six site types;
 - three factions, one settlement, one neutral market, and one contested location;
 - one ruin, one salvage site, one aether hazard, and one industrial hazard;

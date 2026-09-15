@@ -54,16 +54,27 @@ public sealed partial class SimulationContracts
                 .SequenceEqual(ring.Galaxy!.Topology.Systems.Values.OrderBy(value => value.Ordinal)),
             "Different galaxy shapes produced the same system layout.");
 
-        GalaxyGenerationResult barredSpiral = GalaxyGenerator.Generate(
-            0x5eedUL, new GalaxyGenerationSettings(64, GalaxyShape.BarredSpiral));
-        StarSystemState[] barredSystems = [.. barredSpiral.Galaxy!.Topology.Systems.Values];
-        True(barredSystems.Count(system => Math.Abs(system.DisplayY) <= 40 && Math.Abs(system.DisplayX) <= 340) >= 8,
-            "Barred spiral generation did not populate its central stellar bar.");
-        True(barredSystems.Any(system => system.DisplayY > 250) &&
-            barredSystems.Any(system => system.DisplayY < -250),
-            "Barred spiral generation did not extend both curved outer arms.");
-        True(barredSystems.Select(system => system.Region).Distinct().Count() == 4,
-            "Barred spiral generation did not distribute systems across four regions.");
+        GalaxyGenerationResult strongBarSpiral = GalaxyGenerator.Generate(
+            0x5eedUL,
+            new GalaxyGenerationSettings(
+                64,
+                GalaxyShape.Spiral,
+                SpiralBarStrength: 100,
+                SpiralArmCount: 4));
+        StarSystemState[] strongBarSystems = [.. strongBarSpiral.Galaxy!.Topology.Systems.Values];
+        True(strongBarSystems.Count(
+                system => Math.Abs(system.DisplayY) <= 40 && Math.Abs(system.DisplayX) <= 355) >= 12,
+            "A maximum-strength spiral bar did not populate its central stellar bar.");
+
+        GalaxyGenerationResult twoArmSpiral = GalaxyGenerator.Generate(
+            0x5eedUL,
+            new GalaxyGenerationSettings(64, GalaxyShape.Spiral, SpiralBarStrength: 50, SpiralArmCount: 2));
+        GalaxyGenerationResult sixArmSpiral = GalaxyGenerator.Generate(
+            0x5eedUL,
+            new GalaxyGenerationSettings(64, GalaxyShape.Spiral, SpiralBarStrength: 50, SpiralArmCount: 6));
+        True(!twoArmSpiral.Galaxy!.Topology.Systems.Values.OrderBy(value => value.Ordinal)
+                .SequenceEqual(sixArmSpiral.Galaxy!.Topology.Systems.Values.OrderBy(value => value.Ordinal)),
+            "Changing the spiral arm count did not change the generated system layout.");
 
         GalaxyGenerationResult annularRing = GalaxyGenerator.Generate(
             0x5eedUL, new GalaxyGenerationSettings(64, GalaxyShape.Ring));
@@ -83,8 +94,24 @@ public sealed partial class SimulationContracts
             "The 64-system ring did not produce its bounded local route network.");
         Equal(GalaxyValidationCode.InvalidHeader, GalaxyGenerator.Generate(
             0x5eedUL,
-            new GalaxyGenerationSettings(64, GalaxyShape.Ring, GeneratorVersion: 2)).Code,
+            new GalaxyGenerationSettings(64, GalaxyShape.Ring, GeneratorVersion: 3)).Code,
             "The retired ring generator version was accepted as the current topology contract.");
+        Equal(GalaxyValidationCode.InvalidHeader, GalaxyGenerator.Generate(
+            0x5eedUL,
+            new GalaxyGenerationSettings(64, GalaxyShape.Spiral, SpiralBarStrength: -1)).Code,
+            "A negative spiral bar strength was accepted.");
+        Equal(GalaxyValidationCode.InvalidHeader, GalaxyGenerator.Generate(
+            0x5eedUL,
+            new GalaxyGenerationSettings(64, GalaxyShape.Spiral, SpiralBarStrength: 101)).Code,
+            "A spiral bar strength above 100 was accepted.");
+        Equal(GalaxyValidationCode.InvalidHeader, GalaxyGenerator.Generate(
+            0x5eedUL,
+            new GalaxyGenerationSettings(64, GalaxyShape.Spiral, SpiralArmCount: 1)).Code,
+            "A spiral arm count below two was accepted.");
+        Equal(GalaxyValidationCode.InvalidHeader, GalaxyGenerator.Generate(
+            0x5eedUL,
+            new GalaxyGenerationSettings(64, GalaxyShape.Spiral, SpiralArmCount: 7)).Code,
+            "A spiral arm count above six was accepted.");
 
         StarSystemId destination = first.Topology.Systems.Values.OrderBy(value => value.Ordinal).Last().Id;
         GalaxyRouteResult unknown = GalaxyRoutePlanner.Plan(

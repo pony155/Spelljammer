@@ -36,10 +36,9 @@ internal sealed class GalaxyVisualField
         for (int index = 0; index < particles.Length; ++index)
         {
             ParticlePosition position = settings.Shape switch {
-                GalaxyShape.Spiral => SpiralPosition(settings.SystemCount, ref random),
+                GalaxyShape.Spiral => SpiralPosition(settings, ref random),
                 GalaxyShape.Elliptical => EllipticalPosition(ref random),
                 GalaxyShape.Ring => RingPosition(ref random),
-                GalaxyShape.BarredSpiral => BarredSpiralPosition(ref random),
                 _ => throw new ArgumentOutOfRangeException(nameof(settings)),
             };
 
@@ -121,7 +120,6 @@ internal sealed class GalaxyVisualField
             GalaxyShape.Spiral => (800, 464),
             GalaxyShape.Elliptical => (790, 390),
             GalaxyShape.Ring => (440, 390),
-            GalaxyShape.BarredSpiral => (800, 464),
             _ => throw new ArgumentOutOfRangeException(nameof(shape)),
         };
         return Project(displayX / horizontalRadius, displayY / verticalRadius, 0);
@@ -134,10 +132,22 @@ internal sealed class GalaxyVisualField
         return ((float)Math.Clamp(rotatedX, -1.04, 1.04), (float)Math.Clamp(rotatedY, -1.04, 1.04));
     }
 
-    private static ParticlePosition SpiralPosition(int systemCount, ref VisualRandom random)
+    private static ParticlePosition SpiralPosition(
+        GalaxyGenerationSettings settings,
+        ref VisualRandom random)
     {
+        double barStrength = settings.SpiralBarStrength / 100.0;
         double population = random.NextUnit();
-        if (population > 0.88)
+        double barPopulation = barStrength * 0.18;
+        if (population < barPopulation)
+        {
+            double barHalfLength = (130 + barStrength * 210) / 800;
+            double barX = (random.NextUnit() + random.NextUnit() - 1) * barHalfLength;
+            double barY = random.NextBell() * (0.014 + Math.Abs(barX) * 0.035);
+            return new ParticlePosition(barX, barY, random.NextBell() * 0.035, Math.Abs(barX));
+        }
+
+        if (population < barPopulation + 0.12)
         {
             double radius = Math.Pow(random.NextUnit(), 2.15) * 0.34;
             double angle = random.NextUnit() * FullCircle;
@@ -148,7 +158,7 @@ internal sealed class GalaxyVisualField
                 radius);
         }
 
-        if (population > 0.72)
+        if (population < barPopulation + 0.28)
         {
             double radius = Math.Sqrt(random.NextUnit());
             double angle = random.NextUnit() * FullCircle;
@@ -159,50 +169,20 @@ internal sealed class GalaxyVisualField
                 radius);
         }
 
-        int arms = systemCount switch { >= 256 => 4, >= 64 => 3, _ => 2 };
         double armRadius = Math.Pow(random.NextUnit(), 0.72);
-        int arm = random.Next(0, arms);
+        int arm = random.Next(0, settings.SpiralArmCount);
         double spread = (0.045 + armRadius * 0.16) * random.NextBell();
-        double armAngle = arm * FullCircle / arms + armRadius * Math.PI * 1.55 + spread;
+        double baseAngle = arm * FullCircle / settings.SpiralArmCount;
+        double armAngle = baseAngle + armRadius * Math.PI * 1.55 + spread;
         double noisyRadius = Math.Clamp(armRadius + random.NextBell() * 0.018, 0, 1);
+        double barPull = barStrength * Math.Pow(1 - armRadius, 2.25);
+        double targetX = Math.Cos(baseAngle) >= 0 ? 0.425 : -0.425;
+        double spiralX = Math.Cos(armAngle) * noisyRadius;
+        double spiralY = Math.Sin(armAngle) * noisyRadius;
         return new ParticlePosition(
-            Math.Cos(armAngle) * noisyRadius,
-            Math.Sin(armAngle) * noisyRadius,
+            spiralX + (targetX - spiralX) * barPull,
+            spiralY * (1 - barPull),
             random.NextBell() * 0.045 * (1.1 - noisyRadius),
-            noisyRadius);
-    }
-
-    private static ParticlePosition BarredSpiralPosition(ref VisualRandom random)
-    {
-        double population = random.NextUnit();
-        if (population > 0.77)
-        {
-            double barX = random.NextBell() * 0.31;
-            double barY = random.NextBell() * (0.025 + Math.Abs(barX) * 0.04);
-            return new ParticlePosition(barX, barY, random.NextBell() * 0.035, Math.Abs(barX));
-        }
-
-        if (population > 0.67)
-        {
-            double radius = Math.Pow(random.NextUnit(), 2.2) * 0.22;
-            double angle = random.NextUnit() * FullCircle;
-            return new ParticlePosition(
-                Math.Cos(angle) * radius,
-                Math.Sin(angle) * radius,
-                random.NextBell() * 0.075,
-                radius);
-        }
-
-        int arm = random.Next(0, 2);
-        double progress = Math.Pow(random.NextUnit(), 0.78);
-        double radiusFromCenter = 0.4 + progress * 0.6;
-        double angleFromBar = arm * Math.PI + progress * Math.PI * 1.25 +
-            random.NextBell() * (0.045 + progress * 0.12);
-        double noisyRadius = Math.Clamp(radiusFromCenter + random.NextBell() * 0.018, 0.38, 1);
-        return new ParticlePosition(
-            Math.Cos(angleFromBar) * noisyRadius,
-            Math.Sin(angleFromBar) * noisyRadius,
-            random.NextBell() * 0.04 * (1.1 - progress),
             noisyRadius);
     }
 

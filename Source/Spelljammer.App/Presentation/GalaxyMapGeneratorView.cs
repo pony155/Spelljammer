@@ -22,16 +22,20 @@ internal sealed class GalaxyMapGeneratorView : SpriteForgeRenderSurface
     private const float PopupWidth = 200;
     private const float PopupRowHeight = 34;
     private static readonly int[] SupportedSystemCounts = [16, 64, 128, 256, 512, 1_024];
-    private static readonly GalaxyShape[] SupportedShapes =
-        [GalaxyShape.Spiral, GalaxyShape.BarredSpiral, GalaxyShape.Elliptical, GalaxyShape.Ring];
-    private static readonly HitBox Shape = new(252, 248, 142, 38, Control.Shape);
-    private static readonly HitBox Size = new(252, 298, 142, 38, Control.Size);
-    private static readonly HitBox Seed = new(70, 407, 205, 46, Control.Seed);
-    private static readonly HitBox Randomize = new(285, 407, 109, 46, Control.Randomize);
-    private static readonly HitBox Generate = new(70, 490, 324, 46, Control.Generate);
+    private static readonly int[] SupportedBarStrengths = [0, 25, 50, 75, 100];
+    private static readonly int[] SupportedArmCounts = [2, 3, 4, 5, 6];
+    private static readonly GalaxyShape[] SupportedShapes = [GalaxyShape.Spiral, GalaxyShape.Elliptical, GalaxyShape.Ring];
+    private static readonly HitBox Shape = new(252, 266, 142, 38, Control.Shape);
+    private static readonly HitBox Size = new(252, 310, 142, 38, Control.Size);
+    private static readonly HitBox BarStrength = new(252, 354, 142, 38, Control.BarStrength);
+    private static readonly HitBox ArmCount = new(252, 398, 142, 38, Control.ArmCount);
+    private static readonly HitBox Seed = new(70, 512, 205, 40, Control.Seed);
+    private static readonly HitBox Randomize = new(285, 512, 109, 40, Control.Randomize);
+    private static readonly HitBox Generate = new(70, 584, 324, 42, Control.Generate);
     private static readonly HitBox Back = new(42, 828, 180, 52, Control.Back);
     private static readonly HitBox Continue = new(1320, 828, 238, 52, Control.Continue);
-    private static readonly HitBox[] HitBoxes = [Shape, Size, Seed, Randomize, Generate, Back, Continue];
+    private static readonly HitBox[] HitBoxes =
+        [Shape, Size, BarStrength, ArmCount, Seed, Randomize, Generate, Back, Continue];
 
     private readonly GameText strings;
     private GalaxyMapSelection selection;
@@ -145,6 +149,14 @@ internal sealed class GalaxyMapGeneratorView : SpriteForgeRenderSurface
                 popup = ChoicePopup.Size;
                 seedFocused = false;
                 break;
+            case Control.BarStrength:
+                popup = ChoicePopup.BarStrength;
+                seedFocused = false;
+                break;
+            case Control.ArmCount:
+                popup = ChoicePopup.ArmCount;
+                seedFocused = false;
+                break;
             case Control.Randomize:
                 seedText = NewSeed().ToString(CultureInfo.InvariantCulture);
                 GeneratePreview();
@@ -223,10 +235,23 @@ internal sealed class GalaxyMapGeneratorView : SpriteForgeRenderSurface
         canvas.Border(42, 120, 412, 672, 1, "#664D668A", -4);
         canvas.TextLine(strings.Get("galaxy.section.parameters"), 70, 140, 324, 34, 18, "#FFF2E9D8");
         canvas.TextLine(strings.Get("galaxy.introduction"), 70, 174, 324, 48, 13, "#FFAAB8D0");
-        DrawField(canvas, strings.Get("galaxy.label.scenario"), strings.Get("galaxy.value.scenario.first-voyage"), 230);
-        DrawField(canvas, strings.Get("galaxy.label.shape"), ShapeName(), 280, Shape);
-        DrawField(canvas, strings.Get("galaxy.label.size"), SizeName(), 330, Size);
-        DrawField(canvas, strings.Get("galaxy.label.generator"), strings.Get("galaxy.value.generator.v3"), 380);
+        DrawField(canvas, strings.Get("galaxy.label.scenario"), strings.Get("galaxy.value.scenario.first-voyage"), 254);
+        DrawField(canvas, strings.Get("galaxy.label.shape"), ShapeName(), 298, Shape);
+        DrawField(canvas, strings.Get("galaxy.label.size"), SizeName(), 342, Size);
+        bool spiral = selection.Settings.Shape == GalaxyShape.Spiral;
+        DrawField(
+            canvas,
+            strings.Get("galaxy.label.spiral-bar"),
+            spiral ? strings.Percent(selection.Settings.SpiralBarStrength) : strings.Get("galaxy.value.not-applicable"),
+            386,
+            spiral ? BarStrength : null);
+        DrawField(
+            canvas,
+            strings.Get("galaxy.label.spiral-arms"),
+            spiral ? selection.Settings.SpiralArmCount.ToString(strings.Culture) : strings.Get("galaxy.value.not-applicable"),
+            430,
+            spiral ? ArmCount : null);
+        DrawField(canvas, strings.Get("galaxy.label.generator"), strings.Get("galaxy.value.generator.v4"), 474);
         DrawSeedControls(canvas);
         DrawLowerHelp(canvas);
         if (popup != ChoicePopup.None)
@@ -237,26 +262,26 @@ internal sealed class GalaxyMapGeneratorView : SpriteForgeRenderSurface
 
     private void DrawSeedControls(SpriteForgeCanvas canvas)
     {
-        canvas.TextLine(strings.Get("galaxy.label.seed"), 70, 380, 324, 27, 12, "#FFD7AF70");
+        canvas.TextLine(strings.Get("galaxy.label.seed"), 70, 488, 324, 24, 12, "#FFD7AF70");
         canvas.Fill(Seed.X, Seed.Y, Seed.Width, Seed.Height, "#FF111D31", 1);
         canvas.Border(Seed.X, Seed.Y, Seed.Width, Seed.Height, seedFocused ? 2 : 1,
             seedFocused ? "#FF80DED9" : "#664D668A", 2);
         canvas.TextLine(seedText, Seed.X + 10, Seed.Y, Seed.Width - 20, Seed.Height, 16, "#FFF2E9D8");
         DrawButton(canvas, Randomize, strings.Get("galaxy.button.randomize"));
-        canvas.TextLine(strings.Get("galaxy.hint.seed"), 70, 455, 324, 34, 11, "#FFAAB8D0");
+        canvas.TextLine(strings.Get("galaxy.hint.seed"), 70, 554, 324, 28, 10, "#FFAAB8D0");
         DrawButton(canvas, Generate, strings.Get("galaxy.button.generate"));
     }
 
     private void DrawLowerHelp(SpriteForgeCanvas canvas)
     {
-        canvas.TextLine(strings.Get("galaxy.hint.locked"), 70, 542, 324, 48, 11, "#FFAAB8D0");
-        canvas.TextLine(strings.Get("galaxy.legend.title"), 70, 602, 324, 28, 13, "#FFD7AF70");
-        canvas.Circle(82, 649, 13, "#FF80DED9", 2);
-        canvas.TextLine(strings.Get("galaxy.legend.anchor-description"), 108, 636, 280, 26, 11, "#FFAAB8D0");
-        canvas.Line(70, 680, 99, 680, 2, "#FF7388A8", 2);
-        canvas.TextLine(strings.Get("galaxy.legend.local-starway"), 108, 667, 280, 26, 11, "#FFAAB8D0");
-        DrawDashedLine(canvas, 70, 711, 99, 711, 2, "#FF5AAFC6", 2);
-        canvas.TextLine(strings.Get("galaxy.legend.crossing-starway"), 108, 698, 280, 26, 11, "#FFAAB8D0");
+        canvas.TextLine(strings.Get("galaxy.hint.locked"), 70, 636, 324, 34, 10, "#FFAAB8D0");
+        canvas.TextLine(strings.Get("galaxy.legend.title"), 70, 677, 324, 25, 12, "#FFD7AF70");
+        canvas.Circle(82, 716, 11, "#FF80DED9", 2);
+        canvas.TextLine(strings.Get("galaxy.legend.anchor-description"), 108, 704, 280, 24, 10, "#FFAAB8D0");
+        canvas.Line(70, 746, 99, 746, 2, "#FF7388A8", 2);
+        canvas.TextLine(strings.Get("galaxy.legend.local-starway"), 108, 734, 280, 24, 10, "#FFAAB8D0");
+        DrawDashedLine(canvas, 70, 776, 99, 776, 2, "#FF5AAFC6", 2);
+        canvas.TextLine(strings.Get("galaxy.legend.crossing-starway"), 108, 764, 280, 24, 10, "#FFAAB8D0");
     }
 
     private void DrawPreviewPanel(SpriteForgeCanvas canvas)
@@ -397,23 +422,24 @@ internal sealed class GalaxyMapGeneratorView : SpriteForgeRenderSurface
             return;
         }
 
-        if (selection.Settings.Shape == GalaxyShape.BarredSpiral)
+        if (selection.Settings.Shape == GalaxyShape.Spiral && selection.Settings.SpiralBarStrength > 0)
         {
+            float strength = selection.Settings.SpiralBarStrength / 100.0f;
             for (int offset = -4; offset <= 4; ++offset)
             {
                 float distance = Math.Abs(offset) / 4.0f;
                 canvas.Glow(
-                    centerX + offset * radiusX * 0.085f,
-                    centerY - offset * radiusY * 0.025f,
-                    radiusX * (0.24f - distance * 0.055f),
-                    radiusY * (0.20f - distance * 0.035f),
-                    SpriteForgeColor.FromSrgb(255, 211, 146, checked((byte)(38 + (1 - distance) * 42))),
+                    centerX + offset * radiusX * (0.035f + strength * 0.05f),
+                    centerY - offset * radiusY * 0.025f * strength,
+                    radiusX * (0.12f + strength * 0.12f - distance * 0.045f * strength),
+                    radiusY * (0.12f + strength * 0.08f - distance * 0.03f * strength),
+                    SpriteForgeColor.FromSrgb(
+                        255,
+                        211,
+                        146,
+                        checked((byte)(12 + strength * (26 + (1 - distance) * 42)))),
                     -2);
             }
-
-            canvas.Glow(centerX, centerY, radiusX * 0.12f, radiusY * 0.17f,
-                SpriteForgeColor.FromSrgb(255, 247, 226, 155), -1);
-            return;
         }
 
         float outerWidth = selection.Settings.Shape == GalaxyShape.Elliptical ? 0.95f : 0.62f;
@@ -477,14 +503,19 @@ internal sealed class GalaxyMapGeneratorView : SpriteForgeRenderSurface
     private void DrawChoicePopup(SpriteForgeCanvas canvas)
     {
         IReadOnlyList<string> labels = GetPopupLabels();
-        float top = popup == ChoicePopup.Shape ? Shape.Y + Shape.Height : Size.Y + Size.Height;
+        HitBox popupButton = PopupButton();
+        float top = popupButton.Y + popupButton.Height;
         float height = labels.Count * PopupRowHeight;
         canvas.Fill(PopupX - 2, top - 2, PopupWidth + 4, height + 4, "#FF80A8C8", 198);
         canvas.Fill(PopupX, top, PopupWidth, height, "#FF081322", 199);
 
-        int selectedIndex = popup == ChoicePopup.Shape
-            ? Array.IndexOf(SupportedShapes, selection.Settings.Shape)
-            : Array.IndexOf(SupportedSystemCounts, selection.Settings.SystemCount);
+        int selectedIndex = popup switch {
+            ChoicePopup.Shape => Array.IndexOf(SupportedShapes, selection.Settings.Shape),
+            ChoicePopup.Size => Array.IndexOf(SupportedSystemCounts, selection.Settings.SystemCount),
+            ChoicePopup.BarStrength => Array.IndexOf(SupportedBarStrengths, selection.Settings.SpiralBarStrength),
+            ChoicePopup.ArmCount => Array.IndexOf(SupportedArmCounts, selection.Settings.SpiralArmCount),
+            _ => -1,
+        };
         for (int index = 0; index < labels.Count; index++)
         {
             float rowY = top + index * PopupRowHeight;
@@ -507,16 +538,21 @@ internal sealed class GalaxyMapGeneratorView : SpriteForgeRenderSurface
 
     private IReadOnlyList<string> GetPopupLabels()
     {
-        if (popup == ChoicePopup.Shape)
-        {
-            return SupportedShapes
-                .Select(value => strings.Get($"galaxy.value.shape.{ShapeLocalizationKey(value)}"))
-                .ToArray();
-        }
-
-        return SupportedSystemCounts
-            .Select(value => strings.Get($"galaxy.value.size.s{value}"))
-            .ToArray();
+        return popup switch {
+            ChoicePopup.Shape => SupportedShapes
+                .Select(value => strings.Get($"galaxy.value.shape.{value.ToString().ToLowerInvariant()}"))
+                .ToArray(),
+            ChoicePopup.Size => SupportedSystemCounts
+                .Select(value => strings.Get($"galaxy.value.size.s{value}"))
+                .ToArray(),
+            ChoicePopup.BarStrength => SupportedBarStrengths
+                .Select(strings.Percent)
+                .ToArray(),
+            ChoicePopup.ArmCount => SupportedArmCounts
+                .Select(value => value.ToString(strings.Culture))
+                .ToArray(),
+            _ => [],
+        };
     }
 
     private int FindPopupOption(float x, float y)
@@ -526,27 +562,47 @@ internal sealed class GalaxyMapGeneratorView : SpriteForgeRenderSurface
             return -1;
         }
 
-        float top = popup == ChoicePopup.Shape ? Shape.Y + Shape.Height : Size.Y + Size.Height;
-        int count = popup == ChoicePopup.Shape ? SupportedShapes.Length : SupportedSystemCounts.Length;
+        HitBox popupButton = PopupButton();
+        float top = popupButton.Y + popupButton.Height;
+        int count = GetPopupLabels().Count;
         int index = (int)((y - top) / PopupRowHeight);
         return y >= top && index >= 0 && index < count ? index : -1;
     }
 
     private void ApplyPopupOption(int index)
     {
-        if (popup == ChoicePopup.Shape)
+        switch (popup)
         {
-            selection = selection with {
-                Settings = selection.Settings with { Shape = SupportedShapes[index] },
-            };
-        }
-        else if (popup == ChoicePopup.Size)
-        {
-            selection = selection with {
-                Settings = selection.Settings with { SystemCount = SupportedSystemCounts[index] },
-            };
+            case ChoicePopup.Shape:
+                selection = selection with {
+                    Settings = selection.Settings with { Shape = SupportedShapes[index] },
+                };
+                break;
+            case ChoicePopup.Size:
+                selection = selection with {
+                    Settings = selection.Settings with { SystemCount = SupportedSystemCounts[index] },
+                };
+                break;
+            case ChoicePopup.BarStrength:
+                selection = selection with {
+                    Settings = selection.Settings with { SpiralBarStrength = SupportedBarStrengths[index] },
+                };
+                break;
+            case ChoicePopup.ArmCount:
+                selection = selection with {
+                    Settings = selection.Settings with { SpiralArmCount = SupportedArmCounts[index] },
+                };
+                break;
         }
     }
+
+    private HitBox PopupButton() => popup switch {
+        ChoicePopup.Shape => Shape,
+        ChoicePopup.Size => Size,
+        ChoicePopup.BarStrength => BarStrength,
+        ChoicePopup.ArmCount => ArmCount,
+        _ => throw new InvalidOperationException("No choice popup is open."),
+    };
 
     private static void DrawDashedLine(
         SpriteForgeCanvas canvas, float x1, float y1, float x2, float y2, float thickness, string color, int layer)
@@ -598,16 +654,18 @@ internal sealed class GalaxyMapGeneratorView : SpriteForgeRenderSurface
         statusIsError = false;
     }
 
-    private string ShapeName() => strings.Get($"galaxy.value.shape.{ShapeLocalizationKey(selection.Settings.Shape)}");
-
-    private static string ShapeLocalizationKey(GalaxyShape shape) => shape switch {
-        GalaxyShape.BarredSpiral => "barred-spiral",
-        _ => shape.ToString().ToLowerInvariant(),
-    };
+    private string ShapeName() =>
+        strings.Get($"galaxy.value.shape.{selection.Settings.Shape.ToString().ToLowerInvariant()}");
 
     private string SizeName() => strings.Get($"galaxy.value.size.s{selection.Settings.SystemCount}");
 
-    private static Control Find(float x, float y) => HitBoxes.FirstOrDefault(value => value.Contains(x, y)).Control;
+    private Control Find(float x, float y)
+    {
+        Control control = HitBoxes.FirstOrDefault(value => value.Contains(x, y)).Control;
+        return selection.Settings.Shape != GalaxyShape.Spiral && control is Control.BarStrength or Control.ArmCount
+            ? Control.None
+            : control;
+    }
 
     private static ulong NewSeed()
     {
@@ -628,6 +686,8 @@ internal sealed class GalaxyMapGeneratorView : SpriteForgeRenderSurface
         None,
         Shape,
         Size,
+        BarStrength,
+        ArmCount,
         Seed,
         Randomize,
         Generate,
@@ -640,6 +700,8 @@ internal sealed class GalaxyMapGeneratorView : SpriteForgeRenderSurface
         None,
         Shape,
         Size,
+        BarStrength,
+        ArmCount,
     }
 
     private readonly record struct HitBox(float X, float Y, float Width, float Height, Control Control)
