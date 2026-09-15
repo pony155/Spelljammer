@@ -54,6 +54,17 @@ public sealed partial class SimulationContracts
                 .SequenceEqual(ring.Galaxy!.Topology.Systems.Values.OrderBy(value => value.Ordinal)),
             "Different galaxy shapes produced the same system layout.");
 
+        GalaxyGenerationResult barredSpiral = GalaxyGenerator.Generate(
+            0x5eedUL, new GalaxyGenerationSettings(64, GalaxyShape.BarredSpiral));
+        StarSystemState[] barredSystems = [.. barredSpiral.Galaxy!.Topology.Systems.Values];
+        True(barredSystems.Count(system => Math.Abs(system.DisplayY) <= 40 && Math.Abs(system.DisplayX) <= 340) >= 8,
+            "Barred spiral generation did not populate its central stellar bar.");
+        True(barredSystems.Any(system => system.DisplayY > 250) &&
+            barredSystems.Any(system => system.DisplayY < -250),
+            "Barred spiral generation did not extend both curved outer arms.");
+        True(barredSystems.Select(system => system.Region).Distinct().Count() == 4,
+            "Barred spiral generation did not distribute systems across four regions.");
+
         GalaxyGenerationResult annularRing = GalaxyGenerator.Generate(
             0x5eedUL, new GalaxyGenerationSettings(64, GalaxyShape.Ring));
         StarSystemState[] ringSystems = [.. annularRing.Galaxy!.Topology.Systems.Values];

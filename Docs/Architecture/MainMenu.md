@@ -54,12 +54,15 @@ New Game and Game Settings add modal overlays to the existing main-window
 visual tree; neither creates a second operating-system window or taskbar entry.
 The 1600x900 galaxy generator is the first new-campaign step. It exposes the
 explicit deterministic seed, six bounded size presets from 16 through 1,024
-systems, and Spiral, Elliptical, and Ring shape strategies. Scenario and
+systems, and Spiral, Barred Spiral, Elliptical, and Ring shape strategies. Scenario and
 generator version remain fixed first-slice values. Its
 read-only topology projection calls the simulation-owned `GalaxyGenerator`,
 shows the validated systems and starways without revealing campaign discoveries,
-and carries the accepted seed into character creation. Invalid input and failed
-validation leave the last accepted draft unpublished.
+and carries the accepted seed into character creation. A separate presentation-only
+visual field uses the same seed to draw bounded spiral, elliptical, or annular star
+dust with SpriteForge sprite batches and additive blending; its particles are not
+simulation systems and never enter campaign state or saves. Invalid input and
+failed validation leave the last accepted draft unpublished.
 
 Character creation is the second new-campaign step and visually replaces the
 complete client area with a 1600x900 dossier. Its persistent left roster directly

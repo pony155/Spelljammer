@@ -41,6 +41,7 @@
     "galaxy.value.generator.v2": { "description": "Ancienne version du générateur conservée pour la compatibilité du catalogue.", "message": "Version 2" },
     "galaxy.value.generator.v3": { "description": "Version actuelle du générateur prise en charge.", "message": "Version 3" },
     "galaxy.value.scenario.first-voyage": { "description": "Nom du scénario Premier Voyage.", "message": "Premier Voyage" },
+    "galaxy.value.shape.barred-spiral": { "description": "Option de forme galactique en spirale barrée.", "message": "Spirale barrée" },
     "galaxy.value.shape.elliptical": { "description": "Option de forme galactique elliptique.", "message": "Elliptique" },
     "galaxy.value.shape.ring": { "description": "Option de forme galactique annulaire.", "message": "Annulaire" },
     "galaxy.value.shape.spiral": { "description": "Option de forme galactique spirale.", "message": "Spirale" },

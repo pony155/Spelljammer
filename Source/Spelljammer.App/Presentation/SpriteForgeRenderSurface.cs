@@ -20,8 +20,21 @@ internal enum SpriteForgeTextAlignment : byte
     Right,
 }
 
+internal enum SpriteForgeBlendMode : uint
+{
+    Opaque = 0,
+    PremultipliedAlpha = 1,
+    Additive = 2,
+}
+
 internal readonly record struct SpriteForgeColor(float Red, float Green, float Blue, float Alpha)
 {
+    internal static SpriteForgeColor FromSrgb(byte red, byte green, byte blue, byte alpha = byte.MaxValue)
+    {
+        float a = alpha / 255.0f;
+        return new SpriteForgeColor(red / 255.0f * a, green / 255.0f * a, blue / 255.0f * a, a);
+    }
+
     internal static SpriteForgeColor Parse(string value)
     {
         string hex = value.TrimStart('#');
@@ -30,8 +43,7 @@ internal readonly record struct SpriteForgeColor(float Red, float Green, float B
         byte red = hex.Length == 8 ? (byte)(packed >> 16) : (byte)(packed >> 16);
         byte green = (byte)(packed >> 8);
         byte blue = (byte)packed;
-        float a = alpha / 255.0f;
-        return new SpriteForgeColor(red / 255.0f * a, green / 255.0f * a, blue / 255.0f * a, a);
+        return FromSrgb(red, green, blue, alpha);
     }
 }
 
@@ -80,6 +92,20 @@ internal sealed class SpriteForgeCanvas
         Sprite(owner.CircleTexture, 64, 64, centerX - diameter / 2, centerY - diameter / 2,
             diameter / 64, diameter / 64, SpriteForgeColor.Parse(color), layer);
 
+    internal void Circle(float centerX, float centerY, float diameter, SpriteForgeColor color, int layer = 2) =>
+        Sprite(owner.CircleTexture, 64, 64, centerX - diameter / 2, centerY - diameter / 2,
+            diameter / 64, diameter / 64, color, layer, pixelSnap: false);
+
+    internal void Glow(
+        float centerX,
+        float centerY,
+        float width,
+        float height,
+        SpriteForgeColor color,
+        int layer = -1) =>
+        Sprite(owner.GlowTexture, 64, 64, centerX - width / 2, centerY - height / 2,
+            width / 64, height / 64, color, layer, blend: SpriteForgeBlendMode.Additive, pixelSnap: false);
+
     internal void Ellipse(
         float centerX,
         float centerY,
@@ -123,7 +149,9 @@ internal sealed class SpriteForgeCanvas
         float scaleY,
         SpriteForgeColor color,
         int layer,
-        float rotation = 0)
+        float rotation = 0,
+        SpriteForgeBlendMode blend = SpriteForgeBlendMode.PremultipliedAlpha,
+        bool pixelSnap = true)
     {
         ulong id = ++sequence;
         sprites.Add(new EngineRendererSpriteDraw {
@@ -146,8 +174,8 @@ internal sealed class SpriteForgeCanvas
             ColorAlpha = color.Alpha,
             Layer = layer,
             Order = checked((int)id),
-            Blend = 1,
-            PixelSnap = 1,
+            Blend = (uint)blend,
+            PixelSnap = pixelSnap ? 1u : 0u,
         });
     }
 
@@ -193,6 +221,7 @@ internal abstract class SpriteForgeRenderSurface : HwndHost
     private nint session;
     private ulong whiteTexture;
     private ulong circleTexture;
+    private ulong glowTexture;
     private ulong frameRevision = 1;
     private bool renderQueued;
     private bool disposing;
@@ -215,6 +244,8 @@ internal abstract class SpriteForgeRenderSurface : HwndHost
     internal ulong WhiteTexture => whiteTexture;
 
     internal ulong CircleTexture => circleTexture;
+
+    internal ulong GlowTexture => glowTexture;
 
     protected abstract void Compose(SpriteForgeCanvas canvas);
 
@@ -393,7 +424,7 @@ internal abstract class SpriteForgeRenderSurface : HwndHost
             NativeWindow = checked((ulong)childWindow),
             LogicalWidth = LogicalWidth,
             LogicalHeight = LogicalHeight,
-            MaximumSpritesPerFrame = 8192,
+            MaximumSpritesPerFrame = 32768,
             MaximumTextureResources = 32,
             FramesInFlight = 2,
             ScaleMode = 1,
@@ -408,6 +439,7 @@ internal abstract class SpriteForgeRenderSurface : HwndHost
 
         whiteTexture = CreateTexture([255, 255, 255, 255], 1, 1, 2, 0, 0).Handle;
         circleTexture = CreateTexture(BuildCirclePixels(), 64, 64, 2, 1, 0).Handle;
+        glowTexture = CreateTexture(BuildGlowPixels(), 64, 64, 2, 1, 0).Handle;
     }
 
     private SpriteForgeTexture CreateTexture(byte[] pixels, uint width, uint height, uint format, uint filter, uint srgb)
@@ -766,6 +798,12 @@ internal abstract class SpriteForgeRenderSurface : HwndHost
         }
 
         textures.Clear();
+        if (glowTexture != 0)
+        {
+            _ = SpriteForgeNative.SpriteForge_RendererV2_DestroyTexture(session, glowTexture);
+            glowTexture = 0;
+        }
+
         if (circleTexture != 0)
         {
             _ = SpriteForgeNative.SpriteForge_RendererV2_DestroyTexture(session, circleTexture);
@@ -816,6 +854,29 @@ internal abstract class SpriteForgeRenderSurface : HwndHost
                 float dx = x + 0.5f - 32;
                 float dy = y + 0.5f - 32;
                 float alpha = Math.Clamp(32 - MathF.Sqrt(dx * dx + dy * dy), 0, 1);
+                int offset = (y * 64 + x) * 4;
+                byte coverage = checked((byte)MathF.Round(alpha * 255));
+                pixels[offset] = coverage;
+                pixels[offset + 1] = coverage;
+                pixels[offset + 2] = coverage;
+                pixels[offset + 3] = coverage;
+            }
+        }
+
+        return pixels;
+    }
+
+    private static byte[] BuildGlowPixels()
+    {
+        byte[] pixels = new byte[64 * 64 * 4];
+        for (int y = 0; y < 64; ++y)
+        {
+            for (int x = 0; x < 64; ++x)
+            {
+                float dx = (x + 0.5f - 32) / 32;
+                float dy = (y + 0.5f - 32) / 32;
+                float distanceSquared = dx * dx + dy * dy;
+                float alpha = MathF.Exp(-distanceSquared * 4.5f) * Math.Clamp(1 - distanceSquared, 0, 1);
                 int offset = (y * 64 + x) * 4;
                 byte coverage = checked((byte)MathF.Round(alpha * 255));
                 pixels[offset] = coverage;

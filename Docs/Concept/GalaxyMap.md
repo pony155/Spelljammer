@@ -4,7 +4,7 @@
 
 This document defines the procedural galaxy, star-system, route, discovery,
 and map-persistence systems. Generator version 3 now implements bounded,
-deterministic Spiral, Elliptical, and Ring graphs from 16 through 1,024 systems,
+deterministic Spiral, Barred Spiral, Elliptical, and Ring graphs from 16 through 1,024 systems,
 immutable system and Starway state,
 knowledge-gated route planning, propulsion resource contracts, authoritative
 route-plan/departure/progress/arrival transitions, validation, `World`
@@ -72,7 +72,7 @@ Generation consumes a validated immutable settings record:
 | Setting | Examples | Rule |
 | --- | --- | --- |
 | Size | Compact, Small, Medium, Large, Huge, Vast | Selects a bounded system count and generation budget |
-| Shape | Spiral, Elliptical, Ring | Selects a topology strategy, not a background image |
+| Shape | Spiral, Barred Spiral, Elliptical, Ring | Selects a topology strategy, not a background image |
 | Starway density | Sparse, Normal, Dense | Adjusts bounded extra edges after connectivity is guaranteed |
 | Hazard prevalence | Low, Normal, High | Adjusts eligible hazard weights, never mandatory-route lethality |
 | Habitable-site prevalence | Scarce, Normal, Abundant | Adjusts viable settlement candidates |
@@ -298,7 +298,7 @@ connected graph generated from one explicit seed and generator version. It
 needs:
 
 - one home anchorage and at least two initial outward Starways;
-- one selected Spiral, Elliptical, or Ring topology with at least one alternate route;
+- one selected Spiral, Barred Spiral, Elliptical, or Ring topology with at least one alternate route;
 - at least four system archetypes and six site types;
 - three factions, one settlement, one neutral market, and one contested location;
 - one ruin, one salvage site, one aether hazard, and one industrial hazard;

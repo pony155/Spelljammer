@@ -41,6 +41,7 @@
     "galaxy.value.generator.v2": { "description": "為維持目錄相容性而保留的舊版生成器。", "message": "版本 2" },
     "galaxy.value.generator.v3": { "description": "目前支援的生成器版本。", "message": "版本 3" },
     "galaxy.value.scenario.first-voyage": { "description": "初航情境名稱。", "message": "初航" },
+    "galaxy.value.shape.barred-spiral": { "description": "棒旋星系形狀選項。", "message": "棒旋" },
     "galaxy.value.shape.elliptical": { "description": "橢圓銀河形狀選項。", "message": "橢圓" },
     "galaxy.value.shape.ring": { "description": "環狀銀河形狀選項。", "message": "環狀" },
     "galaxy.value.shape.spiral": { "description": "螺旋銀河形狀選項。", "message": "螺旋" },

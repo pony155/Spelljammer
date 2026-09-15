@@ -22,7 +22,8 @@ internal sealed class GalaxyMapGeneratorView : SpriteForgeRenderSurface
     private const float PopupWidth = 200;
     private const float PopupRowHeight = 34;
     private static readonly int[] SupportedSystemCounts = [16, 64, 128, 256, 512, 1_024];
-    private static readonly GalaxyShape[] SupportedShapes = [GalaxyShape.Spiral, GalaxyShape.Elliptical, GalaxyShape.Ring];
+    private static readonly GalaxyShape[] SupportedShapes =
+        [GalaxyShape.Spiral, GalaxyShape.BarredSpiral, GalaxyShape.Elliptical, GalaxyShape.Ring];
     private static readonly HitBox Shape = new(252, 248, 142, 38, Control.Shape);
     private static readonly HitBox Size = new(252, 298, 142, 38, Control.Size);
     private static readonly HitBox Seed = new(70, 407, 205, 46, Control.Seed);
@@ -35,6 +36,7 @@ internal sealed class GalaxyMapGeneratorView : SpriteForgeRenderSurface
     private readonly GameText strings;
     private GalaxyMapSelection selection;
     private GalaxyState? galaxy;
+    private GalaxyVisualField? visualField;
     private string seedText;
     private string status = string.Empty;
     private bool statusIsError;
@@ -267,7 +269,7 @@ internal sealed class GalaxyMapGeneratorView : SpriteForgeRenderSurface
         canvas.Border(panelX, panelY, panelWidth, panelHeight, 1, "#664D668A", -4);
         canvas.TextLine(strings.Get("galaxy.preview.title"), 504, 140, 900, 30, 18, "#FFF2E9D8");
         canvas.TextLine(strings.Get("galaxy.preview.subtitle"), 504, 169, 900, 24, 12, "#FFAAB8D0");
-        canvas.Fill(504, 202, 1028, 486, "#FF07101F", -3);
+        canvas.Fill(504, 202, 1028, 486, "#FF01040A", -3);
         DrawGalaxy(canvas, 504, 202, 1028, 486);
 
         int systems = galaxy?.Topology.Systems.Count ?? 0;
@@ -280,38 +282,36 @@ internal sealed class GalaxyMapGeneratorView : SpriteForgeRenderSurface
 
     private void DrawGalaxy(SpriteForgeCanvas canvas, float x, float y, float width, float height)
     {
-        if (galaxy is null || galaxy.Topology.Systems.Count == 0)
+        if (galaxy is null || visualField is null || galaxy.Topology.Systems.Count == 0)
         {
             return;
         }
 
         IReadOnlyList<StarSystemState> systems = galaxy.Topology.Systems.Values.OrderBy(value => value.Ordinal).ToArray();
-        int minimumX = systems.Min(value => value.DisplayX);
-        int maximumX = systems.Max(value => value.DisplayX);
-        int minimumY = systems.Min(value => value.DisplayY);
-        int maximumY = systems.Max(value => value.DisplayY);
-        float scale = Math.Min((width - 88) / Math.Max(1, maximumX - minimumX),
-            (height - 72) / Math.Max(1, maximumY - minimumY));
-        float projectedWidth = (maximumX - minimumX) * scale;
-        float projectedHeight = (maximumY - minimumY) * scale;
-        float originX = x + (width - projectedWidth) / 2;
-        float originY = y + (height - projectedHeight) / 2;
+        float centerX = x + width / 2;
+        float centerY = y + height / 2;
+        float radiusX = width * 0.43f;
+        float radiusY = height * 0.41f;
         Dictionary<StarSystemId, (float X, float Y)> points = systems.ToDictionary(
             value => value.Id,
-            value => (originX + (value.DisplayX - minimumX) * scale, originY + (value.DisplayY - minimumY) * scale));
+            value => {
+                (float projectedX, float projectedY) = GalaxyVisualField.ProjectSystem(
+                    value.DisplayX, value.DisplayY, selection.Settings.Shape);
+                return (centerX + projectedX * radiusX, centerY + projectedY * radiusY);
+            });
 
-        float centerX = originX + projectedWidth / 2;
-        float centerY = originY + projectedHeight / 2;
-        if (selection.Settings.Shape == GalaxyShape.Ring)
+        DrawSpaceBackdrop(canvas, x, y, width, height);
+        DrawGalaxyLight(canvas, centerX, centerY, radiusX, radiusY);
+        foreach (GalaxyVisualParticle particle in visualField.Particles)
         {
-            canvas.Ellipse(centerX, centerY, projectedWidth + 52, projectedHeight + 52, "#263E718B", -2);
-            canvas.Ellipse(centerX, centerY, projectedWidth * 0.61f, projectedHeight * 0.61f, "#FF020711", -1);
-            float coreSize = Math.Min(projectedWidth, projectedHeight) * 0.18f;
-            canvas.Ellipse(centerX, centerY, coreSize, coreSize, "#2638495D", 0);
-        }
-        else if (selection.Settings.Shape == GalaxyShape.Elliptical)
-        {
-            canvas.Ellipse(centerX, centerY, projectedWidth + 40, projectedHeight + 40, "#183E718B", -2);
+            float particleX = centerX + particle.X * radiusX;
+            float particleY = centerY + particle.Y * radiusY;
+            float glowSize = particle.Size * (particle.Bright ? 3.2f : 2.15f);
+            canvas.Glow(particleX, particleY, glowSize, glowSize, particle.Color, -1);
+            if (particle.Bright)
+            {
+                canvas.Circle(particleX, particleY, Math.Max(1.2f, particle.Size * 0.58f), particle.Color, 0);
+            }
         }
 
         foreach (StarwayState starway in galaxy.Topology.Starways.Values.OrderBy(value => value.Id))
@@ -322,25 +322,107 @@ internal sealed class GalaxyMapGeneratorView : SpriteForgeRenderSurface
                 galaxy.Topology.Systems[starway.SecondSystemId].Region;
             if (crossing)
             {
-                DrawDashedLine(canvas, first.X, first.Y, second.X, second.Y, 1.8f, "#E05EC4D6", 1);
+                DrawDashedLine(canvas, first.X, first.Y, second.X, second.Y, 1.1f, "#8C5EC4D6", 1);
             }
             else
             {
-                canvas.Line(first.X, first.Y, second.X, second.Y, 1.8f, "#C796AAC4", 1);
+                canvas.Line(first.X, first.Y, second.X, second.Y, 0.9f, "#668CA8C8", 1);
             }
         }
 
-        float node = systems.Count switch { <= 64 => 10, <= 256 => 6, _ => 4 };
+        float node = systems.Count switch { <= 64 => 4.8f, <= 256 => 3.6f, <= 512 => 2.8f, _ => 2.2f };
         foreach (StarSystemState system in systems)
         {
             (float X, float Y) point = points[system.Id];
             bool anchor = system.Ordinal == 0;
-            canvas.Circle(point.X, point.Y, anchor ? 22 : node, anchor ? "#FFD5FFFF" : "#FFF2E9D8", 3);
             if (anchor)
             {
-                canvas.Circle(point.X, point.Y, 38, "#6680DED9", 2);
+                canvas.Glow(point.X, point.Y, 34, 34, SpriteForgeColor.FromSrgb(128, 222, 217, 145), 2);
+            }
+            else
+            {
+                float halo = Math.Max(7, node * 3.2f);
+                canvas.Glow(point.X, point.Y, halo, halo, SpriteForgeColor.FromSrgb(224, 238, 255, 150), 2);
+            }
+
+            canvas.Circle(point.X, point.Y, anchor ? 12 : node,
+                anchor
+                    ? SpriteForgeColor.FromSrgb(213, 255, 255)
+                    : SpriteForgeColor.FromSrgb(242, 233, 216, 235),
+                3);
+        }
+    }
+
+    private void DrawSpaceBackdrop(SpriteForgeCanvas canvas, float x, float y, float width, float height)
+    {
+        foreach (GalaxyNebula nebula in visualField!.Nebulae)
+        {
+            canvas.Glow(
+                x + nebula.X * width,
+                y + nebula.Y * height,
+                nebula.Width * width,
+                nebula.Height * height,
+                nebula.Color,
+                -2);
+        }
+
+        foreach (GalaxyBackgroundStar star in visualField.BackgroundStars)
+        {
+            float starX = x + star.X * width;
+            float starY = y + star.Y * height;
+            float glowSize = star.Size * (star.Bright ? 3.4f : 1.8f);
+            canvas.Glow(starX, starY, glowSize, glowSize, star.Color, -1);
+            if (star.Bright)
+            {
+                canvas.Circle(starX, starY, Math.Max(0.9f, star.Size * 0.48f), star.Color, 0);
             }
         }
+    }
+
+    private void DrawGalaxyLight(
+        SpriteForgeCanvas canvas,
+        float centerX,
+        float centerY,
+        float radiusX,
+        float radiusY)
+    {
+        canvas.Glow(centerX, centerY, radiusX * 1.94f, radiusY * 1.82f,
+            SpriteForgeColor.FromSrgb(45, 82, 150, 6), -2);
+        if (selection.Settings.Shape == GalaxyShape.Ring)
+        {
+            canvas.Glow(centerX, centerY, radiusX * 0.23f, radiusY * 0.32f,
+                SpriteForgeColor.FromSrgb(255, 226, 174, 65), -2);
+            canvas.Glow(centerX, centerY, radiusX * 0.08f, radiusY * 0.13f,
+                SpriteForgeColor.FromSrgb(255, 244, 218, 140), -1);
+            return;
+        }
+
+        if (selection.Settings.Shape == GalaxyShape.BarredSpiral)
+        {
+            for (int offset = -4; offset <= 4; ++offset)
+            {
+                float distance = Math.Abs(offset) / 4.0f;
+                canvas.Glow(
+                    centerX + offset * radiusX * 0.085f,
+                    centerY - offset * radiusY * 0.025f,
+                    radiusX * (0.24f - distance * 0.055f),
+                    radiusY * (0.20f - distance * 0.035f),
+                    SpriteForgeColor.FromSrgb(255, 211, 146, checked((byte)(38 + (1 - distance) * 42))),
+                    -2);
+            }
+
+            canvas.Glow(centerX, centerY, radiusX * 0.12f, radiusY * 0.17f,
+                SpriteForgeColor.FromSrgb(255, 247, 226, 155), -1);
+            return;
+        }
+
+        float outerWidth = selection.Settings.Shape == GalaxyShape.Elliptical ? 0.95f : 0.62f;
+        canvas.Glow(centerX, centerY, radiusX * outerWidth, radiusY * 0.68f,
+            SpriteForgeColor.FromSrgb(255, 207, 136, 45), -2);
+        canvas.Glow(centerX, centerY, radiusX * 0.31f, radiusY * 0.35f,
+            SpriteForgeColor.FromSrgb(255, 230, 187, 90), -2);
+        canvas.Glow(centerX, centerY, radiusX * 0.095f, radiusY * 0.15f,
+            SpriteForgeColor.FromSrgb(255, 250, 232, 170), -1);
     }
 
     private void DrawField(SpriteForgeCanvas canvas, string label, string value, float y, HitBox? button = null)
@@ -428,7 +510,7 @@ internal sealed class GalaxyMapGeneratorView : SpriteForgeRenderSurface
         if (popup == ChoicePopup.Shape)
         {
             return SupportedShapes
-                .Select(value => strings.Get($"galaxy.value.shape.{value.ToString().ToLowerInvariant()}"))
+                .Select(value => strings.Get($"galaxy.value.shape.{ShapeLocalizationKey(value)}"))
                 .ToArray();
         }
 
@@ -454,15 +536,13 @@ internal sealed class GalaxyMapGeneratorView : SpriteForgeRenderSurface
     {
         if (popup == ChoicePopup.Shape)
         {
-            selection = selection with
-            {
+            selection = selection with {
                 Settings = selection.Settings with { Shape = SupportedShapes[index] },
             };
         }
         else if (popup == ChoicePopup.Size)
         {
-            selection = selection with
-            {
+            selection = selection with {
                 Settings = selection.Settings with { SystemCount = SupportedSystemCounts[index] },
             };
         }
@@ -494,6 +574,7 @@ internal sealed class GalaxyMapGeneratorView : SpriteForgeRenderSurface
         if (!ulong.TryParse(seedText, NumberStyles.None, CultureInfo.InvariantCulture, out ulong seed) || seed == 0)
         {
             galaxy = null;
+            visualField = null;
             status = strings.Get("galaxy.status.invalid-seed");
             statusIsError = true;
             return;
@@ -504,6 +585,7 @@ internal sealed class GalaxyMapGeneratorView : SpriteForgeRenderSurface
         if (!result.Succeeded)
         {
             galaxy = null;
+            visualField = null;
             status = strings.Get("galaxy.status.generation-failed");
             statusIsError = true;
             return;
@@ -511,11 +593,17 @@ internal sealed class GalaxyMapGeneratorView : SpriteForgeRenderSurface
 
         selection = new GalaxyMapSelection(seed, settings);
         galaxy = result.Galaxy;
+        visualField = GalaxyVisualField.Generate(seed, settings);
         status = strings.Get("galaxy.status.ready");
         statusIsError = false;
     }
 
-    private string ShapeName() => strings.Get($"galaxy.value.shape.{selection.Settings.Shape.ToString().ToLowerInvariant()}");
+    private string ShapeName() => strings.Get($"galaxy.value.shape.{ShapeLocalizationKey(selection.Settings.Shape)}");
+
+    private static string ShapeLocalizationKey(GalaxyShape shape) => shape switch {
+        GalaxyShape.BarredSpiral => "barred-spiral",
+        _ => shape.ToString().ToLowerInvariant(),
+    };
 
     private string SizeName() => strings.Get($"galaxy.value.size.s{selection.Settings.SystemCount}");
 

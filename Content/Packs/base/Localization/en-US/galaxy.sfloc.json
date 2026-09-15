@@ -41,6 +41,7 @@
     "galaxy.value.generator.v2": { "description": "Retired generator version retained for catalog compatibility.", "message": "Version 2" },
     "galaxy.value.generator.v3": { "description": "Current supported generator version.", "message": "Version 3" },
     "galaxy.value.scenario.first-voyage": { "description": "First Voyage scenario name.", "message": "First Voyage" },
+    "galaxy.value.shape.barred-spiral": { "description": "Barred spiral galaxy shape option.", "message": "Barred spiral" },
     "galaxy.value.shape.elliptical": { "description": "Elliptical galaxy shape option.", "message": "Elliptical" },
     "galaxy.value.shape.ring": { "description": "Ring galaxy shape option.", "message": "Ring" },
     "galaxy.value.shape.spiral": { "description": "Spiral galaxy shape option.", "message": "Spiral" },

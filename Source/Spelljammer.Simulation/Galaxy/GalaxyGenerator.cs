@@ -8,6 +8,7 @@ public enum GalaxyShape : byte
     Spiral = 1,
     Elliptical = 2,
     Ring = 3,
+    BarredSpiral = 4,
 }
 
 public sealed record GalaxyGenerationSettings(
@@ -109,6 +110,9 @@ public static class GalaxyGenerator
             case GalaxyShape.Ring:
                 ConnectRing(systems, Connect);
                 break;
+            case GalaxyShape.BarredSpiral:
+                ConnectElliptical(systems, degrees, Connect);
+                break;
             default:
                 return new(null, null, GalaxyValidationCode.InvalidHeader);
         }
@@ -138,6 +142,7 @@ public static class GalaxyGenerator
             GalaxyShape.Spiral => PlaceSpiral(settings.SystemCount, ref random),
             GalaxyShape.Elliptical => PlaceElliptical(settings.SystemCount, ref random),
             GalaxyShape.Ring => PlaceRing(settings.SystemCount, ref random),
+            GalaxyShape.BarredSpiral => PlaceBarredSpiral(settings.SystemCount, ref random),
             _ => throw new ArgumentOutOfRangeException(nameof(settings)),
         };
 
@@ -209,6 +214,37 @@ public static class GalaxyGenerator
 
             int region = Math.Min(3, (int)(normalizedAngle / (FullCircle / 4)));
             positions[index] = new(x, y, region);
+        }
+
+        return positions;
+    }
+
+    private static GeneratedPosition[] PlaceBarredSpiral(int count, ref DeterministicStream random)
+    {
+        int barCount = Math.Max(4, count / 5);
+        int armCount = count - barCount;
+        int armLayers = (armCount + 1) / 2;
+        GeneratedPosition[] positions = new GeneratedPosition[count];
+        for (int index = 0; index < barCount; ++index)
+        {
+            int side = index % 2 == 0 ? 1 : -1;
+            int step = (index + 1) / 2;
+            double progress = barCount <= 2 ? 0 : (double)step / (barCount / 2);
+            int x = index == 0 ? 0 : Round(side * progress * 320) + random.Next(-10, 11);
+            int y = random.Next(-22, 23);
+            positions[index] = new(x, y, RegionOf(x, y));
+        }
+
+        for (int index = 0; index < armCount; ++index)
+        {
+            int arm = index % 2;
+            int layer = index / 2;
+            double progress = armLayers <= 1 ? 0 : (double)layer / (armLayers - 1);
+            double radius = 320 + progress * 480;
+            double angle = arm * Math.PI + progress * Math.PI * 1.25;
+            int x = Round(Math.Cos(angle) * radius) + random.Next(-14, 15);
+            int y = Round(Math.Sin(angle) * radius * 0.58) + random.Next(-14, 15);
+            positions[barCount + index] = new(x, y, RegionOf(x, y));
         }
 
         return positions;
@@ -306,6 +342,8 @@ public static class GalaxyGenerator
         >= 64 => 3,
         _ => 2,
     };
+
+    private static int RegionOf(int x, int y) => y >= 0 ? (x >= 0 ? 0 : 1) : (x < 0 ? 2 : 3);
 
     private static int Round(double value) =>
         checked((int)Math.Round(value, MidpointRounding.AwayFromZero));
