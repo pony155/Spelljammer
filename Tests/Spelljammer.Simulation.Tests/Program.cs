@@ -38,4 +38,8 @@ public sealed partial class SimulationContracts
     [TestMethod]
     public void GalaxyGenerationAndRoutingAreDeterministicContract() =>
         GalaxyGenerationAndRoutingAreDeterministic();
+
+    [TestMethod]
+    public void BattlefieldGenerationIsDeterministicAndBoundedContract() =>
+        BattlefieldGenerationIsDeterministicAndBounded();
 }

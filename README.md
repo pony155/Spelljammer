@@ -61,6 +61,9 @@ Implemented foundations include:
   backgrounds, panels, controls, localized text, and galaxy topology;
 - authored equipment, a six-zone Glass Observatory ruin, a Wayfarer ship frame,
   Arcane and Industrial module packages, and two cannon configurations;
+- a headless versioned battlefield generator that deterministically assembles
+  bounded room-and-corridor boards, validates objective and extraction
+  reachability, and isolates topology randomness from cover and hazards;
 - a .NET 10, C# 14, Windows x64 WPF host for the current menu, settings, and
   character-creation flows;
 - a narrow managed/native interop layer for SpriteForge renderer, UI, and audio;
@@ -152,7 +155,7 @@ Implemented and planned contracts are documented in the
 [`Docs/Architecture/GameSettings.md`](Docs/Architecture/GameSettings.md),
 [`Docs/Architecture/MainMenu.md`](Docs/Architecture/MainMenu.md),
 [`Docs/Architecture/Modding.md`](Docs/Architecture/Modding.md), and
-[`Docs/Architecture/BattleMapRoadMap.md`](Docs/Architecture/BattleMapRoadMap.md).
+[`Docs/Architecture/BattlefieldRoadMap.md`](Docs/Architecture/BattlefieldRoadMap.md).
 
 ## Build and run
 

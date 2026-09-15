@@ -1,4 +1,6 @@
+using System.Diagnostics;
 using System.Windows;
+using System.Windows.Threading;
 using Spelljammer.Presentation;
 using Spelljammer.Settings;
 
@@ -24,31 +26,59 @@ public partial class App : Application
     /// Handles application startup initialization.
     /// </summary>
     /// <remarks>
-    /// Loads game settings and localization asynchronously to prevent UI blocking.
-    /// Sets up the main menu window and transitions to window-close shutdown mode.
+    /// Shows the SpriteForge startup presentation, loads settings asynchronously, publishes application services,
+    /// and transitions to the main-window shutdown mode only after the menu is ready.
     /// </remarks>
     /// <param name="e">Startup event arguments.</param>
     protected override async void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
         ShutdownMode = ShutdownMode.OnExplicitShutdown;
+        StartupSplashWindow splash = new();
+        splash.Show();
 
-        string settingsPath = GameSettingsPath.CurrentUser;
+        try
+        {
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+            long splashStarted = Stopwatch.GetTimestamp();
+            splash.SetProgress(0.2f);
+            string settingsPath = GameSettingsPath.CurrentUser;
 
-        // Load settings asynchronously on a background thread to prevent UI blocking.
-        // Tuple deconstruction unpacks both the loaded registry and diagnostic info (which may contain load errors).
-        (GameSettingsRegistry registry, GameSettingsDiagnostic diagnostic) =
-            await Task.Run(() => GameSettingsRegistry.Load(settingsPath));
+            // Load settings asynchronously on a background thread while the SpriteForge splash remains responsive.
+            (GameSettingsRegistry registry, GameSettingsDiagnostic diagnostic) =
+                await Task.Run(() => GameSettingsRegistry.Load(settingsPath));
+            splash.SetProgress(0.48f);
+            await Dispatcher.Yield(DispatcherPriority.Render);
 
-        // Load localized UI strings based on the user's preferred language setting.
-        GameText strings = GameText.Load(registry.Active.Language);
-        audio = SpriteForgeAudioService.Create(registry.Active);
+            GameText strings = GameText.Load(registry.Active.Language);
+            splash.SetProgress(0.7f);
+            await Dispatcher.Yield(DispatcherPriority.Render);
 
-        MainMenuWindow window = new(registry, settingsPath, diagnostic, strings, audio);
-        MainWindow = window;
+            audio = SpriteForgeAudioService.Create(registry.Active);
+            splash.SetProgress(0.86f);
+            await Dispatcher.Yield(DispatcherPriority.Render);
 
-        ShutdownMode = ShutdownMode.OnMainWindowClose;
-        window.Show();
+            MainMenuWindow window = new(registry, settingsPath, diagnostic, strings, audio);
+            MainWindow = window;
+            splash.SetProgress(1);
+
+            TimeSpan minimumVisibleTime = TimeSpan.FromMilliseconds(750);
+            TimeSpan visibleTime = Stopwatch.GetElapsedTime(splashStarted);
+            if (visibleTime < minimumVisibleTime)
+            {
+                await Task.Delay(minimumVisibleTime - visibleTime);
+            }
+
+            ShutdownMode = ShutdownMode.OnMainWindowClose;
+            window.Show();
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+            splash.Close();
+        }
+        catch
+        {
+            splash.Close();
+            throw;
+        }
     }
 
     protected override void OnExit(ExitEventArgs e)

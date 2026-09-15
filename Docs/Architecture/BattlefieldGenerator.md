@@ -1,7 +1,7 @@
 # Combat Map & Turn-Based Combat Design
 
 Implementation sequencing, current-state gaps, and phase exit criteria are
-defined in [BattleMapRoadMap.md](BattleMapRoadMap.md).
+defined in [BattlefieldRoadMap.md](BattlefieldRoadMap.md).
 
 ## 1. Design Goal
 

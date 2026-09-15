@@ -2,7 +2,8 @@
 
 ## 1. Purpose
 
-This document turns the target design in [BattleMap.md](BattleMap.md) into an
+This document turns the target design in
+[BattlefieldGenerator.md](BattlefieldGenerator.md) into an
 incremental implementation plan. The target experience is a continuous-looking
 map backed by a deterministic hidden square grid, with real-time exploration
 and turn-based personal combat sharing the same persistent environment.
@@ -35,12 +36,21 @@ visual chunks, or exploration/combat transitions.
 
 The WPF host also does not yet present the personal tactical board.
 
+The simulation now includes a versioned headless `BattlefieldGenerator` for
+the current board contract. It deterministically assembles bounded rooms and
+corridors, publishes only boards accepted by `TacticalBoard.Create`, identifies
+reachable entry, objective, and extraction cells, and gives topology, cover,
+and hazards independent random streams. Its current 8-by-8 through 16-by-16
+limits follow the existing 256-cell ceiling. It is not yet connected to
+campaign creation or save reconstruction and does not replace the square-grid
+kernel, authored-module, presentation, and persistence work below.
+
 ## 3. Architecture Gate: One Personal-Map Topology
 
 Before adding more map mechanics, the project must settle on one authoritative
 personal-map topology.
 
-The target selected by `BattleMap.md` is:
+The target selected by `BattlefieldGenerator.md` is:
 
 ```text
 Hidden square logic grid

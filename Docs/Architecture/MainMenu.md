@@ -22,11 +22,11 @@ opens maximized. The background contains no interactive or localized text.
 ## UI ownership
 
 `SpriteForgeRenderSurface` owns the native child HWND and renderer ABI v2.6
-session. It maps physical HWND input to the fixed logical canvas, while the
-menu keeps bounded hit regions and emits stable managed navigation events.
-Background, panels, buttons, hover/press outlines, and localized text are all
-submitted to SpriteForge as texture/sprite/font/layout/label resources. WPF
-does not draw any visible menu pixel.
+session. It maps physical HWND input to the fixed logical canvas and submits
+copied pointer records to a SpriteForge UI document. SpriteForge performs menu
+hit testing, capture, hover/press state, and stable action generation. The
+background and UI presentation are submitted as texture/sprite/font/layout/
+label resources. WPF does not draw any visible menu pixel.
 
 The logical menu canvas is 1280 by 720 pixels. It is uniformly scaled and
 centered inside the client area, while the background independently uses cover

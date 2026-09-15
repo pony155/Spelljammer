@@ -73,12 +73,22 @@ internal sealed class SpriteForgeCanvas
         }
 
         Sprite(owner.WhiteTexture, 1, 1, x1, y1 - thickness / 2, length, thickness,
-            SpriteForgeColor.Parse(color), layer, MathF.Atan2(dy, dx));
+            SpriteForgeColor.Parse(color), layer, -MathF.Atan2(dy, dx));
     }
 
     internal void Circle(float centerX, float centerY, float diameter, string color, int layer = 2) =>
         Sprite(owner.CircleTexture, 64, 64, centerX - diameter / 2, centerY - diameter / 2,
             diameter / 64, diameter / 64, SpriteForgeColor.Parse(color), layer);
+
+    internal void Ellipse(
+        float centerX,
+        float centerY,
+        float width,
+        float height,
+        string color,
+        int layer = 2) =>
+        Sprite(owner.CircleTexture, 64, 64, centerX - width / 2, centerY - height / 2,
+            width / 64, height / 64, SpriteForgeColor.Parse(color), layer);
 
     internal void ImageCover(string resourceUri, float x, float y, float width, float height, int layer = -10)
     {
@@ -166,6 +176,7 @@ internal abstract class SpriteForgeRenderSurface : HwndHost
     private const uint WindowStyleChild = 0x40000000;
     private const uint WindowStyleVisible = 0x10000000;
     private const uint WindowStyleClipSiblings = 0x04000000;
+    private const uint StaticStyleNotify = 0x00000100;
     private const int WmMouseMove = 0x0200;
     private const int WmLeftButtonDown = 0x0201;
     private const int WmLeftButtonUp = 0x0202;
@@ -245,7 +256,7 @@ internal abstract class SpriteForgeRenderSurface : HwndHost
             0,
             "static",
             null,
-            WindowStyleChild | WindowStyleVisible | WindowStyleClipSiblings,
+            WindowStyleChild | WindowStyleVisible | WindowStyleClipSiblings | StaticStyleNotify,
             0,
             0,
             1,
@@ -587,7 +598,7 @@ internal abstract class SpriteForgeRenderSurface : HwndHost
                 StructSize = SizeOf<EngineRendererFontDescription>(),
                 Revision = StableId(path),
                 PixelSize = size,
-                RasterMode = 1,
+                RasterMode = 2,
             };
             ThrowIfFailed(SpriteForgeNative.SpriteForge_RendererV2_CreateFont(
                 session, in description, pinned.AddrOfPinnedObject(), checked((ulong)bytes.Length), out ulong font),
