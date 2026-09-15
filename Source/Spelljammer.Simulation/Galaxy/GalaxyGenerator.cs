@@ -13,7 +13,7 @@ public enum GalaxyShape : byte
 public sealed record GalaxyGenerationSettings(
     int SystemCount = 16,
     GalaxyShape Shape = GalaxyShape.Elliptical,
-    int GeneratorVersion = 2)
+    int GeneratorVersion = GalaxyGenerator.CurrentGeneratorVersion)
 {
     public const int MinimumSystemCount = 8;
 }
@@ -28,8 +28,13 @@ public sealed record GalaxyGenerationResult(
 
 public static class GalaxyGenerator
 {
+    public const int CurrentGeneratorVersion = 3;
+
     private const double FullCircle = Math.PI * 2;
     private const double GoldenAngle = 2.39996322972865332;
+    private const double RingInnerRadius = 0.46;
+    private const double RingHorizontalRadius = 440;
+    private const double RingVerticalRadius = 390;
 
     private static readonly ContentId[] Archetypes =
     [
@@ -42,7 +47,7 @@ public static class GalaxyGenerator
     public static GalaxyGenerationResult Generate(ulong seed, GalaxyGenerationSettings? settings = null)
     {
         settings ??= new();
-        if (settings.GeneratorVersion <= 0 || !Enum.IsDefined(settings.Shape) ||
+        if (settings.GeneratorVersion != CurrentGeneratorVersion || !Enum.IsDefined(settings.Shape) ||
             settings.SystemCount is < GalaxyGenerationSettings.MinimumSystemCount or > GalaxyLimits.MaximumSystems)
         {
             return new(null, null, GalaxyValidationCode.InvalidHeader);
@@ -102,7 +107,7 @@ public static class GalaxyGenerator
                 ConnectElliptical(systems, degrees, Connect);
                 break;
             case GalaxyShape.Ring:
-                ConnectRing(systems.Length, Connect);
+                ConnectRing(systems, Connect);
                 break;
             default:
                 return new(null, null, GalaxyValidationCode.InvalidHeader);
@@ -175,14 +180,35 @@ public static class GalaxyGenerator
 
     private static GeneratedPosition[] PlaceRing(int count, ref DeterministicStream random)
     {
+        int radialBandCount = Math.Clamp((int)Math.Round(Math.Sqrt(count) / 2), 3, 8);
         GeneratedPosition[] positions = new GeneratedPosition[count];
         for (int index = 0; index < count; index++)
         {
-            double angle = Math.PI + index * FullCircle / count;
-            int radialJitter = random.Next(-24, 25);
-            int x = Round(Math.Cos(angle) * (790 + radialJitter));
-            int y = Round(Math.Sin(angle) * (360 + radialJitter / 2.0));
-            positions[index] = new(x, y, index * 4 / count);
+            double angularJitter = random.Next(-1_000, 1_001) / 1_000.0 * FullCircle / count * 0.4;
+            double angle = Math.PI + index * GoldenAngle + angularJitter;
+            int radialBand = index % radialBandCount;
+            double withinBand = random.Next(0, 1_000_000) / 1_000_000.0;
+            double areaProgress = (radialBand + withinBand) / radialBandCount;
+            double radius = Math.Sqrt(
+                RingInnerRadius * RingInnerRadius +
+                areaProgress * (1 - RingInnerRadius * RingInnerRadius));
+
+            if (index == 0)
+            {
+                angle = Math.PI;
+                radius = 0.82;
+            }
+
+            int x = Round(Math.Cos(angle) * radius * RingHorizontalRadius);
+            int y = Round(Math.Sin(angle) * radius * RingVerticalRadius);
+            double normalizedAngle = angle % FullCircle;
+            if (normalizedAngle < 0)
+            {
+                normalizedAngle += FullCircle;
+            }
+
+            int region = Math.Min(3, (int)(normalizedAngle / (FullCircle / 4)));
+            positions[index] = new(x, y, region);
         }
 
         return positions;
@@ -248,17 +274,23 @@ public static class GalaxyGenerator
         }
     }
 
-    private static void ConnectRing(int count, Action<int, int> connect)
+    private static void ConnectRing(IReadOnlyList<StarSystemState> systems, Action<int, int> connect)
     {
-        for (int index = 0; index < count; index++)
+        int[] angularOrder = Enumerable.Range(0, systems.Count)
+            .OrderBy(index => Math.Atan2(
+                systems[index].DisplayY / RingVerticalRadius,
+                systems[index].DisplayX / RingHorizontalRadius))
+            .ThenBy(index => index)
+            .ToArray();
+
+        for (int position = 0; position < angularOrder.Length; position++)
         {
-            connect(index, (index + 1) % count);
+            connect(angularOrder[position], angularOrder[(position + 1) % angularOrder.Length]);
         }
 
-        int quarter = Math.Max(2, count / 4);
-        for (int index = 0; index < count; index += 4)
+        for (int position = 0; position < angularOrder.Length; position += 4)
         {
-            connect(index, (index + quarter) % count);
+            connect(angularOrder[position], angularOrder[(position + 2) % angularOrder.Length]);
         }
     }
 

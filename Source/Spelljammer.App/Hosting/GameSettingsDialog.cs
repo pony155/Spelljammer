@@ -1,6 +1,5 @@
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
 using Spelljammer.Presentation;
 using Spelljammer.Settings;
 
@@ -27,20 +26,10 @@ internal sealed class GameSettingsDialog : Grid, IDisposable
     {
         this.registry = registry;
         this.settingsPath = settingsPath;
-        Background = new SolidColorBrush(Color.FromArgb(184, 3, 6, 14));
         Focusable = true;
 
         settingsView = new SpriteForgeSettingsView(registry.Active, strings);
-        Viewbox viewbox = new()
-        {
-            Child = settingsView,
-            Stretch = Stretch.Uniform,
-            StretchDirection = StretchDirection.DownOnly,
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center,
-            Margin = new Thickness(24),
-        };
-        Children.Add(viewbox);
+        Children.Add(settingsView);
 
         settingsView.ApplyRequested += SettingsView_ApplyRequested;
         settingsView.CancelRequested += SettingsView_CancelRequested;

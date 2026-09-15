@@ -27,8 +27,9 @@ App.OnStartup
             -> Quit Game     -> Application.Shutdown
 ```
 
-The application currently opens the main menu. The retired expedition window,
-renderer viewport, and parallel expedition simulation have been removed.
+The application currently opens the main menu. The retired expedition window
+and parallel expedition simulation remain removed. Every current screen owns a
+SpriteForge child surface; WPF remains only the top-level window and lifecycle host.
 
 ## File inventory
 
@@ -46,7 +47,7 @@ renderer viewport, and parallel expedition simulation have been removed.
 | File | Responsibility |
 | --- | --- |
 | `MainMenuWindow.cs` | Current maximized top-level window and application flow coordinator. It owns the shared settings registry, settings path, and `GameText`; reads the display version from assembly metadata; hosts `SpriteForgeMainMenuView`; coordinates the retained galaxy and captain drafts; adds new-game or settings screens to the same visual tree; forwards status to the menu; shuts down on Quit; and detaches/disposes the views when closed. |
-| `GalaxyMapGeneratorScreen.cs` | Full-window in-app host for the galaxy generator. It forwards completion and cancellation and owns deterministic view cleanup. |
+| `GalaxyMapGeneratorScreen.cs` | Full-window in-app host for the galaxy generator. It forwards completion and cancellation and owns deterministic view and native-surface cleanup. |
 | `CharacterCreationScreen.cs` | Full-window in-window modal host for `SpriteForgeCharacterCreationView`. Its borderless fill-scaling child replaces the menu visually without creating another operating-system window, forwards completion/cancellation, and owns deterministic cleanup. |
 | `GameSettingsDialog.cs` | In-window WPF overlay around `SpriteForgeSettingsView`. Its scrim blocks the menu without creating another operating-system window. It starts settings publication on a worker thread, prevents duplicate Apply operations and closure during a write, reports failures without replacing active settings, and emits completion only after successful durable publication. |
 
@@ -56,44 +57,44 @@ renderer viewport, and parallel expedition simulation have been removed.
 | --- | --- |
 | `GalaxyMapSelection.cs` | Immutable new-campaign draft containing the explicit galaxy seed and bounded generator settings accepted by the player. |
 | `CharacterCreationChoices.cs` | Bounded application presentation mapping for the 11 authored first-voyage character, Race, Heritage, and shared Background stable IDs. A confirmed selection carries the accepted galaxy seed until campaign composition is implemented. |
-| `GalaxyMapGeneratorView.cs` | Full-window 1600x900 galaxy setup surface. It edits and validates a positive 64-bit seed, selects one of six bounded sizes and the Spiral, Elliptical, or Ring topology strategy, invokes the simulation-owned deterministic generator, and draws a read-only system/starway projection that progressively simplifies labels for large galaxies. |
+| `GalaxyMapGeneratorView.cs` | Full-window 1600x900 SpriteForge galaxy setup surface. It edits and validates a positive 64-bit seed, selects one of six bounded sizes and the Spiral, Elliptical, or Ring topology strategy, invokes the simulation-owned deterministic generator, and submits the complete panel, controls, metrics, routes, and systems through the renderer. |
+| `SpriteForgeRenderSurface.cs` | Shared `HwndHost` renderer owner for all current screens. It creates the child HWND and ABI v2.6 session, uploads textures, realizes quads and lines as sprite batches, creates native font/layout resources, submits localized text through renderer labels, maps HWND input to logical coordinates, and destroys resources before the child window. |
 | `EacEatTimestampFormatter.cs` | Presentation-only formatter for localized EAC dates, 24-hour EAT times, and combined timestamps. It consumes `WorldDateTime` projections and never enters simulation or save state. |
 | `GameText.cs` | Application localization facade. It reads the embedded `en-US`, `fr-FR`, and `zh-Hant-TW` menu/settings/creation/galaxy/calendar artifacts with size bounds, stages a selected locale and explicit fallback transactionally, supports live locale publication, begins formatting frames, and exposes helpers for static text, option names, formatted values, percentages, and stable diagnostics. |
-| `SpriteForgeCharacterCreationView.cs` | Full-window character-creation dossier on a 1600x900 logical canvas. SpriteForge owns its transactionally created modal tree, direct 11-captain roster, selected state, focus order/restoration, hit testing, pointer/keyboard actions, and tagged/clipped presentation. WPF draws the full-screen backdrop, large captain preview, localized lineage/heritage/Background details, summary, and the read-only accepted galaxy seed. Escape/Back returns to galaxy setup, and Confirm emits a copied selection. |
-| `SpriteForgeMainMenuView.cs` | Current mouse-only main-menu surface. It loads the packaged `Background.png`, draws it edge-to-edge with aspect-preserving cover scaling, and uses a fixed 1280x720 logical UI canvas. Menu grouping and button fills are transparent, leaving localized New Game, Game Settings, and Quit Game labels, the bottom-right application version, and a pointer-hover outline. SpriteForge owns transactional retained elements, authoritative presentation/point mapping, pointer hit testing, input processing, and action generation; WPF realizes copied tagged/clipped solid commands, localized text, and the outline. The view does not forward keyboard navigation or activation, emits only stable top-level actions, keeps bounded element/action buffers, and releases its native UI context deterministically. |
-| `SpriteForgeSettingsView.cs` | Interactive settings surface and draft editor on a 900x650 logical canvas. It defines SpriteForge General, Audio, and Interface category pages; engine-anchored, flipping, clamped, outside-dismissible language/resolution popups; sliders; toggles; buttons; stable-key focus restoration; selected state; and accessibility roles/names. Native actions update an immutable draft profile or emit Apply/Cancel events; WPF draws copied tagged/clipped solid commands, value labels, focus outlines, and status messages. Reset reconstructs the native document from defaults. |
+| `SpriteForgeCharacterCreationView.cs` | Full-window SpriteForge character dossier on a 1600x900 logical canvas. It renders the direct 11-captain roster, portrait treatment, localized lineage/heritage/Background details, summary, and accepted galaxy seed; Escape/Back returns to galaxy setup and Confirm emits a copied selection. |
+| `SpriteForgeMainMenuView.cs` | SpriteForge main-menu surface on a fixed 1280x720 logical canvas. The renderer realizes the packaged backdrop, translucent panel, hover/press states, localized labels, status, and version. Pointer input is mapped by the shared HWND surface and emits only the three top-level navigation actions. |
+| `SpriteForgeSettingsView.cs` | SpriteForge settings surface and immutable draft editor on a 960x680 logical canvas. It renders and handles language/resolution cycling, volume and scale sliders, accessibility toggles, Reset, Cancel, Apply, and persistence status without WPF controls or drawing. |
 | `SpriteForgeAudioService.cs` | WPF-owner-thread lifetime wrapper for SpriteForge audio. It creates the opaque audio instance from native defaults, applies Master/Music/Sound Effects gains from the active settings profile, pumps maintenance updates on the dispatcher, reports non-fatal availability failure, and destroys the instance at application exit. |
 
 ### `Interop/`
 
 | File | Responsibility |
 | --- | --- |
-| `SpriteForgeNative.cs` | Sole low-level SpriteForge P/Invoke boundary for this application. It mirrors the managed UI and audio ABIs used by the current application. Its static initializer verifies every used managed structure size before the first native call. UI and audio handles are destroyed on their owner thread, copied arrays are bounded, and no native pointer enters game or save state. |
+| `SpriteForgeNative.cs` | Sole low-level SpriteForge P/Invoke boundary for this application. It mirrors the renderer v2.6, UI, and audio ABIs used by the current application. Its static initializer verifies every used managed structure size before the first native call. Renderer, UI, and audio handles are destroyed on their owner thread, copied arrays are bounded, and no native pointer enters game or save state. |
 
 ## Runtime and ownership boundaries
 
 | Concern | Owner in the current application |
 | --- | --- |
 | WPF startup and window lifetime | `App`, `MainMenuWindow`, `GameSettingsDialog` |
-| Main-menu and settings interaction state | SpriteForge UI documents, accessed through `SpriteForgeNative` |
-| Raster/text realization | WPF drawing in the two SpriteForge view adapters |
+| Current screen interaction state | Game-owned bounded view state fed by child-HWND input |
+| Raster, topology, and text realization | SpriteForge renderer ABI v2.6 through `SpriteForgeRenderSurface` |
 | Localized application text | `GameText` over `Spelljammer.Localization` |
 | Active settings and durable publication | `Spelljammer.Settings` through `GameSettingsRegistry` |
 | Native audio lifetime and volume buses | SpriteForge through `SpriteForgeAudioService` |
 | Authoritative gameplay state | `Spelljammer.Simulation`; application composition is planned |
 
-The WPF views translate physical pointer coordinates into their logical canvas,
-send copied input records to SpriteForge, consume bounded action arrays, and
-then invalidate their WPF rendering. They never use translated labels as
-command identity: stable numeric keys identify controls, while localized text
-is presentation and accessibility data.
+The child-HWND surfaces translate physical pointer coordinates into their
+logical canvases and submit copied renderer records. WPF never realizes visible
+game pixels. Localized text remains presentation data and never becomes command
+or simulation identity.
 
 ## Build-time inputs outside this directory
 
 `Spelljammer.App.csproj` deliberately links rather than duplicates these files:
 
-- `Content/Packs/base/Assets/UI/MainMenu/Background.png` becomes the shared WPF
-  menu/creation pack resource `Assets/UI/MainMenu/Background.png`.
+- `Content/Packs/base/Assets/UI/MainMenu/Background.png` becomes the shared pack
+  resource uploaded to SpriteForge by the menu, creation, and galaxy surfaces.
 - `Content/Packs/base/Localization/en-US/menu.sfloc.json` is compiled and
   embedded as `Spelljammer.Localization.en-US.menu.sfloc`.
 - `Content/Packs/base/Localization/en-US/settings.sfloc.json` is compiled and
@@ -113,7 +114,7 @@ is presentation and accessibility data.
 ## Where changes belong
 
 - Add or change top-level window flow under `Hosting/`.
-- Add WPF realization or game-specific UI adapters under `Presentation/`.
+- Add game-specific SpriteForge display adapters under `Presentation/`.
 - Extend `SpriteForgeNative.cs` only for a deliberate, versioned public
   SpriteForge C ABI addition.
 - Put reusable rendering, platform, input, or UI capabilities in SpriteForge,

@@ -1,5 +1,4 @@
 using System.Windows.Controls;
-using System.Windows.Media;
 using Spelljammer.Presentation;
 
 namespace Spelljammer;
@@ -14,14 +13,10 @@ internal sealed class GalaxyMapGeneratorScreen : Grid, IDisposable
 
     internal GalaxyMapGeneratorScreen(GameText strings, GalaxyMapSelection? initial)
     {
-        Background = Brushes.Black;
         generatorView = new GalaxyMapGeneratorView(strings, initial);
         generatorView.Completed += GeneratorView_Completed;
         generatorView.CancelRequested += GeneratorView_CancelRequested;
-        Children.Add(new Viewbox {
-            Child = generatorView,
-            Stretch = Stretch.Fill,
-        });
+        Children.Add(generatorView);
     }
 
     internal event EventHandler<GalaxyMapGeneratorCompletedEventArgs>? Completed;

@@ -1,15 +1,6 @@
 using System.Buffers.Binary;
 using System.Globalization;
 using System.Security.Cryptography;
-using System.Windows;
-using System.Windows.Automation;
-using System.Windows.Automation.Peers;
-using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 using Spelljammer.Simulation.Galaxy;
 
 namespace Spelljammer.Presentation;
@@ -20,577 +11,354 @@ internal sealed class GalaxyMapGeneratorCompletedEventArgs(GalaxyMapSelection se
 }
 
 /// <summary>
-/// Presents the bounded first-voyage galaxy settings and a non-authoritative topology preview.
+/// SpriteForge-rendered galaxy generator and topology preview.
 /// </summary>
-internal sealed class GalaxyMapGeneratorView : Grid, IDisposable
+internal sealed class GalaxyMapGeneratorView : SpriteForgeRenderSurface
 {
-    internal const double LogicalWidth = 1600;
-    internal const double LogicalHeight = 900;
-
-    private static readonly SolidColorBrush TextBrush = Brush("#F2E9D8");
-    private static readonly SolidColorBrush MutedBrush = Brush("#AAB8D0");
-    private static readonly SolidColorBrush GoldBrush = Brush("#D7AF70");
-    private static readonly SolidColorBrush CyanBrush = Brush("#80DED9");
-    private static readonly SolidColorBrush ErrorBrush = Brush("#FF8C82");
-    private static readonly SolidColorBrush PanelBrush = Brush("#F00A1221");
-    private static readonly SolidColorBrush PanelBorderBrush = Brush("#664D668A");
+    internal const uint SurfaceWidth = 1600;
+    internal const uint SurfaceHeight = 900;
+    private const string BackgroundUri = "pack://application:,,,/Assets/UI/MainMenu/Background.png";
     private static readonly int[] SupportedSystemCounts = [16, 64, 128, 256, 512, 1_024];
+    private static readonly GalaxyShape[] SupportedShapes = [GalaxyShape.Spiral, GalaxyShape.Elliptical, GalaxyShape.Ring];
+    private static readonly HitBox Shape = new(252, 248, 142, 38, Control.Shape);
+    private static readonly HitBox Size = new(252, 298, 142, 38, Control.Size);
+    private static readonly HitBox Seed = new(70, 407, 205, 46, Control.Seed);
+    private static readonly HitBox Randomize = new(285, 407, 109, 46, Control.Randomize);
+    private static readonly HitBox Generate = new(70, 490, 324, 46, Control.Generate);
+    private static readonly HitBox Back = new(42, 828, 180, 52, Control.Back);
+    private static readonly HitBox Continue = new(1320, 828, 238, 52, Control.Continue);
+    private static readonly HitBox[] HitBoxes = [Shape, Size, Seed, Randomize, Generate, Back, Continue];
 
     private readonly GameText strings;
-    private readonly TextBox seedTextBox;
-    private readonly ComboBox shapeComboBox;
-    private readonly ComboBox sizeComboBox;
-    private readonly TextBlock statusText;
-    private readonly GalaxyTopologyPreview preview;
-    private readonly TextBlock systemMetric;
-    private readonly TextBlock starwayMetric;
-    private readonly TextBlock regionMetric;
     private GalaxyMapSelection selection;
-    private bool disposed;
+    private GalaxyState? galaxy;
+    private string seedText;
+    private string status = string.Empty;
+    private bool statusIsError;
+    private bool seedFocused;
+    private Control hovered;
+    private Control pressed;
 
     internal GalaxyMapGeneratorView(GameText strings, GalaxyMapSelection? initial)
+        : base(SurfaceWidth, SurfaceHeight, strings.Culture)
     {
         this.strings = strings;
-        Width = LogicalWidth;
-        Height = LogicalHeight;
-        Focusable = true;
-        ClipToBounds = true;
-        AutomationProperties.SetName(this, strings.Get("galaxy.accessibility.screen"));
-
         selection = initial ?? new GalaxyMapSelection(NewSeed(), new GalaxyGenerationSettings());
-        Image background = new() {
-            Source = LoadBackground(),
-            Stretch = Stretch.UniformToFill,
-            Opacity = 0.34,
-            IsHitTestVisible = false,
-        };
-        Children.Add(background);
-        Children.Add(new Border {
-            Background = new LinearGradientBrush(
-                Color.FromArgb(238, 5, 10, 20),
-                Color.FromArgb(210, 9, 21, 37),
-                new Point(0, 0),
-                new Point(1, 1)),
-            IsHitTestVisible = false,
-        });
-
-        Grid layout = new();
-        layout.RowDefinitions.Add(new RowDefinition { Height = new GridLength(104) });
-        layout.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
-        layout.RowDefinitions.Add(new RowDefinition { Height = new GridLength(92) });
-        Children.Add(layout);
-
-        layout.Children.Add(BuildHeader());
-
-        Grid body = new() { Margin = new Thickness(42, 16, 42, 14) };
-        body.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(412) });
-        body.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(24) });
-        body.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        Grid.SetRow(body, 1);
-        layout.Children.Add(body);
-
-        Border settingsPanel = Panel();
-        settingsPanel.Padding = new Thickness(28, 20, 28, 20);
-        body.Children.Add(settingsPanel);
-        StackPanel settingsStack = new();
-        settingsPanel.Child = settingsStack;
-        settingsStack.Children.Add(Heading(strings.Get("galaxy.section.parameters"), 18));
-        settingsStack.Children.Add(BodyText(strings.Get("galaxy.introduction"), 13, new Thickness(0, 7, 0, 16)));
-        settingsStack.Children.Add(ReadOnlyField(
-            strings.Get("galaxy.label.scenario"), strings.Get("galaxy.value.scenario.first-voyage")));
-        shapeComboBox = ComboBox();
-        AddChoice(shapeComboBox, strings.Get("galaxy.value.shape.spiral"), GalaxyShape.Spiral);
-        AddChoice(shapeComboBox, strings.Get("galaxy.value.shape.elliptical"), GalaxyShape.Elliptical);
-        AddChoice(shapeComboBox, strings.Get("galaxy.value.shape.ring"), GalaxyShape.Ring);
-        SelectChoice(shapeComboBox, selection.Settings.Shape);
-        settingsStack.Children.Add(SelectableField(strings.Get("galaxy.label.shape"), shapeComboBox));
-        sizeComboBox = ComboBox();
-        foreach (int systemCount in SupportedSystemCounts)
-        {
-            AddChoice(sizeComboBox, strings.Get($"galaxy.value.size.s{systemCount}"), systemCount);
-        }
-
-        SelectChoice(sizeComboBox, selection.Settings.SystemCount);
-        settingsStack.Children.Add(SelectableField(strings.Get("galaxy.label.size"), sizeComboBox));
-        settingsStack.Children.Add(ReadOnlyField(
-            strings.Get("galaxy.label.generator"), strings.Get("galaxy.value.generator.v2")));
-        settingsStack.Children.Add(Label(strings.Get("galaxy.label.seed"), new Thickness(0, 14, 0, 7)));
-
-        Grid seedRow = new();
-        seedRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        seedRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(10) });
-        seedRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(118) });
-        seedTextBox = new TextBox {
-            Text = selection.Seed.ToString(CultureInfo.InvariantCulture),
-            MaxLength = 20,
-            FontFamily = new FontFamily("Consolas"),
-            FontSize = 16,
-            Foreground = TextBrush,
-            Background = Brush("#FF111D31"),
-            BorderBrush = PanelBorderBrush,
-            BorderThickness = new Thickness(1),
-            Padding = new Thickness(12, 9, 12, 9),
-            CaretBrush = CyanBrush,
-            VerticalContentAlignment = VerticalAlignment.Center,
-        };
-        AutomationProperties.SetName(seedTextBox, strings.Get("galaxy.label.seed"));
-        seedTextBox.TextChanged += SeedTextBox_TextChanged;
-        seedTextBox.KeyDown += SeedTextBox_KeyDown;
-        seedRow.Children.Add(seedTextBox);
-        Button randomize = Button(strings.Get("galaxy.button.randomize"), primary: false);
-        randomize.Click += Randomize_Click;
-        Grid.SetColumn(randomize, 2);
-        seedRow.Children.Add(randomize);
-        settingsStack.Children.Add(seedRow);
-        settingsStack.Children.Add(BodyText(strings.Get("galaxy.hint.seed"), 12, new Thickness(0, 7, 0, 14)));
-
-        Button generate = Button(strings.Get("galaxy.button.generate"), primary: false);
-        generate.HorizontalAlignment = HorizontalAlignment.Stretch;
-        generate.Click += Generate_Click;
-        settingsStack.Children.Add(generate);
-        settingsStack.Children.Add(BodyText(strings.Get("galaxy.hint.locked"), 12, new Thickness(0, 12, 0, 0)));
-        TextBlock legendHeading = Heading(strings.Get("galaxy.legend.title"), 13);
-        legendHeading.Foreground = GoldBrush;
-        legendHeading.Margin = new Thickness(0, 16, 0, 6);
-        settingsStack.Children.Add(legendHeading);
-        settingsStack.Children.Add(LegendRow(strings.Get("galaxy.legend.anchor-description"), LegendMark.Anchor));
-        settingsStack.Children.Add(LegendRow(strings.Get("galaxy.legend.local-starway"), LegendMark.LocalStarway));
-        settingsStack.Children.Add(LegendRow(strings.Get("galaxy.legend.crossing-starway"), LegendMark.CrossingStarway));
-
-        Grid.SetColumn(settingsPanel, 0);
-
-        Border previewPanel = Panel();
-        previewPanel.Padding = new Thickness(26, 22, 26, 22);
-        Grid.SetColumn(previewPanel, 2);
-        body.Children.Add(previewPanel);
-        Grid previewLayout = new();
-        previewLayout.RowDefinitions.Add(new RowDefinition { Height = new GridLength(62) });
-        previewLayout.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
-        previewLayout.RowDefinitions.Add(new RowDefinition { Height = new GridLength(84) });
-        previewPanel.Child = previewLayout;
-
-        Grid previewHeader = new();
-        StackPanel previewTitles = new();
-        previewTitles.Children.Add(Heading(strings.Get("galaxy.preview.title"), 18));
-        previewTitles.Children.Add(BodyText(strings.Get("galaxy.preview.subtitle"), 12));
-        previewHeader.Children.Add(previewTitles);
-        previewLayout.Children.Add(previewHeader);
-
-        preview = new GalaxyTopologyPreview(strings.Get("galaxy.legend.anchor"));
-        AutomationProperties.SetName(preview, strings.Get("galaxy.accessibility.map"));
-        Grid.SetRow(preview, 1);
-        previewLayout.Children.Add(preview);
-
-        UniformGrid metrics = new() { Columns = 3, Margin = new Thickness(0, 14, 0, 0) };
-        systemMetric = MetricValue("—");
-        metrics.Children.Add(Metric(strings.Get("galaxy.metric.systems"), systemMetric));
-        starwayMetric = MetricValue("—");
-        metrics.Children.Add(Metric(strings.Get("galaxy.metric.starways"), starwayMetric));
-        regionMetric = MetricValue("—");
-        metrics.Children.Add(Metric(strings.Get("galaxy.metric.regions"), regionMetric));
-        Grid.SetRow(metrics, 2);
-        previewLayout.Children.Add(metrics);
-
-        Border footer = new() {
-            Background = Brush("#F20A1221"),
-            BorderBrush = GoldBrush,
-            BorderThickness = new Thickness(0, 1, 0, 0),
-            Padding = new Thickness(42, 18, 42, 18),
-        };
-        Grid.SetRow(footer, 2);
-        layout.Children.Add(footer);
-        Grid footerGrid = new();
-        footerGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        footerGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        footerGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        footer.Child = footerGrid;
-        Button back = Button(strings.Get("galaxy.button.back"), primary: false);
-        back.Width = 180;
-        back.Click += Back_Click;
-        footerGrid.Children.Add(back);
-        statusText = new TextBlock {
-            Foreground = MutedBrush,
-            FontSize = 13,
-            TextAlignment = TextAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center,
-            TextWrapping = TextWrapping.Wrap,
-            Margin = new Thickness(26, 0, 26, 0),
-        };
-        Grid.SetColumn(statusText, 1);
-        footerGrid.Children.Add(statusText);
-        Button continueButton = Button(strings.Get("galaxy.button.continue"), primary: true);
-        continueButton.Width = 238;
-        continueButton.Click += Continue_Click;
-        Grid.SetColumn(continueButton, 2);
-        footerGrid.Children.Add(continueButton);
-
-        KeyDown += View_KeyDown;
-        Loaded += View_Loaded;
-        shapeComboBox.SelectionChanged += GenerationSetting_SelectionChanged;
-        sizeComboBox.SelectionChanged += GenerationSetting_SelectionChanged;
+        seedText = selection.Seed.ToString(CultureInfo.InvariantCulture);
         GeneratePreview();
     }
 
     internal event EventHandler<GalaxyMapGeneratorCompletedEventArgs>? Completed;
     internal event EventHandler? CancelRequested;
 
-    protected override AutomationPeer OnCreateAutomationPeer() => new FrameworkElementAutomationPeer(this);
-
-    public void Dispose()
+    protected override void Compose(SpriteForgeCanvas canvas)
     {
-        if (disposed)
+        canvas.ImageCover(BackgroundUri, 0, 0, SurfaceWidth, SurfaceHeight);
+        canvas.Fill(0, 0, SurfaceWidth, SurfaceHeight, "#DE050A14", -9);
+        canvas.Fill(0, 0, SurfaceWidth, 104, "#F20A1221", -8);
+        canvas.Fill(0, 808, SurfaceWidth, 92, "#F20A1221", -8);
+        canvas.Fill(0, 103, SurfaceWidth, 1, "#FFD7AF70", -7);
+        canvas.Fill(0, 808, SurfaceWidth, 1, "#FFD7AF70", -7);
+        canvas.TextLine(strings.Get("galaxy.eyebrow"), 54, 14, 800, 26, 12, "#FFD7AF70");
+        canvas.TextLine(strings.Get("galaxy.title"), 54, 38, 900, 52, 29, "#FFF2E9D8");
+
+        DrawParameterPanel(canvas);
+        DrawPreviewPanel(canvas);
+        DrawButton(canvas, Back, strings.Get("galaxy.button.back"));
+        DrawButton(canvas, Continue, strings.Get("galaxy.button.continue"), primary: true);
+        canvas.TextLine(status, 260, 828, 1020, 52, 13, statusIsError ? "#FFFF8C82" : "#FFAAB8D0",
+            SpriteForgeTextAlignment.Center);
+    }
+
+    protected override void PointerMoved(float x, float y)
+    {
+        Control next = Find(x, y);
+        if (next != hovered)
+        {
+            hovered = next;
+            RefreshSurface();
+        }
+    }
+
+    protected override void PointerPressed(float x, float y)
+    {
+        pressed = Find(x, y);
+        seedFocused = pressed == Control.Seed;
+        RefreshSurface();
+    }
+
+    protected override void PointerReleased(float x, float y)
+    {
+        Control released = Find(x, y);
+        Control action = released == pressed ? released : Control.None;
+        pressed = Control.None;
+        switch (action)
+        {
+            case Control.Shape:
+                selection = selection with { Settings = selection.Settings with { Shape = Cycle(SupportedShapes, selection.Settings.Shape) } };
+                GeneratePreview();
+                break;
+            case Control.Size:
+                selection = selection with { Settings = selection.Settings with { SystemCount = Cycle(SupportedSystemCounts, selection.Settings.SystemCount) } };
+                GeneratePreview();
+                break;
+            case Control.Randomize:
+                seedText = NewSeed().ToString(CultureInfo.InvariantCulture);
+                GeneratePreview();
+                break;
+            case Control.Generate:
+                GeneratePreview();
+                break;
+            case Control.Back:
+                Dispatch(() => CancelRequested?.Invoke(this, EventArgs.Empty));
+                break;
+            case Control.Continue:
+                GeneratePreview();
+                if (galaxy is not null)
+                {
+                    GalaxyMapSelection completed = selection;
+                    Dispatch(() => Completed?.Invoke(this, new GalaxyMapGeneratorCompletedEventArgs(completed)));
+                }
+
+                break;
+        }
+
+        RefreshSurface();
+    }
+
+    protected override void KeyPressed(int virtualKey)
+    {
+        if (virtualKey == 0x1B)
+        {
+            Dispatch(() => CancelRequested?.Invoke(this, EventArgs.Empty));
+        }
+        else if (virtualKey == 0x0D && seedFocused)
+        {
+            GeneratePreview();
+            RefreshSurface();
+        }
+    }
+
+    protected override void TextEntered(char character)
+    {
+        if (!seedFocused)
         {
             return;
         }
 
-        disposed = true;
-        Loaded -= View_Loaded;
-        KeyDown -= View_KeyDown;
-        seedTextBox.TextChanged -= SeedTextBox_TextChanged;
-        seedTextBox.KeyDown -= SeedTextBox_KeyDown;
-        shapeComboBox.SelectionChanged -= GenerationSetting_SelectionChanged;
-        sizeComboBox.SelectionChanged -= GenerationSetting_SelectionChanged;
-        Children.Clear();
-        GC.SuppressFinalize(this);
-    }
-
-    private UIElement BuildHeader()
-    {
-        Border header = new() {
-            Background = Brush("#F20A1221"),
-            BorderBrush = GoldBrush,
-            BorderThickness = new Thickness(0, 0, 0, 1),
-            Padding = new Thickness(54, 12, 54, 10),
-        };
-        StackPanel stack = new();
-        header.Child = stack;
-        TextBlock eyebrow = new() {
-            Text = strings.Get("galaxy.eyebrow"),
-            Foreground = GoldBrush,
-            FontSize = 12,
-            FontWeight = FontWeights.SemiBold,
-        };
-        stack.Children.Add(eyebrow);
-        stack.Children.Add(new TextBlock {
-            Text = strings.Get("galaxy.title"),
-            Foreground = TextBrush,
-            FontSize = 29,
-            FontWeight = FontWeights.SemiBold,
-            Margin = new Thickness(0, 4, 0, 0),
-        });
-        return header;
-    }
-
-    private Border ReadOnlyField(string label, string value)
-    {
-        Border field = new() {
-            BorderBrush = Brush("#334D668A"),
-            BorderThickness = new Thickness(0, 0, 0, 1),
-            Padding = new Thickness(0, 7, 0, 7),
-        };
-        Grid row = new();
-        row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(140) });
-        row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(22) });
-        row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        row.Children.Add(Label(label));
-        TextBlock lockIcon = new() {
-            Text = "\uE72E",
-            FontFamily = new FontFamily("Segoe MDL2 Assets"),
-            FontSize = 10,
-            Foreground = MutedBrush,
-            VerticalAlignment = VerticalAlignment.Center,
-        };
-        Grid.SetColumn(lockIcon, 1);
-        row.Children.Add(lockIcon);
-        TextBlock valueText = new() {
-            Text = value,
-            Foreground = TextBrush,
-            FontSize = 14,
-            FontWeight = FontWeights.SemiBold,
-            TextAlignment = TextAlignment.Right,
-            VerticalAlignment = VerticalAlignment.Center,
-        };
-        Grid.SetColumn(valueText, 2);
-        row.Children.Add(valueText);
-        field.Child = row;
-        return field;
-    }
-
-    private Border SelectableField(string label, ComboBox comboBox)
-    {
-        Border field = new() {
-            BorderBrush = Brush("#334D668A"),
-            BorderThickness = new Thickness(0, 0, 0, 1),
-            Padding = new Thickness(0, 5, 0, 5),
-        };
-        Grid row = new();
-        row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(140) });
-        row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        row.Children.Add(Label(label));
-        Grid.SetColumn(comboBox, 1);
-        row.Children.Add(comboBox);
-        field.Child = row;
-        AutomationProperties.SetName(comboBox, label);
-        return field;
-    }
-
-    private static ComboBox ComboBox() => new() {
-        Foreground = TextBrush,
-        Background = Brush("#FF111D31"),
-        BorderBrush = PanelBorderBrush,
-        BorderThickness = new Thickness(1),
-        FontSize = 13,
-        FontWeight = FontWeights.SemiBold,
-        Padding = new Thickness(9, 5, 9, 5),
-        HorizontalContentAlignment = HorizontalAlignment.Stretch,
-        VerticalContentAlignment = VerticalAlignment.Center,
-        MinHeight = 34,
-    };
-
-    private static void AddChoice(ComboBox comboBox, string text, object value) =>
-        comboBox.Items.Add(new ComboBoxItem { Content = text, Tag = value });
-
-    private static void SelectChoice(ComboBox comboBox, object value)
-    {
-        ComboBoxItem? match = comboBox.Items
-            .OfType<ComboBoxItem>()
-            .FirstOrDefault(item => Equals(item.Tag, value));
-        comboBox.SelectedItem = match ?? comboBox.Items[0];
-    }
-
-    private static T SelectedChoice<T>(ComboBox comboBox) where T : struct =>
-        comboBox.SelectedItem is ComboBoxItem { Tag: T value }
-            ? value
-            : throw new InvalidOperationException("Galaxy generation choice is unavailable.");
-
-    private static Border Panel() => new() {
-        Background = PanelBrush,
-        BorderBrush = PanelBorderBrush,
-        BorderThickness = new Thickness(1),
-        CornerRadius = new CornerRadius(3),
-    };
-
-    private static TextBlock Heading(string text, double size) => new() {
-        Text = text,
-        Foreground = TextBrush,
-        FontSize = size,
-        FontWeight = FontWeights.SemiBold,
-    };
-
-    private static TextBlock BodyText(string text, double size, Thickness margin = default) => new() {
-        Text = text,
-        Foreground = MutedBrush,
-        FontSize = size,
-        TextWrapping = TextWrapping.Wrap,
-        LineHeight = size * 1.45,
-        Margin = margin,
-    };
-
-    private static TextBlock Label(string text, Thickness margin = default) => new() {
-        Text = text,
-        Foreground = GoldBrush,
-        FontSize = 12,
-        FontWeight = FontWeights.SemiBold,
-        VerticalAlignment = VerticalAlignment.Center,
-        Margin = margin,
-    };
-
-    private static Button Button(string text, bool primary)
-    {
-        Button button = new() {
-            Content = text,
-            Foreground = primary ? Brush("#FF07111E") : TextBrush,
-            Background = primary ? CyanBrush : Brush("#FF17243A"),
-            BorderBrush = primary ? CyanBrush : PanelBorderBrush,
-            BorderThickness = new Thickness(1),
-            FontSize = 13,
-            FontWeight = FontWeights.SemiBold,
-            Padding = new Thickness(14, 10, 14, 10),
-            Cursor = Cursors.Hand,
-            MinHeight = 42,
-        };
-        AutomationProperties.SetName(button, text);
-        return button;
-    }
-
-    private static Border Metric(string label, string value) => Metric(label, MetricValue(value));
-
-    private static Border Metric(string label, TextBlock value)
-    {
-        Border card = new() {
-            BorderBrush = Brush("#334D668A"),
-            BorderThickness = new Thickness(1),
-            Margin = new Thickness(4, 0, 4, 0),
-            Padding = new Thickness(14, 10, 14, 10),
-        };
-        StackPanel stack = new();
-        stack.Children.Add(value);
-        stack.Children.Add(new TextBlock {
-            Text = label,
-            Foreground = MutedBrush,
-            FontSize = 11,
-            HorizontalAlignment = HorizontalAlignment.Center,
-        });
-        card.Child = stack;
-        return card;
-    }
-
-    private static TextBlock MetricValue(string value) => new() {
-        Text = value,
-        Foreground = CyanBrush,
-        FontSize = 20,
-        FontWeight = FontWeights.SemiBold,
-        HorizontalAlignment = HorizontalAlignment.Center,
-    };
-
-    private static Grid LegendRow(string text, LegendMark mark)
-    {
-        Grid row = new() { Height = 23 };
-        row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(38) });
-        row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        FrameworkElement symbol;
-        if (mark == LegendMark.Anchor)
+        if (character == '\b' && seedText.Length > 0)
         {
-            symbol = new Border {
-                Width = 13,
-                Height = 13,
-                CornerRadius = new CornerRadius(7),
-                Background = CyanBrush,
-                BorderBrush = Brush("#FFB9FFFF"),
-                BorderThickness = new Thickness(2),
-                HorizontalAlignment = HorizontalAlignment.Left,
-                VerticalAlignment = VerticalAlignment.Center,
-            };
+            seedText = seedText[..^1];
+        }
+        else if (character is >= '0' and <= '9' && seedText.Length < 20)
+        {
+            seedText += character;
         }
         else
         {
-            symbol = new Line {
-                X1 = 0,
-                X2 = 29,
-                Y1 = 7,
-                Y2 = 7,
-                Stroke = mark == LegendMark.CrossingStarway ? Brush("#FF5AAFC6") : Brush("#FF7388A8"),
-                StrokeThickness = 2,
-                StrokeDashArray = mark == LegendMark.CrossingStarway ? new DoubleCollection([4, 3]) : null,
-                HorizontalAlignment = HorizontalAlignment.Left,
-                VerticalAlignment = VerticalAlignment.Center,
-            };
+            return;
         }
 
-        row.Children.Add(symbol);
-        TextBlock label = BodyText(text, 11);
-        label.VerticalAlignment = VerticalAlignment.Center;
-        Grid.SetColumn(label, 1);
-        row.Children.Add(label);
-        return row;
+        status = strings.Get("galaxy.status.preview-stale");
+        statusIsError = false;
+        RefreshSurface();
     }
 
-    private enum LegendMark : byte
+    private void DrawParameterPanel(SpriteForgeCanvas canvas)
     {
-        Anchor,
-        LocalStarway,
-        CrossingStarway,
+        canvas.Fill(42, 120, 412, 672, "#F00A1221", -5);
+        canvas.Border(42, 120, 412, 672, 1, "#664D668A", -4);
+        canvas.TextLine(strings.Get("galaxy.section.parameters"), 70, 140, 324, 34, 18, "#FFF2E9D8");
+        canvas.TextLine(strings.Get("galaxy.introduction"), 70, 174, 324, 48, 13, "#FFAAB8D0");
+        DrawField(canvas, strings.Get("galaxy.label.scenario"), strings.Get("galaxy.value.scenario.first-voyage"), 230);
+        DrawField(canvas, strings.Get("galaxy.label.shape"), ShapeName(), 280, Shape);
+        DrawField(canvas, strings.Get("galaxy.label.size"), SizeName(), 330, Size);
+        DrawField(canvas, strings.Get("galaxy.label.generator"), strings.Get("galaxy.value.generator.v3"), 380);
+        canvas.TextLine(strings.Get("galaxy.label.seed"), 70, 380, 324, 27, 12, "#FFD7AF70");
+        canvas.Fill(Seed.X, Seed.Y, Seed.Width, Seed.Height, "#FF111D31", 1);
+        canvas.Border(Seed.X, Seed.Y, Seed.Width, Seed.Height, seedFocused ? 2 : 1,
+            seedFocused ? "#FF80DED9" : "#664D668A", 2);
+        canvas.TextLine(seedText, Seed.X + 10, Seed.Y, Seed.Width - 20, Seed.Height, 16, "#FFF2E9D8");
+        DrawButton(canvas, Randomize, strings.Get("galaxy.button.randomize"));
+        canvas.TextLine(strings.Get("galaxy.hint.seed"), 70, 455, 324, 34, 11, "#FFAAB8D0");
+        DrawButton(canvas, Generate, strings.Get("galaxy.button.generate"));
+        canvas.TextLine(strings.Get("galaxy.hint.locked"), 70, 542, 324, 48, 11, "#FFAAB8D0");
+        canvas.TextLine(strings.Get("galaxy.legend.title"), 70, 602, 324, 28, 13, "#FFD7AF70");
+        canvas.Circle(82, 649, 13, "#FF80DED9", 2);
+        canvas.TextLine(strings.Get("galaxy.legend.anchor-description"), 108, 636, 280, 26, 11, "#FFAAB8D0");
+        canvas.Line(70, 680, 99, 680, 2, "#FF7388A8", 2);
+        canvas.TextLine(strings.Get("galaxy.legend.local-starway"), 108, 667, 280, 26, 11, "#FFAAB8D0");
+        DrawDashedLine(canvas, 70, 711, 99, 711, 2, "#FF5AAFC6", 2);
+        canvas.TextLine(strings.Get("galaxy.legend.crossing-starway"), 108, 698, 280, 26, 11, "#FFAAB8D0");
+    }
+
+    private void DrawPreviewPanel(SpriteForgeCanvas canvas)
+    {
+        const float panelX = 478;
+        const float panelY = 120;
+        const float panelWidth = 1080;
+        const float panelHeight = 672;
+        canvas.Fill(panelX, panelY, panelWidth, panelHeight, "#F00A1221", -5);
+        canvas.Border(panelX, panelY, panelWidth, panelHeight, 1, "#664D668A", -4);
+        canvas.TextLine(strings.Get("galaxy.preview.title"), 504, 140, 900, 30, 18, "#FFF2E9D8");
+        canvas.TextLine(strings.Get("galaxy.preview.subtitle"), 504, 169, 900, 24, 12, "#FFAAB8D0");
+        canvas.Fill(504, 202, 1028, 486, "#FF07101F", -3);
+        DrawGalaxy(canvas, 504, 202, 1028, 486);
+
+        int systems = galaxy?.Topology.Systems.Count ?? 0;
+        int starways = galaxy?.Topology.Starways.Count ?? 0;
+        int regions = galaxy?.Topology.Systems.Values.Select(value => value.Region).Distinct().Count() ?? 0;
+        DrawMetric(canvas, systems, strings.Get("galaxy.metric.systems"), 504);
+        DrawMetric(canvas, starways, strings.Get("galaxy.metric.starways"), 852);
+        DrawMetric(canvas, regions, strings.Get("galaxy.metric.regions"), 1200);
+    }
+
+    private void DrawGalaxy(SpriteForgeCanvas canvas, float x, float y, float width, float height)
+    {
+        if (galaxy is null || galaxy.Topology.Systems.Count == 0)
+        {
+            return;
+        }
+
+        IReadOnlyList<StarSystemState> systems = galaxy.Topology.Systems.Values.OrderBy(value => value.Ordinal).ToArray();
+        int minimumX = systems.Min(value => value.DisplayX);
+        int maximumX = systems.Max(value => value.DisplayX);
+        int minimumY = systems.Min(value => value.DisplayY);
+        int maximumY = systems.Max(value => value.DisplayY);
+        float scale = Math.Min((width - 88) / Math.Max(1, maximumX - minimumX),
+            (height - 72) / Math.Max(1, maximumY - minimumY));
+        float projectedWidth = (maximumX - minimumX) * scale;
+        float projectedHeight = (maximumY - minimumY) * scale;
+        float originX = x + (width - projectedWidth) / 2;
+        float originY = y + (height - projectedHeight) / 2;
+        Dictionary<StarSystemId, (float X, float Y)> points = systems.ToDictionary(
+            value => value.Id,
+            value => (originX + (value.DisplayX - minimumX) * scale, originY + (value.DisplayY - minimumY) * scale));
+
+        foreach (StarwayState starway in galaxy.Topology.Starways.Values.OrderBy(value => value.Id))
+        {
+            (float X, float Y) first = points[starway.FirstSystemId];
+            (float X, float Y) second = points[starway.SecondSystemId];
+            bool crossing = galaxy.Topology.Systems[starway.FirstSystemId].Region !=
+                galaxy.Topology.Systems[starway.SecondSystemId].Region;
+            if (crossing)
+            {
+                DrawDashedLine(canvas, first.X, first.Y, second.X, second.Y, 1.5f, "#CC5AAFC6", 1);
+            }
+            else
+            {
+                canvas.Line(first.X, first.Y, second.X, second.Y, 1.5f, "#997388A8", 1);
+            }
+        }
+
+        float node = systems.Count switch { <= 64 => 8, <= 256 => 5, _ => 3 };
+        foreach (StarSystemState system in systems)
+        {
+            (float X, float Y) point = points[system.Id];
+            bool anchor = system.Ordinal == 0;
+            canvas.Circle(point.X, point.Y, anchor ? 20 : node, anchor ? "#FF80DED9" : "#FFE8D8B8", 3);
+            if (anchor)
+            {
+                canvas.Circle(point.X, point.Y, 32, "#6680DED9", 2);
+            }
+        }
+    }
+
+    private void DrawField(SpriteForgeCanvas canvas, string label, string value, float y, HitBox? button = null)
+    {
+        canvas.TextLine(label, 70, y - 32, 160, 38, 12, "#FFD7AF70");
+        if (button is HitBox box)
+        {
+            DrawButton(canvas, box, value);
+        }
+        else
+        {
+            canvas.TextLine(value, 230, y - 32, 164, 38, 13, "#FFF2E9D8", SpriteForgeTextAlignment.Right);
+        }
+
+        canvas.Fill(70, y + 8, 324, 1, "#334D668A", 1);
+    }
+
+    private void DrawMetric(SpriteForgeCanvas canvas, int value, string label, float x)
+    {
+        canvas.Border(x, 704, 332, 64, 1, "#334D668A", 1);
+        canvas.TextLine(value.ToString(strings.Culture), x, 708, 332, 31, 20, "#FF80DED9",
+            SpriteForgeTextAlignment.Center);
+        canvas.TextLine(label, x, 738, 332, 24, 11, "#FFAAB8D0", SpriteForgeTextAlignment.Center);
+    }
+
+    private void DrawButton(SpriteForgeCanvas canvas, HitBox box, string text, bool primary = false)
+    {
+        string fill = primary ? "#FF80DED9" : pressed == box.Control ? "#FF142238" : "#FF17243A";
+        if (hovered == box.Control)
+        {
+            fill = primary ? "#FFA0F3EE" : "#FF293C58";
+        }
+
+        canvas.Fill(box.X, box.Y, box.Width, box.Height, fill, 5);
+        canvas.Border(box.X, box.Y, box.Width, box.Height, 1, primary ? "#FFB9FFFF" : "#664D668A", 6);
+        canvas.TextLine(text, box.X + 5, box.Y, box.Width - 10, box.Height, 13,
+            primary ? "#FF07111E" : "#FFF2E9D8", SpriteForgeTextAlignment.Center);
+    }
+
+    private static void DrawDashedLine(
+        SpriteForgeCanvas canvas, float x1, float y1, float x2, float y2, float thickness, string color, int layer)
+    {
+        float dx = x2 - x1;
+        float dy = y2 - y1;
+        float length = MathF.Sqrt(dx * dx + dy * dy);
+        if (length <= 0)
+        {
+            return;
+        }
+
+        const float dash = 8;
+        const float gap = 6;
+        for (float at = 0; at < length; at += dash + gap)
+        {
+            float end = Math.Min(length, at + dash);
+            canvas.Line(x1 + dx * at / length, y1 + dy * at / length,
+                x1 + dx * end / length, y1 + dy * end / length, thickness, color, layer);
+        }
     }
 
     private void GeneratePreview()
     {
-        if (!TryReadSeed(out ulong seed))
+        if (!ulong.TryParse(seedText, NumberStyles.None, CultureInfo.InvariantCulture, out ulong seed) || seed == 0)
         {
-            preview.Galaxy = null;
-            systemMetric.Text = "—";
-            starwayMetric.Text = "—";
-            regionMetric.Text = "—";
-            SetStatus(strings.Get("galaxy.status.invalid-seed"), isError: true);
+            galaxy = null;
+            status = strings.Get("galaxy.status.invalid-seed");
+            statusIsError = true;
             return;
         }
 
-        GalaxyGenerationSettings settings = new(
-            SelectedChoice<int>(sizeComboBox),
-            SelectedChoice<GalaxyShape>(shapeComboBox));
+        GalaxyGenerationSettings settings = selection.Settings;
         GalaxyGenerationResult result = GalaxyGenerator.Generate(seed, settings);
         if (!result.Succeeded)
         {
-            preview.Galaxy = null;
-            systemMetric.Text = "—";
-            starwayMetric.Text = "—";
-            regionMetric.Text = "—";
-            SetStatus(strings.Get("galaxy.status.generation-failed"), isError: true);
+            galaxy = null;
+            status = strings.Get("galaxy.status.generation-failed");
+            statusIsError = true;
             return;
         }
 
         selection = new GalaxyMapSelection(seed, settings);
-        preview.Shape = settings.Shape;
-        preview.Galaxy = result.Galaxy;
-        systemMetric.Text = result.Galaxy!.Topology.Systems.Count.ToString(strings.Culture);
-        starwayMetric.Text = result.Galaxy!.Topology.Starways.Count.ToString(strings.Culture);
-        regionMetric.Text = result.Galaxy.Topology.Systems.Values
-            .Select(value => value.Region)
-            .Distinct()
-            .Count()
-            .ToString(strings.Culture);
-        SetStatus(strings.Get("galaxy.status.ready"), isError: false);
+        galaxy = result.Galaxy;
+        status = strings.Get("galaxy.status.ready");
+        statusIsError = false;
     }
 
-    private bool TryReadSeed(out ulong seed) =>
-        ulong.TryParse(seedTextBox.Text.Trim(), NumberStyles.None, CultureInfo.InvariantCulture, out seed) && seed != 0;
+    private string ShapeName() => strings.Get($"galaxy.value.shape.{selection.Settings.Shape.ToString().ToLowerInvariant()}");
 
-    private void SetStatus(string text, bool isError)
+    private string SizeName() => strings.Get($"galaxy.value.size.s{selection.Settings.SystemCount}");
+
+    private static T Cycle<T>(IReadOnlyList<T> values, T current)
     {
-        statusText.Text = text;
-        statusText.Foreground = isError ? ErrorBrush : MutedBrush;
+        int index = values.ToList().FindIndex(value => EqualityComparer<T>.Default.Equals(value, current));
+        return values[(index + 1) % values.Count];
     }
 
-    private void View_Loaded(object sender, RoutedEventArgs e) => seedTextBox.Focus();
-
-    private void View_KeyDown(object sender, KeyEventArgs e)
-    {
-        if (e.Key == Key.Escape)
-        {
-            e.Handled = true;
-            CancelRequested?.Invoke(this, EventArgs.Empty);
-        }
-    }
-
-    private void SeedTextBox_KeyDown(object sender, KeyEventArgs e)
-    {
-        if (e.Key == Key.Enter)
-        {
-            e.Handled = true;
-            GeneratePreview();
-        }
-    }
-
-    private void SeedTextBox_TextChanged(object sender, TextChangedEventArgs e)
-    {
-        if (!TryReadSeed(out ulong seed) || seed != selection.Seed)
-        {
-            SetStatus(strings.Get("galaxy.status.preview-stale"), isError: false);
-        }
-    }
-
-    private void GenerationSetting_SelectionChanged(object sender, SelectionChangedEventArgs e) => GeneratePreview();
-
-    private void Randomize_Click(object sender, RoutedEventArgs e)
-    {
-        seedTextBox.Text = NewSeed().ToString(CultureInfo.InvariantCulture);
-        GeneratePreview();
-        seedTextBox.SelectAll();
-        seedTextBox.Focus();
-    }
-
-    private void Generate_Click(object sender, RoutedEventArgs e) => GeneratePreview();
-
-    private void Back_Click(object sender, RoutedEventArgs e) =>
-        CancelRequested?.Invoke(this, EventArgs.Empty);
-
-    private void Continue_Click(object sender, RoutedEventArgs e)
-    {
-        GeneratePreview();
-        if (preview.Galaxy is not null)
-        {
-            Completed?.Invoke(this, new GalaxyMapGeneratorCompletedEventArgs(selection));
-        }
-    }
+    private static Control Find(float x, float y) => HitBoxes.FirstOrDefault(value => value.Contains(x, y)).Control;
 
     private static ulong NewSeed()
     {
@@ -606,210 +374,20 @@ internal sealed class GalaxyMapGeneratorView : Grid, IDisposable
         return value;
     }
 
-    private static BitmapSource LoadBackground()
+    private enum Control : byte
     {
-        BitmapImage image = new();
-        image.BeginInit();
-        image.CacheOption = BitmapCacheOption.OnLoad;
-        image.UriSource = new Uri("pack://application:,,,/Assets/UI/MainMenu/Background.png", UriKind.Absolute);
-        image.EndInit();
-        image.Freeze();
-        return image;
+        None,
+        Shape,
+        Size,
+        Seed,
+        Randomize,
+        Generate,
+        Back,
+        Continue,
     }
 
-    private static SolidColorBrush Brush(string value)
+    private readonly record struct HitBox(float X, float Y, float Width, float Height, Control Control)
     {
-        SolidColorBrush brush = new((Color)ColorConverter.ConvertFromString(value));
-        brush.Freeze();
-        return brush;
-    }
-}
-
-/// <summary>
-/// Draws a read-only, bounded projection of immutable galaxy topology.
-/// </summary>
-internal sealed class GalaxyTopologyPreview(string anchorLabel) : FrameworkElement
-{
-    private static readonly Brush BackgroundBrush = FrozenBrush("#D907101F");
-    private static readonly Brush GridBrush = FrozenBrush("#184D668A");
-    private static readonly Brush RouteBrush = FrozenBrush("#996F86A8");
-    private static readonly Brush AlternateRouteBrush = FrozenBrush("#B35AAFC6");
-    private static readonly Brush GalaxyAreaBrush = FrozenBrush("#1267AAB9");
-    private static readonly Brush ShapeGuideBrush = FrozenBrush("#2F67AAB9");
-    private static readonly Brush NodeBrush = FrozenBrush("#FFE8D8B8");
-    private static readonly Brush AnchorBrush = FrozenBrush("#FF80DED9");
-    private static readonly Brush LabelBrush = FrozenBrush("#FFC9D6E8");
-    private GalaxyState? galaxy;
-    private GalaxyShape shape = GalaxyShape.Elliptical;
-
-    internal GalaxyState? Galaxy {
-        get => galaxy;
-        set {
-            galaxy = value;
-            InvalidateVisual();
-        }
-    }
-
-    internal GalaxyShape Shape {
-        get => shape;
-        set {
-            shape = value;
-            InvalidateVisual();
-        }
-    }
-
-    protected override AutomationPeer OnCreateAutomationPeer() => new FrameworkElementAutomationPeer(this);
-
-    protected override void OnRender(DrawingContext drawingContext)
-    {
-        base.OnRender(drawingContext);
-        Rect bounds = new(0, 0, ActualWidth, ActualHeight);
-        drawingContext.DrawRoundedRectangle(BackgroundBrush, new Pen(FrozenBrush("#554D668A"), 1), bounds, 3, 3);
-        if (ActualWidth < 1 || ActualHeight < 1)
-        {
-            return;
-        }
-
-        DrawGrid(drawingContext, bounds);
-        if (galaxy is null || galaxy.Topology.Systems.Count == 0)
-        {
-            return;
-        }
-
-        IReadOnlyList<StarSystemState> systems = galaxy.Topology.Systems.Values.OrderBy(value => value.Ordinal).ToArray();
-        int minimumX = systems.Min(value => value.DisplayX);
-        int maximumX = systems.Max(value => value.DisplayX);
-        int minimumY = systems.Min(value => value.DisplayY);
-        int maximumY = systems.Max(value => value.DisplayY);
-        const double paddingX = 72;
-        const double paddingY = 64;
-        double xRange = Math.Max(1, maximumX - minimumX);
-        double yRange = Math.Max(1, maximumY - minimumY);
-        double scale = Math.Min(
-            Math.Max(1, ActualWidth - paddingX * 2) / xRange,
-            Math.Max(1, ActualHeight - paddingY * 2) / yRange);
-        double projectedWidth = xRange * scale;
-        double projectedHeight = yRange * scale;
-        double originX = (ActualWidth - projectedWidth) / 2;
-        double originY = (ActualHeight - projectedHeight) / 2;
-        Point Project(StarSystemState system)
-        {
-            return new Point(
-                originX + (system.DisplayX - minimumX) * scale,
-                originY + (system.DisplayY - minimumY) * scale);
-        }
-
-        Dictionary<StarSystemId, Point> points = systems.ToDictionary(value => value.Id, Project);
-        Rect galaxyBounds = new(originX - 34, originY - 34, projectedWidth + 68, projectedHeight + 68);
-        if (shape is GalaxyShape.Elliptical or GalaxyShape.Ring)
-        {
-            drawingContext.DrawEllipse(
-                shape == GalaxyShape.Elliptical ? GalaxyAreaBrush : null,
-                new Pen(ShapeGuideBrush, 1),
-                new Point(galaxyBounds.Left + galaxyBounds.Width / 2, galaxyBounds.Top + galaxyBounds.Height / 2),
-                galaxyBounds.Width / 2,
-                galaxyBounds.Height / 2);
-        }
-
-        foreach (StarwayState starway in galaxy.Topology.Starways.Values.OrderBy(value => value.Id))
-        {
-            Point first = points[starway.FirstSystemId];
-            Point second = points[starway.SecondSystemId];
-            bool crossesRegion = galaxy.Topology.Systems[starway.FirstSystemId].Region !=
-                galaxy.Topology.Systems[starway.SecondSystemId].Region;
-            if (crossesRegion)
-            {
-                double horizontalSpan = second.X - first.X;
-                StreamGeometry curve = new();
-                using (StreamGeometryContext context = curve.Open())
-                {
-                    context.BeginFigure(first, isFilled: false, isClosed: false);
-                    context.BezierTo(
-                        new Point(first.X + horizontalSpan * 0.36, first.Y),
-                        new Point(second.X - horizontalSpan * 0.36, second.Y),
-                        second,
-                        isStroked: true,
-                        isSmoothJoin: true);
-                }
-
-                curve.Freeze();
-                Pen bridgePen = new(AlternateRouteBrush, 2) { DashStyle = DashStyles.Dash };
-                drawingContext.DrawGeometry(null, bridgePen, curve);
-            }
-            else
-            {
-                drawingContext.DrawLine(new Pen(RouteBrush, 2), first, second);
-            }
-        }
-
-        foreach (StarSystemState system in systems)
-        {
-            Point point = points[system.Id];
-            bool anchor = system.Ordinal == 0;
-            double nodeRadius = systems.Count switch {
-                <= 64 => 6,
-                <= 256 => 4,
-                _ => 2.5,
-            };
-            double radius = anchor ? Math.Max(8, nodeRadius + 3) : nodeRadius;
-            if (anchor)
-            {
-                drawingContext.DrawEllipse(null, new Pen(AnchorBrush, 2), point, radius + 6, radius + 6);
-            }
-
-            drawingContext.DrawEllipse(anchor ? AnchorBrush : NodeBrush, null, point, radius, radius);
-            if (anchor)
-            {
-                DrawText(drawingContext, (system.Ordinal + 1).ToString("00", CultureInfo.InvariantCulture),
-                    new Point(point.X + 19, point.Y - 19), 10, LabelBrush, FontWeights.SemiBold);
-                DrawText(drawingContext, anchorLabel, new Point(point.X + 19, point.Y + 1),
-                    9, AnchorBrush, FontWeights.SemiBold);
-            }
-            else if (systems.Count <= 64)
-            {
-                DrawText(drawingContext, (system.Ordinal + 1).ToString("00", CultureInfo.InvariantCulture),
-                    new Point(point.X + 10, point.Y - 9), 10, LabelBrush, FontWeights.SemiBold);
-            }
-        }
-    }
-
-    private void DrawGrid(DrawingContext drawingContext, Rect bounds)
-    {
-        Pen pen = new(GridBrush, 1);
-        for (double x = 40; x < bounds.Width; x += 40)
-        {
-            drawingContext.DrawLine(pen, new Point(x, 0), new Point(x, bounds.Height));
-        }
-
-        for (double y = 40; y < bounds.Height; y += 40)
-        {
-            drawingContext.DrawLine(pen, new Point(0, y), new Point(bounds.Width, y));
-        }
-    }
-
-    private void DrawText(
-        DrawingContext drawingContext,
-        string text,
-        Point origin,
-        double size,
-        Brush brush,
-        FontWeight weight)
-    {
-        FormattedText formatted = new(
-            text,
-            CultureInfo.CurrentUICulture,
-            FlowDirection.LeftToRight,
-            new Typeface(new FontFamily("Segoe UI"), FontStyles.Normal, weight, FontStretches.Normal),
-            size,
-            brush,
-            VisualTreeHelper.GetDpi(this).PixelsPerDip);
-        drawingContext.DrawText(formatted, origin);
-    }
-
-    private static SolidColorBrush FrozenBrush(string value)
-    {
-        SolidColorBrush brush = new((Color)ColorConverter.ConvertFromString(value));
-        brush.Freeze();
-        return brush;
+        internal bool Contains(float x, float y) => x >= X && x <= X + Width && y >= Y && y <= Y + Height;
     }
 }

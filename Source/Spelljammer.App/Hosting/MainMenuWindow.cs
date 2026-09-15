@@ -2,7 +2,6 @@ using System.ComponentModel;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
 using Spelljammer.Presentation;
 using Spelljammer.Settings;
 
@@ -46,7 +45,6 @@ internal sealed class MainMenuWindow : Window
         MinHeight = 540;
         WindowState = WindowState.Maximized;
         WindowStartupLocation = WindowStartupLocation.CenterScreen;
-        Background = Brushes.Black;
         UseLayoutRounding = true;
         SnapsToDevicePixels = true;
 
@@ -88,7 +86,7 @@ internal sealed class MainMenuWindow : Window
         galaxyMapGenerator = new GalaxyMapGeneratorScreen(strings, galaxyMapDraft);
         galaxyMapGenerator.Completed += GalaxyMapGenerator_Completed;
         galaxyMapGenerator.Cancelled += GalaxyMapGenerator_Cancelled;
-        menuView.IsEnabled = false;
+        menuView.Visibility = Visibility.Collapsed;
         root.Children.Add(galaxyMapGenerator);
     }
 
@@ -102,7 +100,7 @@ internal sealed class MainMenuWindow : Window
             new CharacterCreationSelection(choice, e.Selection.Seed));
         characterCreation.Completed += CharacterCreation_Completed;
         characterCreation.Cancelled += CharacterCreation_Cancelled;
-        menuView.IsEnabled = false;
+        menuView.Visibility = Visibility.Collapsed;
         root.Children.Add(characterCreation);
     }
 
@@ -124,7 +122,7 @@ internal sealed class MainMenuWindow : Window
         root.Children.Remove(galaxyMapGenerator);
         galaxyMapGenerator.Dispose();
         galaxyMapGenerator = null;
-        menuView.IsEnabled = true;
+        menuView.Visibility = Visibility.Visible;
     }
 
     private void CharacterCreation_Completed(object? sender, CharacterCreationCompletedEventArgs e)
@@ -169,7 +167,7 @@ internal sealed class MainMenuWindow : Window
         settingsDialog = new GameSettingsDialog(settings, settingsPath, strings);
         settingsDialog.Applied += SettingsDialog_Applied;
         settingsDialog.Cancelled += SettingsDialog_Cancelled;
-        menuView.IsEnabled = false;
+        menuView.Visibility = Visibility.Collapsed;
         root.Children.Add(settingsDialog);
     }
 
@@ -205,7 +203,7 @@ internal sealed class MainMenuWindow : Window
         root.Children.Remove(settingsDialog);
         settingsDialog.Dispose();
         settingsDialog = null;
-        menuView.IsEnabled = true;
+        menuView.Visibility = Visibility.Visible;
     }
 
     private static void MenuView_QuitRequested(object? sender, EventArgs e) =>

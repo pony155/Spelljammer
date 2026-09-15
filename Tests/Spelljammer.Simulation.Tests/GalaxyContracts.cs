@@ -54,6 +54,27 @@ public sealed partial class SimulationContracts
                 .SequenceEqual(ring.Galaxy!.Topology.Systems.Values.OrderBy(value => value.Ordinal)),
             "Different galaxy shapes produced the same system layout.");
 
+        GalaxyGenerationResult annularRing = GalaxyGenerator.Generate(
+            0x5eedUL, new GalaxyGenerationSettings(64, GalaxyShape.Ring));
+        StarSystemState[] ringSystems = [.. annularRing.Galaxy!.Topology.Systems.Values];
+        double NormalizedRingRadius(StarSystemState system) => Math.Sqrt(
+            Math.Pow(system.DisplayX / 440.0, 2) + Math.Pow(system.DisplayY / 390.0, 2));
+        True(ringSystems.All(system => NormalizedRingRadius(system) >= 0.45),
+            "Ring generation placed a system inside the central void.");
+        True(ringSystems.All(system => NormalizedRingRadius(system) <= 1.01),
+            "Ring generation placed a system outside the annular boundary.");
+        True(ringSystems.Any(system => NormalizedRingRadius(system) < 0.65) &&
+            ringSystems.Any(system => NormalizedRingRadius(system) > 0.89),
+            "Ring generation did not populate the full thickness of the annular band.");
+        Equal(4, ringSystems.Select(system => system.Region).Distinct().Count(),
+            "Ring generation did not distribute systems across four angular regions.");
+        Equal(80, annularRing.Galaxy.Topology.Starways.Count,
+            "The 64-system ring did not produce its bounded local route network.");
+        Equal(GalaxyValidationCode.InvalidHeader, GalaxyGenerator.Generate(
+            0x5eedUL,
+            new GalaxyGenerationSettings(64, GalaxyShape.Ring, GeneratorVersion: 2)).Code,
+            "The retired ring generator version was accepted as the current topology contract.");
+
         StarSystemId destination = first.Topology.Systems.Values.OrderBy(value => value.Ordinal).Last().Id;
         GalaxyRouteResult unknown = GalaxyRoutePlanner.Plan(
             first, firstNavigation.CurrentSystemId, destination, GalaxyRoutePreference.TravelTime);

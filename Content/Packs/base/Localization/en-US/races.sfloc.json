@@ -5,6 +5,14 @@
   "fallbacks": [],
   "textDirection": "ltr",
   "messages": {
+    "race.drakari.name": {
+      "description": "Drakari display name.",
+      "message": "Drakari"
+    },
+    "race.drakari.description": {
+      "description": "Drakari summary.",
+      "message": "The base Drakari race definition and its bounded crew-support requirements."
+    },
     "race.human.name": {
       "description": "Human display name.",
       "message": "Human"
@@ -20,14 +28,6 @@
     "race.elf.description": {
       "description": "Elf summary.",
       "message": "The base Elf race definition and its bounded crew-support requirements."
-    },
-    "race.half-elf.name": {
-      "description": "Half-elf display name.",
-      "message": "Half-elf"
-    },
-    "race.half-elf.description": {
-      "description": "Half-elf summary.",
-      "message": "The base Half-elf race definition and its bounded crew-support requirements."
     },
     "race.dwarf.name": {
       "description": "Dwarf display name.",

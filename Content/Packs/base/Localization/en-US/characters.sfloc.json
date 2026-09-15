@@ -5,6 +5,14 @@
   "fallbacks": [],
   "textDirection": "ltr",
   "messages": {
+    "character.first-voyage.drakari.name": {
+      "description": "Drakari Gunner display name.",
+      "message": "Drakari Gunner"
+    },
+    "character.first-voyage.drakari.description": {
+      "description": "Drakari Gunner summary.",
+      "message": "An authored first-voyage Drakari crew member."
+    },
     "character.first-voyage.human.name": {
       "description": "Human Captain display name.",
       "message": "Human Captain"
@@ -20,14 +28,6 @@
     "character.first-voyage.elf.description": {
       "description": "Elf Navigator summary.",
       "message": "An authored first-voyage Elf crew member."
-    },
-    "character.first-voyage.half-elf.name": {
-      "description": "Half-elf Envoy display name.",
-      "message": "Half-elf Envoy"
-    },
-    "character.first-voyage.half-elf.description": {
-      "description": "Half-elf Envoy summary.",
-      "message": "An authored first-voyage Half-elf crew member."
     },
     "character.first-voyage.dwarf.name": {
       "description": "Dwarf Engineer display name.",

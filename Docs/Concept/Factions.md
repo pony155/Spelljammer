@@ -38,7 +38,7 @@ economic concerns. The setting baseline is in [`History.md`](History.md).
 ## Race, culture, and faction
 
 A faction is an organization, polity, movement, guild, fleet, faith, company,
-or alliance. It is not a race. Humans, elves, half-elves, dwarves, orcs,
+or alliance. It is not a race. Humans, elves, dwarves, orcs, Drakari,
 gnomes, goblins, Somnari, Veyr, Eidolons, Tharun, and future races may
 belong to the same faction. Members of one race may support rival factions or
 none at all.

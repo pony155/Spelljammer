@@ -1,5 +1,4 @@
 using System.Windows.Controls;
-using System.Windows.Media;
 using Spelljammer.Presentation;
 
 namespace Spelljammer;
@@ -17,15 +16,10 @@ internal sealed class CharacterCreationScreen : Grid, IDisposable
 
     internal CharacterCreationScreen(GameText strings, CharacterCreationSelection initial)
     {
-        Background = Brushes.Black;
         creationView = new SpriteForgeCharacterCreationView(strings, initial);
         creationView.Completed += CreationView_Completed;
         creationView.CancelRequested += CreationView_CancelRequested;
-        Children.Add(new Viewbox
-        {
-            Child = creationView,
-            Stretch = Stretch.Fill,
-        });
+        Children.Add(creationView);
     }
 
     internal event EventHandler<CharacterCreationCompletedEventArgs>? Completed;

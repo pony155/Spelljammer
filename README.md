@@ -49,18 +49,21 @@ Implemented foundations include:
 - a versioned local settings profile with strict bounded JSON, schema-1
   migration, durable replacement/recovery, English/French/Traditional Chinese
   language and safe resolution choices, stable diagnostics, and a
-  keyboard-operable localized in-window SpriteForge UI modal;
+  pointer-operated localized in-window SpriteForge settings surface;
 - a localized SpriteForge UI main menu using the base-pack background asset,
   with bounded mouse actions for New Game, Game Settings, and Quit
   Game;
 - an in-window SpriteForge character-creation UI for choosing among the 11
   authored first-voyage captain profiles and an explicit rerollable voyage
   seed; campaign construction and launch remain planned;
+- SpriteForge renderer ABI v2.6 child surfaces for every current game screen,
+  with bounded sprite batches and native font/layout resources for all visible
+  backgrounds, panels, controls, localized text, and galaxy topology;
 - authored equipment, a six-zone Glass Observatory ruin, a Wayfarer ship frame,
   Arcane and Industrial module packages, and two cannon configurations;
 - a .NET 10, C# 14, Windows x64 WPF host for the current menu, settings, and
   character-creation flows;
-- a narrow managed/native interop layer for SpriteForge UI and audio;
+- a narrow managed/native interop layer for SpriteForge renderer, UI, and audio;
 - versioned game-owned localization catalogs, typed message formatting,
   explicit fallback, pinned plural/number profiles, pseudo-locales, and offline
   catalog tooling; and
@@ -173,8 +176,18 @@ dotnet run --project .\Source\Spelljammer.App\Spelljammer.App.csproj `
 
 Follow SpriteForge's README to configure and install the native engine. The
 current host is Windows-only even though reusable SpriteForge components may
-target other platforms. The settings dialog requires SpriteForge UI interop
-version 1 in addition to the existing renderer ABI.
+  target other platforms. Every current display requires SpriteForge renderer
+  ABI v2.6, including its ABI 2.5 font/layout and label capability. There is no
+  WPF drawing fallback; renderer initialization failure is a startup failure.
+
+After SpriteForge has been built and installed, the repository build script
+discovers `SPRITEFORGE_ROOT` or the sibling `..\SpriteForge` checkout and builds
+only the managed Spelljammer solution:
+
+```powershell
+.\build_project.ps1
+.\build_project.ps1 -Configuration Release
+```
 
 Run all managed MSTest suites through Microsoft Testing Platform with:
 

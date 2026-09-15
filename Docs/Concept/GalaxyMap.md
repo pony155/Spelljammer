@@ -3,12 +3,12 @@
 ## Status
 
 This document defines the procedural galaxy, star-system, route, discovery,
-and map-persistence systems. Generator version 2 now implements bounded,
+and map-persistence systems. Generator version 3 now implements bounded,
 deterministic Spiral, Elliptical, and Ring graphs from 16 through 1,024 systems,
 immutable system and Starway state,
 knowledge-gated route planning, propulsion resource contracts, authoritative
 route-plan/departure/progress/arrival transitions, validation, `World`
-snapshots, save round-tripping, and a WPF new-campaign topology preview. Authored
+snapshots, save round-tripping, and a SpriteForge-rendered new-campaign topology preview. Authored
 galaxy content, travel events, and the playable voyage map remain planned. The
 retired deterministic 4-by-4 expedition grid
 has been removed; new galaxy work must continue through the authoritative
@@ -125,7 +125,7 @@ Galaxy shapes bias placement and connection without dictating exact results:
 | --- | --- |
 | Spiral | Several curved arms joined by a contested core and occasional cross-arm routes |
 | Elliptical | Systems fill a broad oval with local nearest-neighbor routes and several alternatives |
-| Ring | Strong circular routes with dangerous or scarce crossings through the center |
+| Ring | Systems fill a broad annular band around an empty core, with local circular routes and no routine center crossings |
 | Clustered | Dense local groups connected by a few long inter-cluster Starways |
 | Shattered | Irregular pockets, dead ends, broken ancient routes, and risky reconnection opportunities |
 | Open | Evenly distributed systems with many possible loops and fewer forced chokepoints |

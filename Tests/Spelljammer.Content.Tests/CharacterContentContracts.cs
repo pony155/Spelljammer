@@ -218,6 +218,10 @@ public sealed partial class ContentContracts
         True(first.Succeeded, first.Failure.ToString());
         True(second.Succeeded, second.Failure.ToString());
         Equal(11, first.Roster!.Characters.Length, "The first-voyage roster does not cover all base races.");
+        CharacterState drakari = first.Roster.Characters.Single(
+            value => value.RaceId == new RaceId("race.drakari"));
+        Equal(new HeritageId("heritage.drakari.emberclade"), drakari.HeritageId,
+            "The Drakari first-voyage character used the wrong Heritage.");
         Equal(
             Describe(first.Roster, snapshot),
             Describe(second.Roster!, snapshot),
@@ -260,8 +264,7 @@ public sealed partial class ContentContracts
         Equal(ActionRejectionCodes.ContextRequired, rejected.RejectionCode, "Eligibility order returned the wrong reason.");
         Equal(before, eidolon.Resources[new ResourceId("resource.resonance")], "A rejection consumed a resource.");
 
-        ActionRequest valid = missingContext with
-        {
+        ActionRequest valid = missingContext with {
             ContextIds = ImmutableHashSet.Create(new ContentId("context.recovery.safe-anchor")),
         };
         ActionEligibilityResult eligible = CharacterActionSystem.CheckEligibility(eidolon, action, valid, snapshot);
@@ -382,8 +385,7 @@ public sealed partial class ContentContracts
         Equal(ActionRejectionCodes.ContentMismatch, wrongFingerprint.RejectionCode,
             "Known Spell state crossed its active content fingerprint.");
 
-        CharacterState lowMana = caster with
-        {
+        CharacterState lowMana = caster with {
             CharacterResources = caster.CharacterResources.WithCurrentValue(CharacterResourceIds.Mana, 1),
         };
         SpellActionResult lowDeclared = SpellActionSystem.Declare(lowMana, spellId, spellTarget, 42, 3, 7, snapshot);
@@ -551,8 +553,7 @@ public sealed partial class ContentContracts
             1,
             meleeState,
             rangedState);
-        ItemSystemState candidate = character.Items with
-        {
+        ItemSystemState candidate = character.Items with {
             ItemInstances = character.Items.ItemInstances.Add(item),
             InventoryContainers = character.Items.InventoryContainers.Select(value => value.ContainerId == container.ContainerId
                 ? value with { ItemInstanceIds = value.ItemInstanceIds.Add(instanceId) }
@@ -568,17 +569,13 @@ public sealed partial class ContentContracts
     private static CharacterState RemoveItem(CharacterState character, ContentId definitionId)
     {
         ItemInstance item = character.Items.ItemInstances.Single(value => value.DefinitionId == definitionId);
-        return character with
-        {
-            Items = character.Items with
-            {
+        return character with {
+            Items = character.Items with {
                 ItemInstances = character.Items.ItemInstances.Remove(item),
-                InventoryContainers = character.Items.InventoryContainers.Select(value => value with
-                {
+                InventoryContainers = character.Items.InventoryContainers.Select(value => value with {
                     ItemInstanceIds = value.ItemInstanceIds.Remove(item.InstanceId),
                 }).ToImmutableArray(),
-                EquipmentLoadouts = character.Items.EquipmentLoadouts.Select(value => value with
-                {
+                EquipmentLoadouts = character.Items.EquipmentLoadouts.Select(value => value with {
                     SlotAssignments = value.SlotAssignments
                         .Where(assignment => assignment.ItemInstanceId != item.InstanceId).ToImmutableArray(),
                 }).ToImmutableArray(),

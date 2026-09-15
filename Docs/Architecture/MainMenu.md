@@ -14,24 +14,19 @@ Content/Packs/base/Assets/UI/MainMenu/Background.png
 ```
 
 The WPF project links that exact base-pack file as a compiled application
-resource. `SpriteForgeMainMenuView` loads it without filesystem discovery and
-draws it edge-to-edge with aspect-preserving cover scaling. The main window
+resource. `SpriteForgeMainMenuView` decodes it without filesystem discovery,
+uploads it as a SpriteForge texture, and submits it edge-to-edge with
+aspect-preserving cover scaling. The main window
 opens maximized. The background contains no interactive or localized text.
 
 ## UI ownership
 
-The single current SpriteForge managed-UI contract owns the retained main-menu
-grouping, transactional creation, fixed logical layout, button state, modal
-trapping, pointer hit testing, and copied stable actions. Its authoritative
-presentation mapping converts WPF host coordinates to document-logical pointer
-coordinates. The managed WPF host realizes the authored image, copied tagged
-and clipped solid presentation commands, hover outline, and game-localized
-text. The menu grouping and button fills are transparent so the labels appear
-directly over the authored background. The outline follows only the copied
-bounds of the button under the pointer. Main-menu selection and activation are intentionally
-mouse-only; keyboard navigation and acceptance are not forwarded to the
-SpriteForge document. Settings and character creation retain their documented
-keyboard behavior.
+`SpriteForgeRenderSurface` owns the native child HWND and renderer ABI v2.6
+session. It maps physical HWND input to the fixed logical canvas, while the
+menu keeps bounded hit regions and emits stable managed navigation events.
+Background, panels, buttons, hover/press outlines, and localized text are all
+submitted to SpriteForge as texture/sprite/font/layout/label resources. WPF
+does not draw any visible menu pixel.
 
 The logical menu canvas is 1280 by 720 pixels. It is uniformly scaled and
 centered inside the client area, while the background independently uses cover
@@ -52,8 +47,8 @@ Player-visible strings are authored in the `en-US`, `fr-FR`, and
 `Content/Packs/base/Localization`. The offline compiler builds all 15 catalogs
 before WPF compilation and embeds the artifacts. The application stages and
 publishes all five complete namespaces in the selected locale on the UI thread
-before constructing the menu. Applying a language change
-republishes the catalogs and rebuilds the retained menu document.
+before constructing the menu. Applying a language change republishes the
+catalogs and rebuilds the SpriteForge font/layout resources.
 
 New Game and Game Settings add modal overlays to the existing main-window
 visual tree; neither creates a second operating-system window or taskbar entry.
@@ -75,8 +70,9 @@ retained galaxy draft. Confirm currently returns both selections to the host and
 reports the captain on the main menu; campaign construction, persistence, and
 launch remain planned. Quit Game emits a copied stable action and requests
 ordinary application shutdown.
-Closing the operating-system window has the same shutdown result. Native UI
-documents are destroyed on their owner thread when the window unloads.
+Closing the operating-system window has the same shutdown result. Renderer
+layouts, fonts, textures, and sessions are destroyed on their owner thread
+before each child HWND is released.
 
 The base content manifest does not yet declare a general runtime asset root.
 The main menu and character-creation dossier share this explicitly linked

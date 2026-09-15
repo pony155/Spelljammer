@@ -7,6 +7,22 @@
                   ],
     "textDirection":  "ltr",
     "messages":  {
+                     "feat.race.drakari.scaled-resilience.name":  {
+                                                                      "description":  "Scaled Resilience display name.",
+                                                                      "message":  "Scaled Resilience"
+                                                                  },
+                     "feat.race.drakari.scaled-resilience.description":  {
+                                                                             "description":  "Scaled Resilience summary.",
+                                                                             "message":  "The Drakari racial capability, including only its explicitly declared grants."
+                                                                         },
+                     "feat.heritage.drakari.emberclade.name":  {
+                                                                   "description":  "Emberclade Heritage display name.",
+                                                                   "message":  "Emberclade Heritage"
+                                                               },
+                     "feat.heritage.drakari.emberclade.description":  {
+                                                                          "description":  "Emberclade Heritage summary.",
+                                                                          "message":  "The focused strength and logistical cost of the Emberclade heritage."
+                                                                      },
                      "feat.access.magic.name":  {
                                                     "description":  "Spellcasting Training display name.",
                                                     "message":  "Spellcasting Training"
@@ -55,22 +71,6 @@
                                                                      "description":  "Dawnweave Heritage summary.",
                                                                      "message":  "The focused strength and logistical cost of the Dawnweave heritage."
                                                                  },
-                     "feat.race.half-elf.blended-physiology.name":  {
-                                                                        "description":  "Blended Physiology display name.",
-                                                                        "message":  "Blended Physiology"
-                                                                    },
-                     "feat.race.half-elf.blended-physiology.description":  {
-                                                                               "description":  "Blended Physiology summary.",
-                                                                               "message":  "The Half-elf racial capability, including only its explicitly declared grants."
-                                                                           },
-                     "feat.heritage.half-elf.concord.name":  {
-                                                                 "description":  "Concord Heritage display name.",
-                                                                 "message":  "Concord Heritage"
-                                                             },
-                     "feat.heritage.half-elf.concord.description":  {
-                                                                        "description":  "Concord Heritage summary.",
-                                                                        "message":  "The focused strength and logistical cost of the Concord heritage."
-                                                                    },
                      "feat.race.dwarf.braced-stance.name":  {
                                                                 "description":  "Braced Stance display name.",
                                                                 "message":  "Braced Stance"

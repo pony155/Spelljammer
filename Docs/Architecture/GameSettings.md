@@ -75,22 +75,18 @@ SpriteForge receives copied resolved accessible names and stable numeric
 element/action keys; it never receives localization catalog storage or
 translated identity.
 
-SpriteForge returns tagged, clipped presentation commands and document-logical
-element snapshots. The current WPF host realizes solid commands and draws the
-resolved game-localized text because it does not yet own native FontSystem text
-layout handles. Direct realization through SpriteForge's renderer and a native
-UI Automation bridge for this managed child surface remain planned;
-keyboard-only operation is implemented, but full screen-reader integration
+The current settings surface owns a SpriteForge renderer ABI v2.6 child HWND.
+Panels and controls are submitted as bounded sprite batches; localized strings
+use copied native font and text-layout resources and are drawn by the renderer's
+label pass. WPF owns window lifetime only and does not realize visible pixels.
+A native UI Automation bridge remains planned, so full screen-reader integration
 must not yet be claimed.
 
-The implemented settings overlay uses an original three-category layout:
-General contains language and resolution, Audio contains the volume controls,
-and Interface contains accessibility and interface-scale controls. Language
-and resolution open engine-anchored modal option menus. SpriteForge places the
-popup relative to its selector, flips or clamps it inside the logical safe
-area, dismisses it on an outside press, and restores focus by stable key. The
-popup receives input exclusively while open, and Cancel or Escape closes the
-popup before it can close the settings overlay.
+The implemented settings overlay groups Display, Audio, and Interface controls
+on one bounded logical surface. Language and resolution cycle through the
+supported stable choices; volume and interface scale use bounded slider tracks;
+the three boolean preferences use explicit toggle controls. Cancel or Escape
+closes the overlay, while Apply retains the existing transactional publication.
 
 ## Determinism and deferred work
 

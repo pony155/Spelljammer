@@ -11,7 +11,7 @@ relationships, schedules, and campaign persistence remain planned.
 ## Design goals
 
 - Make every crew member mechanically understandable and narratively distinct.
-- Support humans, elves, half-elves, dwarves, orcs, gnomes, goblins, Somnari,
+- Support humans, elves, dwarves, orcs, Drakari, gnomes, goblins, Somnari,
   Veyr, Eidolons, Tharun, and future races without hard-coding content
   into simulation code.
 - Use classless progression: abilities describe capability, skills improve
@@ -46,7 +46,7 @@ A persistent character is composed from independent, stable layers:
 | Layer | Examples | Simulation responsibility |
 | --- | --- | --- |
 | Identity | character ID, name seed, pronouns, portrait seed | Persistence and presentation lookup |
-| Race | human, elf, half-elf, dwarf, orc, gnome, goblin, Somnari, Veyr, Eidolon, Tharun | Body plan and baseline physiological rules |
+| Race | human, elf, dwarf, orc, Drakari, gnome, goblin, Somnari, Veyr, Eidolon, Tharun | Body plan and baseline physiological rules |
 | Heritage | voidborn, deepforge, free-anchorage | Subrace, formative tradition, languages, customs, and starting knowledge |
 | Background | academy graduate, dockhand, caravan guard | Starting skill package and history, never a class |
 | Abilities | Strength, Agility, Perception, Toughness, Willpower, Intelligence | Broad capability shared by many actions |
@@ -134,31 +134,6 @@ miner, trader, or industrial engineer; this is a cultural passion, not a rule.
 | Gloamroot | `heritage.elf.gloamroot` | Excellent low-light sight and reduced sensory signature | Bright or rapidly changing light causes strain |
 | Glassleaf | `heritage.elf.glassleaf` | Reads crystalline structures and nearby Aether patterns with unusual precision | Resonant machinery and storms can overwhelm that sense |
 
-### Half-elves
-
-Half-elves are a first-class race in the initial content model, representing
-characters with both human and elven parentage. Their race-granted Feat, **Blended
-Physiology**, lets a character select one minor human adaptation and one minor
-elven sense, each at reduced strength. It does not determine heritage or
-guarantee social acceptance.
-
-Half-elves emerged after the First Concord, especially in shared ports,
-diplomatic stations, and mixed settlements. They are not an ancient empire or
-a single people with a common political loyalty. Living across elven long-lived
-traditions and rapidly changing human port cultures, many became interpreters,
-negotiators, navigators, and arbitrators. Their history makes them a natural
-part of the Concord's promise and its unresolved tensions, without assigning
-any individual a social role.
-
-| Heritage | Stable ID | Heritage Feat | Cost |
-| --- | --- | --- | --- |
-| Concord | `heritage.half-elf.concord` | Switches between normal sleep and trance when quarters permit | Neither rest mode is as efficient as its specialist form |
-| Starling | `heritage.half-elf.starling` | Adapts quickly to changing gravity and duty schedules | Needs more recovery after repeated schedule changes |
-| Threshold | `heritage.half-elf.threshold` | Learns unfamiliar languages and customs faster | Starts with fewer specialist skill ranks |
-
-Future mixed-race support may generalize parentage, but released save IDs
-for half-elves must remain valid through an explicit migration.
-
 ### Dwarves
 
 Dwarves originate from a homeworld distinct from human and elven worlds. They
@@ -207,6 +182,26 @@ work or combat stamina followed by a visible recovery debt.
 | Redwake | `heritage.orc.redwake` | Sustains strenuous labor and emergency damage control | Higher food and oxygen consumption while exerting |
 | Stormborn | `heritage.orc.stormborn` | Better resistance to electrical and aether-storm injury | Medical recovery uses more conductive supplies |
 | Greenmoon | `heritage.orc.greenmoon` | Heals minor wounds quickly with adequate food and rest | Starvation and sleep loss suppress regeneration sharply |
+
+### Drakari
+
+Drakari are scaled people whose early civilizations developed across the
+volcanic island chains of Ilyr-Kesh. Their layered scales disperse heat and
+protect against abrasion, but their dense bodies require more food and sturdier
+quarters than the human baseline. Their race-granted Feat, **Scaled
+Resilience**, represents that bounded physical protection; it grants neither
+innate spellcasting nor a breath weapon.
+
+Drakari reached orbit with pressure-forged sky vessels built to cross ash
+storms before they encountered the wider starways. Modern Drakari communities
+include navigators, gunners, natural philosophers, traders, and settlers rather
+than one species-wide empire or temperament.
+
+| Heritage | Stable ID | Heritage Feat | Cost |
+| --- | --- | --- | --- |
+| Emberclade | `heritage.drakari.emberclade` | Retains focus and stamina during intense heat or flare exposure | Cold environments slow recovery without heated quarters |
+| Tideclade | `heritage.drakari.tideclade` | Works efficiently in humid pressure suits and flooded compartments | Dry recycled air increases water demand |
+| Cloudclade | `heritage.drakari.cloudclade` | Maintains balance in violent winds and unstable gravity | Heavy armor consumes additional stamina |
 
 ### Gnomes
 
@@ -426,9 +421,9 @@ Every character begins with two granted Feats:
 | --- | --- | --- | --- |
 | Human | Versatility | `feat.race.human.versatility` | None |
 | Elf | Aether Sense | `feat.race.elf.aether-sense` | `access.magic` |
-| Half-elf | Blended Physiology | `feat.race.half-elf.blended-physiology` | None by default |
 | Dwarf | Braced Stance | `feat.race.dwarf.braced-stance` | None |
 | Orc | Second Wind | `feat.race.orc.second-wind` | None |
+| Drakari | Scaled Resilience | `feat.race.drakari.scaled-resilience` | None |
 | Gnome | Closework | `feat.race.gnome.closework` | None |
 | Goblin | Tight Passage | `feat.race.goblin.tight-passage` | None |
 | Somnari | Mindwake | `feat.race.somnari.mindwake` | `access.psionics` |
@@ -519,7 +514,7 @@ rules, unknown modifiers, and unbounded generation tables before publication.
 ## First playable character scope
 
 The first crew-enabled vertical slice should use eleven authored characters:
-one human, elf, half-elf, dwarf, orc, gnome, goblin, Somnari, Veyr, Eidolon,
+one human, elf, dwarf, orc, Drakari, gnome, goblin, Somnari, Veyr, Eidolon,
 and Tharun. Each needs a race, heritage, background, abilities, skills, two
 race- or heritage-granted Feats, and compatible quarters. The two granted Feats are:
 one granted by Race and one by Heritage. The Elf must exercise innate

@@ -5,6 +5,14 @@
   "fallbacks": [],
   "textDirection": "ltr",
   "messages": {
+    "heritage.drakari.emberclade.name": {
+      "description": "Emberclade display name.",
+      "message": "Emberclade"
+    },
+    "heritage.drakari.emberclade.description": {
+      "description": "Emberclade summary.",
+      "message": "The first-slice Emberclade heritage for Drakari characters."
+    },
     "heritage.human.hearthworld.name": {
       "description": "Hearthworld display name.",
       "message": "Hearthworld"
@@ -20,14 +28,6 @@
     "heritage.elf.dawnweave.description": {
       "description": "Dawnweave summary.",
       "message": "The first-slice Dawnweave heritage for Elf characters."
-    },
-    "heritage.half-elf.concord.name": {
-      "description": "Concord display name.",
-      "message": "Concord"
-    },
-    "heritage.half-elf.concord.description": {
-      "description": "Concord summary.",
-      "message": "The first-slice Concord heritage for Half-elf characters."
     },
     "heritage.dwarf.cometdelver.name": {
       "description": "Cometdelver display name.",

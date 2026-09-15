@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using System.Runtime.CompilerServices;
 
 namespace Spelljammer.Interop;
 
@@ -16,11 +17,20 @@ internal enum EngineStatus
     OutOfResource = -3,
     OutOfMemory = -4,
     InvalidResource = -5,
+    ItemNotFound = -6,
+    PermissionDenied = -7,
+    Timeout = -8,
+    NotImplemented = -9,
     NotSupported = -10,
     InvalidState = -11,
+    AlreadyExists = -12,
+    Busy = -13,
     DeviceLost = -14,
     BackendUnavailable = -15,
     InitializationFailed = -16,
+    IoError = -17,
+    DataCorrupt = -18,
+    Cancelled = -19,
     SkipFrame = -20,
 }
 
@@ -488,6 +498,519 @@ internal struct EngineUiPresentationLayout
     internal uint Drawable;
 }
 
+[Flags]
+internal enum EngineRendererFeature : ulong
+{
+    None = 0,
+    SmoothScenes = 1UL << 0,
+    SpriteBatches = 1UL << 1,
+    ResolvedView = 1UL << 3,
+    AbortFrame = 1UL << 4,
+    Path2D = 1UL << 6,
+    HdrScene = 1UL << 10,
+    Bloom = 1UL << 11,
+    MapLabels = 1UL << 17,
+}
+
+[StructLayout(LayoutKind.Sequential)]
+internal struct EngineRendererApiInfo
+{
+    internal uint StructSize;
+    internal ushort AbiMajor;
+    internal ushort AbiMinor;
+    internal EngineRendererFeature FeatureBits;
+    internal uint RequiredSessionConfigSize;
+    internal uint RequiredTextureDescriptionSize;
+    internal uint RequiredSceneDescriptionSize;
+    internal uint RequiredSpriteDrawSize;
+    internal uint MaximumBatchStride;
+    internal uint Reserved32;
+    internal ulong Reserved0;
+    internal ulong Reserved1;
+}
+
+[StructLayout(LayoutKind.Sequential)]
+internal struct EngineRendererSessionConfig
+{
+    internal uint StructSize;
+    internal ushort AbiMajor;
+    internal ushort AbiMinor;
+    internal uint Flags;
+    internal uint VerticalSync;
+    internal ulong NativeWindow;
+    internal uint LogicalWidth;
+    internal uint LogicalHeight;
+    internal uint MaximumSpritesPerFrame;
+    internal uint MaximumTextureResources;
+    internal uint FramesInFlight;
+    internal uint ScaleMode;
+    internal uint SmallWindowPolicy;
+    internal uint Reserved32;
+    internal float LetterboxRed;
+    internal float LetterboxGreen;
+    internal float LetterboxBlue;
+    internal float LetterboxAlpha;
+    internal ulong Reserved0;
+    internal ulong Reserved1;
+    internal ulong Reserved2;
+}
+
+[StructLayout(LayoutKind.Sequential)]
+internal struct EngineRendererTextureDescription
+{
+    internal uint StructSize;
+    internal uint Flags;
+    internal uint Width;
+    internal uint Height;
+    internal uint MipCount;
+    internal uint Format;
+    internal uint Filter;
+    internal uint Srgb;
+    internal uint GenerateMipmaps;
+    internal uint Reserved0;
+    internal uint Reserved1;
+    internal uint Reserved2;
+}
+
+[StructLayout(LayoutKind.Sequential)]
+internal struct EngineRendererFrameDescription
+{
+    internal uint StructSize;
+    internal uint Flags;
+    internal ulong SnapshotRevision;
+    internal ulong Reserved0;
+    internal ulong Reserved1;
+}
+
+[StructLayout(LayoutKind.Sequential)]
+internal struct EngineRendererCamera
+{
+    internal uint StructSize;
+    internal uint Flags;
+    internal float PositionX;
+    internal float PositionY;
+    internal float RotationRadians;
+    internal float PixelsPerWorldUnit;
+    internal float Zoom;
+    internal uint IntegerZoom;
+    internal uint PixelPerfect;
+    internal uint Reserved0;
+    internal uint Reserved1;
+    internal uint Reserved2;
+}
+
+[StructLayout(LayoutKind.Sequential)]
+internal struct EngineRendererSceneDescription
+{
+    internal uint StructSize;
+    internal uint Flags;
+    internal EngineRendererCamera Camera;
+    internal uint RasterProfile;
+    internal uint TargetSizeMode;
+    internal uint ExplicitTargetWidth;
+    internal uint ExplicitTargetHeight;
+    internal float ClearRed;
+    internal float ClearGreen;
+    internal float ClearBlue;
+    internal float ClearAlpha;
+    internal ulong Reserved0;
+    internal ulong Reserved1;
+}
+
+[StructLayout(LayoutKind.Sequential)]
+internal struct EngineRendererSpriteDraw
+{
+    internal uint StructSize;
+    internal uint Flags;
+    internal ulong Texture;
+    internal ulong StablePresentationId;
+    internal ulong LocalSequence;
+    internal uint SourceX;
+    internal uint SourceY;
+    internal uint SourceWidth;
+    internal uint SourceHeight;
+    internal int PivotX;
+    internal int PivotY;
+    internal uint UntrimmedWidth;
+    internal uint UntrimmedHeight;
+    internal float PositionX;
+    internal float PositionY;
+    internal float ScaleX;
+    internal float ScaleY;
+    internal float RotationRadians;
+    internal float ColorRed;
+    internal float ColorGreen;
+    internal float ColorBlue;
+    internal float ColorAlpha;
+    internal int Layer;
+    internal int Order;
+    internal uint Blend;
+    internal uint FlipX;
+    internal uint FlipY;
+    internal uint PixelSnap;
+    internal uint Reserved32;
+}
+
+[StructLayout(LayoutKind.Sequential)]
+internal struct EngineRendererSpriteDrawHdr
+{
+    internal EngineRendererSpriteDraw Base;
+    internal float EmissionRed;
+    internal float EmissionGreen;
+    internal float EmissionBlue;
+    internal float EmissionIntensity;
+}
+
+[StructLayout(LayoutKind.Sequential)]
+internal struct EngineRendererSpriteBatch
+{
+    internal uint StructSize;
+    internal uint Flags;
+    internal nint Records;
+    internal uint RecordCount;
+    internal uint RecordStride;
+    internal uint Reserved0;
+    internal uint Reserved1;
+}
+
+[StructLayout(LayoutKind.Sequential)]
+internal struct EngineRendererBatchResult
+{
+    internal uint StructSize;
+    internal uint Flags;
+    internal uint InputCount;
+    internal uint AcceptedCount;
+    internal uint RejectedCount;
+    internal uint CapacityExhausted;
+    internal uint Reserved0;
+    internal uint Reserved1;
+}
+
+[StructLayout(LayoutKind.Sequential)]
+internal struct EngineRendererResolvedView
+{
+    internal uint StructSize;
+    internal uint Flags;
+    internal ulong FrameRevision;
+    internal ulong ViewRevision;
+    internal ulong SnapshotRevision;
+    internal uint TargetWidth;
+    internal uint TargetHeight;
+    internal uint DrawableWidth;
+    internal uint DrawableHeight;
+    internal float DpiScaleX;
+    internal float DpiScaleY;
+    internal float ViewportX;
+    internal float ViewportY;
+    internal float ViewportWidth;
+    internal float ViewportHeight;
+    internal EngineRendererCamera Camera;
+    internal float WorldToTargetM11;
+    internal float WorldToTargetM12;
+    internal float WorldToTargetTx;
+    internal float WorldToTargetM21;
+    internal float WorldToTargetM22;
+    internal float WorldToTargetTy;
+    internal float TargetToWorldM11;
+    internal float TargetToWorldM12;
+    internal float TargetToWorldTx;
+    internal float TargetToWorldM21;
+    internal float TargetToWorldM22;
+    internal float TargetToWorldTy;
+    internal ulong Reserved0;
+    internal ulong Reserved1;
+}
+
+[StructLayout(LayoutKind.Sequential)]
+internal struct EngineRendererFrameReport
+{
+    internal uint StructSize;
+    internal uint State;
+    internal ulong FrameRevision;
+    internal ulong PresentedFrameRevision;
+    internal ulong ViewRevision;
+    internal ulong SnapshotRevision;
+    internal ulong Reserved0;
+    internal ulong Reserved1;
+}
+
+[StructLayout(LayoutKind.Sequential)]
+internal struct EngineRendererPoint
+{
+    internal float X;
+    internal float Y;
+}
+
+[StructLayout(LayoutKind.Sequential)]
+internal struct EngineRendererPathGeometry
+{
+    internal uint StructSize;
+    internal uint Flags;
+    internal ulong StableId;
+    internal ulong GeometryRevision;
+    internal nint Points;
+    internal uint PointCount;
+    internal uint Primitive;
+    internal uint Reserved0;
+    internal uint Reserved1;
+}
+
+[StructLayout(LayoutKind.Sequential)]
+internal struct EngineRendererPathStyle
+{
+    internal uint StructSize;
+    internal uint Flags;
+    internal ulong StyleRevision;
+    internal float Width;
+    internal uint WidthUnits;
+    internal uint Join;
+    internal uint Cap;
+    internal float DashOnLength;
+    internal float DashOffLength;
+    internal float DashPhase;
+    internal uint DashUnits;
+    internal float GradientStartRed;
+    internal float GradientStartGreen;
+    internal float GradientStartBlue;
+    internal float GradientStartAlpha;
+    internal float GradientEndRed;
+    internal float GradientEndGreen;
+    internal float GradientEndBlue;
+    internal float GradientEndAlpha;
+    internal uint Blend;
+    internal uint Reserved0;
+    internal uint Reserved1;
+    internal uint Reserved2;
+}
+
+[StructLayout(LayoutKind.Sequential)]
+internal struct EngineRendererPathDraw
+{
+    internal uint StructSize;
+    internal uint Flags;
+    internal ulong Path;
+    internal ulong StablePresentationId;
+    internal ulong LocalSequence;
+    internal float TranslationX;
+    internal float TranslationY;
+    internal float ClipLeft;
+    internal float ClipTop;
+    internal float ClipRight;
+    internal float ClipBottom;
+    internal EngineRendererPathStyle MainStyle;
+    internal EngineRendererPathStyle BaseStyle;
+    internal EngineRendererPathStyle HaloStyle;
+    internal int Layer;
+    internal int Order;
+    internal float FlowOffset;
+    internal float PickPadding;
+    internal uint BaseEnabled;
+    internal uint HaloEnabled;
+    internal uint ClipEnabled;
+    internal uint Reserved32;
+}
+
+[StructLayout(LayoutKind.Sequential)]
+internal struct EngineRendererPathEmission
+{
+    internal float Red;
+    internal float Green;
+    internal float Blue;
+    internal float Intensity;
+}
+
+[StructLayout(LayoutKind.Sequential)]
+internal struct EngineRendererPathDrawHdr
+{
+    internal EngineRendererPathDraw Base;
+    internal EngineRendererPathEmission MainEmission;
+    internal EngineRendererPathEmission BaseEmission;
+    internal EngineRendererPathEmission HaloEmission;
+}
+
+[StructLayout(LayoutKind.Sequential)]
+internal struct EngineRendererPathBatch
+{
+    internal uint StructSize;
+    internal uint Flags;
+    internal nint Records;
+    internal uint RecordCount;
+    internal uint RecordStride;
+    internal uint Reserved0;
+    internal uint Reserved1;
+}
+
+[StructLayout(LayoutKind.Sequential)]
+internal struct EngineRendererPostProcessProfile
+{
+    internal uint StructSize;
+    internal uint Flags;
+    internal ulong ColorGradeLut;
+    internal float Exposure;
+    internal float BloomThreshold;
+    internal float BloomSoftKnee;
+    internal float BloomRadius;
+    internal float BloomIntensity;
+    internal uint MaximumBloomLevels;
+    internal uint ToneMapOperator;
+    internal uint BloomEnabled;
+    internal uint Reserved32;
+    internal ulong Reserved0;
+    internal ulong Reserved1;
+}
+
+[StructLayout(LayoutKind.Sequential)]
+internal struct EngineRendererFontDescription
+{
+    internal uint StructSize;
+    internal uint Flags;
+    internal ulong Revision;
+    internal uint FaceIndex;
+    internal uint PixelSize;
+    internal uint RasterMode;
+    internal uint Hinting;
+}
+
+[StructLayout(LayoutKind.Sequential)]
+internal struct EngineRendererTextStyle
+{
+    internal uint StructSize;
+    internal uint Flags;
+    internal EngineRendererFontHandles Fonts;
+    internal nint LocaleUtf8;
+    internal uint LocaleBytes;
+    internal uint Direction;
+    internal uint ScriptTag;
+    internal uint Reserved;
+}
+
+[InlineArray(8)]
+internal struct EngineRendererFontHandles
+{
+    private ulong element;
+}
+
+[StructLayout(LayoutKind.Sequential)]
+internal struct EngineRendererTextLayoutDescription
+{
+    internal uint StructSize;
+    internal uint Flags;
+    internal nint Utf8;
+    internal uint ByteCount;
+    internal uint SpanCount;
+    internal nint Spans;
+    internal EngineRendererTextStyle Style;
+    internal ulong Revision;
+    internal float MaximumWidth;
+    internal uint MaximumLines;
+}
+
+[StructLayout(LayoutKind.Sequential)]
+internal struct EngineRendererTextMetrics
+{
+    internal uint StructSize;
+    internal uint Flags;
+    internal ulong Revision;
+    internal float Width;
+    internal float Height;
+    internal float InkX;
+    internal float InkY;
+    internal float InkWidth;
+    internal float InkHeight;
+    internal uint GlyphCount;
+    internal uint PrepareState;
+}
+
+[StructLayout(LayoutKind.Sequential)]
+internal struct EngineRendererLabelDraw
+{
+    internal uint StructSize;
+    internal uint Flags;
+    internal ulong StableId;
+    internal ulong Layout;
+    internal ulong IconTexture;
+    internal float WorldX;
+    internal float WorldY;
+    internal EngineRendererFloat16 Offsets;
+    internal uint OffsetCount;
+    internal int Priority;
+    internal uint CollisionGroup;
+    internal uint Reserved;
+    internal float MinimumZoom;
+    internal float MaximumZoom;
+    internal EngineRendererFloat4 Color;
+    internal EngineRendererFloat4 PlateColor;
+    internal EngineRendererFloat4 EffectColor;
+    internal float PlatePadding;
+    internal float OutlinePixels;
+    internal float ShadowX;
+    internal float ShadowY;
+    internal EngineRendererFloat4 IconRect;
+    internal EngineRendererUInt4 IconSource;
+}
+
+[InlineArray(16)]
+internal struct EngineRendererFloat16
+{
+    private float element;
+}
+
+[InlineArray(4)]
+internal struct EngineRendererFloat4
+{
+    private float element;
+}
+
+[InlineArray(4)]
+internal struct EngineRendererUInt4
+{
+    private uint element;
+}
+
+[StructLayout(LayoutKind.Sequential)]
+internal struct EngineRendererLabelBatch
+{
+    internal uint StructSize;
+    internal uint Flags;
+    internal nint Records;
+    internal uint RecordCount;
+    internal uint RecordStride;
+    internal nint Obstacles;
+    internal uint ObstacleCount;
+    internal uint ObstacleStride;
+    internal ulong Tick;
+    internal ulong CandidatesRevision;
+    internal ulong ObstaclesRevision;
+}
+
+[StructLayout(LayoutKind.Sequential)]
+internal struct EngineRendererLabelDiagnostics
+{
+    internal uint StructSize;
+    internal uint Flags;
+    internal uint Candidates;
+    internal uint Displayed;
+    internal uint Culled;
+    internal uint Collided;
+    internal uint PendingGlyphs;
+    internal uint CapacityRejected;
+    internal uint Quads;
+    internal uint CellReferences;
+    internal uint HistoryEntries;
+    internal uint CandidateHighWater;
+    internal uint ReferenceHighWater;
+    internal uint PlacementReused;
+    internal ulong PlacementMicroseconds;
+    internal ulong LayoutCacheHits;
+    internal ulong LayoutCacheMisses;
+    internal ulong LayoutCacheBytes;
+    internal ulong GlyphMisses;
+    internal uint QueuedGlyphs;
+    internal uint LiveLayouts;
+    internal ulong LayoutCacheHighWater;
+    internal ulong AtlasMisses;
+}
+
 internal static class SpriteForgeNative
 {
     private const string LibraryName = "SpriteForge.dll";
@@ -505,6 +1028,33 @@ internal static class SpriteForgeNative
         VerifyLayout<EngineUiElementSnapshot>(64);
         VerifyLayout<EngineUiPresentationCommand>(104);
         VerifyLayout<EngineUiPresentationLayout>(52);
+        VerifyLayout<EngineRendererApiInfo>(56);
+        VerifyLayout<EngineRendererSessionConfig>(96);
+        VerifyLayout<EngineRendererTextureDescription>(48);
+        VerifyLayout<EngineRendererFrameDescription>(32);
+        VerifyLayout<EngineRendererCamera>(48);
+        VerifyLayout<EngineRendererSceneDescription>(104);
+        VerifyLayout<EngineRendererSpriteDraw>(128);
+        VerifyLayout<EngineRendererSpriteDrawHdr>(144);
+        VerifyLayout<EngineRendererSpriteBatch>(32);
+        VerifyLayout<EngineRendererBatchResult>(32);
+        VerifyLayout<EngineRendererResolvedView>(184);
+        VerifyLayout<EngineRendererFrameReport>(56);
+        VerifyLayout<EngineRendererPoint>(8);
+        VerifyLayout<EngineRendererPathGeometry>(48);
+        VerifyLayout<EngineRendererPathStyle>(96);
+        VerifyLayout<EngineRendererPathDraw>(376);
+        VerifyLayout<EngineRendererPathEmission>(16);
+        VerifyLayout<EngineRendererPathDrawHdr>(424);
+        VerifyLayout<EngineRendererPathBatch>(32);
+        VerifyLayout<EngineRendererPostProcessProfile>(72);
+        VerifyLayout<EngineRendererFontDescription>(32);
+        VerifyLayout<EngineRendererTextStyle>(96);
+        VerifyLayout<EngineRendererTextLayoutDescription>(144);
+        VerifyLayout<EngineRendererTextMetrics>(48);
+        VerifyLayout<EngineRendererLabelDraw>(224);
+        VerifyLayout<EngineRendererLabelBatch>(64);
+        VerifyLayout<EngineRendererLabelDiagnostics>(120);
     }
 
     private static void VerifyLayout<T>(int expected) where T : struct
@@ -628,4 +1178,129 @@ internal static class SpriteForgeNative
         out float logicalX,
         out float logicalY,
         out uint insideViewport);
+
+    [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern EngineStatus SpriteForge_RendererV2_GetApiInfo(
+        ref EngineRendererApiInfo info);
+
+    [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern EngineStatus SpriteForge_RendererV2_CreateSession(
+        in EngineRendererSessionConfig config,
+        out nint session);
+
+    [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern EngineStatus SpriteForge_RendererV2_DestroySession(nint session);
+
+    [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern EngineStatus SpriteForge_RendererV2_CreateTexture(
+        nint session,
+        in EngineRendererTextureDescription description,
+        nint pixels,
+        ulong sizeBytes,
+        out ulong texture);
+
+    [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern EngineStatus SpriteForge_RendererV2_DestroyTexture(
+        nint session,
+        ulong texture);
+
+    [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern EngineStatus SpriteForge_RendererV2_CreateFont(
+        nint session,
+        in EngineRendererFontDescription description,
+        nint bytes,
+        ulong byteCount,
+        out ulong font);
+
+    [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern EngineStatus SpriteForge_RendererV2_DestroyFont(
+        nint session,
+        ulong font);
+
+    [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern EngineStatus SpriteForge_RendererV2_CreateTextLayout(
+        nint session,
+        in EngineRendererTextLayoutDescription description,
+        out ulong layout);
+
+    [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern EngineStatus SpriteForge_RendererV2_DestroyTextLayout(
+        nint session,
+        ulong layout);
+
+    [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern EngineStatus SpriteForge_RendererV2_GetTextMetrics(
+        nint session,
+        ulong layout,
+        ref EngineRendererTextMetrics metrics);
+
+    [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern EngineStatus SpriteForge_RendererV2_UpdateText(nint session);
+
+    [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern EngineStatus SpriteForge_RendererV2_SubmitLabels(
+        nint session,
+        in EngineRendererLabelBatch batch,
+        ref EngineRendererLabelDiagnostics diagnostics);
+
+    [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern EngineStatus SpriteForge_RendererV2_ResetLabels(nint session);
+
+    [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern EngineStatus SpriteForge_RendererV2_CreatePath(
+        nint session,
+        in EngineRendererPathGeometry geometry,
+        out ulong path);
+
+    [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern EngineStatus SpriteForge_RendererV2_DestroyPath(
+        nint session,
+        ulong path);
+
+    [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern EngineStatus SpriteForge_RendererV2_SetPostProcessProfile(
+        nint session,
+        in EngineRendererPostProcessProfile profile);
+
+    [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern EngineStatus SpriteForge_RendererV2_BeginFrame(
+        nint session,
+        in EngineRendererFrameDescription description,
+        ref EngineRendererFrameReport report);
+
+    [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern EngineStatus SpriteForge_RendererV2_BeginScene(
+        nint session,
+        in EngineRendererSceneDescription description,
+        ref EngineRendererResolvedView view);
+
+    [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern EngineStatus SpriteForge_RendererV2_SubmitPaths(
+        nint session,
+        in EngineRendererPathBatch batch,
+        ref EngineRendererBatchResult result);
+
+    [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern EngineStatus SpriteForge_RendererV2_SubmitSprites(
+        nint session,
+        in EngineRendererSpriteBatch batch,
+        ref EngineRendererBatchResult result);
+
+    [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern EngineStatus SpriteForge_RendererV2_EndScene(nint session);
+
+    [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern EngineStatus SpriteForge_RendererV2_EndFrame(
+        nint session,
+        ref EngineRendererFrameReport report);
+
+    [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern EngineStatus SpriteForge_RendererV2_Present(
+        nint session,
+        ref EngineRendererFrameReport report);
+
+    [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern EngineStatus SpriteForge_RendererV2_AbortFrame(
+        nint session,
+        ref EngineRendererFrameReport report);
 }
